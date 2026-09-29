@@ -28,27 +28,28 @@ const GATE_NAME = { 3: '소관문(小關門)', 7: '중관문(中關門)', 11: '�
 const MAX_STAR = 12;
 
 const MANUALS = {
-  // 무공
-  tongbae:    { name: '통배권',     cat: 'mugong', grade: '삼류', weapon: 'fist',   moves: ['쇄골편', '배후경', '파암퇴'], price: 40 },
-  gaesan:     { name: '개산장',     cat: 'mugong', grade: '이류', weapon: 'fist',   moves: ['개산일장', '추산이장', '분산삼장'], price: 400, req: 'boss2' },
-  samjae:     { name: '삼재검법',   cat: 'mugong', grade: '삼류', weapon: 'sword',  moves: ['천재', '지재', '인재'], price: 40 },
-  yuun:       { name: '유운검법',   cat: 'mugong', grade: '이류', weapon: 'sword',  moves: ['유운출수', '운무차천', '만류귀종'], price: 400, req: 'boss2' },
-  ohodan:     { name: '오호단문도', cat: 'mugong', grade: '삼류', weapon: 'blade',  moves: ['호포', '호조', '단문'], price: 40 },
-  hyeolrang:  { name: '혈랑도법',   cat: 'mugong', grade: '이류', weapon: 'blade',  moves: ['혈랑아', '낭아참', '혈월광랑'], price: 400, req: 'boss2' },
-  jungpyeong: { name: '중평창법',   cat: 'mugong', grade: '삼류', weapon: 'spear',  moves: ['중평자', '선풍편', '나선돌'], price: 40 },
-  yuseong:    { name: '유성창법',   cat: 'mugong', grade: '이류', weapon: 'spear',  moves: ['유성점', '추성섬', '유성낙하'], price: 400, req: 'boss2' },
-  tuseok:     { name: '투석술',     cat: 'mugong', grade: '삼류', weapon: 'hidden', moves: ['비석', '파목', '쇄슬'], price: 40 },
-  biyeop:     { name: '비엽비도술', cat: 'mugong', grade: '이류', weapon: 'hidden', moves: ['비엽', '쌍엽비', '만엽비도'], price: 400, req: 'boss2' },
-  // 심법
-  tonap:      { name: '청풍토납법', cat: 'simbeop', grade: '삼류', price: 0 },
-  simgyeol:   { name: '청풍심결',   cat: 'simbeop', grade: '이류', price: 350, req: 'boss2' },
-  // 경공
-  dapseol:    { name: '답설보',     cat: 'gyeonggong', grade: '삼류', price: 0 },
-  yuyeong:    { name: '청운유영보', cat: 'gyeonggong', grade: '이류', price: 350, req: 'boss2' },
-  // 기공
-  cheolpo:    { name: '철포삼',     cat: 'gigong', grade: '삼류', price: 0 },
-  hosin:      { name: '호신강기',   cat: 'gigong', grade: '이류', price: 350, req: 'boss2' },
+  // 입문 무공 (삼재 계열)
+  samjaeGwon:  { name: '삼재권장법', hanja: '三才拳掌法', cat: 'mugong', grade: '삼류', weapon: 'fist',   moves: ['천권', '지장', '인각'] },
+  samjaeGeom:  { name: '삼재검법',   hanja: '三才劍法',   cat: 'mugong', grade: '삼류', weapon: 'sword',  moves: ['천재', '지재', '인재'] },
+  samjaeDo:    { name: '삼재도법',   hanja: '三才刀法',   cat: 'mugong', grade: '삼류', weapon: 'blade',  moves: ['천참', '지참', '인참'] },
+  samjaeChang: { name: '삼재창법',   hanja: '三才槍法',   cat: 'mugong', grade: '삼류', weapon: 'spear',  moves: ['천돌', '지소', '인선'] },
+  samjaePyo:   { name: '삼재표법',   hanja: '三才鏢法',   cat: 'mugong', grade: '삼류', weapon: 'hidden', moves: ['천표', '지표', '인표'] },
+  // 입문 보조 비급
+  tonap:       { name: '토납법', hanja: '吐納法', cat: 'simbeop',    grade: '삼류' },
+  pocheolsak:  { name: '포철삭', hanja: '抛鐵索', cat: 'gyeonggong', grade: '삼류' },
+  cheolpo:     { name: '철포삼', hanja: '鐵布衫', cat: 'gigong',     grade: '삼류' },
+  // 장경각: 청풍문 세트 (문파 공헌도로 교환)
+  cpGwon:   { name: '청풍권',   hanja: '淸風拳',   cat: 'mugong', grade: '이류', weapon: 'fist',   moves: ['청풍일권', '회풍이권', '광풍삼권'], cost: 300 },
+  cpGeom:   { name: '청풍검',   hanja: '淸風劍',   cat: 'mugong', grade: '이류', weapon: 'sword',  moves: ['청풍출검', '회풍검', '청풍만리'], cost: 300 },
+  cpDo:     { name: '청풍도',   hanja: '淸風刀',   cat: 'mugong', grade: '이류', weapon: 'blade',  moves: ['청풍일도', '선풍참', '광풍단혼'], cost: 300 },
+  cpChang:  { name: '청풍창',   hanja: '淸風槍',   cat: 'mugong', grade: '이류', weapon: 'spear',  moves: ['청풍돌', '회풍창', '광풍천돌'], cost: 300 },
+  cpPyo:    { name: '청풍표',   hanja: '淸風鏢',   cat: 'mugong', grade: '이류', weapon: 'hidden', moves: ['청풍비표', '회풍표', '만천청풍'], cost: 300 },
+  cpSim:    { name: '청풍심법', hanja: '淸風心法', cat: 'simbeop',    grade: '이류', cost: 250 },
+  cpGyeong: { name: '청풍경공', hanja: '淸風輕功', cat: 'gyeonggong', grade: '이류', cost: 250 },
+  cpGi:     { name: '청풍기공', hanja: '淸風氣功', cat: 'gigong',     grade: '이류', cost: 250 },
 };
+const STARTERS = ['samjaeGwon', 'samjaeGeom', 'samjaeDo', 'samjaeChang', 'samjaePyo'];
+const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창', hidden: '암기' };
 
 /* 아이템 */
 const ITEMS = {
@@ -76,13 +77,13 @@ const ITEMS = {
   rice:         { name: '쌀',         icon: '🍚', kind: '재료', price: 3, desc: '아린이 몰래 챙겨둔 쌀.' },
   salt:         { name: '소금',       icon: '🧂', kind: '재료', price: 3, desc: '간을 맞추는 데 필수.' },
   // 실패 부산물
-  twistedIron:  { name: '뒤틀린 쇳덩이', icon: '⚙️', kind: '부산물', price: 0, desc: '주조 실패의 흔적. 무명 무신상에 봉헌할 수 있다.' },
-  burntAsh:     { name: '탄 약초재',     icon: '🌫️', kind: '부산물', price: 0, desc: '연단 실패의 흔적. 무명 무신상에 봉헌할 수 있다.' },
-  dregs:        { name: '찌꺼기',        icon: '🫗', kind: '부산물', price: 0, desc: '조리 실패의 흔적. 무명 무신상에 봉헌할 수 있다.' },
+  twistedIron:  { name: '뒤틀린 쇳덩이', icon: '⚙️', kind: '부산물', price: 0, desc: '주조 실패의 흔적. 무신상에 봉헌할 수 있다.' },
+  burntAsh:     { name: '탄 약초재',     icon: '🌫️', kind: '부산물', price: 0, desc: '연단 실패의 흔적. 무신상에 봉헌할 수 있다.' },
+  dregs:        { name: '찌꺼기',        icon: '🫗', kind: '부산물', price: 0, desc: '조리 실패의 흔적. 무신상에 봉헌할 수 있다.' },
   // 연단
-  pillLow:   { name: '하급 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '소관문(3성→4성) 돌파에 필요한 단약.' },
-  pillMid:   { name: '중급 돌파단', icon: '🔵', kind: '영단', price: 150, desc: '중관문(7성→8성) 돌파에 필요한 단약.' },
-  pillHigh:  { name: '상급 돌파단', icon: '🟣', kind: '영단', price: 500, desc: '대관문(11성→12성 대성) 돌파에 필요한 단약.' },
+  pillLow:   { name: '하급 돌파단', icon: '🟢', kind: '영단', price: 40,  use: { gate: 3 }, desc: '복용하면 소관문(3성→4성)에 막힌 비급이 돌파한다.' },
+  pillMid:   { name: '중급 돌파단', icon: '🔵', kind: '영단', price: 150, use: { gate: 7 }, desc: '복용하면 중관문(7성→8성)에 막힌 비급이 돌파한다.' },
+  pillHigh:  { name: '상급 돌파단', icon: '🟣', kind: '영단', price: 500, use: { gate: 11 }, desc: '복용하면 대관문(11성→12성)에 막힌 비급이 대성한다.' },
   potionHp:  { name: '금창약',   icon: '🩹', kind: '영약', price: 8,  use: { hp: 0.4 }, desc: '활력을 40% 회복한다. 전투 중 사용 가능.' },
   potionMp:  { name: '소환단',   icon: '💧', kind: '영약', price: 12, use: { mp: 0.5 }, desc: '내력을 50% 회복한다. 전투 중 사용 가능.' },
   clearPill: { name: '청심단',   icon: '🤍', kind: '영약', price: 60, use: { hp: 1, mp: 1 }, desc: '활력과 내력을 모두 회복한다.' },
@@ -127,9 +128,9 @@ const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring'
 const STAT_NAMES = {
   atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피율',
   crit: '치명타율', critRes: '치명 저항', mpRegen: '내력 회복', bag: '행낭 칸', mpCost: '내력 소모 감소',
-  craft: '기예 보정', train: '수련 효율', maxSta: '최대 기력',
+  craft: '기예 보정', train: '수련 효율', maxSta: '최대 기력', counter: '반격',
 };
-const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train']);
+const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter']);
 
 /* 장비 기본형: slot → tier(1~3) → {name, stats} */
 const TIER_ORE = { 1: 'iron', 2: 'blackiron', 3: 'coldiron' };
@@ -140,7 +141,7 @@ const EQUIP_BASES = {
   spear:  { slot: 'weapon', wtype: 'spear',  names: ['철창', '흑철창', '한철 장창'],            stats: t => ({ atk: [9, 24, 48][t - 1], spd: t }) },
   hidden: { slot: 'weapon', wtype: 'hidden', names: ['철비표통', '흑철 비표통', '한철 매화통'], stats: t => ({ atk: [6, 18, 38][t - 1], eva: t * 2 }) },
   armor:  { slot: 'armor',  names: ['가죽 호갑', '흑철 경갑', '한철 어린갑'], stats: t => ({ maxHp: [40, 120, 280][t - 1], def: [4, 12, 25][t - 1] }) },
-  helmet: { slot: 'helmet', names: ['가죽 두건', '흑철 투구', '한철 투구'],   stats: t => ({ critRes: [5, 10, 16][t - 1], def: [2, 5, 10][t - 1] }) },
+  helmet: { slot: 'helmet', names: ['가죽 두건', '흑철 투구', '한철 투구'],   stats: t => ({ critRes: [5, 10, 16][t - 1], def: [2, 5, 10][t - 1], counter: [2, 4, 6][t - 1] }) },
   boots:  { slot: 'boots',  names: ['짚신', '흑철 징신', '한철 운혜'],        stats: t => ({ spd: [2, 4, 6][t - 1], eva: [2, 4, 6][t - 1] }) },
   belt:   { slot: 'belt',   names: ['가죽 요대', '흑철 요대', '한철 요대'],   stats: t => ({ mpRegen: [1, 2, 4][t - 1], bag: [5, 10, 15][t - 1] }) },
   jade:   { slot: 'jade',   names: ['청옥패', '흑옥패', '한옥패'],           stats: t => ({ maxMp: [15, 40, 90][t - 1], mpCost: [3, 6, 10][t - 1] }) },
@@ -149,12 +150,12 @@ const EQUIP_BASES = {
 
 /* 신분패·탈것 (구매) */
 const SHOP_GEAR = [
-  { id: 'badge1', slot: 'badge', name: '청풍문 제자패',     rarity: 0, stats: { train: 10 }, price: 0 },
-  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 30 }, price: 200 },
-  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 60 }, price: 900, req: 'boss2' },
-  { id: 'mount1', slot: 'mount', name: '늙은 나귀',   rarity: 0, stats: { maxSta: 30 },  price: 150 },
-  { id: 'mount2', slot: 'mount', name: '조랑말',     rarity: 1, stats: { maxSta: 70 },  price: 600, req: 'boss1' },
-  { id: 'mount3', slot: 'mount', name: '청총마',     rarity: 3, stats: { maxSta: 120 }, price: 2000, req: 'boss2' },
+  { id: 'badge1', slot: 'badge', name: '청풍문 제자패',     rarity: 0, stats: { train: 10 } },
+  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 30 }, cost: 120 },
+  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 60 }, cost: 400 },
+  { id: 'mount1', slot: 'mount', name: '늙은 나귀', rarity: 0, stats: { maxSta: 30 },  boss: 'boss1' },
+  { id: 'mount2', slot: 'mount', name: '조랑말',   rarity: 1, stats: { maxSta: 70 },  boss: 'boss2' },
+  { id: 'mount3', slot: 'mount', name: '청총마',   rarity: 3, stats: { maxSta: 120 }, boss: 'boss3' },
 ];
 
 /* 제작 고유 옵션 */
@@ -165,6 +166,7 @@ const UNIQUES = [
   { key: 'hpPct',     val: 8, text: '최대 활력 +8%' },
   { key: 'mpSave',    val: 8, text: '초식 내력 소모 -8%' },
   { key: 'evaFlat',   val: 3, text: '회피율 +3%' },
+  { key: 'counter',   val: 6, text: '반격 +6%' },
 ];
 
 /* 기예 */
@@ -254,7 +256,7 @@ const ENEMIES = {
 */
 const ZONES = {
   cheongpung: {
-    name: '청풍산', hanja: '淸風山', range: '1~4성', tier: 1,
+    name: '청풍산', hanja: '淸風山', tier: 1,
     desc: '청풍문 뒷산. 들토끼와 들개가 뛰놀고, 깊은 곳엔 외눈 멧돼지왕이 산다.',
     enemies: ['rabbit', 'dog', 'boar'], boss: 'boarKing',
     map: [
@@ -271,7 +273,7 @@ const ZONES = {
     unlock: null,
   },
   yeomhwa: {
-    name: '염화채', hanja: '炎火寨', range: '5~8성', tier: 2,
+    name: '염화채', hanja: '炎火寨', tier: 2,
     desc: '화적패의 소굴. 붉은 바위산 곳곳에 불씨가 피어오른다. 채주 적염도가 다스린다.',
     enemies: ['bandit', 'axeman', 'archer'], boss: 'jeokyeom',
     map: [
@@ -285,10 +287,10 @@ const ZONES = {
     mine: [['blackiron', 1, 2, 1], ['emberStone', 1, 1, 0.3], ['jadeStone', 1, 1, 0.25]],
     chest: [['silver', 80, 140], ['potionMp', 2, 3], ['firegrass', 2, 3], ['blackiron', 2, 3]],
     gimmick: { name: '잠긴 목책 기관', stat: 'spd', need: 17, text: '목책 위로 몸을 날려 안쪽 빗장을 풀었습니다!', fail: '목책을 넘기엔 몸이 무겁습니다. (속도 17 이상 필요)' },
-    unlock: { boss: 'boss1', star: 4, text: '외눈 멧돼지왕 토벌 + 무공 4성 이상' },
+    unlock: { boss: 'boss1', text: '청풍산 두목을 꺾으면 길이 열린다' },
   },
   jeokryong: {
-    name: '적룡방', hanja: '赤龍幇', range: '9~12성', tier: 3,
+    name: '적룡방', hanja: '赤龍幇', tier: 3,
     desc: '강을 틀어쥔 수적 조직. 방주 갈천은 물 위를 걷는다는 소문이 있다.',
     enemies: ['pirate', 'harpoon', 'hyangju'], boss: 'galcheon',
     map: [
@@ -302,7 +304,7 @@ const ZONES = {
     mine: [['coldiron', 1, 2, 1], ['jadeStone', 1, 1, 0.3]],
     chest: [['silver', 200, 320], ['clearPill', 1, 2], ['bloodginseng', 1, 1], ['coldiron', 2, 3]],
     gimmick: { name: '수문 기관', stat: 'maxMp', need: 260, text: '내력을 쏟아부어 녹슨 수문을 들어올렸습니다!', fail: '수문이 요지부동입니다. (최대 내력 260 이상 필요)' },
-    unlock: { boss: 'boss2', star: 8, text: '채주 적염도 토벌 + 무공 8성 이상' },
+    unlock: { boss: 'boss2', text: '염화채 채주를 꺾으면 길이 열린다' },
   },
 };
 const ZONE_ORDER = ['cheongpung', 'yeomhwa', 'jeokryong'];
@@ -317,15 +319,17 @@ const HIT_TEXT = [
   [0, '옷깃만 스치며 살짝 긁히는 정도의 상처만 남겼습니다.', 'h1'],
 ];
 
-/* 아린 물물교환 */
-const BARTER = [
-  { give: { rabbitHide: 3 }, get: { rice: 2 } },
-  { give: { dogFang: 2 }, get: { salt: 2 } },
-  { give: { boarTusk: 2 }, get: { lingzhi: 1 } },
-  { give: { bandanaSilk: 2 }, get: { firegrass: 2 } },
-  { give: { scale: 2 }, get: { lotus: 1 } },
-  { give: { wood: 5 }, get: { herb: 3 } },
+/* 조운의 오늘의 보급품: [아이템, 최소, 최대] 중 2~3가지 */
+const SUPPLY = [
+  ['potionHp', 1, 3], ['potionMp', 1, 2], ['rice', 2, 4], ['salt', 2, 4], ['herb', 2, 4],
+  ['wood', 3, 5], ['iron', 2, 3], ['rabbitHide', 2, 3], ['boarHide', 1, 2], ['lingzhi', 1, 1], ['jumeokbap', 1, 2],
 ];
-const ARIN_SHOP = [
-  { id: 'rice', price: 4 }, { id: 'salt', price: 4 }, { id: 'herb', price: 5 }, { id: 'wood', price: 2 },
+
+/* 적 조우 감지 지문 (전투력 비 기준, 높을수록 내가 유리) */
+const SENSE_TEXT = [
+  [3.0, '하찮은 기척입니다. 눈을 감고도 상대할 수 있을 듯합니다.', 's1'],
+  [1.8, '제법 날이 선 기척이지만, 두렵지는 않습니다.', 's2'],
+  [1.1, '팽팽한 긴장감이 감돕니다. 방심하면 크게 다칠 것입니다.', 's3'],
+  [0.7, '등줄기로 식은땀이 흐릅니다. 목숨을 걸어야 할 상대입니다.', 's4'],
+  [0, '숨이 턱 막힐 듯한 강한 위압감이 짓누릅니다!', 's5'],
 ];
