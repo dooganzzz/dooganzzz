@@ -37,7 +37,7 @@ let ui = { tab: 'hall', pot: {}, craft: 'alchemy', battle: null, modal: null, ba
 
 function newState(name, mugongId) {
   const st = {
-    v: 5, name, created: now(), lastTick: now(),
+    v: 6, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, activeTrainingSkillId: null,
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
     inv: { potionHp: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
@@ -93,7 +93,7 @@ function calcStats() {
   }
   for (const slot of SLOT_ORDER) {
     const it = S.equip[slot]; if (!it) continue;
-    for (const [k, v] of Object.entries(it.stats)) s[k] = (s[k] || 0) + v;
+    for (const [k, v] of Object.entries(gearStats(it))) s[k] = (s[k] || 0) + v;
     if (it.unique) s[it.unique.key] = (s[it.unique.key] || 0) + it.unique.val;
   }
   s.atk += S.shrine.atk; s.maxMp += S.shrine.mp; s.eva += S.shrine.eva; s.crit += Math.floor(S.shrine.total / 10) * 2;
@@ -115,7 +115,15 @@ function calcStats() {
   return s;
 }
 /* 수련 시간표: 1~4성 구간 성당 8시간, 5~8성 16시간, 9~12성 24시간 (기본 효율 기준) */
-function trainHours(star) { return star <= 3 ? 8 : star <= 7 ? 16 : 24; }
+/* 진행 속도 (기본 효율 기준)
+   입문 → 소관문(1~3성)  : 수련 4시간  (성당 80분)  · 실전 승리 30회 (성당 10회)
+   소관문 → 중관문(4~7성) : 수련 8시간  (성당 2시간) · 실전 승리 80회 (성당 20회)
+   중관문 → 대관문(8~11성): 수련 24시간 (성당 6시간) · 실전 승리 160회 (성당 40회) */
+const SEG_HOURS = [4, 8, 24];
+const segOf = star => star <= 3 ? 0 : star <= 7 ? 1 : 2;
+const SEG_STARS = [3, 4, 4];
+function trainHours(star) { const g = segOf(star); return SEG_HOURS[g] / SEG_STARS[g]; }
+const CXP_NEED = [10, 20, 40];
 function trainBonus(st) { st = st || calcStats(); return 1 + st.train / 100 + st.trainBuff; }
 /* 비급 하나가 장착 시 주는 능력치 (성급 기준) */
 function manualBonus(id, star) {
@@ -128,7 +136,7 @@ function manualBonus(id, star) {
 }
 function trainRate(id, st) {
   const m = S.manuals[id]; if (!m || m.star >= MAX_STAR) return 0;
-  return need(m.star) / (trainHours(m.star) * 3600) * trainBonus(st);
+  return trainBonus(st);
 }
 function fmtDur(sec) {
   if (!isFinite(sec) || sec <= 0) return '0분';
@@ -137,24 +145,33 @@ function fmtDur(sec) {
 }
 
 /* ───────── 경험치 & 성(星) ───────── */
-const need = star => Math.round(40 * Math.pow(1.28, star - 1));
+const need = star => Math.round(trainHours(star) * 3600);           // 수련: 성당 필요한 수련 초(기본 효율 1초 = 1)
+const needC = star => CXP_NEED[segOf(star)];                          // 실전: 성당 필요 승리 수
+const needOf = (kind, star) => kind === 'cxp' ? needC(star) : need(star);
+/* 쌓아 둘 수 있는 한도: 다음 관문까지 필요한 양 전부 + 한 성 여유. 수련만 먼저 해 둬도 버려지지 않는다. */
+function xpCap(kind, star) {
+  const gateStar = star <= 3 ? 3 : star <= 7 ? 7 : 11;
+  let cap = 0;
+  for (let k = star; k <= gateStar; k++) cap += needOf(kind, k);
+  return cap + needOf(kind, Math.min(MAX_STAR - 1, gateStar + 1));
+}
 
 function addXp(id, kind, amt) {
   const m = S.manuals[id];
   if (!m || m.star >= MAX_STAR) return;
-  m[kind] = Math.min(m[kind] + amt, need(m.star) * 3);
+  m[kind] = Math.min(m[kind] + amt, xpCap(kind, m.star));
   tryStar(id);
 }
 function tryStar(id) {
   const m = S.manuals[id], M = MANUALS[id];
   while (m.star < MAX_STAR) {
-    const n = need(m.star);
-    if (m.cxp < n || m.txp < n) break;
+    const nc = needC(m.star), nt = need(m.star);
+    if (m.cxp < nc || m.txp < nt) break;
     if (GATES[m.star]) {
       if (!m.gate) { m.gate = true; log(`《${M.name}》 ${m.star}성이 가득 찼습니다. ${GATE_NAME[m.star]}에 막혔습니다. ${ITEMS[GATES[m.star]].name}${jo(ITEMS[GATES[m.star]].name, '을를')} 복용하면 뚫을 수 있습니다.`, 'gold'); toast(`${M.name} — ${GATE_NAME[m.star]}`); }
       break;
     }
-    m.cxp -= n; m.txp -= n; m.star++;
+    m.cxp -= nc; m.txp -= nt; m.star++;
     log(`《${M.name}》 ${m.star}성에 올랐습니다!`, 'good');
     toast(`${M.name} ${m.star}성!`);
   }
@@ -164,8 +181,7 @@ function breakthrough(id) {
   const pill = GATES[m.star];
   if (!m.gate || !pill || !has(pill)) return false;
   take(pill, 1);
-  const n = need(m.star);
-  m.cxp -= n; m.txp -= n; m.star++; m.gate = false;
+  m.cxp -= needC(m.star); m.txp -= need(m.star); m.star++; m.gate = false;
   const lines = {
     4: '노벽송: "그래, 기혈이 한 겹 트였구나. 이제 초식이 초식을 부를 게야." — 제2초식 해금!',
     8: '노벽송: "흐음… 제법이군. 세 번째 초식은 몸이 먼저 안다." — 제3초식 해금!',
@@ -300,6 +316,7 @@ function doCraft() {
   if (ok) {
     const first = !S.codex.includes(recipe.id);
     if (first) S.codex.push(recipe.id);
+    revealMaterials(recipe);
     if (recipe.out.startsWith('eq:')) {
       const [, base, tier] = recipe.out.split(':');
       const r = Math.random() * 100;
@@ -322,6 +339,19 @@ function doCraft() {
   ui.pot = {};
   render();
 }
+
+/* 재료 단서: 조합에 성공하면 그 조합에 쓴 재료마다 '이 재료가 들어가는 다른 조합식'이 도감에 드러난다.
+   완성품 이름과 이미 아는 재료만 보이고, 나머지 재료는 가려진다. (유저끼리 정보를 나누며 채워 가는 구조) */
+function revealMaterials(recipe) {
+  S.knownMats = S.knownMats || {};
+  for (const mat of Object.keys(recipe.in)) {
+    if (S.knownMats[mat]) continue;
+    S.knownMats[mat] = 1;
+    const uses = RECIPES.filter(r => r.in[mat] && !S.codex.includes(r.id));
+    if (uses.length) log(`🔍 ${hlItem(ITEMS[mat].name)}${jo(ITEMS[mat].name, '이가')} 쓰이는 조합식 ${uses.length}개가 도감에 단서로 드러났습니다.`, 'hint');
+  }
+}
+const isClue = r => !S.codex.includes(r.id) && Object.keys(r.in).some(m => (S.knownMats || {})[m]);
 
 /* 기예 ↔ 재료 분류 */
 const CRAFT_TYPE = { forge: 'forge', alchemy: 'alchemy', cook: 'cooking' };
@@ -572,7 +602,7 @@ function checkEnd(b) {
   if (b.e.hpNow <= 0) winBattle(b);
   else if (S.hp <= 0) loseBattle(b);
 }
-function playerAction(kind) {
+function playerAction(kind, silent) {
   const b = ui.battle; if (!b || b.over || !b.waiting) return;
   b.waiting = false; b.guard = false;
   b.st = calcStats();
@@ -590,6 +620,16 @@ function playerAction(kind) {
   }
   checkEnd(b);
   if (!b.over) advanceToPlayer(b);
+  if (!silent) renderBattle();
+}
+/* 자동 공격: 두목이 아닌 적에게만. 활력이 25% 아래로 떨어지면 멈추고 판단을 넘긴다. */
+function autoFight() {
+  const b = ui.battle; if (!b || b.over || b.e.boss) return;
+  bLine('⚔️ 자동 공격 — 끝을 볼 때까지 몰아칩니다.', 'muted');
+  for (let i = 0; i < 300 && !b.over && b.waiting; i++) {
+    if (S.hp < calcStats().maxHp * 0.25) { bLine('⚠️ 활력이 위태롭습니다. 자동 공격을 멈춥니다.', 'bad'); break; }
+    playerAction('attack', true);
+  }
   renderBattle();
 }
 function playerHit(b, mult, text) {
@@ -844,6 +884,43 @@ function doHasan() {
   render();
 }
 
+/* 조운의 창고: 은자로 사는 소모품·재료 */
+const JOUN_SHOP = [
+  ['potionHp', 15], ['potionMp', 20], ['jumeokbap', 12], ['rice', 4], ['salt', 4], ['water', 2],
+  ['wildGreens', 4], ['herb', 6], ['wood', 3], ['iron', 8], ['rabbitHide', 5], ['boarHide', 9],
+];
+function buyStore(id) {
+  const row = JOUN_SHOP.find(r => r[0] === id); if (!row || S.zone) return;
+  if (S.silver < row[1]) { toast('은자가 부족합니다.'); return; }
+  if (!give(id, 1, true)) return;
+  S.silver -= row[1];
+  log(`조운의 창고에서 ${hlItem(ITEMS[id].name)}${jo(ITEMS[id].name, '을를')} ${hlSilver(row[1])}에 샀습니다.`, 'loot');
+  render();
+}
+
+/* 장비 강화: +1마다 기본 능력치 10% 상승, 최대 +10. 실패해도 등급은 떨어지지 않고 은자만 사라진다. */
+const ENH_MAX = 10;
+const enhCost = it => Math.round(15 * (it.tier || 1) * Math.pow((it.enh || 0) + 1, 1.6));
+const enhChance = it => Math.max(30, 100 - (it.enh || 0) * 8);
+function gearStats(it) {
+  const mult = 1 + 0.1 * (it.enh || 0), out = {};
+  for (const [k, v] of Object.entries(it.stats)) out[k] = PCT_STATS.has(k) ? Math.round(v * mult * 10) / 10 : Math.round(v * mult);
+  return out;
+}
+function enhanceGear(slot) {
+  const it = S.equip[slot]; if (!it || S.zone) return;
+  if ((it.enh || 0) >= ENH_MAX) { toast('더 이상 벼릴 수 없습니다.'); return; }
+  const cost = enhCost(it);
+  if (S.silver < cost) { toast('은자가 부족합니다.'); return; }
+  S.silver -= cost;
+  if (Math.random() * 100 < enhChance(it)) {
+    it.enh = (it.enh || 0) + 1;
+    log(`🔨 ${hlItem(it.name)} 강화 성공! +${it.enh} (${hlSilver(cost)} 사용)`, 'good');
+  } else log(`🔨 ${hlItem(it.name)} 강화 실패… 쇠가 버티지 못했습니다. (${hlSilver(cost)} 사용)`, 'bad');
+  clampVitals(); render();
+}
+const gearName = it => `${it.name}${it.enh ? ` +${it.enh}` : ''}`;
+
 /* ───────── 순차 가이드 ───────── */
 const QUESTS = [
   ['비급 익히고 무공 장착하기', () => CAT_ORDER.every(c => S.active[c]), '무장 탭 행낭에서 비급 네 권을 [ 익히기 ] 한 뒤, 무공 탭에서 각각 장착하십시오.'],
@@ -983,7 +1060,7 @@ function centerMap() {
 function xpRows(id) {
   const m = S.manuals[id], on = S.activeTrainingSkillId === id;
   if (m.star >= MAX_STAR) return '<div class="daesung">大成</div>';
-  const n = need(m.star), pc = m.cxp / n * 100, pt = m.txp / n * 100;
+  const pc = m.cxp / needC(m.star) * 100, pt = m.txp / need(m.star) * 100;
   return `<div class="xp" data-live="${id}">
     <div class="xprow"><span>실전</span><div class="xpbar c"><span style="width:${Math.min(100, pc)}%"></span></div><b>${Math.min(100, Math.floor(pc))}%</b></div>
     <div class="xprow"><span>수련</span><div class="xpbar t"><span class="progress-fill${on ? ' training-active' : ''}" style="width:${Math.min(100, pt)}%"></span></div><b>${Math.min(100, Math.floor(pt))}%</b></div>
@@ -995,9 +1072,8 @@ function renderLive() {
   if (ui.tab === 'yeonmu' && S.activeTrainingSkillId && Math.floor(now() / 1000) % 30 === 0 && !ui.modal) { render(); return; }
   for (const el of document.querySelectorAll('[data-live]')) {
     const m = S.manuals[el.dataset.live]; if (!m || m.star >= MAX_STAR) continue;
-    const n = need(m.star);
     const rows = el.querySelectorAll('.xprow');
-    [m.cxp, m.txp].forEach((v, i) => { const p = v / n * 100; rows[i].querySelector('.xpbar > span').style.width = Math.min(100, p) + '%'; rows[i].querySelector('b').textContent = Math.min(100, Math.floor(p)) + '%'; });
+    [m.cxp / needC(m.star), m.txp / need(m.star)].forEach((r, i) => { const p = r * 100; rows[i].querySelector('.xpbar > span').style.width = Math.min(100, p) + '%'; rows[i].querySelector('b').textContent = Math.min(100, Math.floor(p)) + '%'; });
   }
   const sig = document.querySelector('[data-starsig]');
   if (sig && sig.dataset.starsig !== starSig()) render();
@@ -1018,7 +1094,7 @@ function viewYeonmu() {
       <div class="art-name">《${M.name}》${m.gate ? ' <span class="pill warn">관문</span>' : ''}</div>
       ${xpRows(id)}
       <div class="art-foot">
-        <small class="muted">${m.star >= MAX_STAR ? '대성' : on ? (m.txp >= need(m.star) ? '수련 가득 참 · 실전 필요' : `다음 성까지 약 ${fmtDur(left)}`) : `성당 ${trainHours(m.star)}시간`}</small>
+        <small class="muted">${m.star >= MAX_STAR ? '대성' : on ? (m.txp >= need(m.star) ? `수련 가득 참 · 실전 ${Math.max(0, needC(m.star) - Math.floor(m.cxp))}승 더` : `다음 성까지 약 ${fmtDur(left)}`) : `성당 수련 ${fmtDur(trainHours(m.star) * 3600)}`}</small>
         <button class="btn sm ${on ? 'primary' : ''}" data-train="${cat}" ${m.star >= MAX_STAR ? 'disabled' : ''}>${on ? '[ 수련 중지 ]' : '[ 수련하기 ]'}</button>
       </div>
     </div>`;
@@ -1026,7 +1102,7 @@ function viewYeonmu() {
   const tm = tid && MANUALS[tid];
   return `<section class="panel" data-starsig="${starSig()}">
     ${head('연무장', '演武場', `<span class="pill ${tid ? '' : 'idle'}">${tid ? '수련 중' : '수련 정지'}</span>`)}
-    <p class="story">${tm ? `향이 타들어 갑니다. 《${tm.name}》 한 가지에만 온 정신을 모읍니다. 1~4성은 성마다 8시간, 5~8성은 16시간, 9~12성은 24시간이 걸립니다.` : '연무장이 고요합니다. 수련할 비급 하나를 골라 [ 수련하기 ]를 누르십시오. 한 번에 한 비급만 수련할 수 있습니다.'}</p>
+    <p class="story">${tm ? `향이 타들어 갑니다. 《${tm.name}》 한 가지에만 온 정신을 모읍니다. 소관문까지 4시간, 중관문까지 8시간, 대관문까지 24시간이 걸립니다.` : '연무장이 고요합니다. 수련할 비급 하나를 골라 [ 수련하기 ]를 누르십시오. 한 번에 한 비급만 수련할 수 있습니다.'}</p>
     <div class="arts">${cards}</div>
   </section>`;
 }
@@ -1034,20 +1110,20 @@ function manualModal(cat) {
   return martialModal(S.active[cat]);
 }
 function martialModal(id) {
-  const M = MANUALS[id], m = S.manuals[id], n = need(m.star), cat = M.cat;
+  const M = MANUALS[id], m = S.manuals[id], nc = needC(m.star), nt = need(m.star), cat = M.cat;
   const worn = S.active[cat] === id;
   const bonus = Object.entries(manualBonus(id, m.star)).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-  const pc = Math.min(100, Math.floor(m.cxp / n * 100)), pt = Math.min(100, Math.floor(m.txp / n * 100));
+  const pc = Math.min(100, Math.floor(m.cxp / nc * 100)), pt = Math.min(100, Math.floor(m.txp / nt * 100));
   const moves = M.moves ? `<h4>초식</h4><ol class="moves">${M.moves.map((mv, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 시동', '제2초식 · 연계', '제3초식 · 결착'][i]}${open ? '' : ` — ${i === 1 ? '4성' : '8성'} 돌파 시 해금`}</small></li>`; }).join('')}</ol>
     <p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : '';
   const pill = GATES[m.star];
   let gateInfo;
   if (m.star < MAX_STAR) {
-    const over = v => Math.max(0, Math.floor(v - n));
+    const over = (v, n) => Math.max(0, Math.floor(v - n));
     gateInfo = `<h4>${m.star}성 → ${m.star + 1}성</h4>
-      <div class="kv"><span>실전 경험</span><b>${Math.floor(m.cxp)} / ${n}</b></div>
-      <div class="kv"><span>수련 경험</span><b>${Math.floor(m.txp)} / ${n}</b></div>
-      <div class="kv"><span>이월 예정</span><b>실전 +${over(m.cxp)} · 수련 +${over(m.txp)}</b></div>
+      <div class="kv"><span>실전 (전투 승리)</span><b>${Math.floor(m.cxp)} / ${nc}승</b></div>
+      <div class="kv"><span>수련 (기본 효율 성당 ${fmtDur(trainHours(m.star) * 3600)})</span><b>${Math.floor(m.txp)} / ${nt}</b></div>
+      <div class="kv"><span>이월 예정</span><b>실전 +${over(m.cxp, nc)} · 수련 +${over(m.txp, nt)}</b></div>
       ${pill ? `<p class="${m.gate ? 'warn' : 'muted'}">${GATE_NAME[m.star]} — ${ITEMS[pill].name} 필요${m.gate && !has(pill) ? ' (가지고 있지 않습니다)' : ''}</p>` : ''}
       ${m.gate && has(pill) ? `<div><button class="btn primary" data-pill="${pill}">${ITEMS[pill].icon} ${ITEMS[pill].name} 복용</button></div>` : ''}`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
@@ -1178,6 +1254,7 @@ function viewHall() {
     </div>
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 필요한 건 챙겨놨다."</p></div>
       <button class="btn ${supplied ? 'ghost' : 'primary'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 받기 ]'}</button></div>
+    <div class="store"><h4>조운의 창고 <small>은자로 삽니다</small></h4><div class="chips">${JOUN_SHOP.map(([id, pr]) => `<button class="chip" data-store="${id}" ${S.silver < pr ? 'disabled' : ''}>${ITEMS[id].icon} ${ITEMS[id].name} <b>${pr}냥</b></button>`).join('')}</div></div>
   </section>
   <section class="panel">
     ${head('문파 임무', '門派任務', '<button class="btn ghost sm" data-act="reroll">새 임무 (은자 5냥)</button>')}
@@ -1266,6 +1343,7 @@ function viewBattle() {
           <button class="btn act-def" data-bact="guard">🛡️ 방어</button>
           <button class="btn act-run" data-bact="flee">💨 도주</button>
         </div>
+        ${e.boss ? '' : '<button class="btn act-auto" data-act="auto">⚔️ 자동 공격 <small>활력 25% 미만이면 멈춤</small></button>'}
         ${items.length ? `<div class="chips">${items.map(id => `<button class="chip" data-bitem="${id}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : ''}
         <small class="muted">방어하면 받는 피해가 50~70% 줄고, 반격 ${st.counter}% 확률로 흘려낸 뒤 되받아칩니다.</small>`}
     </div>
@@ -1279,7 +1357,7 @@ function renderBattle() {
 }
 
 /* 무장 · 행낭 */
-function statLine(it) { return Object.entries(it.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · '); }
+function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · '); }
 const DOLL_SVG = `<svg class="martial-artist-img fallback" viewBox="0 0 240 360" role="img" aria-label="무인 실루엣">
   <defs><linearGradient id="dollInk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5361"/><stop offset="1" stop-color="#1b2027"/></linearGradient></defs>
   <g fill="url(#dollInk)" stroke="rgba(212,175,55,.35)" stroke-width="1.2" stroke-linejoin="round">
@@ -1301,11 +1379,11 @@ function viewBag() {
   const st = calcStats();
   const slot = s => {
     const it = S.equip[s];
-    return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${it.name}</b>` : ''}</button>`;
+    return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}</button>`;
   };
   const acc = s => {
     const it = S.equip[s];
-    return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${it.name}</b>` : ''}</button>`;
+    return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}</button>`;
   };
   const sel = ui.slotSel && S.equip[ui.slotSel];
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
@@ -1322,7 +1400,8 @@ function viewBag() {
         <div class="acc-row">${['boots', 'belt', 'ring', 'badge', 'mount'].map(acc).join('')}</div>
       </div>
       <div class="side-col">
-        ${sel ? `<div class="gear r${sel.rarity}"><div class="gtop"><span class="grade r${sel.rarity}">${RARITY[sel.rarity].name}</span><b>${sel.name}</b></div><small>${statLine(sel)}</small>${sel.unique ? `<small class="uniq">✦ ${sel.unique.text}</small>` : ''}<div class="btns"><button class="btn ghost sm" data-unequip="${sel.slot}">해제</button></div></div>` : ''}
+        ${sel ? `<div class="gear r${sel.rarity}"><div class="gtop"><span class="grade r${sel.rarity}">${RARITY[sel.rarity].name}</span><b>${gearName(sel)}</b></div><small>${statLine(sel)}</small>${sel.unique ? `<small class="uniq">✦ ${sel.unique.text}</small>` : ''}
+          <div class="btns"><button class="btn sm" data-enhance="${sel.slot}" ${(sel.enh || 0) >= ENH_MAX || S.zone || S.silver < enhCost(sel) ? 'disabled' : ''}>🔨 ${(sel.enh || 0) >= ENH_MAX ? '강화 완료' : `강화 +${(sel.enh || 0) + 1} · ${hlSilver(enhCost(sel))} · ${enhChance(sel)}%`}</button><button class="btn ghost sm" data-unequip="${sel.slot}">해제</button></div></div>` : ''}
         <div class="statsheet">${statList}</div>
       </div>
     </div>
@@ -1340,15 +1419,19 @@ function viewCodex() {
   const cols = Object.keys(CRAFTS).map(c => {
     const all = RECIPES.filter(r => r.craft === c);
     const known = all.filter(r => S.codex.includes(r.id)).length;
+    const clues = all.filter(isClue).length;
     const tiles = all.map(r => S.codex.includes(r.id)
       ? `<button class="ctile known" data-recipe="${r.id}"><span>${recipeIcon(r)}</span><b>${recipeName(r)}</b></button>`
-      : `<button class="ctile locked" data-recipe="${r.id}" aria-label="미발견"><span>？</span></button>`).join('');
-    return `<article class="codex-col"><h3>${label(CRAFTS[c].name, CRAFTS[c].hanja)} <span class="num muted">${known}/${all.length}</span></h3><div class="ctiles">${tiles}</div></article>`;
+      : isClue(r)
+        ? `<button class="ctile clue" data-recipe="${r.id}"><span>${recipeIcon(r)}</span><b>${recipeName(r)}</b><small>${Object.keys(r.in).map(m => S.knownMats[m] ? ITEMS[m].icon : '？').join(' ')}</small></button>`
+        : `<button class="ctile locked" data-recipe="${r.id}" aria-label="미발견"><span>？</span></button>`).join('');
+    return `<article class="codex-col"><h3>${label(CRAFTS[c].name, CRAFTS[c].hanja)} <span class="num muted">${known}/${all.length}${clues ? ` · 단서 ${clues}` : ''}</span></h3><div class="ctiles">${tiles}</div></article>`;
   }).join('');
   return `<section class="panel">${head('도감', '圖鑑')}<div class="codex">${cols}</div></section>`;
 }
 function openRecipe(rid) {
-  if (!S.codex.includes(rid)) { toast('아직 발견하지 못한 비전입니다.'); return; }
+  const r = RECIPES.find(x => x.id === rid);
+  if (!S.codex.includes(rid) && !isClue(r)) { toast('아직 발견하지 못한 비전입니다.'); return; }
   ui.modal = 'recipe:' + rid; renderModal();
 }
 function recipeModal(rid) {
@@ -1362,11 +1445,15 @@ function recipeModal(rid) {
     const I = ITEMS[r.out];
     body = `<p class="story">${I.desc}</p><div class="kv"><span>분류</span><b>${I.kind}</b></div><div class="kv"><span>보유</span><b>${count(r.out)}개</b></div>`;
   }
-  const mats = Object.entries(r.in).map(([id, n]) => `<li><span>${ITEMS[id].icon} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('');
+  const full = S.codex.includes(r.id);
+  const knownIn = Object.entries(r.in).filter(([id]) => full || (S.knownMats || {})[id]);
+  const hidden = Object.keys(r.in).length - knownIn.length;
+  const mats = knownIn.map(([id, n]) => `<li><span>${ITEMS[id].icon} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('')
+    + (hidden ? `<li class="hidden-mat"><span>？ 아직 모르는 재료 ${hidden}가지</span><b class="muted">강호의 소문을 모아 보십시오</b></li>` : '');
   return `<div class="sheet">
     <div class="sheet-head"><div><small class="muted">${C.name} ${C.hanja}</small><h2>${recipeIcon(r)} ${recipeName(r)}</h2></div></div>
     ${body}
-    <h4>필요 재료</h4><ul class="mats-list">${mats}</ul>
+    <h4>${full ? '필요 재료' : '재료 단서'}</h4><ul class="mats-list">${mats}</ul>
     <div class="btns"><button class="btn primary" data-fill="${r.id}" ${S.zone ? 'disabled' : ''}>[ 화로로 가기 ]</button><button class="btn ghost" data-act="closemodal">닫기</button></div>
     ${S.zone ? '<small class="muted">화로는 청풍문에 돌아가야 쓸 수 있습니다.</small>' : ''}
   </div>`;
@@ -1374,7 +1461,8 @@ function recipeModal(rid) {
 function fillPot(rid) {
   if (S.zone) return;
   const r = RECIPES.find(x => x.id === rid);
-  ui.craft = r.craft; ui.pot = { ...r.in }; ui.tab = 'forge'; ui.craftResult = null; ui.modal = null; render();
+  const full = S.codex.includes(r.id);
+  ui.craft = r.craft; ui.pot = Object.fromEntries(Object.entries(r.in).filter(([id]) => full || (S.knownMats || {})[id])); ui.tab = 'forge'; ui.craftResult = null; ui.modal = null; render();
 }
 
 function renderModal() {
@@ -1471,6 +1559,8 @@ function onClick(e) {
   if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
   if (d.zone) return enterZone(d.zone);
   if (d.train) return toggleTraining(d.train);
+  if (d.store) return buyStore(d.store);
+  if (d.enhance) return enhanceGear(d.enhance);
   if (d.equipm) { equipManual(d.equipm); if (ui.modal) { ui.modal = 'mart:' + d.equipm; renderModal(); } return; }
   if (d.unequipm) { const id = S.active[d.unequipm]; unequipManual(d.unequipm); if (ui.modal && id) { ui.modal = 'mart:' + id; renderModal(); } return; }
   if (d.mart) { ui.modal = 'mart:' + d.mart; return renderModal(); }
@@ -1498,7 +1588,7 @@ function onClick(e) {
     leave: leaveZone, interact, craft: doCraft, clearpot: () => { ui.pot = {}; render(); },
     rest, snack: arinSnack, talk: arinTalk, masterhint: masterHint, supply: jounSupply, reroll: rerollMissions,
     hasan: doHasan, closemodal: () => { ui.modal = null; render(); },
-    closebattle: closeBattle,
+    closebattle: closeBattle, auto: autoFight,
     reset: askReset,
     doreset: doReset,
   };
@@ -1520,6 +1610,12 @@ function boot() {
     S.v = 3;
   }
   if (S && (S.v || 0) < 5) S.v = 5;
+  if (S && S.v < 6) {
+    // 수련 경험치 눈금이 '초'로 바뀌었으므로 진행 비율을 유지한 채 환산한다
+    const oldNeed = st => Math.round(40 * Math.pow(1.28, st - 1));
+    for (const m of Object.values(S.manuals)) if (m.star < MAX_STAR) m.txp = m.txp / oldNeed(m.star) * need(m.star);
+    S.v = 6;
+  }
   if (S && S.zone && (!S.zone.layout || !S.zone.start || S.zone.layout.length !== MAP_H)) S.zone = null;
   if (!S) showIntro();
   else {

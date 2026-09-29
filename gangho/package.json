@@ -1,0 +1,11 @@
+{
+  "name": "gangho-kyeonmunrok",
+  "private": true,
+  "description": "강호견문록 제1장 청풍문 편 — 텍스트 무협 RPG 웹게임",
+  "scripts": {
+    "test": "node tests/run-all.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}
