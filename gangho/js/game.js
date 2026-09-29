@@ -12,6 +12,7 @@ const now = () => Date.now();
 const fmt = n => Math.floor(n).toLocaleString('ko-KR');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const today = () => new Date().toISOString().slice(0, 10);
+const hhmm = t => { const d = new Date(t || Date.now()); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const hlItem = t => `<span class="hl-item">${t}</span>`;
 const hlSilver = n => `<span class="hl-silver">은자 ${fmt(n)}냥</span>`;
 const hlContrib = n => `<span class="hl-contrib">문파 공헌도 ${typeof n === 'number' ? fmt(n) : n}</span>`;
@@ -74,10 +75,19 @@ function log(text, cls = '') {
   // 새 기록은 맨 위에 붙인다 (최신이 항상 위)
   const el = $('#log'); if (!el) return;
   const p = document.createElement('p');
-  p.className = cls; p.innerHTML = text;
+  p.className = cls; p.innerHTML = text; p.dataset.time = hhmm(now());
   el.prepend(p);
   while (el.children.length > 60) el.lastElementChild.remove();
   el.scrollTop = 0;
+}
+/* 성취 현판: 경계 돌파·두목 토벌 같은 큰 순간에 화면 위쪽에 잠시 뜬다 */
+function banner(title, sub = '', tone = '') {
+  let el = $('#banner');
+  if (!el) { el = document.createElement('div'); el.id = 'banner'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.className = 'banner ' + tone;
+  el.innerHTML = `<b>${title}</b>${sub ? `<small>${sub}</small>` : ''}`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(banner.t); banner.t = setTimeout(() => el.classList.remove('show'), 2600);
 }
 function toast(text) {
   const el = document.createElement('div');
@@ -196,8 +206,8 @@ function breakthrough(id) {
   };
   log(`${ITEMS[pill].icon} ${ITEMS[pill].name}의 약기운이 기혈을 뚫습니다. 《${M.name}》 ${GATE_NAME[m.star - 1]} 돌파! ${m.star}성.`, 'gold');
   if (lines[m.star]) log(lines[m.star], 'npc');
-  if (m.star === 6) log(`✨ 《${M.name}》 소성(小成) — 장착 능력치 30% 상향${M.cat === 'mugong' ? ', 초식 위력 25% 상향' : ''}.`, 'gold');
-  if (m.star === MAX_STAR) log(`🌟 《${M.name}》 대성(大成 / 極意) — ${DAESUNG_PASSIVE[M.cat].text}`, 'gold');
+  if (m.star === 6) { log(`✨ 《${M.name}》 소성(小成) — 장착 능력치 30% 상향${M.cat === 'mugong' ? ', 초식 위력 25% 상향' : ''}.`, 'gold'); banner('小成 · 소성', `《${M.name}》 6성`, 'jade'); }
+  if (m.star === MAX_STAR) { log(`🌟 《${M.name}》 대성(大成 / 極意) — ${DAESUNG_PASSIVE[M.cat].text}`, 'gold'); banner('大成 · 대성', `《${M.name}》 극의(極意)`, 'gold'); }
   toast(`${M.name} ${m.star}성 돌파!`);
   tryStar(id);
   return true;
@@ -536,16 +546,26 @@ function pickBeast() {
   for (let i = 0; i < w.length; i++) { r -= w[i]; if (r < 0) return Z.enemies[i]; }
   return Z.enemies[0];
 }
+/* 지도용 먹선 아이콘 (이모지 대신 테마에 맞는 선화) */
+const ICON = {
+  beast: '<path d="M6 4c3 5 3 11 0 16M11 3c3 6 3 12 0 18M16 4c3 5 3 11 0 16"/>',
+  chest: '<rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M3 9c0-3 2-5 5-5h8c3 0 5 2 5 5M3 13h18M11 12h2v3h-2z"/>',
+  boss: '<path d="M4 3l3.5 4.5M20 3l-3.5 4.5"/><path d="M5 9c0 6 3 11 7 11s7-5 7-11c-2-1-4-1.5-7-1.5S7 8 5 9z"/><path d="M8.5 13l2 1M15.5 13l-2 1M10 17h4"/>',
+  gate: '<path d="M2 5.5h20M4 5.5v14.5M20 5.5v14.5M3.5 9.5h17M9 9.5V20M15 9.5V20M1.5 3.5l2 2M22.5 3.5l-2 2"/>',
+  gimmick: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/><circle cx="12" cy="12" r="2.4"/>',
+  path: '',
+};
+const ico = k => ICON[k] ? `<svg class="ico ico-${k}" viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>` : '<i class="dot"></i>';
 function nodeInfo(zid, x, y) {
   const c = tileAt(zid, x, y), Z = ZONES[zid];
-  if (c === 'Y') return { type: 'beast', icon: '🐾', label: '요수(妖獸)' };
+  if (c === 'Y') return { type: 'beast', icon: ico('beast'), label: '요수(妖獸)' };
   if (c === 'H') return { type: 'herb', icon: '🌿', label: '약초 군락' };
   if (c === 'M') return { type: 'mine', icon: '⛏️', label: '광맥' };
-  if (c === 'C') return { type: 'chest', icon: '📦', label: '금고(金庫)' };
-  if (c === 'G') return { type: 'gimmick', icon: '⚙️', label: Z.gimmick.name };
-  if (c === 'K') return { type: 'boss', icon: '👹', label: ENEMIES[Z.boss].name, enemy: Z.boss };
-  if (c === 'S') return { type: 'gate', icon: '🏯', label: '입구' };
-  return { type: 'path', icon: '·', label: '산길(山徑)' };   // 함정(T)도 산길과 똑같이 보인다
+  if (c === 'C') return { type: 'chest', icon: ico('chest'), label: '금고(金庫)' };
+  if (c === 'G') return { type: 'gimmick', icon: ico('gimmick'), label: Z.gimmick.name };
+  if (c === 'K') return { type: 'boss', icon: ico('boss'), label: ENEMIES[Z.boss].name, enemy: Z.boss };
+  if (c === 'S') return { type: 'gate', icon: ico('gate'), label: '입구' };
+  return { type: 'path', icon: ico('path'), label: '산길(山徑)' };   // 함정(T)도 산길과 똑같이 보인다
 }
 function spend(cost) {
   if (S.stamina < cost) { toast('기력이 부족합니다. 음식을 먹거나 뒷마당에서 쉬십시오.'); return false; }
@@ -631,7 +651,7 @@ let BATTLE_MS = 3000;
 function startBattle(eid) {
   const E = ENEMIES[eid];
   stopBattleTimer();
-  ui.battle = { eid, e: { ...E, hpNow: E.hp }, lines: [], over: false, round: 0, st: calcStats() };
+  ui.battle = { eid, e: { ...E, hpNow: E.hp }, lines: [], over: false, round: 0, st: calcStats(), fx: [], prev: { me: S.hp, foe: E.hp } };
   bLine(`⚔️ ${josa(E.name, '이가')} 모습을 드러냈습니다!`, 'head');
   const [, stext, scls] = sense(eid);
   bLine(stext, 'sense ' + scls);
@@ -653,6 +673,8 @@ function battleRound() {
   const b = ui.battle;
   if (!b || b.over) { stopBattleTimer(); return; }
   b.round++;
+  b.prev = { me: S.hp, foe: b.e.hpNow };
+  b.fx = [];
   b.st = calcStats();
   const order = b.st.spd >= b.e.spd ? ['me', 'foe'] : ['foe', 'me'];
   for (const who of order) {
@@ -672,12 +694,15 @@ function checkEnd(b) {
 function playerHit(b, mult, text) {
   const e = b.e, st = b.st;
   const hitChance = Math.max(55, 95 - e.eva);
-  if (Math.random() * 100 >= hitChance) { bLine(`${text} — ${josa(e.name, '이가')} 몸을 틀어 피했습니다. 허공을 가릅니다.`, 'miss'); return false; }
+  const mv = (text.match(/【(.+?)】/) || [])[1];
+  if (mv && b.fx) b.fx.push({ side: 'banner', t: mv, k: /반격/.test(mv) ? 'counter' : 'move' });
+  if (Math.random() * 100 >= hitChance) { bLine(`${text} — ${josa(e.name, '이가')} 몸을 틀어 피했습니다. 허공을 가릅니다.`, 'miss'); if (b.fx) b.fx.push({ side: 'foe', t: '빗나감', k: 'miss' }); return false; }
   let dmg = dmgCalc(st.atk, e.def) * mult;
   const crit = Math.random() * 100 < st.crit;
   if (crit) dmg *= 1.6;
   dmg = Math.round(dmg);
   e.hpNow = Math.max(0, e.hpNow - dmg);
+  if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit' });
   const [, txt, cls] = reaction(dmg, e.hp);
   bLine(`${text}${crit ? ' <b class="crit">치명!</b>' : ''} ${josa(e.name, '이가')} ${txt}`, cls);
   if (st.lifesteal) S.hp = Math.min(st.maxHp, S.hp + Math.round(dmg * st.lifesteal / 100));
@@ -709,12 +734,13 @@ function enemyTurn(b) {
   const e = b.e, st = b.st;
   const hitChance = Math.max(40, 95 - st.eva);
   // 1) 회피 성공: 피해 0, 반격 판정 없이 적 턴 종료
-  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'dodge'); return; }
+  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'dodge'); if (b.fx) b.fx.push({ side: 'me', t: '회피', k: 'miss' }); return; }
   // 2) 회피 실패: 피격 후에만 반격 판정
   let dmg = dmgCalc(e.atk, st.def);
   const crit = Math.random() * 100 < Math.max(0, 8 - st.critRes / 2);
   if (crit) dmg = Math.round(dmg * 1.5);
   S.hp = Math.max(0, S.hp - dmg);
+  if (b.fx) b.fx.push({ side: 'me', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit' });
   const [, , cls] = reaction(dmg, st.maxHp);
   const feel = { h1: '살짝 스쳤습니다.', h2: '살갗이 찢어집니다.', h3: '뼈가 울립니다!', h4: '입가로 피가 흐릅니다!', h5: '기혈이 뒤집힙니다!' }[cls];
   bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''} — ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
@@ -748,6 +774,7 @@ function winBattle(b) {
       boss3: '방주 갈천이 강물 속으로 가라앉았습니다. 적룡방이 무너졌습니다. 이제 대성만이 남았습니다.',
     };
     bLine(msgs[E.boss], 'gold');
+    banner('頭目討伐 · 두목 토벌', `${E.name}`, 'seal');
     bLine(`${hlContrib('+' + reward)}`, 'gold');
     const mount = SHOP_GEAR.find(g => g.boss === E.boss);
     if (mount && giveGear(shopGear(mount.id), true)) { bLine(`🐴 두목이 부리던 ${hlItem(mount.name)}${jo(mount.name, '을를')} 얻었습니다. 무장에서 탈것으로 착용하십시오.`, 'loot'); }
@@ -1058,7 +1085,7 @@ function renderTabs() {
 }
 function renderLog() {
   const el = $('#log'); if (!el || !S) return;
-  el.innerHTML = S.log.slice(-60).reverse().map(l => `<p class="${l.cls}">${l.text}</p>`).join('');
+  el.innerHTML = S.log.slice(-60).reverse().map(l => `<p class="${l.cls}" data-time="${hhmm(l.t)}">${l.text}</p>`).join('');
   el.scrollTop = 0;
 }
 /* 접기/펼치기 구역: 헤더를 누르면 본문에 .collapsed가 토글된다 (다시 그리지 않아 전환이 부드럽다) */
@@ -1087,10 +1114,31 @@ function render() {
   renderLog();
   renderModal();
   wireImages();
+  drawMapLinks();
   centerMap();
   save();
 }
 /* 큰 지도에서 현재 위치를 스크롤 영역 가운데로 */
+/* 밝혀진 칸끼리 8방향으로 잇는 산길 선 */
+function drawMapLinks() {
+  const svg = document.querySelector('.map-links'); if (!svg || !S.zone) return;
+  const map = svg.parentElement, cells = {};
+  for (const c of map.querySelectorAll('.cell[data-xy]')) cells[c.dataset.xy] = c;
+  svg.setAttribute('width', map.scrollWidth); svg.setAttribute('height', map.scrollHeight);
+  const ctr = el => [el.offsetLeft + el.offsetWidth / 2, el.offsetTop + el.offsetHeight / 2];
+  const hereKey = `${S.zone.x},${S.zone.y}`;
+  let out = '';
+  for (const [k, el] of Object.entries(cells)) {
+    const [x, y] = k.split(',').map(Number);
+    for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [-1, 1]]) {
+      const n = cells[`${x + dx},${y + dy}`]; if (!n) continue;
+      const [x1, y1] = ctr(el), [x2, y2] = ctr(n);
+      const near = k === hereKey || `${x + dx},${y + dy}` === hereKey;
+      out += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${near ? 'near' : ''}"/>`;
+    }
+  }
+  svg.innerHTML = out;
+}
 function centerMap() {
   const box = $('#mapScroll'), here = box && box.querySelector('.cell.here');
   if (!here) return;
@@ -1334,11 +1382,11 @@ function viewField() {
   let grid = '';
   for (let yy = 0; yy < MAP_H; yy++) for (let xx = 0; xx < cols; xx++) {
     if (!passable(zid, xx, yy)) { grid += '<div class="cell void"></div>'; continue; }
-    if (!seen[`${xx},${yy}`]) { grid += '<div class="cell fog"></div>'; continue; }
+    if (!seen[`${xx},${yy}`]) { grid += '<div class="cell fog" aria-hidden="true"></div>'; continue; }
     const here = xx === x && yy === y;
     const adj = Math.abs(xx - x) <= 1 && Math.abs(yy - y) <= 1 && !here;
     const info = nodeInfo(zid, xx, yy);
-    grid += `<button class="cell ${info.type} ${here ? 'here' : ''} ${adj ? 'adj' : ''}" ${adj ? `data-move="${xx - x},${yy - y}"` : 'disabled'} title="${info.label}"><span>${info.icon}</span><small>${info.label}</small></button>`;
+    grid += `<button class="cell ${info.type} ${here ? 'here' : ''} ${adj ? 'adj' : ''}" data-xy="${xx},${yy}" ${adj ? `data-move="${xx - x},${yy - y}"` : 'disabled'} title="${info.label}" aria-label="${info.label}">${info.icon}</button>`;
   }
   const info = nodeInfo(zid, x, y);
   const pad = DIRS.map(([dx, dy, a]) => `<button class="dir" data-move="${dx},${dy}" ${passable(zid, x + dx, y + dy) ? '' : 'disabled'} aria-label="${a}">${a}</button>`);
@@ -1364,7 +1412,7 @@ function viewField() {
   return `<section class="panel field">
     ${head(Z.name, Z.hanja, '<button class="btn ghost sm" data-act="leave">청풍문으로 귀환</button>')}
     <div class="field-grid">
-      <div class="map-scroll" id="mapScroll"><div class="map" style="grid-template-columns:repeat(${cols},var(--cell))">${grid}</div></div>
+      <div class="map-scroll" id="mapScroll"><div class="map" style="grid-template-columns:repeat(${cols},var(--cell))"><svg class="map-links" aria-hidden="true"></svg>${grid}</div></div>
       <div class="control">
         <div class="dpad">${pad.join('')}</div>
         <div class="here-box"><h4>${info.icon} ${info.label}</h4>${action}</div>
@@ -1373,31 +1421,68 @@ function viewField() {
     </div>
   </section>`;
 }
+function vbar(cls, cur, prev, max, name, hideNum) {
+  const p = v => max ? clamp(v / max * 100, 0, 100) : 0;
+  return `<div class="bar thick ${cls}"><span class="bar-ghost" data-to="${p(cur)}" style="width:${p(Math.max(cur, prev))}%"></span><span class="bar-fill" style="width:${p(cur)}%"></span><span class="bar-text"><b>${name}</b>${hideNum ? '' : ` ${fmt(cur)} / ${fmt(max)}`}</span></div>`;
+}
+const sealChar = name => name.replace(/^(채주|방주|적룡방|화적|수적|외눈)\s*/, '').trim()[0] || name[0];
 function viewBattle() {
   const b = ui.battle, e = b.e, st = calcStats();
   const M = MANUALS[S.active.mugong], mm = M && S.manuals[S.active.mugong];
   const items = ['potionHp', 'potionMp', 'clearPill'].filter(id => has(id));
+  const prev = b.prev || { me: S.hp, foe: e.hpNow };
   queueMicrotask(() => { b.shown = b.lines.length; });
-  return `<section class="panel battle">
-    <div class="versus">
-      <div class="fighter"><h3>${esc(S.name)}</h3><small>${M ? `《${M.name}》 ${mm.star}성` : '무공 미장착'}</small>${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
-      <div class="vs">對</div>
-      <div class="fighter foe ${e.boss ? 'boss' : ''}"><h3>${e.name}</h3><small>${e.boss ? '두목' : '적'}</small>${bar('hp foe', e.hpNow, e.hp, '기세', true)}</div>
+  return `<section class="panel battle ${b.over ? (b.win ? 'won' : 'lost') : ''}">
+    <div class="arena">
+      <div class="plaque me" id="pl-me">
+        <div class="seal-av">${esc(S.name[0] || '我')}</div>
+        <div class="pl-info"><h3>${esc(S.name)}</h3><small>${M ? `《${M.name}》 ${mm.star}성 ${realmTag(mm.star)}` : '무공 미장착'}</small>
+          ${vbar('hp', S.hp, prev.me, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
+      </div>
+      <div class="vs"><span>對</span><small>${b.over ? (b.win ? '勝' : '敗') : `${b.round}합`}</small></div>
+      <div class="plaque foe ${e.boss ? 'boss' : ''}" id="pl-foe">
+        <div class="seal-av foe">${sealChar(e.name)}</div>
+        <div class="pl-info"><h3>${e.name}</h3><small>${e.boss ? '두목(頭目)' : '요수(妖獸)'}</small>
+          ${vbar('hp foe', e.hpNow, prev.foe, e.hp, '기세', true)}</div>
+      </div>
+      <div class="move-banner" id="moveBanner" aria-hidden="true"></div>
     </div>
     <div class="blog" id="blog">${b.lines.map((l, i) => `<p class="${l.cls}${i >= (b.shown || 0) ? ' fresh' : ''}">${l.text}</p>`).join('')}</div>
     <div class="bctl">
-      ${b.over ? `<button class="btn primary" data-act="closebattle">${b.win ? '전리품을 챙긴다' : b.fled ? '숨을 고른다' : '정신을 잃는다…'}</button>` : `
-        <div class="phase"><span class="phase-bar" style="animation-duration:${BATTLE_MS}ms"></span><small>${b.round + 1}합 · ${Math.round(BATTLE_MS / 1000)}초마다 공방이 오갑니다</small></div>
-        ${items.length ? `<div class="chips">${items.map(id => `<button class="chip" data-bitem="${id}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : ''}
-        <small class="muted">공격을 맞으면 반격 ${st.counter}% 확률로 되받아칩니다.</small>`}
+      ${b.over ? `<button class="btn primary big" data-act="closebattle">${b.win ? '전리품을 챙긴다' : '정신을 잃는다…'}</button>` : `
+        <div class="phase"><span class="phase-bar" style="animation-duration:${BATTLE_MS}ms"></span><small>${Math.round(BATTLE_MS / 1000)}초마다 공방이 오갑니다 · 공격을 맞으면 반격 ${st.counter}%</small></div>
+        ${items.length ? `<div class="chips">${items.map(id => `<button class="chip" data-bitem="${id}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : ''}`}
     </div>
   </section>`;
 }
 function renderBattle() {
   if (ui.tab !== 'field' || !ui.battle) return render();
+  const b = ui.battle;
   $('#main').innerHTML = viewBattle();
   renderHeader();
   const bl = $('#blog'); if (bl) bl.scrollTop = bl.scrollHeight;
+  playFx(b.fx || []);
+  b.fx = [];
+}
+/* 한 합의 연출: 체력 잔상이 따라 줄고, 맞은 쪽이 흔들리고, 피해 숫자가 떠오르며, 초식 이름이 현판처럼 뜬다 */
+function playFx(fx) {
+  requestAnimationFrame(() => { for (const g of document.querySelectorAll('.bar-ghost[data-to]')) g.style.width = g.dataset.to + '%'; });
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  fx.forEach((f, i) => {
+    if (f.side === 'banner') {
+      const el = $('#moveBanner'); if (!el) return;
+      el.innerHTML = `<span class="${f.k}">${f.t}</span>`; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+      const ar = el.closest('.arena'); if (ar) { ar.classList.remove('flash'); void ar.offsetWidth; ar.classList.add('flash'); }
+      return;
+    }
+    const pl = document.getElementById(f.side === 'me' ? 'pl-me' : 'pl-foe'); if (!pl) return;
+    const n = document.createElement('span');
+    n.className = `fx-num ${f.k}`; n.textContent = f.t;
+    // 피해 숫자는 인장 쪽 위에 띄워 이름과 겹치지 않게 한다
+    n.style[f.side === 'me' ? 'left' : 'right'] = (4 + Math.random() * 14) + 'px'; n.style.animationDelay = (i * 120) + 'ms';
+    pl.appendChild(n); setTimeout(() => n.remove(), 1600 + i * 120);
+    if (f.k !== 'miss' && !reduce) { pl.classList.remove('hit'); void pl.offsetWidth; pl.classList.add('hit'); }
+  });
 }
 
 /* 무장 · 행낭 */

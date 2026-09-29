@@ -109,7 +109,7 @@ module.exports = async (b) => {
   ok('8 견문록 높이 동기화', w > 960 ? Math.abs(hs.main - hs.side) <= 2 : hs.side === 280, `main ${hs.main} / side ${hs.side}`);
   ok('8 최신 기록이 맨 위 (scrollTop 0) + overflow auto', hs.logScroll && hs.ov === 'auto');
   // 10
-  const th = await p.evaluate(() => ({ body: getComputedStyle(document.body).backgroundImage.slice(0, 60), panel: getComputedStyle(document.querySelector('.panel')).backgroundColor, blur: getComputedStyle(document.querySelector('.panel')).backdropFilter, border: getComputedStyle(document.querySelector('.panel')).borderTopColor }));
+  const th = await p.evaluate(() => ({ body: getComputedStyle(document.body).backgroundImage.includes('radial-gradient(circle at 50% 15%') ? 'radial-gradient' : 'missing', panel: getComputedStyle(document.querySelector('.panel')).backgroundColor, blur: getComputedStyle(document.querySelector('.panel')).backdropFilter, border: getComputedStyle(document.querySelector('.panel')).borderTopColor }));
   ok('10 먹빛 글래스', th.body.includes('radial-gradient') && th.panel === 'rgba(18, 22, 29, 0.85)' && th.blur === 'blur(10px)' && th.border === 'rgba(212, 175, 55, 0.15)', JSON.stringify(th));
   ok('무신상 탭 독립', await p.evaluate(() => { ui.tab = 'shrine'; render(); return !!document.querySelector('.altar'); }));
   const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
