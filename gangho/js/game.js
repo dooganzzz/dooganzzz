@@ -37,10 +37,10 @@ let ui = { tab: 'hall', pot: {}, craft: 'alchemy', battle: null, modal: null, ba
 
 function newState(name, mugongId) {
   const st = {
-    v: 3, name, created: now(), lastTick: now(),
+    v: 5, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, activeTrainingSkillId: null,
-    manuals: {}, active: { mugong: mugongId, simbeop: 'tonap', gyeonggong: 'pocheolsak', gigong: 'cheolpo' },
-    inv: { potionHp: 3, herb: 2 },
+    manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
+    inv: { potionHp: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0 },
     perm: { maxHp: 0, maxMp: 0 },
@@ -50,7 +50,6 @@ function newState(name, mugongId) {
     buffs: [], missions: [], arin: {}, supplyDay: '', restCd: 0, uid: 1,
     kills: 0, log: [],
   };
-  for (const id of [mugongId, 'tonap', 'pocheolsak', 'cheolpo']) st.manuals[id] = { star: 1, cxp: 0, txp: 0, gate: false };
   st.equip.badge = shopGear('badge1', st);
   return st;
 }
@@ -78,7 +77,9 @@ function toast(text) {
   const el = document.createElement('div');
   el.className = 'toast';
   el.textContent = text;
-  $('#toasts').appendChild(el);
+  const box = $('#toasts');
+  while (box.children.length >= 2) box.firstChild.remove();
+  box.appendChild(el);
   setTimeout(() => el.classList.add('out'), 2600);
   setTimeout(() => el.remove(), 3200);
 }
@@ -87,13 +88,8 @@ function toast(text) {
 function calcStats() {
   const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpSave: 0, evaFlat: 0 };
   for (const cat of CAT_ORDER) {
-    const id = S.active[cat]; const m = S.manuals[id];
-    if (!m) continue;
-    const g = GRADES[MANUALS[id].grade].mult, st = m.star, t = tri(st);
-    if (cat === 'mugong') s.atk += (4 * st + 0.9 * t) * g;
-    if (cat === 'simbeop') { s.maxMp += (12 * st + 1.5 * t) * g; s.atk += st * g; s.maxHp += 5 * st * g; s.mpRegen += 0.25 * st * g; }
-    if (cat === 'gyeonggong') { s.spd += 0.8 * st * g; s.eva += 0.6 * st * g; s.crit += 0.3 * st * g; s.counter += 0.5 * st * g; }
-    if (cat === 'gigong') { s.maxHp += (20 * st + 4 * t) * g; s.def += (1.5 * st + 0.35 * t) * g; s.counter += 1.2 * st * g; }
+    const id = S.active[cat]; if (!id || !S.manuals[id]) continue;
+    for (const [k, v] of Object.entries(manualBonus(id, S.manuals[id].star))) s[k] += v;
   }
   for (const slot of SLOT_ORDER) {
     const it = S.equip[slot]; if (!it) continue;
@@ -121,6 +117,15 @@ function calcStats() {
 /* 수련 시간표: 1~4성 구간 성당 8시간, 5~8성 16시간, 9~12성 24시간 (기본 효율 기준) */
 function trainHours(star) { return star <= 3 ? 8 : star <= 7 ? 16 : 24; }
 function trainBonus(st) { st = st || calcStats(); return 1 + st.train / 100 + st.trainBuff; }
+/* 비급 하나가 장착 시 주는 능력치 (성급 기준) */
+function manualBonus(id, star) {
+  const M = MANUALS[id], g = GRADES[M.grade].mult, st = star, t = tri(st), b = {};
+  if (M.cat === 'mugong') b.atk = (4 * st + 0.9 * t) * g;
+  if (M.cat === 'simbeop') Object.assign(b, { maxMp: (12 * st + 1.5 * t) * g, atk: st * g, maxHp: 5 * st * g, mpRegen: 0.25 * st * g });
+  if (M.cat === 'gyeonggong') Object.assign(b, { spd: 0.8 * st * g, eva: 0.6 * st * g, crit: 0.3 * st * g, counter: 0.5 * st * g });
+  if (M.cat === 'gigong') Object.assign(b, { maxHp: (20 * st + 4 * t) * g, def: (1.5 * st + 0.35 * t) * g, counter: 1.2 * st * g });
+  return b;
+}
 function trainRate(id, st) {
   const m = S.manuals[id]; if (!m || m.star >= MAX_STAR) return 0;
   return need(m.star) / (trainHours(m.star) * 3600) * trainBonus(st);
@@ -240,6 +245,7 @@ function useItem(id, inBattle) {
   const I = ITEMS[id]; if (!I.use || !has(id)) return;
   const u = I.use;
   if (inBattle && (I.kind === '음식' || u.gate)) return;
+  if (u.learn) { learnManual(id); return; }
   if (u.gate) {
     const gated = Object.keys(S.manuals).filter(k => S.manuals[k].gate && S.manuals[k].star === u.gate);
     if (!gated.length) { toast(`${GATE_NAME[u.gate]}에 막힌 비급이 없습니다.`); return; }
@@ -543,7 +549,8 @@ function startBattle(eid) {
     bLine(quotes[eid], 'npc');
   }
   const mt = MANUALS[S.active.mugong];
-  if (mt.weapon !== weaponType()) bLine(`《${mt.name}》은 ${WEAPON_TYPES[mt.weapon]} 무공입니다. 병기가 맞지 않아 초식을 펼칠 수 없습니다.`, 'muted');
+  if (!mt) bLine('장착한 무공이 없어 맨손 평타로만 싸웁니다.', 'muted');
+  else if (mt.weapon !== weaponType()) bLine(`《${mt.name}》은 ${WEAPON_TYPES[mt.weapon]} 무공입니다. 병기가 맞지 않아 초식을 펼칠 수 없습니다.`, 'muted');
   advanceToPlayer(ui.battle);
   ui.tab = 'field';
   render();
@@ -601,7 +608,7 @@ function playerHit(b, mult, text) {
 }
 function playerAttack(b) {
   const st = b.st, id = S.active.mugong, M = MANUALS[id], m = S.manuals[id];
-  const canCombo = M.weapon === weaponType();
+  const canCombo = !!M && M.weapon === weaponType();
   let comboDone = false;
   if (canCombo && Math.random() * 100 < 35 + st.combo) {
     const moves = unlockedMoves(m.star), g = GRADES[M.grade].mult;
@@ -645,8 +652,9 @@ function winBattle(b) {
   const E = ENEMIES[b.eid];
   bLine(`🏆 ${josa(E.name, '을를')} 쓰러뜨렸습니다!`, 'win');
   clearNode();
-  for (const cat of CAT_ORDER) addXp(S.active[cat], 'cxp', 1);
-  bLine('실전 경험 +1 (무공·심법·경공·기공)', 'muted');
+  const worn = CAT_ORDER.filter(c => S.active[c]);
+  for (const cat of worn) addXp(S.active[cat], 'cxp', 1);
+  if (worn.length) bLine(`실전 경험 +1 (${worn.map(c => CATS[c].name).join('·')})`, 'muted');
   const silver = rint(...E.silver); S.silver += silver;
   bLine(`${hlSilver(silver)} 획득`, 'loot');
   log(`${E.name} 토벌. ${hlSilver(silver)}, 실전 경험 +1`, 'good');
@@ -766,7 +774,7 @@ function rest() {
 }
 function masterHint() {
   const gated = Object.entries(S.manuals).find(([, m]) => m.gate && !has(GATES[m.star]));
-  const pill = gated ? GATES[gated[1].star] : questIndex() === 2 ? 'pillLow' : null;
+  const pill = gated ? GATES[gated[1].star] : QUESTS[questIndex()] && QUESTS[questIndex()][0].includes('하급 돌파단') ? 'pillLow' : null;
   const r = pill && RECIPES.find(x => x.out === pill);
   if (r && !S.codex.includes(r.id)) { addHint(r); render(); return; }
   log(`노벽송: "${pick([
@@ -779,10 +787,10 @@ function masterHint() {
 }
 function buyManual(id) {
   const M = MANUALS[id];
-  if (S.manuals[id] || !M.cost || S.contrib < M.cost) return;
+  if (S.manuals[id] || has('bk_' + id) || !M.cost || S.contrib < M.cost) return;
+  if (!give('bk_' + id, 1, true)) return;
   S.contrib -= M.cost;
-  S.manuals[id] = { star: 1, cxp: 0, txp: 0, gate: false };
-  log(`장경각에서 《${M.name}》 비급을 받았습니다. 연무장에서 수련 비급을 바꿀 수 있습니다.`, 'gold');
+  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 무장 탭 행낭에서 [ 익히기 ] 하십시오.`, 'gold');
   render();
 }
 function ownsShop(id) { return S.gear.some(g => g.shop === id) || Object.values(S.equip).some(g => g && g.shop === id); }
@@ -792,6 +800,32 @@ function buyBadge(id) {
   if (!giveGear(shopGear(id), true)) return;
   S.contrib -= g.cost;
   log(`${hlItem(g.name)}${jo(g.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
+  render();
+}
+function learnManual(bookId) {
+  const mid = ITEMS[bookId].use.learn, M = MANUALS[mid];
+  if (S.manuals[mid]) { toast(`이미 익힌 무공입니다: ${M.name}`); return; }
+  take(bookId, 1);
+  S.manuals[mid] = { star: 1, cxp: 0, txp: 0, gate: false };
+  log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 무공 탭에서 장착할 수 있습니다.`, 'gold');
+  toast(`${M.name} 습득`);
+  render();
+}
+function equipManual(id) {
+  if (ui.battle || !S.manuals[id]) return;
+  const cat = MANUALS[id].cat, prev = S.active[cat];
+  if (prev === id) return;
+  if (prev && S.activeTrainingSkillId === prev) S.activeTrainingSkillId = null;
+  S.active[cat] = id; clampVitals();
+  log(`《${MANUALS[id].name}》${jo(MANUALS[id].name, '을를')} ${CATS[cat].name} 자리에 운용합니다.`, 'good');
+  render();
+}
+function unequipManual(cat) {
+  if (ui.battle) return;
+  const id = S.active[cat]; if (!id) return;
+  if (S.activeTrainingSkillId === id) { S.activeTrainingSkillId = null; log(`《${MANUALS[id].name}》 수련도 함께 멈췄습니다.`, 'muted'); }
+  S.active[cat] = null; clampVitals();
+  log(`《${MANUALS[id].name}》 운용을 거두었습니다.`, 'muted');
   render();
 }
 function setActive(cat, id) {
@@ -812,6 +846,7 @@ function doHasan() {
 
 /* ───────── 순차 가이드 ───────── */
 const QUESTS = [
+  ['비급 익히고 무공 장착하기', () => CAT_ORDER.every(c => S.active[c]), '무장 탭 행낭에서 비급 네 권을 [ 익히기 ] 한 뒤, 무공 탭에서 각각 장착하십시오.'],
   ['조운 대사형에게 오늘의 보급품 받기', () => !!S.flags.supplied, '정청의 조운에게 보급품을 받으십시오.'],
   ['청풍산에서 첫 사냥', () => S.kills > 0, '강호행에서 청풍산으로 가, ⚔️ 기척이 있는 곳에서 싸우십시오.'],
   ['화로에서 하급 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 4, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],
@@ -843,6 +878,7 @@ function advance(sec, offline) {
 }
 function toggleTraining(cat) {
   const id = S.active[cat];
+  if (!id) { toast('먼저 무공 탭에서 비급을 장착하십시오.'); return; }
   if (S.activeTrainingSkillId === id) {
     S.activeTrainingSkillId = null;
     log(`《${MANUALS[id].name}》 수련을 멈추고 눈을 뜹니다.`, 'muted');
@@ -888,6 +924,7 @@ function portrait(who, seal, name) {
 /* ───────── 화면 ───────── */
 const TABS = [
   ['hall', '정청', '正廳'],
+  ['martial', '무공', '武功'],
   ['yeonmu', '연무장', '演武場'],
   ['forge', '화로', '火爐'],
   ['yard', '뒷마당', '後院'],
@@ -926,7 +963,7 @@ function render() {
     const [, ko, hj] = TABS.find(t => t[0] === ui.tab);
     main.innerHTML = `<section class="panel">${head(ko, hj)}<p class="story">지금은 ${ZONES[S.zone.id].name}에 나와 있습니다. 청풍문으로 돌아가야 이곳을 쓸 수 있습니다.</p><div><button class="btn" data-act="leave">청풍문으로 귀환</button></div></section>`;
   } else {
-    main.innerHTML = ({ yeonmu: viewYeonmu, shrine: viewShrine, forge: viewForge, yard: viewYard, hall: viewHall, field: viewField, bag: viewBag, codex: viewCodex })[ui.tab]();
+    main.innerHTML = ({ martial: viewMartial, yeonmu: viewYeonmu, shrine: viewShrine, forge: viewForge, yard: viewYard, hall: viewHall, field: viewField, bag: viewBag, codex: viewCodex })[ui.tab]();
   }
   renderLog();
   renderModal();
@@ -954,7 +991,7 @@ function xpRows(id) {
 }
 function starSig() { return Object.values(S.manuals).map(m => m.star + (m.gate ? 'g' : '')).join(); }
 function renderLive() {
-  if (ui.tab !== 'yeonmu' && !(ui.modal || '').startsWith('manual:')) return;
+  if (ui.tab !== 'yeonmu' && !/^(manual|mart):/.test(ui.modal || '')) return;
   if (ui.tab === 'yeonmu' && S.activeTrainingSkillId && Math.floor(now() / 1000) % 30 === 0 && !ui.modal) { render(); return; }
   for (const el of document.querySelectorAll('[data-live]')) {
     const m = S.manuals[el.dataset.live]; if (!m || m.star >= MAX_STAR) continue;
@@ -969,6 +1006,11 @@ function viewYeonmu() {
   const tid = S.activeTrainingSkillId;
   const cards = CAT_ORDER.map(cat => {
     const id = S.active[cat], M = MANUALS[id], m = S.manuals[id], C = CATS[cat];
+    if (!id) return `<div class="art empty-art">
+      <div class="art-top"><span class="art-cat">${label(C.name, C.hanja)}</span></div>
+      <p class="story muted">운용 중인 ${C.name}${jo(C.name, '이가')} 없습니다.</p>
+      <div><button class="btn sm" data-tab="martial">무공 탭에서 장착</button></div>
+    </div>`;
     const on = tid === id;
     const left = on ? (need(m.star) - m.txp) / trainRate(id) : 0;
     return `<div class="art ${on ? 'training' : ''}" data-manual="${cat}" role="button" tabindex="0">
@@ -989,8 +1031,13 @@ function viewYeonmu() {
   </section>`;
 }
 function manualModal(cat) {
-  const id = S.active[cat], M = MANUALS[id], m = S.manuals[id], n = need(m.star);
-  const owned = Object.keys(S.manuals).filter(k => MANUALS[k].cat === cat);
+  return martialModal(S.active[cat]);
+}
+function martialModal(id) {
+  const M = MANUALS[id], m = S.manuals[id], n = need(m.star), cat = M.cat;
+  const worn = S.active[cat] === id;
+  const bonus = Object.entries(manualBonus(id, m.star)).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
+  const pc = Math.min(100, Math.floor(m.cxp / n * 100)), pt = Math.min(100, Math.floor(m.txp / n * 100));
   const moves = M.moves ? `<h4>초식</h4><ol class="moves">${M.moves.map((mv, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 시동', '제2초식 · 연계', '제3초식 · 결착'][i]}${open ? '' : ` — ${i === 1 ? '4성' : '8성'} 돌파 시 해금`}</small></li>`; }).join('')}</ol>
     <p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : '';
   const pill = GATES[m.star];
@@ -1005,12 +1052,44 @@ function manualModal(cat) {
       ${m.gate && has(pill) ? `<div><button class="btn primary" data-pill="${pill}">${ITEMS[pill].icon} ${ITEMS[pill].name} 복용</button></div>` : ''}`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja} · ${M.grade}</small><h2>${label(M.name, M.hanja)}</h2></div><div class="art-star">${m.star}<small>/12성</small></div></div>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2></div><div class="art-star">${m.star}<small>/12성</small></div></div>
+    <p class="num muted">현재 ${m.star}성 / 실전 ${pc}% / 수련 ${pt}%</p>
     ${xpRows(id)}
+    <p class="story">${M.desc}</p>
+    <h4>보너스 효과 (장착 시)</h4>${bonus}
     ${moves}${gateInfo}
-    ${owned.length > 1 ? `<label class="sel" for="sel-${cat}">수련 비급 <select id="sel-${cat}" data-setactive="${cat}">${owned.map(k => `<option value="${k}" ${k === id ? 'selected' : ''}>${MANUALS[k].name} (${S.manuals[k].star}성)</option>`).join('')}</select></label>` : ''}
-    <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div>
+    <div class="btns">${worn ? `<button class="btn danger" data-unequipm="${cat}">[ 장착 해제 ]</button>` : `<button class="btn primary" data-equipm="${id}">[ 장착하기 ]</button>`}<button class="btn ghost" data-act="closemodal">닫기</button></div>
   </div>`;
+}
+
+/* 무공 탭 */
+function viewMartial() {
+  const slots = CAT_ORDER.map(cat => {
+    const id = S.active[cat], C = CATS[cat];
+    if (!id) return `<div class="mslot empty"><div class="mslot-cat">${label(C.name, C.hanja)}</div><small class="muted">${C.desc}</small><p class="muted">비어 있음</p></div>`;
+    const M = MANUALS[id], m = S.manuals[id];
+    return `<div class="mslot" data-mart="${id}" role="button" tabindex="0">
+      <div class="mslot-cat">${label(C.name, C.hanja)}</div>
+      <b class="mslot-name">《${M.name}》</b>
+      <span class="art-star">${m.star}<small>성</small></span>
+      <button class="btn ghost sm" data-unequipm="${cat}">장착 해제</button>
+    </div>`;
+  }).join('');
+  const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat));
+  const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급');
+  const cards = learned.map(id => {
+    const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
+    return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》</b><span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
+  }).join('');
+  return `<section class="panel">
+    ${head('무공', '武功')}
+    <div class="mslots">${slots}</div>
+  </section>
+  <section class="panel">
+    ${head('익힌 무공', '習得', `<span class="num muted">${learned.length}종</span>`)}
+    ${learned.length ? `<div class="mcards">${cards}</div>` : `<p class="story">아직 익힌 무공이 없습니다. ${books.length ? `행낭에 비급 ${books.length}권이 있습니다. 무장 탭 행낭에서 [ 익히기 ] 하십시오.` : ''}</p>`}
+    ${books.length ? `<div class="chips">${books.map(k => `<button class="chip" data-use="${k}">📘 ${ITEMS[k].name} 익히기</button>`).join('')}</div>` : ''}
+  </section>`;
 }
 
 /* 무신상 */
@@ -1057,7 +1136,7 @@ function viewForge() {
 
 /* 뒷마당 */
 function viewYard() {
-  const foods = Object.keys(S.inv).filter(id => ITEMS[id].use);
+  const foods = Object.keys(S.inv).filter(id => ITEMS[id].use && ITEMS[id].kind !== '비급');
   const restReady = S.restCd <= now();
   return `<section class="panel">
     ${head('뒷마당', '後院')}
@@ -1087,6 +1166,7 @@ function viewYard() {
 function viewHall() {
   const qi = questIndex(), q = QUESTS[qi];
   const shopManuals = Object.entries(MANUALS).filter(([, M]) => M.cost);
+  const ownsBook = id => !!S.manuals[id] || has('bk_' + id);
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();
   return `<section class="panel npc">
@@ -1109,7 +1189,7 @@ function viewHall() {
   </section>
   <section class="panel">
     ${head('장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}
-    <div class="shop">${shopManuals.map(([id, M]) => { const own = !!S.manuals[id]; return `<div class="shop-item"><b>${M.name}</b><small>${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}</small><button class="btn sm" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}`}</button></div>`; }).join('')}
+    <div class="shop">${shopManuals.map(([id, M]) => { const own = ownsBook(id); return `<div class="shop-item"><b>${M.name}</b><small>${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}</small><button class="btn sm" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}`}</button></div>`; }).join('')}
     ${badges.map(g => { const own = ownsShop(g.id); return `<div class="shop-item"><b class="r${g.rarity}">${g.name}</b><small>신분패 · 수련 효율 +${g.stats.train}%</small><button class="btn sm" data-buybadge="${g.id}" ${own || S.contrib < g.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${g.cost}`}</button></div>`; }).join('')}</div>
   </section>`;
 }
@@ -1169,12 +1249,12 @@ function viewField() {
 }
 function viewBattle() {
   const b = ui.battle, e = b.e, st = calcStats();
-  const M = MANUALS[S.active.mugong];
+  const M = MANUALS[S.active.mugong], mm = M && S.manuals[S.active.mugong];
   const items = ['potionHp', 'potionMp', 'clearPill'].filter(id => has(id));
   queueMicrotask(() => { b.shown = b.lines.length; });
   return `<section class="panel battle">
     <div class="versus">
-      <div class="fighter"><h3>${esc(S.name)}</h3><small>《${M.name}》 ${S.manuals[S.active.mugong].star}성</small>${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
+      <div class="fighter"><h3>${esc(S.name)}</h3><small>${M ? `《${M.name}》 ${mm.star}성` : '무공 미장착'}</small>${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
       <div class="vs">對</div>
       <div class="fighter foe ${e.boss ? 'boss' : ''}"><h3>${e.name}</h3><small>${e.boss ? '두목' : '적'}</small>${bar('hp foe', e.hpNow, e.hp, '기세', true)}</div>
     </div>
@@ -1229,7 +1309,7 @@ function viewBag() {
   };
   const sel = ui.slotSel && S.equip[ui.slotSel];
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-  const kinds = ['all', '재료', '영약', '영단', '음식', '부산물', '증표'];
+  const kinds = ['all', '비급', '재료', '영약', '영단', '음식', '부산물', '증표'];
   const items = Object.keys(S.inv).filter(id => ui.bagFilter === 'all' || ITEMS[id].kind === ui.bagFilter);
   return `<section class="panel">
     ${head('무장', '武裝')}
@@ -1251,7 +1331,7 @@ function viewBag() {
     ${head('행낭', '行囊', `<span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
     ${S.gear.length ? `<div class="gears">${S.gear.map(it => `<div class="gear r${it.rarity}"><div class="gtop"><span class="grade r${it.rarity}">${RARITY[it.rarity].name}</span><b>${it.name}</b><small class="muted">${SLOTS[it.slot].name}</small></div><small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}<div class="btns"><button class="btn sm" data-equip="${it.uid}">착용</button><button class="btn ghost sm" data-discard="${it.uid}">버리기</button></div></div>`).join('')}</div>` : ''}
     <div class="chips">${kinds.map(k => `<button class="chip ${ui.bagFilter === k ? 'on' : ''}" data-filter="${k}">${k === 'all' ? '전체' : k}</button>`).join('')}</div>
-    <div class="items">${items.map(id => { const I = ITEMS[id]; return `<div class="item"><span class="icon">${I.icon}</span><div><b>${I.name}</b> <span class="num">×${count(id)}</span><small>${I.desc}</small></div>${I.use ? `<button class="btn sm" data-use="${id}">사용</button>` : '<span></span>'}</div>`; }).join('')}</div>
+    <div class="items">${items.map(id => { const I = ITEMS[id]; return `<div class="item"><span class="icon">${I.icon}</span><div><b>${I.name}</b> <span class="num">×${count(id)}</span><small>${I.desc}</small></div>${I.use ? `<button class="btn sm" data-use="${id}">${I.kind === '비급' ? '익히기' : '사용'}</button>` : '<span></span>'}</div>`; }).join('')}</div>
   </section>`;
 }
 
@@ -1301,7 +1381,9 @@ function renderModal() {
   const m = $('#modal');
   if (!ui.modal) { if (!m.dataset.intro) m.hidden = true; return; }
   m.hidden = false;
-  if (ui.modal.startsWith('manual:')) m.innerHTML = manualModal(ui.modal.slice(7));
+  if (ui.modal.startsWith('manual:')) m.innerHTML = S.active[ui.modal.slice(7)] ? manualModal(ui.modal.slice(7)) : (ui.modal = null, '');
+  if (ui.modal && ui.modal.startsWith('mart:')) m.innerHTML = martialModal(ui.modal.slice(5));
+  if (!ui.modal) { m.hidden = true; return; }
   if (ui.modal.startsWith('recipe:')) m.innerHTML = recipeModal(ui.modal.slice(7));
   if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 들개를 쫓던 손이 이제 적룡방 방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
   wireImages();
@@ -1367,9 +1449,10 @@ function showIntro() {
       const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
       ensureMissions();
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
-      log(`${name}, 청풍문의 제자가 되었습니다. 《${MANUALS[chosen].name}》과 토납법·포철삭·철포삼을 받았습니다.`, 'gold');
+      log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[chosen].name}》 비급`)}과 ${hlItem('토납법·포철삭·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
+      log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 수련해라."', 'npc');
       log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
-      log('아린: "새 사형이다! 정청에 가서 조운 사형한테 보급품부터 받아요!"', 'npc');
+      log('아린: "새 사형이다! 비급부터 익혀요. 무장 탭 행낭에 있어요!"', 'npc');
       ui.tab = 'hall';
       render();
     }
@@ -1378,7 +1461,7 @@ function showIntro() {
 
 /* ───────── 이벤트 ───────── */
 function onClick(e) {
-  const t = e.target.closest('button, [data-tab], [data-manual]');
+  const t = e.target.closest('button, [data-tab], [data-manual], [data-mart]');
   if (!t || t.disabled) return;
   if (t.dataset.act === 'reset') return askReset();
   if (t.dataset.act === 'doreset') return doReset();
@@ -1388,6 +1471,9 @@ function onClick(e) {
   if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
   if (d.zone) return enterZone(d.zone);
   if (d.train) return toggleTraining(d.train);
+  if (d.equipm) { equipManual(d.equipm); if (ui.modal) { ui.modal = 'mart:' + d.equipm; renderModal(); } return; }
+  if (d.unequipm) { const id = S.active[d.unequipm]; unequipManual(d.unequipm); if (ui.modal && id) { ui.modal = 'mart:' + id; renderModal(); } return; }
+  if (d.mart) { ui.modal = 'mart:' + d.mart; return renderModal(); }
   if (d.manual) { ui.modal = 'manual:' + d.manual; return renderModal(); }
   if (d.pill) return useItem(d.pill, false);
   if (d.use) return useItem(d.use, false);
@@ -1426,13 +1512,14 @@ function onChange(e) {
 function boot() {
   document.addEventListener('click', onClick);
   document.addEventListener('change', onChange);
-  document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ui.modal = 'manual:' + c.dataset.manual; renderModal(); } });
+  document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual], [data-mart]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ui.modal = c.dataset.mart ? 'mart:' + c.dataset.mart : 'manual:' + c.dataset.manual; renderModal(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.modal && ui.modal !== 'ending') { ui.modal = null; render(); } });
   S = load();
   if (S && (S.v || 0) < 3) {
     S.activeTrainingSkillId = null; delete S.training; delete S.gatherCd; delete S.opened; delete S.cleared;
     S.v = 3;
   }
+  if (S && (S.v || 0) < 5) S.v = 5;
   if (S && S.zone && (!S.zone.layout || !S.zone.start || S.zone.layout.length !== MAP_H)) S.zone = null;
   if (!S) showIntro();
   else {

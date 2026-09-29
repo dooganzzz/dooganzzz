@@ -29,24 +29,24 @@ const MAX_STAR = 12;
 
 const MANUALS = {
   // 입문 무공 (삼재 계열)
-  samjaeGwon:  { name: '삼재권장법', hanja: '三才拳掌法', cat: 'mugong', grade: '삼류', weapon: 'fist',   moves: ['천권', '지장', '인각'] },
-  samjaeGeom:  { name: '삼재검법',   hanja: '三才劍法',   cat: 'mugong', grade: '삼류', weapon: 'sword',  moves: ['천재', '지재', '인재'] },
-  samjaeDo:    { name: '삼재도법',   hanja: '三才刀法',   cat: 'mugong', grade: '삼류', weapon: 'blade',  moves: ['천참', '지참', '인참'] },
-  samjaeChang: { name: '삼재창법',   hanja: '三才槍法',   cat: 'mugong', grade: '삼류', weapon: 'spear',  moves: ['천돌', '지소', '인선'] },
-  samjaePyo:   { name: '삼재표법',   hanja: '三才鏢法',   cat: 'mugong', grade: '삼류', weapon: 'hidden', moves: ['천표', '지표', '인표'] },
+  samjaeGwon:  { name: '삼재권장법', hanja: '三才拳掌法', desc: '하늘·땅·사람의 이치를 주먹과 손바닥에 담은 입문 권장법. 투박하지만 기본기가 단단해진다.', cat: 'mugong', grade: '삼류', weapon: 'fist',   moves: ['천권', '지장', '인각'] },
+  samjaeGeom:  { name: '삼재검법',   hanja: '三才劍法',   desc: '강호의 검객이라면 누구나 한 번은 거쳐 가는 입문 검법. 세 초식이 천지인(天地人)의 순서로 이어진다.', cat: 'mugong', grade: '삼류', weapon: 'sword',  moves: ['천재', '지재', '인재'] },
+  samjaeDo:    { name: '삼재도법',   hanja: '三才刀法',   desc: '무게를 실어 내려치는 데 집중한 입문 도법. 한 번 휘두를 때마다 바위가 쪼개지는 기세를 흉내 낸다.', cat: 'mugong', grade: '삼류', weapon: 'blade',  moves: ['천참', '지참', '인참'] },
+  samjaeChang: { name: '삼재창법',   hanja: '三才槍法',   desc: '찌르고, 쓸고, 돌리는 창술의 기초. 긴 자루로 거리를 지배하는 법을 익힌다.', cat: 'mugong', grade: '삼류', weapon: 'spear',  moves: ['천돌', '지소', '인선'] },
+  samjaePyo:   { name: '삼재표법',   hanja: '三才鏢法',   desc: '돌멩이 하나로 새를 떨어뜨리는 법에서 시작하는 입문 표법. 손목과 눈이 함께 자란다.', cat: 'mugong', grade: '삼류', weapon: 'hidden', moves: ['천표', '지표', '인표'] },
   // 입문 보조 비급
-  tonap:       { name: '토납법', hanja: '吐納法', cat: 'simbeop',    grade: '삼류' },
-  pocheolsak:  { name: '포철삭', hanja: '抛鐵索', cat: 'gyeonggong', grade: '삼류' },
-  cheolpo:     { name: '철포삼', hanja: '鐵布衫', cat: 'gigong',     grade: '삼류' },
+  tonap:       { name: '토납법', hanja: '吐納法', desc: '들숨과 날숨으로 천지의 기운을 받아들이는 가장 오래된 호흡법. 내력의 뿌리가 된다.', cat: 'simbeop',    grade: '삼류' },
+  pocheolsak:  { name: '포철삭', hanja: '抛鐵索', desc: '쇠사슬을 던져 몸을 끌어당기듯 발을 옮기는 기이한 보법. 청풍문 선대가 산을 타며 만들었다.', cat: 'gyeonggong', grade: '삼류' },
+  cheolpo:     { name: '철포삼', hanja: '鐵布衫', desc: '온몸에 기를 돌려 무쇠 옷을 두른 듯 단단해지는 외문 기공. 맞을수록 강해진다.', cat: 'gigong',     grade: '삼류' },
   // 장경각: 청풍문 세트 (문파 공헌도로 교환)
-  cpGwon:   { name: '청풍권',   hanja: '淸風拳',   cat: 'mugong', grade: '이류', weapon: 'fist',   moves: ['청풍일권', '회풍이권', '광풍삼권'], cost: 300 },
-  cpGeom:   { name: '청풍검',   hanja: '淸風劍',   cat: 'mugong', grade: '이류', weapon: 'sword',  moves: ['청풍출검', '회풍검', '청풍만리'], cost: 300 },
-  cpDo:     { name: '청풍도',   hanja: '淸風刀',   cat: 'mugong', grade: '이류', weapon: 'blade',  moves: ['청풍일도', '선풍참', '광풍단혼'], cost: 300 },
-  cpChang:  { name: '청풍창',   hanja: '淸風槍',   cat: 'mugong', grade: '이류', weapon: 'spear',  moves: ['청풍돌', '회풍창', '광풍천돌'], cost: 300 },
-  cpPyo:    { name: '청풍표',   hanja: '淸風鏢',   cat: 'mugong', grade: '이류', weapon: 'hidden', moves: ['청풍비표', '회풍표', '만천청풍'], cost: 300 },
-  cpSim:    { name: '청풍심법', hanja: '淸風心法', cat: 'simbeop',    grade: '이류', cost: 250 },
-  cpGyeong: { name: '청풍경공', hanja: '淸風輕功', cat: 'gyeonggong', grade: '이류', cost: 250 },
-  cpGi:     { name: '청풍기공', hanja: '淸風氣功', cat: 'gigong',     grade: '이류', cost: 250 },
+  cpGwon:   { name: '청풍권',   hanja: '淸風拳',   desc: '청풍문의 바람을 주먹에 실은 비전 권법. 세 번째 권에 이르면 폭풍이 인다.', cat: 'mugong', grade: '이류', weapon: 'fist',   moves: ['청풍일권', '회풍이권', '광풍삼권'], cost: 300 },
+  cpGeom:   { name: '청풍검',   hanja: '淸風劍',   desc: '바람처럼 가볍고 빠른 청풍문의 비전 검법. 검 끝이 만 리를 달린다.', cat: 'mugong', grade: '이류', weapon: 'sword',  moves: ['청풍출검', '회풍검', '청풍만리'], cost: 300 },
+  cpDo:     { name: '청풍도',   hanja: '淸風刀',   desc: '회오리치는 바람으로 적의 혼을 끊는다는 청풍문의 비전 도법.', cat: 'mugong', grade: '이류', weapon: 'blade',  moves: ['청풍일도', '선풍참', '광풍단혼'], cost: 300 },
+  cpChang:  { name: '청풍창',   hanja: '淸風槍',   desc: '바람을 등에 업고 뚫고 들어가는 청풍문의 비전 창법.', cat: 'mugong', grade: '이류', weapon: 'spear',  moves: ['청풍돌', '회풍창', '광풍천돌'], cost: 300 },
+  cpPyo:    { name: '청풍표',   hanja: '淸風鏢',   desc: '하늘 가득 바람에 실린 비표를 흩뿌리는 청풍문의 비전 표법.', cat: 'mugong', grade: '이류', weapon: 'hidden', moves: ['청풍비표', '회풍표', '만천청풍'], cost: 300 },
+  cpSim:    { name: '청풍심법', hanja: '淸風心法', desc: '청풍산의 맑은 바람을 단전에 담는 청풍문 내문 심법. 내력통이 크게 넓어진다.', cat: 'simbeop',    grade: '이류', cost: 250 },
+  cpGyeong: { name: '청풍경공', hanja: '淸風輕功', desc: '바람을 밟고 나아가는 청풍문의 비전 경공. 몸이 깃털처럼 가벼워진다.', cat: 'gyeonggong', grade: '이류', cost: 250 },
+  cpGi:     { name: '청풍기공', hanja: '淸風氣功', desc: '바람의 장막을 몸에 두르는 청풍문의 비전 기공. 칼끝이 살에 닿기 전에 흘러내린다.', cat: 'gigong',     grade: '이류', cost: 250 },
 };
 const STARTERS = ['samjaeGwon', 'samjaeGeom', 'samjaeDo', 'samjaeChang', 'samjaePyo'];
 const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창', hidden: '암기' };
@@ -104,6 +104,11 @@ const ITEMS = {
   // 증표
   hasanryeong: { name: '낙양성 하산령', icon: '📜', kind: '증표', price: 0, desc: '청풍문 장문인이 내린 하산 허가증. 제2장 낙양성으로 가는 길이 열린다.' },
 };
+
+/* 비급서: 모든 비급마다 '비급' 아이템이 있다. 행낭에서 [ 익히기 ]로 소모하면 습득한 무공 목록에 오른다. */
+for (const [id, M] of Object.entries(MANUALS)) {
+  ITEMS['bk_' + id] = { name: `《${M.name}》 비급`, icon: '📘', kind: '비급', price: 0, use: { learn: id }, desc: `읽고 익히면 ${M.name}(${M.hanja})을(를) 운용할 수 있다.` };
+}
 
 /* 희귀도 */
 const RARITY = [
