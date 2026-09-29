@@ -54,28 +54,31 @@ const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창',
 /* 아이템 */
 const ITEMS = {
   // 채집 재료
-  herb:         { name: '산약초',     icon: '🌿', kind: '재료', price: 2, desc: '청풍산 어디서나 자라는 흔한 약초.' },
-  lingzhi:      { name: '영지버섯',   icon: '🍄', kind: '재료', price: 8, desc: '고목 그늘에서 드물게 자라는 버섯. 약성이 깊다.' },
-  firegrass:    { name: '화령초',     icon: '🔥', kind: '재료', price: 10, desc: '염화채 바위틈의 붉은 풀. 만지면 손끝이 뜨겁다.' },
-  bloodginseng: { name: '혈삼',       icon: '🥕', kind: '재료', price: 30, desc: '핏빛 뿌리를 가진 삼. 적룡방 습지에서 난다.' },
-  lotus:        { name: '수련화',     icon: '🪷', kind: '재료', price: 25, desc: '적룡방 수면에 피는 흰 꽃. 마음을 맑게 한다.' },
-  iron:         { name: '철광석',     icon: '🪨', kind: '재료', price: 3, desc: '청풍산에서 캐는 거친 쇠돌.' },
-  blackiron:    { name: '흑철',       icon: '⬛', kind: '재료', price: 12, desc: '염화채 광맥의 검은 쇠. 무겁고 단단하다.' },
-  coldiron:     { name: '한철',       icon: '🧊', kind: '재료', price: 35, desc: '적룡방 물밑에서 건진 차가운 쇠.' },
-  jadeStone:    { name: '옥돌',       icon: '💠', kind: '재료', price: 15, desc: '광맥 사이에 박힌 푸른 옥.' },
-  wood:         { name: '목재',       icon: '🪵', kind: '재료', price: 1, desc: '땔감이자 자루감.' },
-  rabbitMeat:   { name: '토끼고기',   icon: '🍖', kind: '재료', price: 2, desc: '들토끼에게서 얻은 고기.' },
-  rabbitHide:   { name: '토끼가죽',   icon: '🟫', kind: '재료', price: 2, desc: '부드럽고 얇은 가죽.' },
-  dogFang:      { name: '들개 이빨',  icon: '🦷', kind: '재료', price: 3, desc: '날카로운 송곳니.' },
-  boarMeat:     { name: '멧돼지고기', icon: '🥩', kind: '재료', price: 4, desc: '기름진 멧돼지 고기.' },
-  boarHide:     { name: '멧돼지 가죽', icon: '🟤', kind: '재료', price: 5, desc: '두껍고 질긴 가죽.' },
-  boarTusk:     { name: '멧돼지 엄니', icon: '🦴', kind: '재료', price: 6, desc: '휘어진 엄니. 도(刀)의 코등이로 쓰인다.' },
-  bandanaSilk:  { name: '화적 비단',  icon: '🧣', kind: '재료', price: 12, desc: '화적들이 약탈한 붉은 비단.' },
-  emberStone:   { name: '불씨석',     icon: '🔴', kind: '재료', price: 15, desc: '열기를 머금은 돌. 염화채 광맥에서 난다.' },
-  fish:         { name: '잉어',       icon: '🐟', kind: '재료', price: 8, desc: '적룡방 강물의 살진 잉어.' },
-  scale:        { name: '교룡 비늘',  icon: '🐉', kind: '재료', price: 30, desc: '수적들이 부적처럼 지니고 다니는 비늘.' },
-  rice:         { name: '쌀',         icon: '🍚', kind: '재료', price: 3, desc: '아린이 몰래 챙겨둔 쌀.' },
-  salt:         { name: '소금',       icon: '🧂', kind: '재료', price: 3, desc: '간을 맞추는 데 필수.' },
+  herb:         { name: '산약초',     icon: '🌿', kind: '재료', craftType: 'alchemy', price: 2, desc: '청풍산 어디서나 자라는 흔한 약초.' },
+  lingzhi:      { name: '영지버섯',   icon: '🍄', kind: '재료', craftType: 'alchemy', price: 8, desc: '고목 그늘에서 드물게 자라는 버섯. 약성이 깊다.' },
+  firegrass:    { name: '화령초',     icon: '🔥', kind: '재료', craftType: 'alchemy', price: 10, desc: '염화채 바위틈의 붉은 풀. 만지면 손끝이 뜨겁다.' },
+  bloodginseng: { name: '혈삼',       icon: '🥕', kind: '재료', craftType: 'alchemy', price: 30, desc: '핏빛 뿌리를 가진 삼. 적룡방 습지에서 난다.' },
+  lotus:        { name: '수련화',     icon: '🪷', kind: '재료', craftType: 'alchemy', price: 25, desc: '적룡방 수면에 피는 흰 꽃. 마음을 맑게 한다.' },
+  iron:         { name: '철광석',     icon: '🪨', kind: '재료', craftType: 'forge', price: 3, desc: '청풍산에서 캐는 거친 쇠돌.' },
+  blackiron:    { name: '흑철',       icon: '⬛', kind: '재료', craftType: 'forge', price: 12, desc: '염화채 광맥의 검은 쇠. 무겁고 단단하다.' },
+  coldiron:     { name: '한철',       icon: '🧊', kind: '재료', craftType: 'forge', price: 35, desc: '적룡방 물밑에서 건진 차가운 쇠.' },
+  jadeStone:    { name: '옥돌',       icon: '💠', kind: '재료', craftType: 'forge', price: 15, desc: '광맥 사이에 박힌 푸른 옥.' },
+  wood:         { name: '목재',       icon: '🪵', kind: '재료', craftType: 'forge', price: 1, desc: '땔감이자 자루감.' },
+  rabbitMeat:   { name: '토끼고기',   icon: '🍖', kind: '재료', craftType: 'cooking', price: 2, desc: '들토끼에게서 얻은 고기.' },
+  rabbitHide:   { name: '토끼가죽',   icon: '🟫', kind: '재료', craftType: 'forge', price: 2, desc: '부드럽고 얇은 가죽.' },
+  dogFang:      { name: '들개 이빨',  icon: '🦷', kind: '재료', craftType: 'forge', price: 3, desc: '날카로운 송곳니.' },
+  boarMeat:     { name: '멧돼지고기', icon: '🥩', kind: '재료', craftType: 'cooking', price: 4, desc: '기름진 멧돼지 고기.' },
+  boarHide:     { name: '멧돼지 가죽', icon: '🟤', kind: '재료', craftType: 'forge', price: 5, desc: '두껍고 질긴 가죽.' },
+  boarTusk:     { name: '멧돼지 엄니', icon: '🦴', kind: '재료', craftType: 'forge', price: 6, desc: '휘어진 엄니. 도(刀)의 코등이로 쓰인다.' },
+  bandanaSilk:  { name: '화적 비단',  icon: '🧣', kind: '재료', craftType: 'forge', price: 12, desc: '화적들이 약탈한 붉은 비단.' },
+  emberStone:   { name: '불씨석',     icon: '🔴', kind: '재료', craftType: 'forge', price: 15, desc: '열기를 머금은 돌. 염화채 광맥에서 난다.' },
+  fish:         { name: '잉어',       icon: '🐟', kind: '재료', craftType: 'cooking', price: 8, desc: '적룡방 강물의 살진 잉어.' },
+  scale:        { name: '교룡 비늘',  icon: '🐉', kind: '재료', craftType: 'forge', price: 30, desc: '수적들이 부적처럼 지니고 다니는 비늘.' },
+  water:        { name: '맑은 물',   icon: '💧', kind: '재료', craftType: 'cooking', price: 1, desc: '계곡에서 길어 온 찬물.' },
+  wildGreens:   { name: '산나물',   icon: '🥬', kind: '재료', craftType: 'cooking', price: 2, desc: '산기슭에서 뜯은 나물.' },
+  chili:        { name: '산초',     icon: '🌶️', kind: '재료', craftType: 'cooking', price: 6, desc: '염화채 바위틈의 매운 열매.' },
+  rice:         { name: '쌀',         icon: '🍚', kind: '재료', craftType: 'cooking', price: 3, desc: '아린이 몰래 챙겨둔 쌀.' },
+  salt:         { name: '소금',       icon: '🧂', kind: '재료', craftType: 'cooking', price: 3, desc: '간을 맞추는 데 필수.' },
   // 실패 부산물
   twistedIron:  { name: '뒤틀린 쇳덩이', icon: '⚙️', kind: '부산물', price: 0, desc: '주조 실패의 흔적. 무신상에 봉헌할 수 있다.' },
   burntAsh:     { name: '탄 약초재',     icon: '🌫️', kind: '부산물', price: 0, desc: '연단 실패의 흔적. 무신상에 봉헌할 수 있다.' },
@@ -93,7 +96,7 @@ const ITEMS = {
   jumeokbap: { name: '주먹밥',       icon: '🍙', kind: '음식', price: 5,  use: { stamina: 20 }, desc: '기력 +20.' },
   rabbitRoast:{ name: '토끼구이',    icon: '🍗', kind: '음식', price: 6,  use: { stamina: 25 }, desc: '기력 +25.' },
   boarSuyuk: { name: '멧돼지 수육', icon: '🍲', kind: '음식', price: 20, use: { stamina: 50, buff: { key: 'atk', val: 0.1, dur: 600, name: '수육의 힘' } }, desc: '기력 +50, 10분간 공격력 +10%.' },
-  lingzhiBap:{ name: '산채 영지밥', icon: '🍛', kind: '음식', price: 25, use: { stamina: 40, buff: { key: 'train', val: 0.25, dur: 900, name: '영지밥 정신' } }, desc: '기력 +40, 15분간 수련 효율 +25%.' },
+  lingzhiBap:{ name: '산채밥', icon: '🍛', kind: '음식', price: 25, use: { stamina: 40, buff: { key: 'train', val: 0.25, dur: 900, name: '산채밥 기운' } }, desc: '기력 +40, 15분간 수련 효율 +25%.' },
   fireStew:  { name: '화룡 전골',   icon: '🥘', kind: '음식', price: 40, use: { stamina: 70, buff: { key: 'atk', val: 0.2, dur: 900, name: '화룡의 열기' } }, desc: '기력 +70, 15분간 공격력 +20%.' },
   fishRoast: { name: '잉어 구이',   icon: '🍢', kind: '음식', price: 18, use: { stamina: 45 }, desc: '기력 +45.' },
   fishCongee:{ name: '잉어 어죽',   icon: '🥣', kind: '음식', price: 50, use: { stamina: 100, buff: { key: 'def', val: 0.2, dur: 900, name: '어죽의 온기' } }, desc: '기력 +100, 15분간 방어력 +20%.' },
@@ -187,15 +190,15 @@ const RECIPES = [];
   R('a_mid',   'alchemy', { firegrass: 2, lingzhi: 1 }, 'pillMid', '노벽송: "중관문은 불로 뚫는 게야. 화령초 둘, 영지 하나. 산약초는 빼라, 불기운이 흐려진다."');
   R('a_high',  'alchemy', { bloodginseng: 1, lotus: 1, firegrass: 1 }, 'pillHigh', '노벽송: "대관문… 피(혈삼), 물(수련화), 불(화령초). 셋이 서로를 다스려야 한다."');
   R('a_clear', 'alchemy', { lotus: 1, herb: 1 }, 'clearPill', '아린: "수련화에 산약초를 곁들이면 머리가 맑아진대요."');
-  R('a_fire',  'alchemy', { firegrass: 1, emberStone: 1 }, 'fireElixir', '아린: "화령초를 불씨석이랑 같이 달이면 속이 뜨끈해진대. 먹어도 되나?"');
+  R('a_fire',  'alchemy', { firegrass: 1, lingzhi: 2 }, 'fireElixir', '노벽송: "화령초 하나를 영지 둘로 감싸 달이면 내력통이 넓어진다."');
   R('a_blood', 'alchemy', { bloodginseng: 1, herb: 2 }, 'bloodPill', '아린: "혈삼 하나에 산약초 둘! 조운 사형이 옛날에 그렇게 먹었대요."');
   // 조리
   R('c_bap',    'cook', { rice: 1, salt: 1 }, 'jumeokbap', '아린: "쌀에 소금만 쳐도 주먹밥이지!"');
-  R('c_rabbit', 'cook', { rabbitMeat: 1, wood: 1 }, 'rabbitRoast', '아린: "토끼고기는 장작불에 그냥 구우면 끝~"');
-  R('c_suyuk',  'cook', { boarMeat: 1, herb: 1, salt: 1 }, 'boarSuyuk', '아린: "멧돼지고기는 약초 넣고 소금 쳐서 삶아야 누린내가 안 나요."');
-  R('c_lingzhi','cook', { rice: 1, herb: 1, lingzhi: 1 }, 'lingzhiBap', '아린: "쌀, 산약초, 영지버섯! 이거 먹고 수련하면 머리가 팽팽 돌아요."');
-  R('c_fire',   'cook', { firegrass: 1, boarMeat: 1, salt: 1 }, 'fireStew', '아린: "화령초를 멧돼지고기에 넣고 소금 간! 입에서 불 나요!"');
-  R('c_fishr',  'cook', { fish: 1, wood: 1 }, 'fishRoast', '아린: "잉어도 토끼처럼 장작에 구우면 돼요."');
+  R('c_rabbit', 'cook', { rabbitMeat: 1, salt: 1 }, 'rabbitRoast', '아린: "토끼고기는 소금만 쳐서 구우면 끝~"');
+  R('c_suyuk',  'cook', { boarMeat: 1, water: 1, salt: 1 }, 'boarSuyuk', '아린: "멧돼지고기는 맑은 물에 소금 쳐서 삶아야 누린내가 안 나요."');
+  R('c_lingzhi','cook', { rice: 1, wildGreens: 2 }, 'lingzhiBap', '아린: "쌀 하나에 산나물 두 줌! 이거 먹고 수련하면 머리가 팽팽 돌아요."');
+  R('c_fire',   'cook', { chili: 1, boarMeat: 1, water: 1 }, 'fireStew', '아린: "산초를 멧돼지고기랑 물에 넣고 끓이면 입에서 불 나요!"');
+  R('c_fishr',  'cook', { fish: 1, salt: 1 }, 'fishRoast', '아린: "잉어도 토끼처럼 소금 쳐서 구우면 돼요."');
   R('c_congee', 'cook', { fish: 1, rice: 1, salt: 1 }, 'fishCongee', '아린: "잉어에 쌀이랑 소금 넣고 푹~ 끓이면 어죽!"');
   // 주조: 같은 틀에 쇠만 바꾼다
   const forge = {
@@ -250,25 +253,17 @@ const ENEMIES = {
   galcheon: { name: '방주 갈천',   hp: 5200, atk: 165, def: 80, spd: 14, eva: 10, xp: 500, silver: [500, 700], drops: [['scale', 1], ['bloodginseng', 1], ['lotus', 1], ['coldiron', 1]], gear: [3, 1], boss: 'boss3' },
 };
 
-/*
-  구역 지도: 8방향 노드. 인접(대각 포함)한 노드끼리 연결된다.
-  S 입구 · o 빈 길 · 1/2/3 적 · H 약초 · M 광맥 · C 보물상자 · G 기믹(보상) · K 두목 · _ 없음
-  게임 시작 시 BFS로 입구에서 모든 노드가 이어지는지 검사하고, 끊긴 곳은 산길로 잇는다.
-*/
+/* 사냥터 지도: 가로 12 × 세로 10. 입장할 때마다 새로 생성한다 (game.js의 generateLayout).
+   입구는 좌측 하단, 두목은 우측 상단 끝. 인접(대각 포함)한 노드끼리 연결된다. */
+const MAP_W = 12, MAP_H = 10;
+const MAP_SPEC = { void: [0.08, 0.12], weak: [6, 8], mid: [3, 4], herb: [3, 5], mine: [3, 5], chest: [1, 2], gimmick: 1 };
 const ZONES = {
   cheongpung: {
     name: '청풍산', hanja: '淸風山', tier: 1,
     desc: '청풍문 뒷산. 들토끼와 들개가 뛰놀고, 깊은 곳엔 외눈 멧돼지왕이 산다.',
     enemies: ['rabbit', 'dog', 'boar'], boss: 'boarKing',
-    map: [
-      '_H_o1_M',
-      'S1o_2oC',
-      '_oH2G_o',
-      '_2_M3oo',
-      '__C3o_K',
-    ],
-    herb: [['herb', 1, 2, 1], ['lingzhi', 1, 1, 0.3], ['wood', 1, 2, 0.6]],
-    mine: [['iron', 1, 2, 1], ['jadeStone', 1, 1, 0.15], ['wood', 1, 1, 0.3]],
+    herb: [['herb', 1, 2, 1], ['lingzhi', 1, 1, 0.3], ['wildGreens', 1, 2, 0.5], ['water', 1, 1, 0.4]],
+    mine: [['iron', 1, 2, 1], ['jadeStone', 1, 1, 0.15], ['wood', 1, 2, 0.6]],
     chest: [['silver', 20, 40], ['potionHp', 2, 3], ['lingzhi', 1, 2], ['iron', 2, 3]],
     gimmick: { name: '쓰러진 고목', stat: 'atk', need: 22, text: '쓰러진 고목을 내공으로 쪼개자 속에 숨겨진 약초 주머니가 드러났습니다!', reward: [['lingzhi', 1, 2], ['iron', 2, 3], ['silver', 30, 50]], fail: '고목이 꿈쩍도 하지 않습니다. (공격력 22 이상 필요)' },
     unlock: null,
@@ -277,15 +272,8 @@ const ZONES = {
     name: '염화채', hanja: '炎火寨', tier: 2,
     desc: '화적패의 소굴. 붉은 바위산 곳곳에 불씨가 피어오른다. 채주 적염도가 다스린다.',
     enemies: ['bandit', 'axeman', 'archer'], boss: 'jeokyeom',
-    map: [
-      'S1oH_2M',
-      'o_2o3_o',
-      'Ho_1G_o',
-      '_M3o2_o',
-      '_C_2H_K',
-    ],
-    herb: [['firegrass', 1, 2, 1], ['herb', 1, 2, 0.6], ['lingzhi', 1, 1, 0.35], ['wood', 1, 2, 0.4]],
-    mine: [['blackiron', 1, 2, 1], ['emberStone', 1, 1, 0.3], ['jadeStone', 1, 1, 0.25]],
+    herb: [['firegrass', 1, 2, 1], ['herb', 1, 2, 0.6], ['lingzhi', 1, 1, 0.35], ['chili', 1, 2, 0.5], ['water', 1, 1, 0.3]],
+    mine: [['blackiron', 1, 2, 1], ['emberStone', 1, 1, 0.3], ['jadeStone', 1, 1, 0.25], ['wood', 1, 2, 0.4]],
     chest: [['silver', 80, 140], ['potionMp', 2, 3], ['firegrass', 2, 3], ['blackiron', 2, 3]],
     gimmick: { name: '잠긴 목책 기관', stat: 'spd', need: 17, text: '목책 위로 몸을 날려 화적들의 비밀 창고를 털었습니다!', reward: [['emberStone', 1, 2], ['firegrass', 2, 3], ['silver', 80, 120]], fail: '목책을 넘기엔 몸이 무겁습니다. (속도 17 이상 필요)' },
     unlock: { boss: 'boss1', text: '청풍산 두목을 꺾으면 길이 열린다' },
@@ -294,14 +282,7 @@ const ZONES = {
     name: '적룡방', hanja: '赤龍幇', tier: 3,
     desc: '강을 틀어쥔 수적 조직. 방주 갈천은 물 위를 걷는다는 소문이 있다.',
     enemies: ['pirate', 'harpoon', 'hyangju'], boss: 'galcheon',
-    map: [
-      'S_H1o_M',
-      'o1_2oH_',
-      '_oM_3G_',
-      'H2_3o_o',
-      '_C1_2oK',
-    ],
-    herb: [['lotus', 1, 1, 0.8], ['bloodginseng', 1, 1, 0.4], ['herb', 1, 2, 0.5], ['fish', 1, 1, 0.5]],
+    herb: [['lotus', 1, 1, 0.8], ['bloodginseng', 1, 1, 0.4], ['herb', 1, 2, 0.5], ['fish', 1, 1, 0.5], ['water', 1, 1, 0.3]],
     mine: [['coldiron', 1, 2, 1], ['jadeStone', 1, 1, 0.3]],
     chest: [['silver', 200, 320], ['clearPill', 1, 2], ['bloodginseng', 1, 1], ['coldiron', 2, 3]],
     gimmick: { name: '수문 기관', stat: 'maxMp', need: 260, text: '내력을 쏟아부어 녹슨 수문을 들어올리자 수적들의 보물이 떠올랐습니다!', reward: [['bloodginseng', 1, 1], ['lotus', 1, 2], ['silver', 150, 220]], fail: '수문이 요지부동입니다. (최대 내력 260 이상 필요)' },
@@ -323,7 +304,7 @@ const HIT_TEXT = [
 /* 조운의 오늘의 보급품: [아이템, 최소, 최대] 중 2~3가지 */
 const SUPPLY = [
   ['potionHp', 1, 3], ['potionMp', 1, 2], ['rice', 2, 4], ['salt', 2, 4], ['herb', 2, 4],
-  ['wood', 3, 5], ['iron', 2, 3], ['rabbitHide', 2, 3], ['boarHide', 1, 2], ['lingzhi', 1, 1], ['jumeokbap', 1, 2],
+  ['wood', 3, 5], ['water', 2, 3], ['wildGreens', 2, 3], ['iron', 2, 3], ['rabbitHide', 2, 3], ['boarHide', 1, 2], ['lingzhi', 1, 1], ['jumeokbap', 1, 2],
 ];
 
 /* 적 조우 감지 지문 (전투력 비 기준, 높을수록 내가 유리) */

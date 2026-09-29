@@ -218,7 +218,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .zone.t2 h3 .hj { color: var(--seal); }
 .zone.t3 h3 .hj { color: var(--r2); }
 .zone.locked { opacity: .45; }
-.field-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; }
+.field-grid { display: flex; flex-direction: column; gap: 14px; }
 .map { display: grid; gap: 6px; padding: 12px; border-radius: var(--radius); background: var(--sunk); align-self: start; }
 .cell { aspect-ratio: 1; max-width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--line-2); border-radius: 50%; background: var(--raise); font-size: 1.15rem; padding: 0; min-width: 0; }
 .cell small { font-size: .55rem; color: var(--dim); max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-inline: 2px; }
@@ -407,3 +407,30 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .hl-silver { color: #fde047; font-weight: bold; }
 .hl-contrib { color: #34d399; font-weight: bold; }
 @media (max-width: 960px) { .side { height: 280px; } }
+
+/* 12×10 사냥터: 칸 크기를 고정하고 넘치면 지도 안에서 스크롤, 현재 위치를 가운데로 */
+.map-scroll { position: relative; --cell: 52px; max-height: 520px; overflow: auto; border-radius: var(--radius); background: var(--sunk); border: 1px solid rgba(212, 175, 55, .12); scroll-behavior: smooth; }
+.map-scroll .map { width: max-content; margin-inline: auto; gap: 5px; padding: 12px; background: none; }
+.map-scroll .cell { width: var(--cell); height: var(--cell); aspect-ratio: auto; }
+.cell.path { font-size: .9rem; color: var(--dim); }
+.control { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; }
+.control > .chips { grid-column: 1 / -1; }
+@media (max-width: 640px) {
+  .map-scroll { --cell: 40px; max-height: 420px; }
+  .map-scroll .map { gap: 3px; padding: 8px; }
+  .control { grid-template-columns: 1fr; }
+}
+
+/* 연무장: 수련 중인 비급의 수련 바만 흐르듯 빛난다 */
+.xpbar .progress-fill.training-active {
+  box-shadow: 0 0 8px #d4af37;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%);
+  background-size: 200% 100%;
+  animation: trainingFlow 2s linear infinite;
+}
+@keyframes trainingFlow {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+.xpbar { overflow: visible; }
+.xpbar > span { border-radius: 4px; }

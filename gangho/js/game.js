@@ -317,6 +317,9 @@ function doCraft() {
   render();
 }
 
+/* 기예 ↔ 재료 분류 */
+const CRAFT_TYPE = { forge: 'forge', alchemy: 'alchemy', cook: 'cooking' };
+
 /* 무신상 봉헌 */
 const OFFER = {
   twistedIron: { key: 'atk', val: 1, text: '공격력 +1' },
@@ -339,59 +342,103 @@ function offer(id, all) {
 /* ───────── 강호행: 지도 ───────── */
 const DIRS = [[-1, -1, '↖'], [0, -1, '↑'], [1, -1, '↗'], [-1, 0, '←'], [1, 0, '→'], [-1, 1, '↙'], [0, 1, '↓'], [1, 1, '↘']];
 
-/* 지도 연결성 보장: 입구에서 8방향 BFS로 닿지 않는 노드가 있으면
-   가장 가까운 도달 노드까지 빈칸(_)을 산길(o)로 메워 잇는다. 두목 노드도 여기서 보장된다. */
-function reachable(grid, sx, sy) {
-  const seen = new Set([`${sx},${sy}`]), q = [[sx, sy]];
+/* 입구에서 8방향 BFS. 거리 맵을 돌려준다. */
+function bfs(grid, sx, sy) {
+  const dist = new Map([[`${sx},${sy}`, 0]]), q = [[sx, sy]];
   while (q.length) {
-    const [x, y] = q.shift();
+    const [x, y] = q.shift(), d = dist.get(`${x},${y}`);
     for (const [dx, dy] of DIRS) {
       const nx = x + dx, ny = y + dy, c = (grid[ny] || [])[nx];
-      if (!c || c === '_' || seen.has(`${nx},${ny}`)) continue;
-      seen.add(`${nx},${ny}`); q.push([nx, ny]);
+      if (!c || c === '_' || dist.has(`${nx},${ny}`)) continue;
+      dist.set(`${nx},${ny}`, d + 1); q.push([nx, ny]);
     }
   }
-  return seen;
+  return dist;
 }
-function normalizeZone(Z) {
-  const grid = Z.map.map(r => [...r.replace(/L/g, 'o')]);
-  let sx = 0, sy = 0;
-  grid.forEach((r, y) => { const x = r.indexOf('S'); if (x >= 0) { sx = x; sy = y; } });
-  for (let guard = 0; guard < 100; guard++) {
-    const seen = reachable(grid, sx, sy);
-    const lost = [];
-    grid.forEach((r, y) => r.forEach((c, x) => { if (c !== '_' && !seen.has(`${x},${y}`)) lost.push([x, y]); }));
+function reachable(grid, sx, sy) { return new Set(bfs(grid, sx, sy).keys()); }
+const neighbors8 = (x, y) => DIRS.map(([dx, dy]) => [x + dx, y + dy]).filter(([nx, ny]) => nx >= 0 && ny >= 0 && nx < MAP_W && ny < MAP_H);
+
+/* 12×10 사냥터 생성
+   1) 입구(좌측 하단)→두목(우측 상단 끝) 사이에 굽이진 주 통로를 먼저 판다
+   2) 통로 밖 일부를 절벽(빈칸)으로 막는다
+   3) BFS로 끊긴 칸이 있으면 가장 가까운 도달 칸까지 산길로 잇는다
+   4) 이벤트를 서로 붙지 않게(8방향 이웃 금지) 흩뿌리고, 나머지는 모두 산길로 둔다 */
+function generateLayout(Z) {
+  const W = MAP_W, H = MAP_H, R = (a, b) => rint(a, b);
+  const grid = Array.from({ length: H }, () => Array(W).fill('o'));
+  const S0 = [R(0, 1), R(H - 3, H - 1)], K0 = [W - 1, 0];
+  const main = new Set();
+  let [x, y] = S0;
+  main.add(`${x},${y}`);
+  while (x !== K0[0] || y !== K0[1]) {
+    const opts = [];
+    if (x < K0[0]) opts.push([1, 0], [1, 0]);
+    if (y > K0[1]) opts.push([0, -1], [0, -1]);
+    if (x < K0[0] && y > K0[1]) opts.push([1, -1]);
+    if (y < H - 1 && Math.random() < 0.15) opts.push([0, 1]);
+    const [dx, dy] = pick(opts); x += dx; y += dy;
+    main.add(`${x},${y}`);
+  }
+  const near = (px, py, [qx, qy]) => Math.max(Math.abs(px - qx), Math.abs(py - qy)) <= 1;
+  const cells = [];
+  for (let yy = 0; yy < H; yy++) for (let xx = 0; xx < W; xx++) if (!main.has(`${xx},${yy}`) && !near(xx, yy, S0) && !near(xx, yy, K0)) cells.push([xx, yy]);
+  const voidN = Math.round(W * H * rnd(...MAP_SPEC.void));
+  for (const [vx, vy] of cells.sort(() => Math.random() - 0.5).slice(0, voidN)) grid[vy][vx] = '_';
+  grid[S0[1]][S0[0]] = 'S'; grid[K0[1]][K0[0]] = 'K';
+  // 끊긴 칸 잇기
+  for (let guard = 0; guard < 200; guard++) {
+    const seen = reachable(grid, ...S0), lost = [];
+    grid.forEach((r, yy) => r.forEach((c, xx) => { if (c !== '_' && !seen.has(`${xx},${yy}`)) lost.push([xx, yy]); }));
     if (!lost.length) break;
-    // 끊긴 노드 하나를 골라 가장 가까운 도달 노드 쪽으로 한 칸씩 길을 낸다
     const [lx, ly] = lost[0];
     let best = null, bd = Infinity;
-    for (const k of seen) { const [x, y] = k.split(',').map(Number); const d = Math.max(Math.abs(x - lx), Math.abs(y - ly)); if (d < bd) { bd = d; best = [x, y]; } }
+    for (const k of seen) { const [kx, ky] = k.split(',').map(Number); const d = Math.max(Math.abs(kx - lx), Math.abs(ky - ly)); if (d < bd) { bd = d; best = [kx, ky]; } }
     let [cx, cy] = [lx, ly];
-    while (Math.max(Math.abs(cx - best[0]), Math.abs(cy - best[1])) > 1) {
-      cx += Math.sign(best[0] - cx); cy += Math.sign(best[1] - cy);
-      if (grid[cy][cx] === '_') grid[cy][cx] = 'o';
-    }
+    while (Math.max(Math.abs(cx - best[0]), Math.abs(cy - best[1])) > 1) { cx += Math.sign(best[0] - cx); cy += Math.sign(best[1] - cy); if (grid[cy][cx] === '_') grid[cy][cx] = 'o'; }
   }
-  Z.grid = grid.map(r => r.join(''));
-  Z.start = [sx, sy];
+  // 이벤트 배치
+  const dist = bfs(grid, ...S0), maxD = Math.max(...dist.values());
+  const taken = new Set();
+  const free = ([fx, fy]) => grid[fy][fx] === 'o' && !neighbors8(fx, fy).some(([nx, ny]) => taken.has(`${nx},${ny}`) || 'SK'.includes(grid[ny][nx]));
+  const paths = () => { const out = []; grid.forEach((r, yy) => r.forEach((c, xx) => { if (c === 'o') out.push([xx, yy]); })); return out.sort(() => Math.random() - 0.5); };
+  const place = (ch, n, filter = () => true, sort) => {
+    let pool = paths().filter(filter);
+    if (sort) pool.sort(sort);
+    let placed = 0;
+    for (const c of pool) { if (placed >= n) break; if (!free(c)) continue; grid[c[1]][c[0]] = ch; taken.add(`${c[0]},${c[1]}`); placed++; }
+    return placed;
+  };
+  const deg = ([dx, dy]) => neighbors8(dx, dy).filter(([nx, ny]) => grid[ny][nx] !== '_').length;
+  const depth = c => (dist.get(`${c[0]},${c[1]}`) || 0) / maxD;
+  // 최소 수량을 먼저 모두 채운 뒤, 남은 목표치를 채운다
+  const deadEnd = (a, b) => deg(a) - deg(b) || depth(b) - depth(a);
+  const kinds = [
+    ['C', MAP_SPEC.chest, () => true, deadEnd],          // 막다른 길
+    ['G', [MAP_SPEC.gimmick, MAP_SPEC.gimmick], () => true, deadEnd],
+    ['3', MAP_SPEC.mid, c => depth(c) >= 0.5],           // 깊은 산길
+    ['1', [3, 4], c => depth(c) < 0.85],
+    ['2', [3, 4], c => depth(c) < 0.9],
+    ['H', MAP_SPEC.herb], ['M', MAP_SPEC.mine],
+  ];
+  const got = {};
+  for (const [ch, [lo], f, so] of kinds) got[ch] = place(ch, lo, f, so);
+  const weakTarget = R(...MAP_SPEC.weak);
+  for (const [ch, [lo, hi], f, so] of kinds) {
+    const want = ch === '1' ? Math.ceil(weakTarget / 2) : ch === '2' ? Math.floor(weakTarget / 2) : R(lo, hi);
+    if (want > got[ch]) got[ch] += place(ch, want - got[ch], f, so);
+  }
+  const short = kinds.some(([ch, [lo]]) => got[ch] < lo);
+  if (short && (Z._retry = (Z._retry || 0) + 1) < 30) return generateLayout(Z);
+  Z._retry = 0;
+  return { layout: grid.map(r => r.join('')), start: S0 };
 }
-for (const Z of Object.values(ZONES)) normalizeZone(Z);
 
 function tileAt(zid, x, y) {
-  const Z = ZONES[zid], here = S && S.zone && S.zone.id === zid;
-  const row = (here ? S.zone.layout : Z.grid)[y];
+  if (!S || !S.zone || S.zone.id !== zid) return '_';
+  const row = S.zone.layout[y];
   if (!row || x < 0 || x >= row.length) return '_';
-  if (here && S.zone.done[`${x},${y}`]) return 'o';
+  if (S.zone.done[`${x},${y}`]) return 'o';
   return row[x];
-}
-/* 입장할 때마다 이벤트(적·채집·상자·기믹)를 길 위에 새로 흩뿌린다. 입구·두목·빈칸 모양은 그대로라 연결성은 유지된다. */
-function shuffleLayout(Z) {
-  const grid = Z.grid.map(r => [...r]);
-  const cells = [], events = [];
-  grid.forEach((r, y) => r.forEach((c, x) => { if (c !== '_' && c !== 'S' && c !== 'K') { cells.push([x, y]); if (c !== 'o') events.push(c); } }));
-  for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
-  cells.forEach(([x, y], i) => { grid[y][x] = events[i] || 'o'; });
-  return grid.map(r => r.join(''));
 }
 function passable(zid, x, y) { return tileAt(zid, x, y) !== '_'; }
 function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags[u.boss]; }
@@ -401,8 +448,9 @@ function reveal(zid, x, y) {
 }
 function enterZone(zid) {
   if (!zoneUnlocked(zid)) return;
-  const [x, y] = ZONES[zid].start;
-  S.zone = { id: zid, x, y, layout: shuffleLayout(ZONES[zid]), done: {} };
+  const { layout, start } = generateLayout(ZONES[zid]);
+  const [x, y] = start;
+  S.zone = { id: zid, x, y, layout, start, done: {} };
   S.seen[zid] = {};
   reveal(zid, S.zone.x, S.zone.y);
   log(`${ZONES[zid].name}(${ZONES[zid].hanja})에 들어섰습니다.`, 'place');
@@ -430,7 +478,7 @@ function nodeInfo(zid, x, y) {
   if (c === 'G') return { type: 'gimmick', icon: '⚙️', label: Z.gimmick.name };
   if (c === 'K') return { type: 'boss', icon: '👹', label: ENEMIES[Z.boss].name, enemy: Z.boss };
   if (c === 'S') return { type: 'gate', icon: '🏯', label: '입구' };
-  return { type: 'path', icon: '·', label: '산길' };
+  return { type: 'path', icon: '·', label: '산길(山徑)' };
 }
 function spend(cost) {
   if (S.stamina < cost) { toast('기력이 부족합니다. 음식을 먹거나 뒷마당에서 쉬십시오.'); return false; }
@@ -566,23 +614,20 @@ function playerAttack(b) {
       S.mp -= cost;
       comboDone = true;
       const ok = playerHit(b, mults[i], `<b class="move m${i + 1}">【${M.moves[i]}】</b> 제${i + 1}초식!`);
-      if (ok) addXp(id, 'cxp', 2 + i * 3);
       if (!ok || b.e.hpNow <= 0) break;
     }
   }
   if (!comboDone) {
-    const ok = playerHit(b, 1, '⚔️ 평타(平打).');
-    if (ok && canCombo) addXp(id, 'cxp', 1);
+    playerHit(b, 1, '⚔️ 평타(平打).');
   }
 }
 function enemyTurn(b) {
   const e = b.e, st = b.st;
   const hitChance = Math.max(40, 95 - st.eva);
-  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격 — 경공으로 가볍게 흘려냈습니다.`, 'dodge'); addXp(S.active.gyeonggong, 'cxp', 1); return; }
+  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격 — 경공으로 가볍게 흘려냈습니다.`, 'dodge'); return; }
   if (b.guard && Math.random() * 100 < st.counter) {
     bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'guard');
     playerHit(b, 1.2, '<b class="move counter">【반격(反擊)】</b>');
-    addXp(S.active.gigong, 'cxp', 2);
     return;
   }
   let dmg = dmgCalc(e.atk, st.def);
@@ -600,11 +645,11 @@ function winBattle(b) {
   const E = ENEMIES[b.eid];
   bLine(`🏆 ${josa(E.name, '을를')} 쓰러뜨렸습니다!`, 'win');
   clearNode();
-  for (const cat of CAT_ORDER) addXp(S.active[cat], 'cxp', E.xp);
-  bLine(`실전 경험 +${E.xp} (4대 영역)`, 'muted');
+  for (const cat of CAT_ORDER) addXp(S.active[cat], 'cxp', 1);
+  bLine('실전 경험 +1 (무공·심법·경공·기공)', 'muted');
   const silver = rint(...E.silver); S.silver += silver;
   bLine(`${hlSilver(silver)} 획득`, 'loot');
-  log(`${E.name} 토벌. ${hlSilver(silver)}, 실전 경험 +${E.xp}`, 'good');
+  log(`${E.name} 토벌. ${hlSilver(silver)}, 실전 경험 +1`, 'good');
   for (const [id, p] of E.drops) if (Math.random() < p) { if (give(id, 1, true)) { bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); log(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} ×1 획득`, 'loot'); } }
   if (E.gear && Math.random() < E.gear[1]) {
     const it = makeGear(pick(Object.keys(EQUIP_BASES)), E.gear[0], rollDropRarity(!!E.boss), false);
@@ -700,14 +745,15 @@ function addHint(r) {
 }
 function recipeName(r) { return r.out.startsWith('eq:') ? EQUIP_BASES[r.out.split(':')[1]].names[+r.out.split(':')[2] - 1] : ITEMS[r.out].name; }
 function recipeIcon(r) { return r.out.startsWith('eq:') ? (EQUIP_BASES[r.out.split(':')[1]].slot === 'weapon' ? '🗡️' : '🛡️') : ITEMS[r.out].icon; }
-function arinHint() {
-  if (S.silver < 20) { toast('은자가 부족합니다.'); return; }
-  const pool = RECIPES.filter(r => !S.codex.includes(r.id) && (r.hint.startsWith('아린') || r.hint.startsWith('조운')) && !/_[23]$/.test(r.id));
-  if (!pool.length) { log('아린: "헤헤, 제가 아는 건 사형이 다 아는걸요?"', 'npc'); return; }
-  S.silver -= 20;
-  addHint(pick(pool));
-  render();
-}
+const ARIN_TALK = [
+  '사형, 조운 사형이 또 장작 패다 도끼 자루 부러뜨렸대요. 헤헤.',
+  '장문인 할아버지 오늘도 낮잠이에요. 코 고는 소리가 연무장까지 들려요!',
+  '청풍산 들토끼는 귀엽지만… 고기는 맛있어요.',
+  '저도 언젠가 낙양 구경 가 보고 싶어요. 사형이 먼저 가면 얘기해 줘요!',
+  '무신상 앞에 쇳덩이 놓고 절하는 사형 봤어요. 진짜 효과 있어요?',
+  '화로 쓸 때 불 조심해요! 지난번에 조운 사형 눈썹 탔었어요.',
+];
+function arinTalk() { log(`아린: "${pick(ARIN_TALK)}"`, 'npc'); }
 function rest() {
   if (S.zone) return;
   const st = calcStats();
@@ -885,17 +931,25 @@ function render() {
   renderLog();
   renderModal();
   wireImages();
+  centerMap();
   save();
+}
+/* 큰 지도에서 현재 위치를 스크롤 영역 가운데로 */
+function centerMap() {
+  const box = $('#mapScroll'), here = box && box.querySelector('.cell.here');
+  if (!here) return;
+  box.scrollLeft = here.offsetLeft - (box.clientWidth - here.offsetWidth) / 2;
+  box.scrollTop = here.offsetTop - (box.clientHeight - here.offsetHeight) / 2;
 }
 
 /* 연무장 */
 function xpRows(id) {
-  const m = S.manuals[id];
+  const m = S.manuals[id], on = S.activeTrainingSkillId === id;
   if (m.star >= MAX_STAR) return '<div class="daesung">大成</div>';
   const n = need(m.star), pc = m.cxp / n * 100, pt = m.txp / n * 100;
   return `<div class="xp" data-live="${id}">
     <div class="xprow"><span>실전</span><div class="xpbar c"><span style="width:${Math.min(100, pc)}%"></span></div><b>${Math.min(100, Math.floor(pc))}%</b></div>
-    <div class="xprow"><span>수련</span><div class="xpbar t"><span style="width:${Math.min(100, pt)}%"></span></div><b>${Math.min(100, Math.floor(pt))}%</b></div>
+    <div class="xprow"><span>수련</span><div class="xpbar t"><span class="progress-fill${on ? ' training-active' : ''}" style="width:${Math.min(100, pt)}%"></span></div><b>${Math.min(100, Math.floor(pt))}%</b></div>
   </div>`;
 }
 function starSig() { return Object.values(S.manuals).map(m => m.star + (m.gate ? 'g' : '')).join(); }
@@ -979,7 +1033,8 @@ function viewShrine() {
 /* 화로 */
 function viewForge() {
   const C = CRAFTS[ui.craft];
-  const mats = Object.keys(S.inv).filter(id => ITEMS[id].kind === '재료').sort((a, b) => ITEMS[a].name.localeCompare(ITEMS[b].name));
+  const ctype = CRAFT_TYPE[ui.craft];
+  const mats = Object.keys(S.inv).filter(id => ITEMS[id].craftType === ctype).sort((a, b) => ITEMS[a].name.localeCompare(ITEMS[b].name));
   const flat = Object.entries(ui.pot).filter(([, n]) => n > 0).flatMap(([id, n]) => Array(n).fill(id));
   const res = ui.craftResult;
   return `<section class="panel">
@@ -993,7 +1048,7 @@ function viewForge() {
         ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${res.text}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
       </div>
       <div class="mats">
-        <h4>재료</h4>
+        <h4>${C.name} 재료</h4>
         <div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''}>${ITEMS[id].icon} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>
       </div>
     </div>
@@ -1023,7 +1078,7 @@ function viewYard() {
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
     <div class="btns">
       <button class="btn" data-act="snack" ${S.arin.snack === today() ? 'disabled' : ''}>🍪 ${S.arin.snack === today() ? '약과는 내일 또' : '일일 약과 받기'}</button>
-      <button class="btn" data-act="hint" ${S.silver < 20 ? 'disabled' : ''}>🔖 조합법 물어보기 (은자 20냥)</button>
+      <button class="btn" data-act="talk">💬 이야기 나누기</button>
     </div>
   </section>`;
 }
@@ -1066,7 +1121,7 @@ function viewField() {
     return `<section class="panel">
       ${head('강호행', '江湖行')}
       <p class="story">산문을 나서면 강호입니다. 길을 걷는 데는 힘이 들지 않지만, 싸우고 캐고 여는 데는 기력이 듭니다. 기력은 저절로 돌아오지 않습니다.</p>
-      <div class="zones">${ZONE_ORDER.map(zid => {
+      <div class="zones">${ZONE_ORDER.filter(zoneUnlocked).map(zid => {
         const Z = ZONES[zid], open = zoneUnlocked(zid);
         return `<article class="zone ${open ? '' : 'locked'} t${Z.tier}">
           <h3>${label(Z.name, Z.hanja)}${S.flags[ENEMIES[Z.boss].boss] ? ' <span class="pill">평정</span>' : ''}</h3>
@@ -1076,9 +1131,9 @@ function viewField() {
       }).join('')}</div>
     </section>`;
   }
-  const { id: zid, x, y } = S.zone, Z = ZONES[zid], seen = S.seen[zid] || {}, cols = Z.grid[0].length;
+  const { id: zid, x, y } = S.zone, Z = ZONES[zid], seen = S.seen[zid] || {}, cols = MAP_W;
   let grid = '';
-  for (let yy = 0; yy < Z.grid.length; yy++) for (let xx = 0; xx < cols; xx++) {
+  for (let yy = 0; yy < MAP_H; yy++) for (let xx = 0; xx < cols; xx++) {
     if (!passable(zid, xx, yy)) { grid += '<div class="cell void"></div>'; continue; }
     if (!seen[`${xx},${yy}`]) { grid += '<div class="cell fog"></div>'; continue; }
     const here = xx === x && yy === y;
@@ -1103,7 +1158,7 @@ function viewField() {
   return `<section class="panel field">
     ${head(Z.name, Z.hanja, '<button class="btn ghost sm" data-act="leave">청풍문으로 귀환</button>')}
     <div class="field-grid">
-      <div class="map" style="grid-template-columns:repeat(${cols},1fr)">${grid}</div>
+      <div class="map-scroll" id="mapScroll"><div class="map" style="grid-template-columns:repeat(${cols},var(--cell))">${grid}</div></div>
       <div class="control">
         <div class="dpad">${pad.join('')}</div>
         <div class="here-box"><h4>${info.icon} ${info.label}</h4>${action}</div>
@@ -1250,7 +1305,7 @@ function renderModal() {
   if (ui.modal.startsWith('recipe:')) m.innerHTML = recipeModal(ui.modal.slice(7));
   if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 들개를 쫓던 손이 이제 적룡방 방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
   wireImages();
-  if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>모든 진행이 사라집니다. 정말 새로 시작하시겠습니까?</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;
+  if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>${RESET_MSG}</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;
 }
 
 /* 견문록 높이를 왼쪽 본문 패널과 1:1로 맞춘다 (넓은 화면에서만) */
@@ -1264,6 +1319,23 @@ function syncSide() {
   if (window.ResizeObserver) new ResizeObserver(apply).observe(main);
   addEventListener('resize', apply);
   apply();
+}
+
+/* 처음부터 다시: 브라우저 확인창을 먼저 쓰고, 확인창이 막힌 환경(즉시 false 반환)에서는 화면 안 확인창으로 대신한다.
+   이전에는 저장을 지운 뒤 새로고침 직전 beforeunload가 현재 상태를 다시 저장해 초기화가 되지 않았다. */
+const RESET_MSG = '모든 강호의 기록을 지우고 처음부터 다시 시작하시겠습니까?';
+function askReset() {
+  const t0 = performance.now();
+  let ok = false;
+  try { ok = window.confirm(RESET_MSG); } catch (e) { ok = false; }
+  if (ok) return doReset();
+  if (performance.now() - t0 < 30) { ui.modal = 'reset'; renderModal(); }
+}
+function doReset() {
+  S = null;
+  window.removeEventListener('beforeunload', save);
+  try { localStorage.clear(); } catch (e) { /* 저장소 접근 불가 */ }
+  location.reload();
 }
 
 /* ───────── 시작 화면 ───────── */
@@ -1307,7 +1379,10 @@ function showIntro() {
 /* ───────── 이벤트 ───────── */
 function onClick(e) {
   const t = e.target.closest('button, [data-tab], [data-manual]');
-  if (!t || t.disabled || !S) return;
+  if (!t || t.disabled) return;
+  if (t.dataset.act === 'reset') return askReset();
+  if (t.dataset.act === 'doreset') return doReset();
+  if (!S) return;
   const d = t.dataset;
   if (d.tab) { if (ui.battle && d.tab !== 'field') return; ui.tab = d.tab; ui.craftResult = null; render(); return; }
   if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
@@ -1321,7 +1396,7 @@ function onClick(e) {
   if (d.offer) return offer(d.offer, false);
   if (d.offerall) return offer(d.offerall, true);
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
-  if (d.add) { if (potTotal() >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
+  if (d.add) { if (ITEMS[d.add].craftType !== CRAFT_TYPE[ui.craft]) return; if (potTotal() >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
   if (d.rem) { ui.pot[d.rem]--; if (ui.pot[d.rem] <= 0) delete ui.pot[d.rem]; return render(); }
   if (d.mission) return completeMission(+d.mission);
   if (d.buymanual) return buyManual(d.buymanual);
@@ -1335,11 +1410,11 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     leave: leaveZone, interact, craft: doCraft, clearpot: () => { ui.pot = {}; render(); },
-    rest, snack: arinSnack, hint: arinHint, masterhint: masterHint, supply: jounSupply, reroll: rerollMissions,
+    rest, snack: arinSnack, talk: arinTalk, masterhint: masterHint, supply: jounSupply, reroll: rerollMissions,
     hasan: doHasan, closemodal: () => { ui.modal = null; render(); },
     closebattle: closeBattle,
-    reset: () => { ui.modal = 'reset'; renderModal(); },
-    doreset: () => { try { localStorage.removeItem(SAVE_KEY); } catch (err) { /* 무시 */ } location.reload(); },
+    reset: askReset,
+    doreset: doReset,
   };
   if (d.act && acts[d.act]) acts[d.act]();
 }
@@ -1358,7 +1433,7 @@ function boot() {
     S.activeTrainingSkillId = null; delete S.training; delete S.gatherCd; delete S.opened; delete S.cleared;
     S.v = 3;
   }
-  if (S && S.zone && !S.zone.layout) S.zone = null;
+  if (S && S.zone && (!S.zone.layout || !S.zone.start || S.zone.layout.length !== MAP_H)) S.zone = null;
   if (!S) showIntro();
   else {
     const away = Math.min(OFFLINE_CAP, (now() - S.lastTick) / 1000);
