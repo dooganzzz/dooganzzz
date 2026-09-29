@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>강호견문록</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><span class="seal">江湖</span><div><h1>강호견문록</h1><small>제1장 · 청풍문 편</small></div></div>
+    <div id="status" class="status"></div>
+  </header>
+  <nav id="tabs" class="tabs" aria-label="장소"></nav>
+  <div class="body">
+    <main id="main" class="main"></main>
+    <aside class="side">
+      <h2>견문록 <small>見聞錄</small></h2>
+      <div id="log" class="log" aria-live="polite"></div>
+      <button class="btn ghost sm reset" data-act="reset">처음부터 다시</button>
+    </aside>
+  </div>
+</div>
+<div id="modal" class="modal" hidden></div>
+<div id="toasts" class="toasts"></div>
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
