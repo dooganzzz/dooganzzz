@@ -105,9 +105,9 @@ module.exports = async (b) => {
   const logc = await p.evaluate(() => { const i = document.querySelector('.log .hl-item'), s = document.querySelector('.log .hl-silver'), c = document.querySelector('.log .hl-contrib'); const cs = el => el && getComputedStyle(el).color; return [cs(i), cs(s), cs(c)].join(' | '); });
   ok('8 획득 하이라이트 색', logc === 'rgb(251, 191, 36) | rgb(253, 224, 71) | rgb(52, 211, 153)', logc);
   await p.waitForTimeout(200);
-  const hs = await p.evaluate(() => ({ main: document.querySelector('#main').offsetHeight, side: document.querySelector('.side').offsetHeight, logScroll: (() => { const l = document.querySelector('#log'); return l.scrollHeight - l.scrollTop - l.clientHeight < 4; })(), ov: getComputedStyle(document.querySelector('#log')).overflowY }));
+  const hs = await p.evaluate(() => ({ main: document.querySelector('#main').offsetHeight, side: document.querySelector('.side').offsetHeight, logScroll: document.querySelector('#log').scrollTop === 0, ov: getComputedStyle(document.querySelector('#log')).overflowY }));
   ok('8 견문록 높이 동기화', w > 960 ? Math.abs(hs.main - hs.side) <= 2 : hs.side === 280, `main ${hs.main} / side ${hs.side}`);
-  ok('8 스크롤 맨 아래 + overflow auto', hs.logScroll && hs.ov === 'auto');
+  ok('8 최신 기록이 맨 위 (scrollTop 0) + overflow auto', hs.logScroll && hs.ov === 'auto');
   // 10
   const th = await p.evaluate(() => ({ body: getComputedStyle(document.body).backgroundImage.slice(0, 60), panel: getComputedStyle(document.querySelector('.panel')).backgroundColor, blur: getComputedStyle(document.querySelector('.panel')).backdropFilter, border: getComputedStyle(document.querySelector('.panel')).borderTopColor }));
   ok('10 먹빛 글래스', th.body.includes('radial-gradient') && th.panel === 'rgba(18, 22, 29, 0.85)' && th.blur === 'blur(10px)' && th.border === 'rgba(212, 175, 55, 0.15)', JSON.stringify(th));

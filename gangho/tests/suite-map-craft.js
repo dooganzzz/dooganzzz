@@ -34,7 +34,7 @@ module.exports = async (b) => {
       return agg;
     });
     ok('7 12×10 / 입구 좌하 / 두목 우상 / 전 노드 연결 (900회 생성)', g.bad.length === 0, g.bad.join(','));
-    ok('8 수량: 요수 22~26, 약초·광맥 7~9, 금고 5~7, 숨은 함정 4~6, 두목 1', g.min.beast >= 22 && g.max.beast <= 26 && g.min.herb >= 7 && g.max.herb <= 9 && g.min.mine >= 7 && g.max.mine <= 9 && g.min.chest >= 5 && g.max.chest <= 7 && g.min.trap >= 4 && g.max.trap <= 6 && g.min.boss === 1 && g.max.boss === 1, JSON.stringify({ min: g.min, max: g.max }));
+    ok('8 수량: 요수 23~27, 약초·광맥 8~10, 금고 3~4, 숨은 함정 4~6, 두목 1', g.min.beast >= 23 && g.max.beast <= 27 && g.min.herb >= 8 && g.max.herb <= 10 && g.min.mine >= 8 && g.max.mine <= 10 && g.min.chest >= 3 && g.max.chest <= 4 && g.min.trap >= 4 && g.max.trap <= 6 && g.min.boss === 1 && g.max.boss === 1, JSON.stringify({ min: g.min, max: g.max }));
     ok('8 보이는 산길 약 50% (120칸 대비, 함정 포함)', g.pavg >= 45 && g.pavg <= 55, `평균 ${g.pavg}% (최소 ${g.pmin}, 최대 ${g.pmax})`);
     ok('8 이벤트가 한곳에 몰리지 않음 (주변 8칸 중 이벤트 3개 이하)', !g.bad.includes('clumped'));
     const rc = await p.evaluate(() => RECIPES.filter(r => Object.keys(r.in).some(id => ITEMS[id].craftType !== CRAFT_TYPE[r.craft])).map(r => r.id));

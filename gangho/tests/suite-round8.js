@@ -86,6 +86,7 @@ module.exports = async (b) => {
       const picked = {};
       for (let i = 0; i < 200; i++) { const e = pickBeast(); picked[e] = (picked[e] || 0) + 1; }
       move(tx - sx, ty - sy);
+      interact();   // 대치 패널의 [ 결투 시작 ]
       const started = !!ui.battle; stopBattleTimer(); const enemy = ui.battle && ui.battle.eid;
       ui.battle.over = true; ui.battle.win = true; closeBattle();
       // 금고
@@ -96,7 +97,7 @@ module.exports = async (b) => {
       return { monsterName, started, enemy, picked, kinds: [...kinds].sort(), chestLabel: ZONES && '금고(金庫)', label };
     });
     ok('5 지도에 개별 몬스터명 없음', !enc.monsterName);
-    ok('5 요수 칸을 밟으면 바로 전투', enc.started && ['rabbit', 'dog', 'boar'].includes(enc.enemy), enc.enemy);
+    ok('5 요수 칸에서 결투 시작 → 지역 요수와 전투', enc.started && ['rabbit', 'dog', 'boar'].includes(enc.enemy), enc.enemy);
     ok('5 요수는 지역 풀에서 가중치로 선택', Object.keys(enc.picked).length === 3, JSON.stringify(enc.picked));
     ok('5 금고 네 종류가 무작위로', enc.kinds.length === 4, enc.kinds.join(','));
 

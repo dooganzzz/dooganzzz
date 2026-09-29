@@ -33,7 +33,7 @@ const POT_MAX = 10;
 
 /* ───────── 상태 ───────── */
 let S = null;
-let ui = { tab: 'hall', pot: {}, craft: 'alchemy', battle: null, modal: null, bagFilter: 'all', slotSel: null };
+let ui = { fold: { hq: false, missions: false, library: true }, tab: 'hall', pot: {}, craft: 'alchemy', battle: null, modal: null, bagFilter: 'all', slotSel: null };
 
 function newState(name, mugongId) {
   const st = {
@@ -71,7 +71,13 @@ function load() {
 function log(text, cls = '') {
   S.log.push({ t: now(), text, cls });
   if (S.log.length > 120) S.log.splice(0, S.log.length - 120);
-  renderLog();
+  // 새 기록은 맨 위에 붙인다 (최신이 항상 위)
+  const el = $('#log'); if (!el) return;
+  const p = document.createElement('p');
+  p.className = cls; p.innerHTML = text;
+  el.prepend(p);
+  while (el.children.length > 60) el.lastElementChild.remove();
+  el.scrollTop = 0;
 }
 function toast(text) {
   const el = document.createElement('div');
@@ -504,11 +510,15 @@ function move(dx, dy) {
   const nx = S.zone.x + dx, ny = S.zone.y + dy, zid = S.zone.id;
   if (!passable(zid, nx, ny)) return;
   const c = tileAt(zid, nx, ny);
-  if (c === 'Y' && S.stamina < STAMINA_COST.battle) { toast('기력이 부족해 요수의 기척을 피해 물러났습니다.'); return; }
   S.zone.x = nx; S.zone.y = ny;
   reveal(zid, nx, ny);
   if (c === 'T') return springTrap();
-  if (c === 'Y') { S.stamina -= STAMINA_COST.battle; return startBattle(pickBeast()); }
+  if (c === 'Y') {
+    const key = `${nx},${ny}`;
+    S.zone.foes = S.zone.foes || {};
+    if (!S.zone.foes[key]) S.zone.foes[key] = pickBeast();   // 대치 상대는 한 번 정해지면 바뀌지 않는다
+    log(`🐾 ${josa(ENEMIES[S.zone.foes[key]].name, '이가')} 앞길을 막아섭니다. 대치(對峙) 중입니다.`, 'place');
+  }
   render();
 }
 /* 숨은 함정: 밟는 순간 발동하고 곧바로 산길이 된다 */
@@ -533,7 +543,7 @@ function nodeInfo(zid, x, y) {
   if (c === 'Y') return { type: 'beast', icon: '🐾', label: '요수(妖獸)' };
   if (c === 'H') return { type: 'herb', icon: '🌿', label: '약초 군락' };
   if (c === 'M') return { type: 'mine', icon: '⛏️', label: '광맥' };
-  if (c === 'C') return { type: 'chest', icon: '🎁', label: '금고(金庫)' };
+  if (c === 'C') return { type: 'chest', icon: '📦', label: '금고(金庫)' };
   if (c === 'G') return { type: 'gimmick', icon: '⚙️', label: Z.gimmick.name };
   if (c === 'K') return { type: 'boss', icon: '👹', label: ENEMIES[Z.boss].name, enemy: Z.boss };
   if (c === 'S') return { type: 'gate', icon: '🏯', label: '입구' };
@@ -554,17 +564,30 @@ function openVault(Z) {
   for (const x of VAULTS) { r -= x.w; if (r < 0) { v = x; break; } }
   log(`🔓 금고를 열자 ${v.icon} ${hlItem(v.name)}${jo(v.name, '이가')} 나왔습니다.`, 'good');
   const t = Z.tier;
-  if (v.name === '은자 궤') giveSilver(rint(25, 45) * t * t);
-  if (v.name === '약재 상자') { for (const [id, n] of rollTable(Z.herb)) give(id, n + 1); give(t === 1 ? 'potionHp' : t === 2 ? 'potionMp' : 'clearPill', 1); }
-  if (v.name === '철물 상자') for (const [id, n] of rollTable(Z.mine)) give(id, n + 1);
-  if (v.name === '장비 궤') giveGear(makeGear(pick(Object.keys(EQUIP_BASES)), t, rollDropRarity(Math.random() < 0.3), false));
+  if (v.name === '은자 궤') giveSilver(rint(15, 35) * t);
+  if (v.name === '약재 궤') {                         // 연단 재료 다량
+    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) give(id, rint(2, 4));
+  }
+  if (v.name === '철물 궤') {                         // 주조 재료 다량
+    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4));
+  }
+  if (v.name === '비급/장비 궤') {                    // 희귀: 아직 익히지 않은 입문(하품) 비급, 없으면 기본 장비
+    const books = STARTERS.filter(id => !S.manuals[id] && !has('bk_' + id));
+    if (books.length) give('bk_' + pick(books), 1);
+    else giveGear(makeGear(pick(Object.keys(EQUIP_BASES)), t, 0, false));
+  }
 }
 function clearNode() { if (S.zone) S.zone.done[`${S.zone.x},${S.zone.y}`] = 1; }
 function giveSilver(n) { S.silver += n; log(`${hlSilver(n)} 획득`, 'loot'); }
 function interact() {
   if (!S.zone || ui.battle) return;
   const { id: zid, x, y } = S.zone, Z = ZONES[zid], info = nodeInfo(zid, x, y);
-  if (info.type === 'beast') { if (spend(STAMINA_COST.battle)) startBattle(pickBeast()); return; }
+  if (info.type === 'beast') {
+    const key = `${x},${y}`; S.zone.foes = S.zone.foes || {};
+    const eid = S.zone.foes[key] || (S.zone.foes[key] = pickBeast());
+    if (spend(STAMINA_COST.battle)) startBattle(eid);
+    return;
+  }
   if (info.type === 'boss') { if (spend(STAMINA_COST.boss)) startBattle(info.enemy); return; }
   if (info.type === 'herb' || info.type === 'mine') {
     if (!spend(STAMINA_COST[info.type])) return;
@@ -683,12 +706,9 @@ function playerAttack(b) {
 function enemyTurn(b) {
   const e = b.e, st = b.st;
   const hitChance = Math.max(40, 95 - st.eva);
-  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격 — 경공으로 가볍게 흘려냈습니다.`, 'dodge'); return; }
-  if (Math.random() * 100 < st.counter) {
-    bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'guard');
-    playerHit(b, 1.0, '<b class="move counter">【반격(反擊)】</b>');
-    return;
-  }
+  // 1) 회피 성공: 피해 0, 반격 판정 없이 적 턴 종료
+  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'dodge'); return; }
+  // 2) 회피 실패: 피격 후에만 반격 판정
   let dmg = dmgCalc(e.atk, st.def);
   const crit = Math.random() * 100 < Math.max(0, 8 - st.critRes / 2);
   if (crit) dmg = Math.round(dmg * 1.5);
@@ -696,6 +716,7 @@ function enemyTurn(b) {
   const [, , cls] = reaction(dmg, st.maxHp);
   const feel = { h1: '살짝 스쳤습니다.', h2: '살갗이 찢어집니다.', h3: '뼈가 울립니다!', h4: '입가로 피가 흐릅니다!', h5: '기혈이 뒤집힙니다!' }[cls];
   bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''} — ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
+  if (S.hp > 0 && Math.random() * 100 < st.counter) playerHit(b, 1.0, '<b class="move counter">【반격(反擊)】</b> 맞은 틈을 파고들어 되받아칩니다.');
 }
 function winBattle(b) {
   b.over = true; b.win = true;
@@ -1035,8 +1056,20 @@ function renderTabs() {
 }
 function renderLog() {
   const el = $('#log'); if (!el || !S) return;
-  el.innerHTML = S.log.slice(-60).map(l => `<p class="${l.cls}">${l.text}</p>`).join('');
-  el.scrollTop = el.scrollHeight;
+  el.innerHTML = S.log.slice(-60).reverse().map(l => `<p class="${l.cls}">${l.text}</p>`).join('');
+  el.scrollTop = 0;
+}
+/* 접기/펼치기 구역: 헤더를 누르면 본문에 .collapsed가 토글된다 (다시 그리지 않아 전환이 부드럽다) */
+function foldHead(key, ko, hj, extra = '') {
+  const shut = ui.fold[key];
+  return `<div class="panel-head fold-head" data-fold="${key}" role="button" tabindex="0" aria-expanded="${!shut}"><h2>${label(ko, hj)} <span class="fold-arrow">${shut ? '▼' : '▲'}</span></h2>${extra}</div>`;
+}
+const foldBody = (key, html) => `<div class="fold-body ${ui.fold[key] ? 'collapsed' : ''}" data-foldbody="${key}"><div class="fold-inner">${html}</div></div>`;
+function toggleFold(key) {
+  ui.fold[key] = !ui.fold[key];
+  const body = document.querySelector(`[data-foldbody="${key}"]`), h = document.querySelector(`[data-fold="${key}"]`);
+  if (body) body.classList.toggle('collapsed', ui.fold[key]);
+  if (h) { h.setAttribute('aria-expanded', String(!ui.fold[key])); h.querySelector('.fold-arrow').textContent = ui.fold[key] ? '▼' : '▲'; }
 }
 function head(ko, hj, extra = '') { return `<div class="panel-head"><h2>${label(ko, hj)}</h2>${extra}</div>`; }
 function render() {
@@ -1254,8 +1287,7 @@ function viewHall() {
   const ownsBook = id => !!S.manuals[id] || has('bk_' + id);
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();
-  return `<section class="panel npc">
-    ${head('정청', '正廳')}
+  const hq = `
     <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn ghost sm" data-act="masterhint">말 걸기</button></div>
     <div class="quest">
       ${q ? `<small class="muted">지금 할 일 · ${qi + 1}/${QUESTS.length}</small><b>${q[0]}</b><p class="story">${q[2]}</p>` : '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'}
@@ -1263,21 +1295,20 @@ function viewHall() {
     </div>
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 필요한 건 챙겨놨다."</p></div>
       <button class="btn ${supplied ? 'ghost' : 'primary'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 받기 ]'}</button></div>
-    <div class="store"><h4>조운의 창고 <small>은자로 삽니다</small></h4><div class="chips">${JOUN_SHOP.map(([id, pr]) => `<button class="chip" data-store="${id}" ${S.silver < pr ? 'disabled' : ''}>${ITEMS[id].icon} ${ITEMS[id].name} <b>${pr}냥</b></button>`).join('')}</div></div>
-  </section>
-  <section class="panel">
-    ${head('문파 임무', '門派任務', '<button class="btn ghost sm" data-act="reroll">새 임무 (은자 5냥)</button>')}
+    <div class="store"><h4>조운의 창고 <small>은자로 삽니다</small></h4><div class="chips">${JOUN_SHOP.map(([id, pr]) => `<button class="chip" data-store="${id}" ${S.silver < pr ? 'disabled' : ''}>${ITEMS[id].icon} ${ITEMS[id].name} <b>${pr}냥</b></button>`).join('')}</div></div>`;
+  const missions = `
+    <div class="btns"><button class="btn ghost sm" data-act="reroll">새 임무 (은자 5냥)</button></div>
     <ul class="missions">${S.missions.map((m, i) => {
       const tname = m.type === 'kill' ? ENEMIES[m.target].name : ITEMS[m.target].name;
       const prog = m.type === 'kill' ? m.prog : Math.min(count(m.target), m.n);
       return `<li><div><b>${m.type === 'kill' ? '토벌' : '납품'}</b> ${tname} ${m.n}${m.type === 'kill' ? '마리' : '개'} <small class="muted">${ZONES[m.zone].name}</small></div><div class="mprog"><span style="width:${prog / m.n * 100}%"></span></div><span class="num">${prog}/${m.n}</span><span class="reward">공헌 ${m.contrib}</span><button class="btn sm" data-mission="${i}" ${missionReady(m) ? '' : 'disabled'}>완료</button></li>`;
-    }).join('')}</ul>
-  </section>
-  <section class="panel">
-    ${head('장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}
+    }).join('')}</ul>`;
+  const library = `
     <div class="shop">${shopManuals.map(([id, M]) => { const own = ownsBook(id); return `<div class="shop-item"><b>${M.name}</b><small>${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}</small><button class="btn sm" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}`}</button></div>`; }).join('')}
-    ${badges.map(g => { const own = ownsShop(g.id); return `<div class="shop-item"><b class="r${g.rarity}">${g.name}</b><small>신분패 · 수련 효율 +${g.stats.train}%</small><button class="btn sm" data-buybadge="${g.id}" ${own || S.contrib < g.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${g.cost}`}</button></div>`; }).join('')}</div>
-  </section>`;
+    ${badges.map(g => { const own = ownsShop(g.id); return `<div class="shop-item"><b class="r${g.rarity}">${g.name}</b><small>신분패 · 수련 효율 +${g.stats.train}%</small><button class="btn sm" data-buybadge="${g.id}" ${own || S.contrib < g.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${g.cost}`}</button></div>`; }).join('')}</div>`;
+  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳')}${foldBody('hq', hq)}</section>
+  <section class="panel fold">${foldHead('missions', '문파 임무', '門派任務', `<span class="num muted">${S.missions.filter(missionReady).length}건 완료 가능</span>`)}${foldBody('missions', missions)}</section>
+  <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 
 /* 강호행 */
@@ -1312,13 +1343,19 @@ function viewField() {
   pad.splice(4, 0, `<div class="dir mid">${info.icon}</div>`);
   const cost = STAMINA_COST[info.type];
   let action;
-  if (info.type === 'beast') action = `<p class="story">요수의 기척이 남아 있습니다.</p><div><button class="btn primary" data-act="interact">🐾 맞선다 <small>기력 ${STAMINA_COST.battle}</small></button></div>`;
+  if (info.type === 'beast') {
+    S.zone.foes = S.zone.foes || {};
+    const eid = S.zone.foes[`${x},${y}`] || (S.zone.foes[`${x},${y}`] = pickBeast());
+    const E = ENEMIES[eid], [, stext, scls] = sense(eid);
+    action = `<div class="standoff"><p class="eyebrow-s">대치(對峙)</p><p class="story"><b>${E.name}</b>${jo(E.name, '이가')} 낮게 몸을 웅크리고 노려봅니다.</p><p class="story sense ${scls}">${stext}</p>
+      <div><button class="btn primary" data-act="interact">⚔️ 결투 시작 <small>기력 ${STAMINA_COST.battle}</small></button></div></div>`;
+  }
   else if (info.type === 'boss') {
     const E = ENEMIES[info.enemy], [, stext, scls] = sense(info.enemy);
-    action = `<p class="story">${info.type === 'boss' ? '두목 ' : ''}<b>${E.name}</b>의 기척이 느껴집니다.</p><p class="story sense ${scls}">${stext}</p><div><button class="btn ${info.type === 'boss' ? 'danger' : 'primary'}" data-act="interact">⚔️ 맞선다 <small>기력 ${cost}</small></button></div>`;
+    action = `<div class="standoff boss"><p class="eyebrow-s">대치(對峙) · 두목</p><p class="story"><b>${E.name}</b>의 거처입니다.</p><p class="story sense ${scls}">${stext}</p><div><button class="btn danger" data-act="interact">⚔️ 결투 시작 <small>기력 ${cost}</small></button></div></div>`;
   } else if (info.type === 'herb' || info.type === 'mine') {
     action = `<p class="story">${info.type === 'herb' ? '약초가 무성합니다.' : '반짝이는 광맥이 드러나 있습니다.'}</p><div><button class="btn primary" data-act="interact">${info.type === 'herb' ? '🌿 채집' : '⛏️ 채광'} <small>기력 ${cost}</small></button></div>`;
-  } else if (info.type === 'chest') action = `<p class="story">이끼 낀 상자가 반쯤 묻혀 있습니다.</p><div><button class="btn primary" data-act="interact">🎁 연다 <small>기력 ${cost}</small></button></div>`;
+  } else if (info.type === 'chest') action = `<p class="story">묵직한 금고가 풀숲에 반쯤 묻혀 있습니다.</p><div><button class="btn primary" data-act="interact">📦 [ 금고 열기 ] <small>기력 ${cost}</small></button></div>`;
   else if (info.type === 'gimmick') action = `<p class="story">${Z.gimmick.name}${jo(Z.gimmick.name, '이가')} 길가에 버티고 있습니다. 무언가 숨겨져 있을 것 같습니다.</p><div><button class="btn primary" data-act="interact">⚙️ 풀어본다 <small>기력 ${cost}</small></button></div>`;
   else if (info.type === 'gate') action = '<p class="story">산문으로 돌아가는 길목입니다.</p>';
   else action = '<p class="story muted">바람 소리만 들립니다. 이곳의 일은 끝났습니다. 청풍문으로 돌아갔다가 다시 오면 산의 기척이 새로 바뀝니다.</p>';
@@ -1350,7 +1387,7 @@ function viewBattle() {
       ${b.over ? `<button class="btn primary" data-act="closebattle">${b.win ? '전리품을 챙긴다' : b.fled ? '숨을 고른다' : '정신을 잃는다…'}</button>` : `
         <div class="phase"><span class="phase-bar" style="animation-duration:${BATTLE_MS}ms"></span><small>${b.round + 1}합 · ${Math.round(BATTLE_MS / 1000)}초마다 공방이 오갑니다</small></div>
         ${items.length ? `<div class="chips">${items.map(id => `<button class="chip" data-bitem="${id}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : ''}
-        <small class="muted">적의 공격을 반격 ${st.counter}% 확률로 흘려낸 뒤 되받아칩니다.</small>`}
+        <small class="muted">공격을 맞으면 반격 ${st.counter}% 확률로 되받아칩니다.</small>`}
     </div>
   </section>`;
 }
@@ -1489,7 +1526,7 @@ function syncSide() {
   const apply = () => {
     if (innerWidth <= 960) { side.style.height = ''; return; }
     side.style.height = Math.max(320, main.offsetHeight) + 'px';
-    const el = $('#log'); if (el) el.scrollTop = el.scrollHeight;
+    const el = $('#log'); if (el) el.scrollTop = 0;
   };
   if (window.ResizeObserver) new ResizeObserver(apply).observe(main);
   addEventListener('resize', apply);
@@ -1554,7 +1591,7 @@ function showIntro() {
 
 /* ───────── 이벤트 ───────── */
 function onClick(e) {
-  const t = e.target.closest('button, [data-tab], [data-manual], [data-mart]');
+  const t = e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-fold]');
   if (!t || t.disabled) return;
   if (t.dataset.act === 'reset') return askReset();
   if (t.dataset.act === 'doreset') return doReset();
@@ -1563,6 +1600,7 @@ function onClick(e) {
   if (d.tab) { if (ui.battle && d.tab !== 'field') return; ui.tab = d.tab; ui.craftResult = null; render(); return; }
   if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
   if (d.zone) return enterZone(d.zone);
+  if (d.fold) return toggleFold(d.fold);
   if (d.train) return toggleTraining(d.train);
   if (d.store) return buyStore(d.store);
   if (d.enhance) return enhanceGear(d.enhance);
@@ -1606,7 +1644,7 @@ function onChange(e) {
 function boot() {
   document.addEventListener('click', onClick);
   document.addEventListener('change', onChange);
-  document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual], [data-mart]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ui.modal = c.dataset.mart ? 'mart:' + c.dataset.mart : 'manual:' + c.dataset.manual; renderModal(); } });
+  document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual], [data-mart], [data-fold]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (c.dataset.fold) return toggleFold(c.dataset.fold); ui.modal = c.dataset.mart ? 'mart:' + c.dataset.mart : 'manual:' + c.dataset.manual; renderModal(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.modal && ui.modal !== 'ending') { ui.modal = null; render(); } });
   S = load();
   if (S && (S.v || 0) < 3) {

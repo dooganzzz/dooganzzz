@@ -483,3 +483,19 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .phase small { color: var(--silver); }
 @keyframes phaseFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .log .battle { font-size: .84rem; }
+
+/* 대치(對峙) 패널: 요수·두목 앞에서 결투 시작 전 */
+.standoff { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 6px; border: 1px solid rgba(212, 175, 55, .35); background: rgba(10, 12, 16, .55); }
+.standoff.boss { border-color: rgba(210, 90, 68, .5); }
+.eyebrow-s { font-family: var(--serif); font-size: .78rem; letter-spacing: .3em; color: var(--gold); }
+.sense.weak { color: #6cc38a; }
+.sense.even { color: #f0cf82; }
+.sense.strong { color: #e0685a; font-weight: 700; }
+
+/* 정청 접기/펼치기 */
+.fold-head { cursor: pointer; user-select: none; }
+.fold-head:hover h2 .ko { color: var(--gold-2); }
+.fold-arrow { font-size: .8rem; color: var(--gold); margin-left: 6px; }
+.fold-body { display: grid; grid-template-rows: 1fr; max-height: 3000px; overflow: hidden; transition: max-height .35s ease, opacity .25s ease, margin .25s ease; opacity: 1; }
+.fold-body.collapsed { max-height: 0; opacity: 0; margin-top: -16px; }
+.fold-inner { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
