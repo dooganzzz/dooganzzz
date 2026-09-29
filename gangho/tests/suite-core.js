@@ -84,7 +84,7 @@ module.exports = async (b) => {
   await p.evaluate(() => { S.silver = 100; render(); });
   await p.click('[data-tab="yard"]');
   ok('7 아린 힌트 버튼 제거됨', !(await p.$('[data-act="hint"]')));
-  await p.evaluate(() => { S.inv.herb = 2; ui.tab = 'forge'; ui.craft = 'alchemy'; ui.pot = { herb: 2 }; S.crafts.alchemy.lv = 99; doCraft(); });
+  await p.evaluate(() => { S.inv.herb = 2; ui.tab = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_hp'); i++) { S.inv.herb = 2; ui.pot = { herb: 2 }; doCraft(); } });   // 성공률 상한 98%라 한 번에 실패할 수 있음
   await p.click('[data-tab="codex"]');
   ok('6 안내문 없음', !(await p.$('.codex ~ .lede, .panel .lede')) && !(await p.content()).includes('아직 아무것도 모릅니다'));
   await p.click('.ctile.locked'); const toast = await p.$$eval('.toast', e => e[e.length - 1].textContent);
