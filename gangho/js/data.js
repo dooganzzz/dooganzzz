@@ -252,7 +252,8 @@ const ENEMIES = {
 
 /*
   구역 지도: 8방향 노드. 인접(대각 포함)한 노드끼리 연결된다.
-  S 입구 · o 빈 길 · 1/2/3 적 · H 약초 · M 광맥 · C 보물상자 · G 기믹 · L 기믹으로 막힌 길 · K 두목 · _ 없음
+  S 입구 · o 빈 길 · 1/2/3 적 · H 약초 · M 광맥 · C 보물상자 · G 기믹(보상) · K 두목 · _ 없음
+  게임 시작 시 BFS로 입구에서 모든 노드가 이어지는지 검사하고, 끊긴 곳은 산길로 잇는다.
 */
 const ZONES = {
   cheongpung: {
@@ -262,14 +263,14 @@ const ZONES = {
     map: [
       '_H_o1_M',
       'S1o_2oC',
-      '_oH2G_L',
-      '_2_M3LL',
+      '_oH2G_o',
+      '_2_M3oo',
       '__C3o_K',
     ],
     herb: [['herb', 1, 2, 1], ['lingzhi', 1, 1, 0.3], ['wood', 1, 2, 0.6]],
     mine: [['iron', 1, 2, 1], ['jadeStone', 1, 1, 0.15], ['wood', 1, 1, 0.3]],
     chest: [['silver', 20, 40], ['potionHp', 2, 3], ['lingzhi', 1, 2], ['iron', 2, 3]],
-    gimmick: { name: '쓰러진 고목', stat: 'atk', need: 22, text: '길을 막은 고목을 내공으로 쪼개 치웠습니다!', fail: '고목이 꿈쩍도 하지 않습니다. (공격력 22 이상 필요)' },
+    gimmick: { name: '쓰러진 고목', stat: 'atk', need: 22, text: '쓰러진 고목을 내공으로 쪼개자 속에 숨겨진 약초 주머니가 드러났습니다!', reward: [['lingzhi', 1, 2], ['iron', 2, 3], ['silver', 30, 50]], fail: '고목이 꿈쩍도 하지 않습니다. (공격력 22 이상 필요)' },
     unlock: null,
   },
   yeomhwa: {
@@ -279,14 +280,14 @@ const ZONES = {
     map: [
       'S1oH_2M',
       'o_2o3_o',
-      'Ho_1G_L',
-      '_M3o2_L',
+      'Ho_1G_o',
+      '_M3o2_o',
       '_C_2H_K',
     ],
     herb: [['firegrass', 1, 2, 1], ['herb', 1, 2, 0.6], ['lingzhi', 1, 1, 0.35], ['wood', 1, 2, 0.4]],
     mine: [['blackiron', 1, 2, 1], ['emberStone', 1, 1, 0.3], ['jadeStone', 1, 1, 0.25]],
     chest: [['silver', 80, 140], ['potionMp', 2, 3], ['firegrass', 2, 3], ['blackiron', 2, 3]],
-    gimmick: { name: '잠긴 목책 기관', stat: 'spd', need: 17, text: '목책 위로 몸을 날려 안쪽 빗장을 풀었습니다!', fail: '목책을 넘기엔 몸이 무겁습니다. (속도 17 이상 필요)' },
+    gimmick: { name: '잠긴 목책 기관', stat: 'spd', need: 17, text: '목책 위로 몸을 날려 화적들의 비밀 창고를 털었습니다!', reward: [['emberStone', 1, 2], ['firegrass', 2, 3], ['silver', 80, 120]], fail: '목책을 넘기엔 몸이 무겁습니다. (속도 17 이상 필요)' },
     unlock: { boss: 'boss1', text: '청풍산 두목을 꺾으면 길이 열린다' },
   },
   jeokryong: {
@@ -297,13 +298,13 @@ const ZONES = {
       'S_H1o_M',
       'o1_2oH_',
       '_oM_3G_',
-      'H2_3o_L',
-      '_C1_2LK',
+      'H2_3o_o',
+      '_C1_2oK',
     ],
     herb: [['lotus', 1, 1, 0.8], ['bloodginseng', 1, 1, 0.4], ['herb', 1, 2, 0.5], ['fish', 1, 1, 0.5]],
     mine: [['coldiron', 1, 2, 1], ['jadeStone', 1, 1, 0.3]],
     chest: [['silver', 200, 320], ['clearPill', 1, 2], ['bloodginseng', 1, 1], ['coldiron', 2, 3]],
-    gimmick: { name: '수문 기관', stat: 'maxMp', need: 260, text: '내력을 쏟아부어 녹슨 수문을 들어올렸습니다!', fail: '수문이 요지부동입니다. (최대 내력 260 이상 필요)' },
+    gimmick: { name: '수문 기관', stat: 'maxMp', need: 260, text: '내력을 쏟아부어 녹슨 수문을 들어올리자 수적들의 보물이 떠올랐습니다!', reward: [['bloodginseng', 1, 1], ['lotus', 1, 2], ['silver', 150, 220]], fail: '수문이 요지부동입니다. (최대 내력 260 이상 필요)' },
     unlock: { boss: 'boss2', text: '염화채 채주를 꺾으면 길이 열린다' },
   },
 };

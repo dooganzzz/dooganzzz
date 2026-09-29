@@ -327,8 +327,47 @@ function offer(id, all) {
 
 /* ───────── 강호행: 지도 ───────── */
 const DIRS = [[-1, -1, '↖'], [0, -1, '↑'], [1, -1, '↗'], [-1, 0, '←'], [1, 0, '→'], [-1, 1, '↙'], [0, 1, '↓'], [1, 1, '↘']];
-function tileAt(zid, x, y) { const row = ZONES[zid].map[y]; if (!row || x < 0 || x >= row.length) return '_'; return row[x]; }
-function passable(zid, x, y) { const c = tileAt(zid, x, y); if (c === '_') return false; if (c === 'L' && !S.cleared[zid]) return false; return true; }
+
+/* 지도 연결성 보장: 입구에서 8방향 BFS로 닿지 않는 노드가 있으면
+   가장 가까운 도달 노드까지 빈칸(_)을 산길(o)로 메워 잇는다. 두목 노드도 여기서 보장된다. */
+function reachable(grid, sx, sy) {
+  const seen = new Set([`${sx},${sy}`]), q = [[sx, sy]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of DIRS) {
+      const nx = x + dx, ny = y + dy, c = (grid[ny] || [])[nx];
+      if (!c || c === '_' || seen.has(`${nx},${ny}`)) continue;
+      seen.add(`${nx},${ny}`); q.push([nx, ny]);
+    }
+  }
+  return seen;
+}
+function normalizeZone(Z) {
+  const grid = Z.map.map(r => [...r.replace(/L/g, 'o')]);
+  let sx = 0, sy = 0;
+  grid.forEach((r, y) => { const x = r.indexOf('S'); if (x >= 0) { sx = x; sy = y; } });
+  for (let guard = 0; guard < 100; guard++) {
+    const seen = reachable(grid, sx, sy);
+    const lost = [];
+    grid.forEach((r, y) => r.forEach((c, x) => { if (c !== '_' && !seen.has(`${x},${y}`)) lost.push([x, y]); }));
+    if (!lost.length) break;
+    // 끊긴 노드 하나를 골라 가장 가까운 도달 노드 쪽으로 한 칸씩 길을 낸다
+    const [lx, ly] = lost[0];
+    let best = null, bd = Infinity;
+    for (const k of seen) { const [x, y] = k.split(',').map(Number); const d = Math.max(Math.abs(x - lx), Math.abs(y - ly)); if (d < bd) { bd = d; best = [x, y]; } }
+    let [cx, cy] = [lx, ly];
+    while (Math.max(Math.abs(cx - best[0]), Math.abs(cy - best[1])) > 1) {
+      cx += Math.sign(best[0] - cx); cy += Math.sign(best[1] - cy);
+      if (grid[cy][cx] === '_') grid[cy][cx] = 'o';
+    }
+  }
+  Z.grid = grid.map(r => r.join(''));
+  Z.start = [sx, sy];
+}
+for (const Z of Object.values(ZONES)) normalizeZone(Z);
+
+function tileAt(zid, x, y) { const row = ZONES[zid].grid[y]; if (!row || x < 0 || x >= row.length) return '_'; return row[x]; }
+function passable(zid, x, y) { return tileAt(zid, x, y) !== '_'; }
 function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags[u.boss]; }
 function reveal(zid, x, y) {
   S.seen[zid] = S.seen[zid] || {};
@@ -336,8 +375,8 @@ function reveal(zid, x, y) {
 }
 function enterZone(zid) {
   if (!zoneUnlocked(zid)) return;
-  const map = ZONES[zid].map;
-  for (let y = 0; y < map.length; y++) { const x = map[y].indexOf('S'); if (x >= 0) S.zone = { id: zid, x, y }; }
+  const [x, y] = ZONES[zid].start;
+  S.zone = { id: zid, x, y };
   reveal(zid, S.zone.x, S.zone.y);
   log(`${ZONES[zid].name}(${ZONES[zid].hanja})에 들어섰습니다.`, 'place');
   ui.tab = 'field'; render();
@@ -364,7 +403,6 @@ function nodeInfo(zid, x, y) {
   if (c === 'G') return { type: 'gimmick', icon: '⚙️', label: Z.gimmick.name, done: S.cleared[zid] };
   if (c === 'K') return { type: 'boss', icon: '👹', label: ENEMIES[Z.boss].name, enemy: Z.boss };
   if (c === 'S') return { type: 'gate', icon: '🏯', label: '입구' };
-  if (c === 'L') return { type: 'path', icon: '·', label: '트인 길' };
   return { type: 'path', icon: '·', label: '산길' };
 }
 function spend(cost) {
@@ -400,7 +438,11 @@ function interact() {
   if (info.type === 'gimmick') {
     if (info.done || !spend(STAMINA_COST.gimmick)) return;
     const st = calcStats(), g = Z.gimmick;
-    if (st[g.stat] >= g.need) { S.cleared[zid] = 1; reveal(zid, x, y); log(`${g.name}: ${g.text} 새 길이 드러났습니다.`, 'good'); }
+    if (st[g.stat] >= g.need) {
+      S.cleared[zid] = 1;
+      log(`${g.name}: ${g.text}`, 'good');
+      for (const [id, a, b] of g.reward) { const n = rint(a, b); if (id === 'silver') { S.silver += n; log(`은자 ${n}냥 획득`, 'loot'); } else give(id, n); }
+    }
     else log(`${g.name}: ${g.fail}`, 'bad');
   }
   render();
@@ -625,11 +667,16 @@ function arinSnack() {
   log(`아린: "${pick(['사형! 이거 몰래 구운 거예요. 조운 사형한텐 비밀!', '오늘 약과는 꿀을 두 배로 넣었어요!', '헤헤, 수련 힘들죠? 이거 먹어요!'])}" — 🍪 아린표 약과를 받았습니다.`, 'npc');
   render();
 }
-function addHint(r) { log(`🔖 ${r.hint}`, 'hint'); if (!S.hints.includes(r.id)) S.hints.push(r.id); }
+function addHint(r) {
+  log(`🔖 ${r.hint}`, 'hint');
+  if (!S.codex.includes(r.id)) { S.codex.push(r.id); log(`📖 도감에 「${recipeName(r)}」 조합법이 기록되었습니다.`, 'gold'); }
+}
+function recipeName(r) { return r.out.startsWith('eq:') ? EQUIP_BASES[r.out.split(':')[1]].names[+r.out.split(':')[2] - 1] : ITEMS[r.out].name; }
+function recipeIcon(r) { return r.out.startsWith('eq:') ? (EQUIP_BASES[r.out.split(':')[1]].slot === 'weapon' ? '🗡️' : '🛡️') : ITEMS[r.out].icon; }
 function arinHint() {
   const free = S.arin.hint !== today();
   if (!free && S.silver < 20) { toast('은자가 부족합니다.'); return; }
-  const pool = RECIPES.filter(r => !S.codex.includes(r.id) && !S.hints.includes(r.id) && (r.hint.startsWith('아린') || r.hint.startsWith('조운')) && !/_[23]$/.test(r.id));
+  const pool = RECIPES.filter(r => !S.codex.includes(r.id) && (r.hint.startsWith('아린') || r.hint.startsWith('조운')) && !/_[23]$/.test(r.id));
   if (!pool.length) { log('아린: "헤헤, 제가 아는 건 사형이 다 아는걸요?"', 'npc'); return; }
   if (free) S.arin.hint = today(); else S.silver -= 20;
   addHint(pick(pool));
@@ -648,7 +695,8 @@ function rest() {
 function masterHint() {
   const gated = Object.entries(S.manuals).find(([, m]) => m.gate && !has(GATES[m.star]));
   const pill = gated ? GATES[gated[1].star] : questIndex() === 2 ? 'pillLow' : null;
-  if (pill) { addHint(RECIPES.find(x => x.out === pill)); render(); return; }
+  const r = pill && RECIPES.find(x => x.out === pill);
+  if (r && !S.codex.includes(r.id)) { addHint(r); render(); return; }
   log(`노벽송: "${pick([
     '무공은 몸으로 치고, 머리로 되새기는 게야. 한쪽만 하면 막힌다.',
     '쯧, 늙은이 낮잠 방해 말고 연무장이나 가거라.',
@@ -692,10 +740,10 @@ const QUESTS = [
   ['청풍산에서 첫 사냥', () => S.kills > 0, '강호행에서 청풍산으로 가, ⚔️ 기척이 있는 곳에서 싸우십시오.'],
   ['화로에서 하급 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 4, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],
   ['무공 4성 — 소관문 돌파', () => bestMugongStar() >= 4, '3성을 가득 채운 뒤 하급 돌파단을 복용하십시오.'],
-  ['청풍산 두목 외눈 멧돼지왕 토벌', () => !!S.flags.boss1, '길을 막은 고목을 치우면 깊은 곳으로 들어갈 수 있습니다.'],
+  ['청풍산 두목 외눈 멧돼지왕 토벌', () => !!S.flags.boss1, '청풍산 가장 깊은 곳, 👹 표시가 두목의 거처입니다.'],
   ['염화채 채주 적염도 토벌', () => !!S.flags.boss2, '화적패의 소굴 가장 깊은 곳에 채주가 있습니다.'],
   ['무공 8성 — 중관문 돌파', () => bestMugongStar() >= 8, '7성을 채운 뒤 중급 돌파단을 복용하십시오.'],
-  ['적룡방 방주 갈천 토벌', () => !!S.flags.boss3, '수문을 열어야 방주의 거처로 갈 수 있습니다.'],
+  ['적룡방 방주 갈천 토벌', () => !!S.flags.boss3, '적룡방 가장 깊은 곳에 방주의 거처가 있습니다.'],
   ['무공 12성 대성 — 대관문 돌파', () => bestMugongStar() >= 12, '11성을 채운 뒤 상급 돌파단을 복용하십시오.'],
   ['장문인에게 하산령 받기', () => !!S.flags.hasan, '장문인을 찾아가십시오.'],
 ];
@@ -723,6 +771,29 @@ function tick() {
   advance(Math.min(dt, 5), false);
   renderHeader();
   renderLive();
+}
+
+/* ───────── 이미지 (없으면 대체 그림) ───────── */
+const IMG = {
+  doll: 'assets/character_silhouette.png',
+  master: 'assets/portraits/npc_nobyeoksong.png',
+  joun: 'assets/portraits/npc_joun.png',
+  arin: 'assets/portraits/npc_arin.png',
+};
+const brokenImg = new Set();
+function imgOr(src, cls, fallback, alt = '') {
+  if (brokenImg.has(src)) return fallback;
+  return `<img src="${src}" class="${cls}" alt="${alt}" data-fb="${encodeURIComponent(fallback)}">`;
+}
+function wireImages() {
+  for (const im of document.querySelectorAll('img[data-fb]:not([data-wired])')) {
+    im.dataset.wired = '1';
+    const fail = () => { brokenImg.add(im.getAttribute('src')); im.outerHTML = decodeURIComponent(im.dataset.fb); };
+    if (im.complete && im.naturalWidth === 0) fail(); else im.addEventListener('error', fail, { once: true });
+  }
+}
+function portrait(who, seal, name) {
+  return imgOr(IMG[who], 'npc-portrait', `<div class="npc-portrait fallback ${who}" role="img" aria-label="${name}">${seal}</div>`, name);
 }
 
 /* ───────── 화면 ───────── */
@@ -770,6 +841,7 @@ function render() {
   }
   renderLog();
   renderModal();
+  wireImages();
   save();
 }
 
@@ -897,7 +969,7 @@ function viewYard() {
     </div>
   </section>
   <section class="panel npc">
-    <div class="npc-head"><div class="portrait arin">璘</div><div><h3>${label('아린', '사매')}</h3><p class="story">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
+    <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
     <div class="btns">
       <button class="btn" data-act="snack" ${S.arin.snack === today() ? 'disabled' : ''}>🍪 ${S.arin.snack === today() ? '약과는 내일 또' : '일일 약과 받기'}</button>
       <button class="btn" data-act="hint">🔖 ${S.arin.hint === today() ? '레시피 힌트 듣기 (은자 20냥)' : '레시피 힌트 듣기'}</button>
@@ -913,12 +985,12 @@ function viewHall() {
   const supplied = S.supplyDay === today();
   return `<section class="panel npc">
     ${head('정청', '正廳')}
-    <div class="npc-head"><div class="portrait master">松</div><div><h3>${label('노벽송', '장문인')}</h3><p class="story">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn ghost sm" data-act="masterhint">말 걸기</button></div>
+    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn ghost sm" data-act="masterhint">말 걸기</button></div>
     <div class="quest">
       ${q ? `<small class="muted">지금 할 일 · ${qi + 1}/${QUESTS.length}</small><b>${q[0]}</b><p class="story">${q[2]}</p>` : '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'}
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
-    <div class="npc-head"><div class="portrait joun">雲</div><div><h3>${label('조운', '대사형')}</h3><p class="story">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 필요한 건 챙겨놨다."</p></div>
+    <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 필요한 건 챙겨놨다."</p></div>
       <button class="btn ${supplied ? 'ghost' : 'primary'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 받기 ]'}</button></div>
   </section>
   <section class="panel">
@@ -953,9 +1025,9 @@ function viewField() {
       }).join('')}</div>
     </section>`;
   }
-  const { id: zid, x, y } = S.zone, Z = ZONES[zid], seen = S.seen[zid] || {};
+  const { id: zid, x, y } = S.zone, Z = ZONES[zid], seen = S.seen[zid] || {}, cols = Z.grid[0].length;
   let grid = '';
-  for (let yy = 0; yy < Z.map.length; yy++) for (let xx = 0; xx < Z.map[yy].length; xx++) {
+  for (let yy = 0; yy < Z.grid.length; yy++) for (let xx = 0; xx < cols; xx++) {
     if (!passable(zid, xx, yy)) { grid += '<div class="cell void"></div>'; continue; }
     if (!seen[`${xx},${yy}`]) { grid += '<div class="cell fog"></div>'; continue; }
     const here = xx === x && yy === y;
@@ -976,13 +1048,13 @@ function viewField() {
     const cd = info.cd && info.cd > now();
     action = cd ? '<p class="story muted">이미 훑고 지나간 자리입니다. 조금 뒤에 다시 오십시오.</p>' : `<p class="story">${info.type === 'herb' ? '약초가 무성합니다.' : '반짝이는 광맥이 드러나 있습니다.'}</p><div><button class="btn primary" data-act="interact">${info.type === 'herb' ? '🌿 채집' : '⛏️ 채광'} <small>기력 ${cost}</small></button></div>`;
   } else if (info.type === 'chest') action = info.done ? '<p class="story muted">텅 빈 상자입니다.</p>' : `<p class="story">이끼 낀 상자가 반쯤 묻혀 있습니다.</p><div><button class="btn primary" data-act="interact">🎁 연다 <small>기력 ${cost}</small></button></div>`;
-  else if (info.type === 'gimmick') action = info.done ? '<p class="story muted">이미 풀어낸 기관입니다.</p>' : `<p class="story">${Z.gimmick.name}${jo(Z.gimmick.name, '이가')} 무언가를 가로막고 있습니다.</p><div><button class="btn primary" data-act="interact">⚙️ 풀어본다 <small>기력 ${cost}</small></button></div>`;
+  else if (info.type === 'gimmick') action = info.done ? '<p class="story muted">이미 풀어낸 기관입니다.</p>' : `<p class="story">${Z.gimmick.name}${jo(Z.gimmick.name, '이가')} 길가에 버티고 있습니다. 무언가 숨겨져 있을 것 같습니다.</p><div><button class="btn primary" data-act="interact">⚙️ 풀어본다 <small>기력 ${cost}</small></button></div>`;
   else if (info.type === 'gate') action = '<p class="story">산문으로 돌아가는 길목입니다.</p>';
   else action = '<p class="story muted">바람 소리만 들립니다.</p>';
   return `<section class="panel field">
     ${head(Z.name, Z.hanja, '<button class="btn ghost sm" data-act="leave">청풍문으로 귀환</button>')}
     <div class="field-grid">
-      <div class="map" style="grid-template-columns:repeat(${Z.map[0].length},1fr)">${grid}</div>
+      <div class="map" style="grid-template-columns:repeat(${cols},1fr)">${grid}</div>
       <div class="control">
         <div class="dpad">${pad.join('')}</div>
         <div class="here-box"><h4>${info.icon} ${info.label}</h4>${action}</div>
@@ -1024,16 +1096,32 @@ function renderBattle() {
 
 /* 무장 · 행낭 */
 function statLine(it) { return Object.entries(it.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · '); }
-const DOLL_SVG = `<svg class="doll" viewBox="0 0 120 220" aria-hidden="true">
-  <circle cx="60" cy="30" r="17" />
-  <path d="M60 10 q-6 -6 -2 -9 q8 2 6 9z" />
-  <path d="M34 58 q26 -12 52 0 l10 60 q-6 4 -12 0 l-6 -40 l-2 50 l10 70 q-8 5 -16 0 l-10 -62 l-10 62 q-8 5 -16 0 l10 -70 l-2 -50 l-6 40 q-6 4 -12 0z" />
+const DOLL_SVG = `<svg class="martial-artist-img fallback" viewBox="0 0 240 360" role="img" aria-label="무인 실루엣">
+  <defs><linearGradient id="dollInk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5361"/><stop offset="1" stop-color="#1b2027"/></linearGradient></defs>
+  <g fill="url(#dollInk)" stroke="rgba(212,175,55,.35)" stroke-width="1.2" stroke-linejoin="round">
+    <path d="M58 22 L66 18 L196 318 L188 322 Z"/>
+    <path d="M52 16 h22 v8 h-22z"/>
+    <ellipse cx="120" cy="34" rx="10" ry="8"/>
+    <path d="M128 36 q22 4 30 22 q-14 -8 -28 -10z"/>
+    <circle cx="120" cy="62" r="22"/>
+    <path d="M110 82 h20 v14 h-20z"/>
+    <path d="M86 98 q34 -12 68 0 l10 70 l-6 12 l14 146 h-104 l14 -146 l-6 -12z"/>
+    <path d="M86 100 q-22 18 -30 70 q-4 32 -2 50 l30 6 q-2 -40 10 -86z"/>
+    <path d="M154 100 q22 18 30 70 q4 32 2 50 l-30 6 q2 -40 -10 -86z"/>
+    <path d="M86 170 h68 v14 h-68z"/>
+    <path d="M100 184 q-6 30 -16 44 l8 2 q10 -16 16 -44z"/>
+    <path d="M94 326 h22 v18 h-26z M124 326 h22 l4 18 h-26z"/>
+  </g>
 </svg>`;
 function viewBag() {
   const st = calcStats();
   const slot = s => {
     const it = S.equip[s];
     return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${it.name}</b>` : ''}</button>`;
+  };
+  const acc = s => {
+    const it = S.equip[s];
+    return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${it.name}</b>` : ''}</button>`;
   };
   const sel = ui.slotSel && S.equip[ui.slotSel];
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
@@ -1042,9 +1130,12 @@ function viewBag() {
   return `<section class="panel">
     ${head('무장', '武裝')}
     <div class="bag-top">
-      <div class="paperdoll">
-        ${SLOT_ORDER.map(slot).join('')}
-        <div class="doll-wrap" style="grid-area:doll">${DOLL_SVG}</div>
+      <div class="armory">
+        <div class="paperdoll">
+          ${['helmet', 'weapon', 'jade', 'armor'].map(slot).join('')}
+          <div class="doll-wrap" style="grid-area:doll">${imgOr(IMG.doll, 'martial-artist-img', DOLL_SVG, '무인 실루엣')}</div>
+        </div>
+        <div class="acc-row">${['boots', 'belt', 'ring', 'badge', 'mount'].map(acc).join('')}</div>
       </div>
       <div class="side-col">
         ${sel ? `<div class="gear r${sel.rarity}"><div class="gtop"><span class="grade r${sel.rarity}">${RARITY[sel.rarity].name}</span><b>${sel.name}</b></div><small>${statLine(sel)}</small>${sel.unique ? `<small class="uniq">✦ ${sel.unique.text}</small>` : ''}<div class="btns"><button class="btn ghost sm" data-unequip="${sel.slot}">해제</button></div></div>` : ''}
@@ -1065,24 +1156,41 @@ function viewCodex() {
   const cols = Object.keys(CRAFTS).map(c => {
     const all = RECIPES.filter(r => r.craft === c);
     const known = all.filter(r => S.codex.includes(r.id)).length;
-    const tiles = all.map(r => {
-      if (S.codex.includes(r.id)) {
-        const eq = r.out.startsWith('eq:');
-        const name = eq ? EQUIP_BASES[r.out.split(':')[1]].names[+r.out.split(':')[2] - 1] : ITEMS[r.out].name;
-        const icon = eq ? '🗡️' : ITEMS[r.out].icon;
-        return `<button class="ctile known" data-fill="${r.id}" title="${Object.entries(r.in).map(([id, n]) => `${ITEMS[id].name}×${n}`).join(' + ')}"><span>${icon}</span><b>${name}</b><small>${Object.entries(r.in).map(([id, n]) => ITEMS[id].icon + n).join(' ')}</small></button>`;
-      }
-      if (S.hints.includes(r.id)) return `<div class="ctile hinted" title="${esc(r.hint)}"><span>🔖</span><small>${esc(r.hint.replace(/^[^:]+:\s*/, ''))}</small></div>`;
-      return '<div class="ctile locked"><span>？</span></div>';
-    }).join('');
+    const tiles = all.map(r => S.codex.includes(r.id)
+      ? `<button class="ctile known" data-recipe="${r.id}"><span>${recipeIcon(r)}</span><b>${recipeName(r)}</b></button>`
+      : `<button class="ctile locked" data-recipe="${r.id}" aria-label="미발견"><span>？</span></button>`).join('');
     return `<article class="codex-col"><h3>${label(CRAFTS[c].name, CRAFTS[c].hanja)} <span class="num muted">${known}/${all.length}</span></h3><div class="ctiles">${tiles}</div></article>`;
   }).join('');
   return `<section class="panel">${head('도감', '圖鑑')}<div class="codex">${cols}</div></section>`;
 }
+function openRecipe(rid) {
+  if (!S.codex.includes(rid)) { toast('아직 발견하지 못한 비전입니다.'); return; }
+  ui.modal = 'recipe:' + rid; renderModal();
+}
+function recipeModal(rid) {
+  const r = RECIPES.find(x => x.id === rid), C = CRAFTS[r.craft];
+  let body;
+  if (r.out.startsWith('eq:')) {
+    const [, base, tier] = r.out.split(':'), B = EQUIP_BASES[base];
+    const stats = Object.entries(B.stats(+tier)).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) ? Math.round(v * RARITY[2].mult * 10) / 10 + '%' : Math.round(v * RARITY[2].mult)}</b></div>`).join('');
+    body = `<p class="story">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_TYPES[B.wtype] : ''}. 제작하면 상품 이상으로 나오고, 고유 옵션이 하나 붙습니다.</p><h4>능력치 (상품 기준)</h4>${stats}`;
+  } else {
+    const I = ITEMS[r.out];
+    body = `<p class="story">${I.desc}</p><div class="kv"><span>분류</span><b>${I.kind}</b></div><div class="kv"><span>보유</span><b>${count(r.out)}개</b></div>`;
+  }
+  const mats = Object.entries(r.in).map(([id, n]) => `<li><span>${ITEMS[id].icon} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('');
+  return `<div class="sheet">
+    <div class="sheet-head"><div><small class="muted">${C.name} ${C.hanja}</small><h2>${recipeIcon(r)} ${recipeName(r)}</h2></div></div>
+    ${body}
+    <h4>필요 재료</h4><ul class="mats-list">${mats}</ul>
+    <div class="btns"><button class="btn primary" data-fill="${r.id}" ${S.zone ? 'disabled' : ''}>[ 이 조합으로 화로 채우기 ]</button><button class="btn ghost" data-act="closemodal">닫기</button></div>
+    ${S.zone ? '<small class="muted">화로는 청풍문에 돌아가야 쓸 수 있습니다.</small>' : ''}
+  </div>`;
+}
 function fillPot(rid) {
   if (S.zone) return;
   const r = RECIPES.find(x => x.id === rid);
-  ui.craft = r.craft; ui.pot = { ...r.in }; ui.tab = 'forge'; ui.craftResult = null; render();
+  ui.craft = r.craft; ui.pot = { ...r.in }; ui.tab = 'forge'; ui.craftResult = null; ui.modal = null; render();
 }
 
 function renderModal() {
@@ -1090,7 +1198,9 @@ function renderModal() {
   if (!ui.modal) { if (!m.dataset.intro) m.hidden = true; return; }
   m.hidden = false;
   if (ui.modal.startsWith('manual:')) m.innerHTML = manualModal(ui.modal.slice(7));
+  if (ui.modal.startsWith('recipe:')) m.innerHTML = recipeModal(ui.modal.slice(7));
   if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 들개를 쫓던 손이 이제 적룡방 방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
+  wireImages();
   if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>모든 진행이 사라집니다. 정말 새로 시작하시겠습니까?</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;
 }
 
@@ -1159,6 +1269,7 @@ function onClick(e) {
   if (d.discard) return discardGear(+d.discard);
   if (d.filter) { ui.bagFilter = d.filter; return render(); }
   if (d.fill) return fillPot(d.fill);
+  if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     leave: leaveZone, interact, craft: doCraft, clearpot: () => { ui.pot = {}; render(); },
     rest, snack: arinSnack, hint: arinHint, masterhint: masterHint, supply: jounSupply, reroll: rerollMissions,

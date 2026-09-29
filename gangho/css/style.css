@@ -25,7 +25,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--sans); }
+body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 50% 15%, #181d24 0%, #0b0d10 100%) fixed, var(--bg); color: var(--ink); font: 15px/1.6 var(--sans); }
 button, input, select { font: inherit; color: inherit; }
 h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
@@ -193,10 +193,11 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 /* 인물 */
 .npc-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .npc-head > div:nth-child(2) { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
-.portrait { flex: none; width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; font-family: var(--serif); font-weight: 700; font-size: 1.5rem; border: 2px solid var(--silver); background: var(--sunk); }
-.portrait.arin { border-color: var(--seal); color: var(--seal); }
-.portrait.master { border-color: var(--gold); color: var(--gold); }
-.portrait.joun { border-color: var(--jade); color: var(--jade); }
+.npc-portrait { flex: none; width: 68px; height: 68px; border-radius: 10px; border: 2px solid #d4af37; object-fit: cover; background: var(--sunk); box-shadow: 0 0 0 3px rgba(212, 175, 55, .12), 0 6px 16px rgba(0, 0, 0, .5); }
+.npc-portrait.fallback { display: grid; place-items: center; font-family: var(--serif); font-weight: 900; font-size: 1.7rem; background: radial-gradient(circle at 50% 35%, #232a34, #0b0d10); }
+.npc-portrait.master { color: #d4af37; }
+.npc-portrait.joun { color: var(--jade); }
+.npc-portrait.arin { color: var(--seal); }
 .quest { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-left: 3px solid var(--gold); background: var(--raise); border-radius: 0 4px 4px 0; }
 .quest > b { font-size: 1.15rem; }
 .missions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -280,9 +281,12 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 
 /* 무장: 인형형 배치 */
 .bag-top { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 18px; }
-.paperdoll { display: grid; grid-template-columns: 1fr 1.1fr 1fr; grid-template-rows: auto auto auto auto; grid-template-areas: "jade helmet weapon" "ring doll armor" "badge doll belt" "mount boots ."; gap: 10px; padding: 16px; background: radial-gradient(ellipse at 50% 45%, rgba(216, 178, 94, .07), transparent 65%), var(--sunk); border: 1px solid var(--line); border-radius: var(--radius); }
-.doll-wrap { display: grid; place-items: center; min-height: 170px; }
-.doll { width: 100%; max-width: 120px; height: auto; fill: var(--line-2); }
+.armory { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: radial-gradient(ellipse at 50% 40%, rgba(212, 175, 55, .08), transparent 65%), rgba(10, 12, 16, .55); border: 1px solid rgba(212, 175, 55, .12); border-radius: var(--radius); min-width: 0; }
+.paperdoll { display: grid; grid-template-columns: 1fr 1.25fr 1fr; grid-template-rows: auto auto; grid-template-areas: ". helmet weapon" "jade doll armor"; gap: 10px; align-items: center; }
+.paperdoll [style*="grid-area:helmet"], .paperdoll [style*="grid-area:weapon"] { align-self: end; }
+.doll-wrap { display: grid; place-items: center; min-height: 220px; }
+.martial-artist-img { display: block; width: 100%; max-width: 170px; height: auto; max-height: 280px; object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .6)); }
+.acc-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; padding-top: 10px; border-top: 1px solid rgba(212, 175, 55, .12); }
 .dslot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; padding: 8px 6px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--raise); cursor: pointer; text-align: center; min-width: 0; }
 .dslot small { color: var(--dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; }
 .dslot b { font-family: var(--serif); font-size: .9rem; line-height: 1.3; overflow-wrap: anywhere; }
@@ -315,8 +319,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .ctile small { font-size: .66rem; color: var(--dim); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .ctile.known { border-color: var(--gold); cursor: pointer; }
 .ctile.known:hover { background: var(--line); }
-.ctile.hinted { border-style: dashed; border-color: var(--gold); }
-.ctile.locked { background: var(--sunk); }
+.ctile.locked { cursor: pointer; }
 .ctile.locked span { color: var(--line-2); font-family: var(--serif); font-weight: 900; }
 
 /* 시작·엔딩 */
@@ -356,10 +359,40 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .cell small { display: none; }
   .sheet { padding: 20px; }
   .sheet h1 { font-size: 2.3rem; }
-  .paperdoll { gap: 6px; padding: 10px; }
+  .paperdoll { gap: 6px; }
+  .armory { padding: 10px; }
+  .acc-row { gap: 4px; }
+  .acc-row .dslot { padding: 6px 2px; }
+  .acc-row .dslot b { font-size: .72rem; }
+  .doll-wrap { min-height: 160px; }
   .dslot { min-height: 56px; }
   .pot-slots { gap: 6px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ───── 먹빛 글래스 (Ink Glass) ───── */
+.panel, .side { background: rgba(18, 22, 29, .85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, .15); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
+.sheet { background: rgba(18, 22, 29, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, .22); }
+.card, .art, .zone, .here-box, .shop-item, .offer, .gear, .item, .missions li, .statsheet, .quest, .result, .craft-pick, .starter, .dslot:not(.empty), .ctile.known, .blessings div {
+  background: rgba(28, 34, 44, .55); border-color: rgba(212, 175, 55, .12);
+}
+.quest { border-left-color: var(--gold); }
+.gear { border-left-color: currentColor; }
+.mats-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.mats-list li { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 4px; background: rgba(28, 34, 44, .55); border: 1px solid rgba(212, 175, 55, .12); }
+
+/* 호버: 미세한 금빛 발광 */
+.btn, .chip, .art, .zone, .craft-pick, .dslot, .ctile, .cell.adj, .starter, .dir, .tab { transition: box-shadow .18s, transform .18s, border-color .18s, background .18s, color .18s; }
+.btn:hover:not(:disabled), .chip:hover:not(:disabled), .art:hover, .craft-pick:hover, .dslot:hover, .ctile.known:hover, .cell.adj:hover, .starter:hover, .dir:hover:not(:disabled) {
+  box-shadow: 0 0 12px rgba(212, 175, 55, .25); transform: translateY(-1px); border-color: rgba(212, 175, 55, .55);
+}
+
+/* 빈 슬롯·미해금: 안으로 파인 음영 */
+.slot:not(.full), .dslot.empty, .ctile.locked, .cell.fog {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); background: rgba(10, 12, 16, .6); border: 1px dashed rgba(255, 255, 255, .1);
+}
+.ctile.locked:hover { transform: none; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); }
+.cell.fog { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .btn:hover, .chip:hover, .art:hover, .dslot:hover, .ctile:hover, .cell:hover, .starter:hover, .dir:hover, .craft-pick:hover { transform: none; } }
