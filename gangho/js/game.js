@@ -454,7 +454,7 @@ function generateLayout(Z) {
   }
   // 이벤트 배치: 산길이 약 50%가 되도록 채우되, 한 칸 주변 8칸에 이벤트가 몰리지 않게 흩뿌린다
   const dist = bfs(grid, ...S0), maxD = Math.max(...dist.values());
-  const isEvent = c => 'YHMCG'.includes(c);
+  const isEvent = c => 'YHMCGE'.includes(c);
   const evNeighbors = ([fx, fy]) => neighbors8(fx, fy).filter(([nx, ny]) => isEvent(grid[ny][nx])).length;
   const nearGate = ([fx, fy]) => neighbors8(fx, fy).some(([nx, ny]) => 'SK'.includes(grid[ny][nx]));
   const paths = () => { const out = []; grid.forEach((r, yy) => r.forEach((c, xx) => { if (c === 'o') out.push([xx, yy]); })); return out.sort(() => Math.random() - 0.5); };
@@ -476,7 +476,7 @@ function generateLayout(Z) {
     return placed;
   };
   const deadEnd = (a, b) => deg(a) - deg(b) || depth(b) - depth(a);
-  place('G', MAP_SPEC.gimmick, deadEnd);
+  place('E', R(...MAP_SPEC.event), deadEnd);   // 기연: 막다른 쪽
   place('C', R(...MAP_SPEC.chest));
   place('Y', R(...MAP_SPEC.beast));
   // 함정은 산길 칸에 숨긴다 (보이는 모습은 산길과 같다)
@@ -521,6 +521,7 @@ function move(dx, dy) {
   S.zone.x = nx; S.zone.y = ny;
   reveal(zid, nx, ny);
   if (c === 'T') return springTrap();
+  if (c === 'E') return openEvent(`${nx},${ny}`);
   if (c === 'Y') {
     const key = `${nx},${ny}`;
     S.zone.foes = S.zone.foes || {};
@@ -553,6 +554,7 @@ const ICON = {
   boss: '<path d="M4 3l3.5 4.5M20 3l-3.5 4.5"/><path d="M5 9c0 6 3 11 7 11s7-5 7-11c-2-1-4-1.5-7-1.5S7 8 5 9z"/><path d="M8.5 13l2 1M15.5 13l-2 1M10 17h4"/>',
   gate: '<path d="M2 5.5h20M4 5.5v14.5M20 5.5v14.5M3.5 9.5h17M9 9.5V20M15 9.5V20M1.5 3.5l2 2M22.5 3.5l-2 2"/>',
   gimmick: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/><circle cx="12" cy="12" r="2.4"/>',
+  event: '<path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7"/><path d="M7 3a2 2 0 0 0-2 2v2h4V5a2 2 0 0 0-2-2z"/><path d="M10 10.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1.1.8-1.1 1.6M12.3 17.2h.01"/>',
   path: '',
 };
 const ico = k => ICON[k] ? `<svg class="ico ico-${k}" viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>` : '<i class="dot"></i>';
@@ -562,6 +564,7 @@ function nodeInfo(zid, x, y) {
   if (c === 'H') return { type: 'herb', icon: '🌿', label: '약초 군락' };
   if (c === 'M') return { type: 'mine', icon: '⛏️', label: '광맥' };
   if (c === 'C') return { type: 'chest', icon: ico('chest'), label: '금고(金庫)' };
+  if (c === 'E') return { type: 'event', icon: ico('event'), label: '기연(奇緣)' };
   if (c === 'G') return { type: 'gimmick', icon: ico('gimmick'), label: Z.gimmick.name };
   if (c === 'K') return { type: 'boss', icon: ico('boss'), label: ENEMIES[Z.boss].name, enemy: Z.boss };
   if (c === 'S') return { type: 'gate', icon: ico('gate'), label: '입구' };
@@ -576,6 +579,94 @@ function rollTable(table) {
   for (const [id, a, b, p] of table) if (Math.random() < (p ?? 1)) out.push([id, rint(a, b)]);
   return out;
 }
+/* ───────── 사냥터 사건 (기연) ───────── */
+function eventPool(zid) { return EVENTS.filter(e => e.zones === 'all' || e.zones.includes(zid)); }
+function eventAt(key) {
+  S.zone.events = S.zone.events || {};
+  if (!S.zone.events[key]) {
+    const used = new Set(Object.values(S.zone.events));
+    const pool = eventPool(S.zone.id).filter(e => !used.has(e.id));
+    S.zone.events[key] = pick(pool.length ? pool : eventPool(S.zone.id)).id;   // 한 번 들어간 사냥터에서는 겹치지 않게
+  }
+  return EVENTS.find(e => e.id === S.zone.events[key]);
+}
+function openEvent(key) {
+  const ev = eventAt(key);
+  if (!(S.zone.evResult || {})[key]) log(`📜 기연(奇緣) — ${ev.title}`, 'place');
+  ui.modal = 'event:' + key; render();
+}
+/* 선택지 조건: 부족하면 이유를 돌려준다 */
+function reqFail(req) {
+  if (!req) return '';
+  if (req.item && !has(req.item[0], req.item[1])) return `${ITEMS[req.item[0]].name} ${req.item[1]}개 필요`;
+  if (req.silver && S.silver < req.silver) return `은자 ${req.silver}냥 필요`;
+  if (req.stamina && S.stamina < req.stamina) return `기력 ${req.stamina} 필요`;
+  if (req.stat && calcStats()[req.stat[0]] < req.stat[1]) return `${STAT_NAMES[req.stat[0]]} ${req.stat[1]} 이상`;
+  if (req.star && bestMugongStar() < req.star) return `무공 ${req.star}성 이상`;
+  return '';
+}
+const reqLabel = req => !req ? '' : req.item ? `${ITEMS[req.item[0]].name} ×${req.item[1]}` : req.silver ? `은자 ${req.silver}냥` : req.stamina ? `기력 ${req.stamina}` : req.stat ? `${STAT_NAMES[req.stat[0]]} ${req.stat[1]}+` : req.star ? `무공 ${req.star}성+` : '';
+function chooseEvent(key, idx) {
+  const ev = eventAt(key), ch = ev.choices[idx];
+  if (!ch || (S.zone.evResult || {})[key] || reqFail(ch.req)) return;
+  if (ch.take && ch.req) { if (ch.req.item) take(ch.req.item[0], ch.req.item[1]); if (ch.req.silver) S.silver -= ch.req.silver; }
+  let r = Math.random() * ch.out.reduce((a, o) => a + o.w, 0), out = ch.out[0];
+  for (const o of ch.out) { r -= o.w; if (r < 0) { out = o; break; } }
+  const gains = applyFx(out.fx || {});
+  log(`📜 ${ev.title} — ${ch.label}: ${out.text}`, 'npc');
+  S.zone.evResult = S.zone.evResult || {};
+  S.zone.evResult[key] = { choice: ch.label, text: out.text, gains, fight: out.fight || null };
+  const [x, y] = key.split(',').map(Number);
+  S.zone.done[key] = 1;                                     // 사건이 끝난 칸은 산길이 된다
+  if (out.fight) {
+    ui.modal = null;
+    startBattle(out.fight);
+    if (out.bonus) ui.battle.bonus = out.bonus;
+    return;
+  }
+  render();
+}
+/* 사건 결과 적용. 받은 것을 사람이 읽을 문장 목록으로 돌려준다 */
+function applyFx(fx) {
+  const out = [], st = calcStats();
+  if (fx.silver) { S.silver = Math.max(0, S.silver + fx.silver); out.push(`${fx.silver > 0 ? '+' : ''}은자 ${fx.silver}냥`); }
+  for (const [id, n] of Object.entries(fx.items || {})) if (give(id, n, true)) out.push(`${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`);
+  if (fx.hpPct) { const d = Math.round(st.maxHp * fx.hpPct); S.hp = clamp(S.hp + d, 1, st.maxHp); out.push(`활력 ${d > 0 ? '+' : ''}${d}`); }
+  if (fx.stamina) { S.stamina = clamp(S.stamina + fx.stamina, 0, st.maxSta); out.push(`기력 ${fx.stamina > 0 ? '+' : ''}${fx.stamina}`); }
+  if (fx.contrib) { S.contrib += fx.contrib; out.push(`문파 공헌도 +${fx.contrib}`); }
+  if (fx.trainHours) {
+    const id = S.activeTrainingSkillId || S.active.mugong || Object.values(S.active).find(Boolean);
+    if (id) { addXp(id, 'txp', fx.trainHours * 3600); out.push(`《${MANUALS[id].name}》 수련 ${fx.trainHours}시간 분량`); }
+  }
+  if (fx.buff) { S.buffs = S.buffs.filter(b => b.key !== fx.buff.key); S.buffs.push({ ...fx.buff, until: now() + fx.buff.dur * 1000 }); out.push(`${fx.buff.name} ${Math.round(fx.buff.dur / 60)}분`); }
+  for (const [k, v] of Object.entries(fx.perm || {})) { S.perm[k] += v; out.push(`${STAT_NAMES[k]} 영구 +${v}`); }
+  if (fx.reveal && S.zone) { S.zone.layout.forEach((row, y) => [...row].forEach((c, x) => { if (c !== '_') S.seen[S.zone.id][`${x},${y}`] = 1; })); out.push('사냥터 지형이 모두 드러남'); }
+  if (fx.clue) {
+    S.knownMats = S.knownMats || {};
+    const unknown = [...new Set(RECIPES.flatMap(r => Object.keys(r.in)))].filter(m => !S.knownMats[m]);
+    if (unknown.length) { const m = pick(unknown); revealMaterials({ in: { [m]: 1 } }); out.push(`재료 단서: ${ITEMS[m].name}`); }
+  }
+  if (fx.book) { const books = STARTERS.filter(id => !S.manuals[id] && !has('bk_' + id)); if (books.length) { const b = pick(books); give('bk_' + b, 1, true); out.push(`📘 《${MANUALS[b].name}》 비급`); } }
+  if (fx.gear) { const it = makeGear(pick(Object.keys(EQUIP_BASES)), fx.gear[0], fx.gear[1], false); if (giveGear(it, true)) out.push(`🗡️ [${RARITY[it.rarity].name}] ${it.name}`); }
+  if (out.length) log(`↳ ${out.map(hlItem).join(', ')}`, 'loot');
+  clampVitals();
+  return out;
+}
+function eventModal(key) {
+  const ev = eventAt(key), res = (S.zone.evResult || {})[key];
+  const body = res
+    ? `<div class="ev-result"><p class="ev-choice">▸ ${res.choice}</p><p class="story">${res.text}</p>
+        ${res.gains.length ? `<ul class="ev-gains">${res.gains.map(g => `<li class="${/(^|\s)-\d/.test(g) ? 'neg' : ''}">${g}</li>`).join('')}</ul>` : '<p class="muted">얻은 것도 잃은 것도 없습니다.</p>'}</div>
+       <div class="btns"><button class="btn primary" data-act="closemodal">계속</button></div>`
+    : `<div class="ev-choices">${ev.choices.map((c, i) => { const why = reqFail(c.req); return `<button class="ev-opt" data-evkey="${key}" data-evchoice="${i}" ${why ? 'disabled' : ''}><b>${c.label}</b>${c.req ? `<small class="${why ? 'warn' : 'muted'}">${why || reqLabel(c.req)}${c.take ? ' · 소모' : ''}</small>` : ''}</button>`; }).join('')}</div>`;
+  return `<div class="sheet event-sheet">
+    <p class="eyebrow">奇緣 · 기연</p>
+    <h2>${ev.title}</h2>
+    <p class="story ev-text">${ev.text}</p>
+    ${body}
+  </div>`;
+}
+
 /* 금고: 은자 궤·약재 상자·철물 상자·장비 궤 중 하나 */
 function openVault(Z) {
   let r = Math.random() * VAULTS.reduce((a, v) => a + v.w, 0), v = VAULTS[0];
@@ -604,6 +695,7 @@ function giveSilver(n) { S.silver += n; log(`${hlSilver(n)} 획득`, 'loot'); }
 function interact() {
   if (!S.zone || ui.battle) return;
   const { id: zid, x, y } = S.zone, Z = ZONES[zid], info = nodeInfo(zid, x, y);
+  if (info.type === 'event') return openEvent(`${x},${y}`);
   if (info.type === 'beast') {
     const key = `${x},${y}`; S.zone.foes = S.zone.foes || {};
     const eid = S.zone.foes[key] || (S.zone.foes[key] = pickBeast());
@@ -762,6 +854,7 @@ function winBattle(b) {
     const it = makeGear(pick(Object.keys(EQUIP_BASES)), E.gear[0], rollDropRarity(!!E.boss), false);
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
+  if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); applyFx(b.bonus.fx || {}); }
   S.kills++;
   progressMission(b.eid);
   if (E.boss && !S.flags[E.boss]) {
@@ -1405,7 +1498,8 @@ function viewField() {
     action = `<div class="standoff boss"><p class="eyebrow-s">대치(對峙) · 두목</p><p class="story"><b>${E.name}</b>의 거처입니다.</p><p class="story sense ${scls}">${stext}</p><div><button class="btn danger" data-act="interact">⚔️ 결투 시작 <small>기력 ${cost}</small></button></div></div>`;
   } else if (info.type === 'herb' || info.type === 'mine') {
     action = `<p class="story">${info.type === 'herb' ? '약초가 무성합니다.' : '반짝이는 광맥이 드러나 있습니다.'}</p><div><button class="btn primary" data-act="interact">${info.type === 'herb' ? '🌿 채집' : '⛏️ 채광'} <small>기력 ${cost}</small></button></div>`;
-  } else if (info.type === 'chest') action = `<p class="story">묵직한 금고가 풀숲에 반쯤 묻혀 있습니다.</p><div><button class="btn primary" data-act="interact">📦 [ 금고 열기 ] <small>기력 ${cost}</small></button></div>`;
+  } else if (info.type === 'event') action = `<p class="story">무언가 일이 벌어지고 있는 곳입니다.</p><div><button class="btn primary" data-act="interact">📜 살펴본다</button></div>`;
+  else if (info.type === 'chest') action = `<p class="story">묵직한 금고가 풀숲에 반쯤 묻혀 있습니다.</p><div><button class="btn primary" data-act="interact">📦 [ 금고 열기 ] <small>기력 ${cost}</small></button></div>`;
   else if (info.type === 'gimmick') action = `<p class="story">${Z.gimmick.name}${jo(Z.gimmick.name, '이가')} 길가에 버티고 있습니다. 무언가 숨겨져 있을 것 같습니다.</p><div><button class="btn primary" data-act="interact">⚙️ 풀어본다 <small>기력 ${cost}</small></button></div>`;
   else if (info.type === 'gate') action = '<p class="story">산문으로 돌아가는 길목입니다.</p>';
   else action = '<p class="story muted">바람 소리만 들립니다. 이곳의 일은 끝났습니다. 청풍문으로 돌아갔다가 다시 오면 산의 기척이 새로 바뀝니다.</p>';
@@ -1602,6 +1696,7 @@ function renderModal() {
   if (ui.modal && ui.modal.startsWith('mart:')) m.innerHTML = martialModal(ui.modal.slice(5));
   if (!ui.modal) { m.hidden = true; return; }
   if (ui.modal.startsWith('recipe:')) m.innerHTML = recipeModal(ui.modal.slice(7));
+  if (ui.modal.startsWith('event:')) { if (!S.zone) { ui.modal = null; m.hidden = true; return; } m.innerHTML = eventModal(ui.modal.slice(6)); }
   if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 들개를 쫓던 손이 이제 적룡방 방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
   wireImages();
   if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>${RESET_MSG}</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;
@@ -1687,6 +1782,7 @@ function onClick(e) {
   if (d.tab) { if (ui.battle && d.tab !== 'field') return; ui.tab = d.tab; ui.craftResult = null; render(); return; }
   if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
   if (d.zone) return enterZone(d.zone);
+  if (d.evchoice !== undefined && d.evkey) return chooseEvent(d.evkey, +d.evchoice);
   if (d.fold) return toggleFold(d.fold);
   if (d.train) return toggleTraining(d.train);
   if (d.store) return buyStore(d.store);
