@@ -1,11 +1,11 @@
 /* 사냥터 생성, 기예 재료 분류, 실전 경험치, 초기화 */
 'use strict';
-const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS } = require('./lib');
+const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
 module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
   console.log(`\n=== ${w}px ===`);
-  const p = await b.newPage({ viewport: { width: w, height: h } });
+  const p = await newPage(b, w, h);
   const errs = [];
   p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type()==='error' && !/ERR_CERT|ERR_FILE_NOT_FOUND/.test(m.text()) && errs.push(m.text()));
   await p.goto(GAME_URL);
@@ -18,25 +18,25 @@ module.exports = async (b) => {
         const { layout, start } = generateLayout(ZONES[zid]); agg.runs++;
         const cnt = {}; let nodes = 0, adjBad = 0, kpos;
         layout.forEach((r, y) => [...r].forEach((c, x) => { if (c !== '_') nodes++; cnt[c] = (cnt[c] || 0) + 1; if (c === 'K') kpos = `${x},${y}`;
-          if ('123HMCG'.includes(c)) for (const [nx, ny] of neighbors8(x, y)) if ('123HMCG'.includes(layout[ny][nx])) adjBad++; }));
+          if ('YHMCG'.includes(c)) { const n = neighbors8(x, y).filter(([nx, ny]) => 'YHMCG'.includes(layout[ny][nx])).length; if (n > 3) adjBad++; } }));
         const seen = reachable(layout, ...start);
         if (layout.length !== 10 || layout.some(r => r.length !== 12)) agg.bad.push('size');
         if (seen.size !== nodes) agg.bad.push('disconnected');
         if (kpos !== '11,0') agg.bad.push('boss@' + kpos);
         if (!(start[0] <= 1 && start[1] >= 7)) agg.bad.push('start@' + start);
-        if (adjBad) agg.bad.push('adjacent');
-        const c = { weak: (cnt['1'] || 0) + (cnt['2'] || 0), mid: cnt['3'] || 0, herb: cnt.H || 0, mine: cnt.M || 0, chest: cnt.C || 0, boss: cnt.K || 0 };
+        if (adjBad) agg.bad.push('clumped');
+        const c = { beast: cnt.Y || 0, herb: cnt.H || 0, mine: cnt.M || 0, chest: cnt.C || 0, trap: cnt.T || 0, boss: cnt.K || 0 };
         for (const [k, v] of Object.entries(c)) { agg.min[k] = Math.min(agg.min[k] ?? 99, v); agg.max[k] = Math.max(agg.max[k] ?? 0, v); }
-        agg.pathPct.push((cnt.o || 0) / 120 * 100);
+        agg.pathPct.push(((cnt.o || 0) + (cnt.T || 0)) / 120 * 100);
       }
       agg.pmin = Math.min(...agg.pathPct).toFixed(1); agg.pmax = Math.max(...agg.pathPct).toFixed(1); agg.pavg = (agg.pathPct.reduce((a, b) => a + b) / agg.pathPct.length).toFixed(1);
       delete agg.pathPct; agg.bad = [...new Set(agg.bad)];
       return agg;
     });
     ok('7 12×10 / 입구 좌하 / 두목 우상 / 전 노드 연결 (900회 생성)', g.bad.length === 0, g.bad.join(','));
-    ok('8 수량: 일반 6~8, 중형 3~4, 약초·광맥 3~5, 상자 1~2, 두목 1', g.min.weak >= 6 && g.max.weak <= 8 && g.min.mid >= 3 && g.max.mid <= 4 && g.min.herb >= 3 && g.max.herb <= 5 && g.min.mine >= 3 && g.max.mine <= 5 && g.min.chest >= 1 && g.max.chest <= 2 && g.min.boss === 1 && g.max.boss === 1, JSON.stringify({ min: g.min, max: g.max }));
-    ok('8 산길 비중 (전체 120칸 대비)', g.pavg >= 60, `평균 ${g.pavg}% (최소 ${g.pmin}, 최대 ${g.pmax})`);
-    ok('8 이벤트 비인접', !g.bad.includes('adjacent'));
+    ok('8 수량: 요수 22~26, 약초·광맥 7~9, 금고 5~7, 숨은 함정 4~6, 두목 1', g.min.beast >= 22 && g.max.beast <= 26 && g.min.herb >= 7 && g.max.herb <= 9 && g.min.mine >= 7 && g.max.mine <= 9 && g.min.chest >= 5 && g.max.chest <= 7 && g.min.trap >= 4 && g.max.trap <= 6 && g.min.boss === 1 && g.max.boss === 1, JSON.stringify({ min: g.min, max: g.max }));
+    ok('8 보이는 산길 약 50% (120칸 대비, 함정 포함)', g.pavg >= 45 && g.pavg <= 55, `평균 ${g.pavg}% (최소 ${g.pmin}, 최대 ${g.pmax})`);
+    ok('8 이벤트가 한곳에 몰리지 않음 (주변 8칸 중 이벤트 3개 이하)', !g.bad.includes('clumped'));
     const rc = await p.evaluate(() => RECIPES.filter(r => Object.keys(r.in).some(id => ITEMS[id].craftType !== CRAFT_TYPE[r.craft])).map(r => r.id));
     ok('6 레시피 재료가 한 분류뿐', rc.length === 0, rc.join(','));
     const un = await p.evaluate(() => Object.entries(ITEMS).filter(([, I]) => I.kind === '재료' && !I.craftType).map(([id]) => id));
@@ -60,8 +60,7 @@ module.exports = async (b) => {
   ok('8 노드 크기 유지 + 현재 위치 보임', cen.cell >= 40 && cen.fits, `칸 ${cen.cell}px`);
   const xp = await p.evaluate(() => {
     const before = CAT_ORDER.map(c => S.manuals[S.active[c]].cxp);
-    S.hp = 99999; startBattle('boar'); let n = 0; while (!ui.battle.over && n++ < 200) playerAction(n % 3 ? 'attack' : 'guard');
-    const win = ui.battle.win; closeBattle();
+    S.hp = 99999; const win = fightSync('boar').win; closeBattle();
     const after = CAT_ORDER.map(c => S.manuals[S.active[c]].cxp);
     return { win, diff: after.map((v, i) => v - before[i]) };
   });

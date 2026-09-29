@@ -24,4 +24,16 @@ async function startEquipped(p) {
   await p.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); ui.tab = 'hall'; render(); });
 }
 const VIEWPORTS = [[1280, 900], [390, 844]];
-module.exports = { playwright, GAME_URL, ok, result, watchErrors, startEquipped, VIEWPORTS };
+// 3초 주기 자동 전투를 검사에서는 즉시 끝까지 돌린다
+async function newPage(browser, w, h) {
+  const p = await browser.newPage({ viewport: { width: w, height: h } });
+  await p.addInitScript(() => {
+    window.fightSync = (eid, maxRounds = 300) => {
+      startBattle(eid); stopBattleTimer();
+      let n = 0; while (!ui.battle.over && n++ < maxRounds) battleRound();
+      return ui.battle;
+    };
+  });
+  return p;
+}
+module.exports = { playwright, GAME_URL, ok, result, watchErrors, startEquipped, VIEWPORTS, newPage };

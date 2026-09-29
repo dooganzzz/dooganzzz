@@ -468,3 +468,18 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 
 /* 조운의 창고 */
 .store { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(212, 175, 55, .12); }
+
+/* 경계 표시: 입문 · 소성 · 대성 */
+.realm { display: inline-flex; align-items: baseline; gap: 3px; font-family: var(--sans); font-size: .72rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; vertical-align: middle; white-space: nowrap; }
+.realm small { font-family: var(--serif); font-weight: 400; font-size: .9em; opacity: .8; }
+.realm-0 { color: var(--silver); border-color: rgba(167, 173, 182, .4); }
+.realm-1 { color: var(--jade); box-shadow: 0 0 8px rgba(95, 176, 155, .25); }
+.realm-2 { color: #f0cf82; border-color: #d4af37; background: rgba(212, 175, 55, .12); box-shadow: 0 0 12px rgba(212, 175, 55, .45); }
+.sheet-head .realm { margin-top: 6px; }
+
+/* 3초 공방 페이즈: 다음 합까지 차오르는 막대 */
+.phase { display: flex; flex-direction: column; gap: 6px; }
+.phase-bar { display: block; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #d4af37, #f0cf82); transform-origin: left; animation: phaseFill linear infinite; }
+.phase small { color: var(--silver); }
+@keyframes phaseFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.log .battle { font-size: .84rem; }

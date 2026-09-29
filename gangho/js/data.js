@@ -23,8 +23,22 @@ const WEAPON_TYPES = {
 };
 
 /* 관문: 이 성(星)에서 다음 성으로 넘어갈 때 돌파단이 필요 */
-const GATES = { 3: 'pillLow', 7: 'pillMid', 11: 'pillHigh' };
-const GATE_NAME = { 3: '소관문(小關門)', 7: '중관문(中關門)', 11: '대관문(大關門)' };
+/* 2대 경계: 5성이 차면 소성(小成) 관문, 11성이 차면 대성(大成) 관문. 돌파단을 복용해 넘는다. */
+const GATES = { 5: 'pillLow', 11: 'pillHigh' };
+const GATE_NAME = { 5: '소성 관문(小成)', 11: '대성 관문(大成)' };
+/* 경계 이름: 1~5성 입문, 6~11성 소성, 12성 대성 */
+const REALMS = [
+  { min: 1,  name: '입문', hanja: '入門', cls: 'realm-0' },
+  { min: 6,  name: '소성', hanja: '小成', cls: 'realm-1' },
+  { min: 12, name: '대성', hanja: '大成 / 極意', cls: 'realm-2' },
+];
+/* 대성 패시브: 12성에 이르면 분류별로 영구 고유 효과가 열린다 */
+const DAESUNG_PASSIVE = {
+  mugong:     { text: '극의(極意): 초식 발동률 +15%, 치명타율 +5%', stats: { combo: 15, crit: 5 } },
+  simbeop:    { text: '극의(極意): 최대 내력 +20%, 내력 회복 +3', stats: { mpPct: 20, mpRegen: 3 } },
+  gyeonggong: { text: '극의(極意): 속도 +3, 회피율 +8%', stats: { spd: 3, eva: 8 } },
+  gigong:     { text: '극의(極意): 최대 활력 +15%, 반격 +10%', stats: { hpPct: 15, counter: 10 } },
+};
 const MAX_STAR = 12;
 
 const MANUALS = {
@@ -68,8 +82,10 @@ const ITEMS = {
   rabbitHide:   { name: '토끼가죽',   icon: '🟫', kind: '재료', craftType: 'forge', price: 2, desc: '부드럽고 얇은 가죽.' },
   dogFang:      { name: '들개 이빨',  icon: '🦷', kind: '재료', craftType: 'forge', price: 3, desc: '날카로운 송곳니.' },
   boarMeat:     { name: '멧돼지고기', icon: '🥩', kind: '재료', craftType: 'cooking', price: 4, desc: '기름진 멧돼지 고기.' },
-  boarHide:     { name: '멧돼지 가죽', icon: '🟤', kind: '재료', craftType: 'forge', price: 5, desc: '두껍고 질긴 가죽.' },
-  boarTusk:     { name: '멧돼지 엄니', icon: '🦴', kind: '재료', craftType: 'forge', price: 6, desc: '휘어진 엄니. 도(刀)의 코등이로 쓰인다.' },
+  roughHide:    { name: '거친 가죽', icon: '🟫', kind: '재료', craftType: 'forge', price: 4, desc: '들개에게서 벗긴 뻣뻣한 가죽.' },
+  kingTusk:     { name: '왕의 송곳니', icon: '🦷', kind: '증표', price: 0, desc: '외눈 멧돼지왕의 거대한 송곳니. 무신상에 바치면 힘이 된다.' },
+  boarHide:     { name: '두꺼운 가죽', icon: '🟤', kind: '재료', craftType: 'forge', price: 5, desc: '두껍고 질긴 가죽.' },
+  boarTusk:     { name: '멧돼지 송곳니', icon: '🦴', kind: '재료', craftType: 'forge', price: 6, desc: '휘어진 송곳니. 도(刀)의 코등이로 쓰인다.' },
   bandanaSilk:  { name: '화적 비단',  icon: '🧣', kind: '재료', craftType: 'forge', price: 12, desc: '화적들이 약탈한 붉은 비단.' },
   emberStone:   { name: '불씨석',     icon: '🔴', kind: '재료', craftType: 'forge', price: 15, desc: '열기를 머금은 돌. 염화채 광맥에서 난다.' },
   fish:         { name: '잉어',       icon: '🐟', kind: '재료', craftType: 'cooking', price: 8, desc: '적룡방 강물의 살진 잉어.' },
@@ -84,9 +100,9 @@ const ITEMS = {
   burntAsh:     { name: '탄 약초재',     icon: '🌫️', kind: '부산물', price: 0, desc: '연단 실패의 흔적. 무신상에 봉헌할 수 있다.' },
   dregs:        { name: '찌꺼기',        icon: '🫗', kind: '부산물', price: 0, desc: '조리 실패의 흔적. 무신상에 봉헌할 수 있다.' },
   // 연단
-  pillLow:   { name: '하급 돌파단', icon: '🟢', kind: '영단', price: 40,  use: { gate: 3 }, desc: '복용하면 소관문(3성→4성)에 막힌 비급이 돌파한다.' },
-  pillMid:   { name: '중급 돌파단', icon: '🔵', kind: '영단', price: 150, use: { gate: 7 }, desc: '복용하면 중관문(7성→8성)에 막힌 비급이 돌파한다.' },
-  pillHigh:  { name: '상급 돌파단', icon: '🟣', kind: '영단', price: 500, use: { gate: 11 }, desc: '복용하면 대관문(11성→12성)에 막힌 비급이 대성한다.' },
+  pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  use: { gate: 5 }, desc: '복용하면 소성 관문(5성→6성)에 막힌 비급이 소성(小成)에 이른다.' },
+  pillMid:   { name: '청심정기단', icon: '🔵', kind: '영단', price: 150, use: { buff: { key: 'train', val: 0.5, dur: 1800, name: '정기 순환' } }, desc: '복용하면 30분간 수련 효율 +50%.' },
+  pillHigh:  { name: '대성 돌파단', icon: '🟣', kind: '영단', price: 500, use: { gate: 11 }, desc: '복용하면 대성 관문(11성→12성)에 막힌 비급이 대성(大成)에 이른다.' },
   potionHp:  { name: '금창약',   icon: '🩹', kind: '영약', price: 8,  use: { hp: 0.4 }, desc: '활력을 40% 회복한다. 전투 중 사용 가능.' },
   potionMp:  { name: '소환단',   icon: '💧', kind: '영약', price: 12, use: { mp: 0.5 }, desc: '내력을 50% 회복한다. 전투 중 사용 가능.' },
   clearPill: { name: '청심단',   icon: '🤍', kind: '영약', price: 60, use: { hp: 1, mp: 1 }, desc: '활력과 내력을 모두 회복한다.' },
@@ -191,9 +207,9 @@ const RECIPES = [];
   // 연단
   R('a_hp',    'alchemy', { herb: 2 }, 'potionHp', '아린: "사형이 다치면 산약초 두 뿌리를 빻아서 발라주던데? 그냥 그것만!"');
   R('a_mp',    'alchemy', { herb: 1, lingzhi: 1 }, 'potionMp', '아린: "산약초 하나에 영지버섯 하나. 기운이 확 돈대!"');
-  R('a_low',   'alchemy', { herb: 2, lingzhi: 1 }, 'pillLow', '노벽송: "하급 돌파단이라… 산약초 둘에 영지 하나. 불은 약하게, 마음은 급하게 먹지 말고."');
-  R('a_mid',   'alchemy', { firegrass: 2, lingzhi: 1 }, 'pillMid', '노벽송: "중관문은 불로 뚫는 게야. 화령초 둘, 영지 하나. 산약초는 빼라, 불기운이 흐려진다."');
-  R('a_high',  'alchemy', { bloodginseng: 1, lotus: 1, firegrass: 1 }, 'pillHigh', '노벽송: "대관문… 피(혈삼), 물(수련화), 불(화령초). 셋이 서로를 다스려야 한다."');
+  R('a_low',   'alchemy', { herb: 2, lingzhi: 1 }, 'pillLow', '노벽송: "소성 돌파단이라… 산약초 둘에 영지 하나. 불은 약하게, 마음은 급하게 먹지 말고."');
+  R('a_mid',   'alchemy', { firegrass: 2, lingzhi: 1 }, 'pillMid', '노벽송: "정기를 맑히려면 불이 필요하지. 화령초 둘, 영지 하나. 산약초는 빼라, 불기운이 흐려진다."');
+  R('a_high',  'alchemy', { bloodginseng: 1, lotus: 1, firegrass: 1 }, 'pillHigh', '노벽송: "대성… 피(혈삼), 물(수련화), 불(화령초). 셋이 서로를 다스려야 한다."');
   R('a_clear', 'alchemy', { lotus: 1, herb: 1 }, 'clearPill', '아린: "수련화에 산약초를 곁들이면 머리가 맑아진대요."');
   R('a_fire',  'alchemy', { firegrass: 1, lingzhi: 2 }, 'fireElixir', '노벽송: "화령초 하나를 영지 둘로 감싸 달이면 내력통이 넓어진다."');
   R('a_blood', 'alchemy', { bloodginseng: 1, herb: 2 }, 'bloodPill', '아린: "혈삼 하나에 산약초 둘! 조운 사형이 옛날에 그렇게 먹었대요."');
@@ -214,21 +230,21 @@ const RECIPES = [];
     hidden: o => ({ [o]: 1, dogFang: 2 }),
     armor:  o => ({ [o]: 2, boarHide: 1, rabbitHide: 1 }),
     helmet: o => ({ [o]: 1, rabbitHide: 2 }),
-    boots:  o => ({ [o]: 1, rabbitHide: 1, boarHide: 1 }),
+    boots:  o => ({ [o]: 1, roughHide: 1, boarHide: 1 }),
     belt:   o => ({ [o]: 1, boarHide: 1 }),
     jade:   o => ({ [o]: 1, jadeStone: 1 }),
     ring:   o => ({ [o]: 1, jadeStone: 2 }),
   };
   const forgeHint = {
-    fist:   '조운: "권갑은 쇠 한 덩이에 멧돼지 가죽 두 장을 감으면 된다."',
+    fist:   '조운: "권갑은 쇠 한 덩이에 두꺼운 가죽 두 장을 감으면 된다."',
     sword:  '조운: "검은 쇠 두 덩이를 두드려 펴고, 목재로 자루를 대라."',
-    blade:  '조운: "도는 쇠 둘에 멧돼지 엄니로 코등이를 박는다."',
+    blade:  '조운: "도는 쇠 둘에 멧돼지 송곳니로 코등이를 박는다."',
     spear:  '조운: "창은 쇠 하나로 날을 만들고 목재 둘로 긴 자루를 잇지."',
     hidden: '조운: "비표는 쇠 하나에 들개 이빨 두 개를 갈아 촉을 세운다."',
-    armor:  '조운: "호갑은 쇠 둘, 멧돼지 가죽 하나, 토끼가죽 하나."',
+    armor:  '조운: "호갑은 쇠 둘, 두꺼운 가죽 하나, 토끼가죽 하나."',
     helmet: '조운: "두건이든 투구든 쇠 하나에 토끼가죽 둘이면 충분하다."',
-    boots:  '조운: "신발은 쇠 하나, 토끼가죽 하나, 멧돼지 가죽 하나."',
-    belt:   '조운: "요대는 쇠 하나에 멧돼지 가죽 한 장. 간단하지."',
+    boots:  '조운: "신발은 쇠 하나, 거친 가죽 하나, 두꺼운 가죽 하나."',
+    belt:   '조운: "요대는 쇠 하나에 두꺼운 가죽 한 장. 간단하지."',
     jade:   '아린: "옥패는 옥돌 하나에 쇠 하나로 테를 두르면 돼요!"',
     ring:   '아린: "가락지는 옥돌 두 개에 쇠 하나! 예쁘게!"',
   };
@@ -243,9 +259,9 @@ const RECIPES = [];
 /* 적 */
 const ENEMIES = {
   rabbit:   { name: '들토끼',     hp: 30,   atk: 5,   def: 0,  spd: 12, eva: 8,  xp: 6,   silver: [1, 3],   drops: [['rabbitMeat', 0.7], ['rabbitHide', 0.6]] },
-  dog:      { name: '들개',       hp: 60,   atk: 9,   def: 2,  spd: 11, eva: 5,  xp: 11,  silver: [2, 5],   drops: [['dogFang', 0.65], ['rabbitHide', 0.1]] },
-  boar:     { name: '멧돼지',     hp: 140,  atk: 16,  def: 6,  spd: 8,  eva: 2,  xp: 20,  silver: [4, 8],   drops: [['boarMeat', 0.7], ['boarHide', 0.55], ['boarTusk', 0.35]], gear: [1, 0.06] },
-  boarKing: { name: '외눈 멧돼지왕', hp: 600, atk: 32, def: 10, spd: 9,  eva: 3,  xp: 70,  silver: [30, 50], drops: [['lingzhi', 1], ['lingzhi', 0.6], ['boarTusk', 1], ['boarHide', 1]], gear: [1, 1], boss: 'boss1' },
+  dog:      { name: '들개',       hp: 60,   atk: 9,   def: 2,  spd: 11, eva: 5,  xp: 11,  silver: [2, 5],   drops: [['dogFang', 0.65], ['roughHide', 0.5]] },
+  boar:     { name: '멧돼지',     hp: 140,  atk: 16,  def: 6,  spd: 8,  eva: 2,  xp: 20,  silver: [4, 8],   drops: [['boarMeat', 0.7], ['boarTusk', 0.4], ['boarHide', 0.55]], gear: [1, 0.06] },
+  boarKing: { name: '외눈 멧돼지왕', hp: 600, atk: 32, def: 10, spd: 9,  eva: 3,  xp: 70,  silver: [30, 50], drops: [['kingTusk', 1], ['blackiron', 1], ['emberStone', 0.8]], gear: [1, 1], boss: 'boss1' },
 
   bandit:   { name: '화적 졸개',   hp: 380,  atk: 60,  def: 18, spd: 11, eva: 6,  xp: 38,  silver: [10, 20], drops: [['bandanaSilk', 0.4], ['rice', 0.3], ['salt', 0.3]], gear: [2, 0.05] },
   axeman:   { name: '화적 도부수', hp: 560,  atk: 72,  def: 26, spd: 9,  eva: 3,  xp: 52,  silver: [15, 28], drops: [['bandanaSilk', 0.5], ['boarTusk', 0.3], ['emberStone', 0.2]], gear: [2, 0.07] },
@@ -261,7 +277,18 @@ const ENEMIES = {
 /* 사냥터 지도: 가로 12 × 세로 10. 입장할 때마다 새로 생성한다 (game.js의 generateLayout).
    입구는 좌측 하단, 두목은 우측 상단 끝. 인접(대각 포함)한 노드끼리 연결된다. */
 const MAP_W = 12, MAP_H = 10;
-const MAP_SPEC = { void: [0.08, 0.12], weak: [6, 8], mid: [3, 4], herb: [3, 5], mine: [3, 5], chest: [1, 2], gimmick: 1 };
+/* 산길 약 50%. 요수(妖獸)는 밟는 순간 지역 요수 중 하나가 무작위로 나타난다. 함정은 산길과 똑같이 보인다. */
+const MAP_SPEC = { void: [0.08, 0.1], beast: [22, 26], herb: [7, 9], mine: [7, 9], chest: [5, 7], gimmick: 1, trap: [4, 6] };
+/* 요수 출현 가중치: [약한 요수 1, 약한 요수 2, 중형] — 깊은 곳일수록 중형이 잦다 */
+const BEAST_WEIGHT = { shallow: [50, 35, 15], deep: [30, 30, 40] };
+/* 금고(金庫): 열면 네 가지 중 하나 */
+const VAULTS = [
+  { name: '은자 궤', icon: '💰', w: 30 },
+  { name: '약재 상자', icon: '🌿', w: 30 },
+  { name: '철물 상자', icon: '⛓️', w: 25 },
+  { name: '장비 궤', icon: '🗡️', w: 15 },
+];
+const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.08 };
 const ZONES = {
   cheongpung: {
     name: '청풍산', hanja: '淸風山', tier: 1,

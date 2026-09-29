@@ -37,7 +37,7 @@ let ui = { tab: 'hall', pot: {}, craft: 'alchemy', battle: null, modal: null, ba
 
 function newState(name, mugongId) {
   const st = {
-    v: 6, name, created: now(), lastTick: now(),
+    v: 7, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, activeTrainingSkillId: null,
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
     inv: { potionHp: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
@@ -86,7 +86,7 @@ function toast(text) {
 
 /* ───────── 능력치 ───────── */
 function calcStats() {
-  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpSave: 0, evaFlat: 0 };
+  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0 };
   for (const cat of CAT_ORDER) {
     const id = S.active[cat]; if (!id || !S.manuals[id]) continue;
     for (const [k, v] of Object.entries(manualBonus(id, S.manuals[id].star))) s[k] += v;
@@ -106,7 +106,7 @@ function calcStats() {
     if (b.key === 'def') defB += b.val;
     if (b.key === 'train') s.trainBuff += b.val;
   }
-  s.atk *= 1 + atkB; s.def *= 1 + defB; s.maxHp *= 1 + s.hpPct / 100;
+  s.atk *= 1 + atkB; s.def *= 1 + defB; s.maxHp *= 1 + s.hpPct / 100; s.maxMp *= 1 + s.mpPct / 100;
   for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'maxSta']) s[k] = Math.round(s[k]);
   s.eva = Math.min(60, Math.round(s.eva * 10) / 10);
   s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
@@ -116,14 +116,14 @@ function calcStats() {
 }
 /* 수련 시간표: 1~4성 구간 성당 8시간, 5~8성 16시간, 9~12성 24시간 (기본 효율 기준) */
 /* 진행 속도 (기본 효율 기준)
-   입문 → 소관문(1~3성)  : 수련 4시간  (성당 80분)  · 실전 승리 30회 (성당 10회)
-   소관문 → 중관문(4~7성) : 수련 8시간  (성당 2시간) · 실전 승리 80회 (성당 20회)
-   중관문 → 대관문(8~11성): 수련 24시간 (성당 6시간) · 실전 승리 160회 (성당 40회) */
-const SEG_HOURS = [4, 8, 24];
-const segOf = star => star <= 3 ? 0 : star <= 7 ? 1 : 2;
-const SEG_STARS = [3, 4, 4];
-function trainHours(star) { const g = segOf(star); return SEG_HOURS[g] / SEG_STARS[g]; }
-const CXP_NEED = [10, 20, 40];
+   1~5성 (입문)  : 성당 수련 8시간 · 실전 승리 10회 → 5성이 차면 소성 관문
+   6~11성 (소성) : 성당 수련 16시간 · 실전 승리 20회 → 11성이 차면 대성 관문
+   12성 (대성)   : 수련 완성, 분류별 극의 패시브 개방 */
+const segOf = star => star <= 5 ? 0 : 1;
+function trainHours(star) { return star <= 5 ? 8 : 16; }
+const CXP_NEED = [10, 20];
+function realmOf(star) { return [...REALMS].reverse().find(r => star >= r.min); }
+const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 function trainBonus(st) { st = st || calcStats(); return 1 + st.train / 100 + st.trainBuff; }
 /* 비급 하나가 장착 시 주는 능력치 (성급 기준) */
 function manualBonus(id, star) {
@@ -132,6 +132,8 @@ function manualBonus(id, star) {
   if (M.cat === 'simbeop') Object.assign(b, { maxMp: (12 * st + 1.5 * t) * g, atk: st * g, maxHp: 5 * st * g, mpRegen: 0.25 * st * g });
   if (M.cat === 'gyeonggong') Object.assign(b, { spd: 0.8 * st * g, eva: 0.6 * st * g, crit: 0.3 * st * g, counter: 0.5 * st * g });
   if (M.cat === 'gigong') Object.assign(b, { maxHp: (20 * st + 4 * t) * g, def: (1.5 * st + 0.35 * t) * g, counter: 1.2 * st * g });
+  if (st >= 6) for (const k of Object.keys(b)) b[k] *= 1.3;              // 소성: 기본 위력 계수 상향
+  if (st >= MAX_STAR) for (const [k, v] of Object.entries(DAESUNG_PASSIVE[M.cat].stats)) b[k] = (b[k] || 0) + v;   // 대성 극의
   return b;
 }
 function trainRate(id, st) {
@@ -150,7 +152,7 @@ const needC = star => CXP_NEED[segOf(star)];                          // 실전:
 const needOf = (kind, star) => kind === 'cxp' ? needC(star) : need(star);
 /* 쌓아 둘 수 있는 한도: 다음 관문까지 필요한 양 전부 + 한 성 여유. 수련만 먼저 해 둬도 버려지지 않는다. */
 function xpCap(kind, star) {
-  const gateStar = star <= 3 ? 3 : star <= 7 ? 7 : 11;
+  const gateStar = star <= 5 ? 5 : 11;
   let cap = 0;
   for (let k = star; k <= gateStar; k++) cap += needOf(kind, k);
   return cap + needOf(kind, Math.min(MAX_STAR - 1, gateStar + 1));
@@ -183,12 +185,13 @@ function breakthrough(id) {
   take(pill, 1);
   m.cxp -= needC(m.star); m.txp -= need(m.star); m.star++; m.gate = false;
   const lines = {
-    4: '노벽송: "그래, 기혈이 한 겹 트였구나. 이제 초식이 초식을 부를 게야." — 제2초식 해금!',
-    8: '노벽송: "흐음… 제법이군. 세 번째 초식은 몸이 먼저 안다." — 제3초식 해금!',
-    12: '노벽송: "…대성(大成)이다. 이 늙은이가 가르칠 건 더 없구나."',
+    6: '노벽송: "소성(小成)이로구나. 이제야 무공이 네 몸을 알아보는 게야." — 기본 위력 상향!',
+    12: '노벽송: "…대성(大成)이다. 극의에 닿았으니 이 늙은이가 가르칠 건 더 없구나."',
   };
   log(`${ITEMS[pill].icon} ${ITEMS[pill].name}의 약기운이 기혈을 뚫습니다. 《${M.name}》 ${GATE_NAME[m.star - 1]} 돌파! ${m.star}성.`, 'gold');
-  if (M.cat === 'mugong' && lines[m.star]) log(lines[m.star], 'npc');
+  if (lines[m.star]) log(lines[m.star], 'npc');
+  if (m.star === 6) log(`✨ 《${M.name}》 소성(小成) — 장착 능력치 30% 상향${M.cat === 'mugong' ? ', 초식 위력 25% 상향' : ''}.`, 'gold');
+  if (m.star === MAX_STAR) log(`🌟 《${M.name}》 대성(大成 / 極意) — ${DAESUNG_PASSIVE[M.cat].text}`, 'gold');
   toast(`${M.name} ${m.star}성 돌파!`);
   tryStar(id);
   return true;
@@ -361,6 +364,7 @@ const OFFER = {
   twistedIron: { key: 'atk', val: 1, text: '공격력 +1' },
   burntAsh:    { key: 'mp',  val: 4, text: '최대 내력 +4' },
   dregs:       { key: 'eva', val: 0.3, text: '회피율 +0.3%' },
+  kingTusk:    { key: 'atk', val: 3, text: '공격력 +3' },
 };
 function offer(id, all) {
   if (S.zone || !has(id)) return;
@@ -432,40 +436,38 @@ function generateLayout(Z) {
     let [cx, cy] = [lx, ly];
     while (Math.max(Math.abs(cx - best[0]), Math.abs(cy - best[1])) > 1) { cx += Math.sign(best[0] - cx); cy += Math.sign(best[1] - cy); if (grid[cy][cx] === '_') grid[cy][cx] = 'o'; }
   }
-  // 이벤트 배치
+  // 이벤트 배치: 산길이 약 50%가 되도록 채우되, 한 칸 주변 8칸에 이벤트가 몰리지 않게 흩뿌린다
   const dist = bfs(grid, ...S0), maxD = Math.max(...dist.values());
-  const taken = new Set();
-  const free = ([fx, fy]) => grid[fy][fx] === 'o' && !neighbors8(fx, fy).some(([nx, ny]) => taken.has(`${nx},${ny}`) || 'SK'.includes(grid[ny][nx]));
+  const isEvent = c => 'YHMCG'.includes(c);
+  const evNeighbors = ([fx, fy]) => neighbors8(fx, fy).filter(([nx, ny]) => isEvent(grid[ny][nx])).length;
+  const nearGate = ([fx, fy]) => neighbors8(fx, fy).some(([nx, ny]) => 'SK'.includes(grid[ny][nx]));
   const paths = () => { const out = []; grid.forEach((r, yy) => r.forEach((c, xx) => { if (c === 'o') out.push([xx, yy]); })); return out.sort(() => Math.random() - 0.5); };
-  const place = (ch, n, filter = () => true, sort) => {
-    let pool = paths().filter(filter);
-    if (sort) pool.sort(sort);
-    let placed = 0;
-    for (const c of pool) { if (placed >= n) break; if (!free(c)) continue; grid[c[1]][c[0]] = ch; taken.add(`${c[0]},${c[1]}`); placed++; }
-    return placed;
-  };
   const deg = ([dx, dy]) => neighbors8(dx, dy).filter(([nx, ny]) => grid[ny][nx] !== '_').length;
   const depth = c => (dist.get(`${c[0]},${c[1]}`) || 0) / maxD;
-  // 최소 수량을 먼저 모두 채운 뒤, 남은 목표치를 채운다
+  const place = (ch, n, sort) => {
+    let placed = 0;
+    for (const maxAdj of [0, 1, 2, 3]) {                       // 먼저 외따로, 모자라면 조금씩 허용
+      let pool = paths().filter(c => !nearGate(c));
+      if (sort) pool.sort(sort);
+      for (const c of pool) {
+        if (placed >= n) return placed;
+        if (grid[c[1]][c[0]] !== 'o' || evNeighbors(c) > maxAdj) continue;
+        // 이미 놓인 이웃 이벤트도 주변 8칸 중 이벤트가 3개를 넘지 않게 한다
+        if (neighbors8(c[0], c[1]).some(([nx, ny]) => isEvent(grid[ny][nx]) && evNeighbors([nx, ny]) >= 3)) continue;
+        grid[c[1]][c[0]] = ch; placed++;
+      }
+    }
+    return placed;
+  };
   const deadEnd = (a, b) => deg(a) - deg(b) || depth(b) - depth(a);
-  const kinds = [
-    ['C', MAP_SPEC.chest, () => true, deadEnd],          // 막다른 길
-    ['G', [MAP_SPEC.gimmick, MAP_SPEC.gimmick], () => true, deadEnd],
-    ['3', MAP_SPEC.mid, c => depth(c) >= 0.5],           // 깊은 산길
-    ['1', [3, 4], c => depth(c) < 0.85],
-    ['2', [3, 4], c => depth(c) < 0.9],
-    ['H', MAP_SPEC.herb], ['M', MAP_SPEC.mine],
-  ];
-  const got = {};
-  for (const [ch, [lo], f, so] of kinds) got[ch] = place(ch, lo, f, so);
-  const weakTarget = R(...MAP_SPEC.weak);
-  for (const [ch, [lo, hi], f, so] of kinds) {
-    const want = ch === '1' ? Math.ceil(weakTarget / 2) : ch === '2' ? Math.floor(weakTarget / 2) : R(lo, hi);
-    if (want > got[ch]) got[ch] += place(ch, want - got[ch], f, so);
-  }
-  const short = kinds.some(([ch, [lo]]) => got[ch] < lo);
-  if (short && (Z._retry = (Z._retry || 0) + 1) < 30) return generateLayout(Z);
-  Z._retry = 0;
+  place('G', MAP_SPEC.gimmick, deadEnd);
+  place('C', R(...MAP_SPEC.chest), deadEnd);
+  place('Y', R(...MAP_SPEC.beast));
+  place('H', R(...MAP_SPEC.herb));
+  place('M', R(...MAP_SPEC.mine));
+  // 함정은 산길 칸에 숨긴다 (보이는 모습은 산길과 같다)
+  let traps = R(...MAP_SPEC.trap);
+  for (const c of paths()) { if (!traps) break; if (nearGate(c) || grid[c[1]][c[0]] !== 'o') continue; grid[c[1]][c[0]] = 'T'; traps--; }
   return { layout: grid.map(r => r.join('')), start: S0 };
 }
 
@@ -499,22 +501,43 @@ function leaveZone() {
 }
 function move(dx, dy) {
   if (!S.zone || ui.battle) return;
-  const nx = S.zone.x + dx, ny = S.zone.y + dy;
-  if (!passable(S.zone.id, nx, ny)) return;
+  const nx = S.zone.x + dx, ny = S.zone.y + dy, zid = S.zone.id;
+  if (!passable(zid, nx, ny)) return;
+  const c = tileAt(zid, nx, ny);
+  if (c === 'Y' && S.stamina < STAMINA_COST.battle) { toast('기력이 부족해 요수의 기척을 피해 물러났습니다.'); return; }
   S.zone.x = nx; S.zone.y = ny;
-  reveal(S.zone.id, nx, ny);
+  reveal(zid, nx, ny);
+  if (c === 'T') return springTrap();
+  if (c === 'Y') { S.stamina -= STAMINA_COST.battle; return startBattle(pickBeast()); }
   render();
+}
+/* 숨은 함정: 밟는 순간 발동하고 곧바로 산길이 된다 */
+function springTrap() {
+  const st = calcStats(), hpLoss = Math.max(1, Math.round(st.maxHp * TRAP.hpPct));
+  S.hp = Math.max(1, S.hp - hpLoss); S.stamina = Math.max(0, S.stamina - TRAP.stamina);
+  log(`🪤 ${TRAP.text} 활력 -${hpLoss}, 기력 -${TRAP.stamina}`, 'bad');
+  toast(TRAP.text);
+  clearNode(); render();
+}
+/* 요수: 밟는 순간 지역 요수 중 하나를 가중치로 고른다. 깊은 곳일수록 중형이 잦다. */
+function pickBeast() {
+  const Z = ZONES[S.zone.id], dist = bfs(S.zone.layout, ...S.zone.start);
+  const maxD = Math.max(...dist.values()), d = (dist.get(`${S.zone.x},${S.zone.y}`) || 0) / maxD;
+  const w = d >= 0.5 ? BEAST_WEIGHT.deep : BEAST_WEIGHT.shallow;
+  let r = Math.random() * w.reduce((a, b) => a + b);
+  for (let i = 0; i < w.length; i++) { r -= w[i]; if (r < 0) return Z.enemies[i]; }
+  return Z.enemies[0];
 }
 function nodeInfo(zid, x, y) {
   const c = tileAt(zid, x, y), Z = ZONES[zid];
-  if ('123'.includes(c)) { const eid = Z.enemies[+c - 1]; return { type: 'battle', icon: '⚔️', label: ENEMIES[eid].name, enemy: eid }; }
+  if (c === 'Y') return { type: 'beast', icon: '🐾', label: '요수(妖獸)' };
   if (c === 'H') return { type: 'herb', icon: '🌿', label: '약초 군락' };
   if (c === 'M') return { type: 'mine', icon: '⛏️', label: '광맥' };
-  if (c === 'C') return { type: 'chest', icon: '🎁', label: '보물상자' };
+  if (c === 'C') return { type: 'chest', icon: '🎁', label: '금고(金庫)' };
   if (c === 'G') return { type: 'gimmick', icon: '⚙️', label: Z.gimmick.name };
   if (c === 'K') return { type: 'boss', icon: '👹', label: ENEMIES[Z.boss].name, enemy: Z.boss };
   if (c === 'S') return { type: 'gate', icon: '🏯', label: '입구' };
-  return { type: 'path', icon: '·', label: '산길(山徑)' };
+  return { type: 'path', icon: '·', label: '산길(山徑)' };   // 함정(T)도 산길과 똑같이 보인다
 }
 function spend(cost) {
   if (S.stamina < cost) { toast('기력이 부족합니다. 음식을 먹거나 뒷마당에서 쉬십시오.'); return false; }
@@ -525,12 +548,23 @@ function rollTable(table) {
   for (const [id, a, b, p] of table) if (Math.random() < (p ?? 1)) out.push([id, rint(a, b)]);
   return out;
 }
+/* 금고: 은자 궤·약재 상자·철물 상자·장비 궤 중 하나 */
+function openVault(Z) {
+  let r = Math.random() * VAULTS.reduce((a, v) => a + v.w, 0), v = VAULTS[0];
+  for (const x of VAULTS) { r -= x.w; if (r < 0) { v = x; break; } }
+  log(`🔓 금고를 열자 ${v.icon} ${hlItem(v.name)}${jo(v.name, '이가')} 나왔습니다.`, 'good');
+  const t = Z.tier;
+  if (v.name === '은자 궤') giveSilver(rint(25, 45) * t * t);
+  if (v.name === '약재 상자') { for (const [id, n] of rollTable(Z.herb)) give(id, n + 1); give(t === 1 ? 'potionHp' : t === 2 ? 'potionMp' : 'clearPill', 1); }
+  if (v.name === '철물 상자') for (const [id, n] of rollTable(Z.mine)) give(id, n + 1);
+  if (v.name === '장비 궤') giveGear(makeGear(pick(Object.keys(EQUIP_BASES)), t, rollDropRarity(Math.random() < 0.3), false));
+}
 function clearNode() { if (S.zone) S.zone.done[`${S.zone.x},${S.zone.y}`] = 1; }
 function giveSilver(n) { S.silver += n; log(`${hlSilver(n)} 획득`, 'loot'); }
 function interact() {
   if (!S.zone || ui.battle) return;
   const { id: zid, x, y } = S.zone, Z = ZONES[zid], info = nodeInfo(zid, x, y);
-  if (info.type === 'battle') { if (spend(STAMINA_COST.battle)) startBattle(info.enemy); return; }
+  if (info.type === 'beast') { if (spend(STAMINA_COST.battle)) startBattle(pickBeast()); return; }
   if (info.type === 'boss') { if (spend(STAMINA_COST.boss)) startBattle(info.enemy); return; }
   if (info.type === 'herb' || info.type === 'mine') {
     if (!spend(STAMINA_COST[info.type])) return;
@@ -540,8 +574,7 @@ function interact() {
   }
   if (info.type === 'chest') {
     if (!spend(STAMINA_COST.chest)) return;
-    log('녹슨 상자의 자물쇠를 비틀어 열었습니다.', 'muted');
-    for (const [id, a, b] of Z.chest) { const n = rint(a, b); if (id === 'silver') giveSilver(n); else give(id, n); }
+    openVault(Z);
     clearNode();
   }
   if (info.type === 'gimmick') {
@@ -568,10 +601,13 @@ function sense(eid) {
   return SENSE_TEXT.find(([t]) => ratio >= t);
 }
 
+/* 3초마다 한 번씩 공방(속도가 빠른 쪽이 먼저)이 오간다. 선택지는 없다. */
+let BATTLE_MS = 3000;
 function startBattle(eid) {
   const E = ENEMIES[eid];
-  ui.battle = { eid, e: { ...E, hpNow: E.hp }, pg: 0, eg: 0, lines: [], over: false, guard: false, waiting: false, st: calcStats() };
-  bLine(`⚔️ ${josa(E.name, '이가')} 앞을 가로막습니다!`, 'head');
+  stopBattleTimer();
+  ui.battle = { eid, e: { ...E, hpNow: E.hp }, lines: [], over: false, round: 0, st: calcStats() };
+  bLine(`⚔️ ${josa(E.name, '이가')} 모습을 드러냈습니다!`, 'head');
   const [, stext, scls] = sense(eid);
   bLine(stext, 'sense ' + scls);
   if (E.boss) {
@@ -579,58 +615,34 @@ function startBattle(eid) {
     bLine(quotes[eid], 'npc');
   }
   const mt = MANUALS[S.active.mugong];
-  if (!mt) bLine('장착한 무공이 없어 맨손 평타로만 싸웁니다.', 'muted');
+  if (!mt) bLine('장착한 무공이 없어 맨손으로 맞섭니다.', 'muted');
   else if (mt.weapon !== weaponType()) bLine(`《${mt.name}》은 ${WEAPON_TYPES[mt.weapon]} 무공입니다. 병기가 맞지 않아 초식을 펼칠 수 없습니다.`, 'muted');
-  advanceToPlayer(ui.battle);
   ui.tab = 'field';
   render();
+  ui.btimer = setInterval(battleRound, BATTLE_MS);
 }
-function bLine(text, cls = '') { ui.battle.lines.push({ text, cls }); }
-function advanceToPlayer(b) {
-  let guard = 0;
-  while (!b.over && guard++ < 50) {
-    b.st = calcStats();
-    while (b.pg < 100 && b.eg < 100) { b.pg += b.st.spd; b.eg += b.e.spd; }
-    if (b.pg >= b.eg) { b.pg -= 100; b.waiting = true; return; }
-    b.eg -= 100;
-    enemyTurn(b);
+function stopBattleTimer() { if (ui.btimer) { clearInterval(ui.btimer); ui.btimer = null; } }
+/* 전투 로그는 전투 창과 견문록에 함께 남긴다 */
+function bLine(text, cls = '') { ui.battle.lines.push({ text, cls }); log(text, 'battle ' + cls); }
+function battleRound() {
+  const b = ui.battle;
+  if (!b || b.over) { stopBattleTimer(); return; }
+  b.round++;
+  b.st = calcStats();
+  const order = b.st.spd >= b.e.spd ? ['me', 'foe'] : ['foe', 'me'];
+  for (const who of order) {
+    if (b.over) break;
+    if (who === 'me') playerAttack(b); else enemyTurn(b);
     checkEnd(b);
   }
+  if (!b.over) S.mp = Math.min(b.st.maxMp, S.mp + b.st.mpRegen);
+  else stopBattleTimer();
+  renderBattle();
 }
 function checkEnd(b) {
   if (b.over) return;
   if (b.e.hpNow <= 0) winBattle(b);
   else if (S.hp <= 0) loseBattle(b);
-}
-function playerAction(kind, silent) {
-  const b = ui.battle; if (!b || b.over || !b.waiting) return;
-  b.waiting = false; b.guard = false;
-  b.st = calcStats();
-  if (kind === 'attack') {
-    playerAttack(b);
-    S.mp = Math.min(b.st.maxMp, S.mp + b.st.mpRegen);
-  } else if (kind === 'guard') {
-    b.guard = true;
-    S.mp = Math.min(b.st.maxMp, S.mp + b.st.mpRegen * 2);
-    bLine('🛡️ 자세를 낮추고 기혈을 갈무리합니다. 상대의 빈틈을 노립니다.', 'guard');
-  } else if (kind === 'flee') {
-    const chance = (b.e.boss ? 0.3 : 0.55) + (b.st.spd - b.e.spd) * 0.03;
-    if (Math.random() < chance) { bLine('💨 뒤도 돌아보지 않고 몸을 뺐습니다.', 'muted'); b.over = true; b.fled = true; }
-    else bLine('💨 도주하려 했으나 퇴로가 막혔습니다!', 'bad');
-  }
-  checkEnd(b);
-  if (!b.over) advanceToPlayer(b);
-  if (!silent) renderBattle();
-}
-/* 자동 공격: 두목이 아닌 적에게만. 활력이 25% 아래로 떨어지면 멈추고 판단을 넘긴다. */
-function autoFight() {
-  const b = ui.battle; if (!b || b.over || b.e.boss) return;
-  bLine('⚔️ 자동 공격 — 끝을 볼 때까지 몰아칩니다.', 'muted');
-  for (let i = 0; i < 300 && !b.over && b.waiting; i++) {
-    if (S.hp < calcStats().maxHp * 0.25) { bLine('⚠️ 활력이 위태롭습니다. 자동 공격을 멈춥니다.', 'bad'); break; }
-    playerAction('attack', true);
-  }
-  renderBattle();
 }
 function playerHit(b, mult, text) {
   const e = b.e, st = b.st;
@@ -652,7 +664,8 @@ function playerAttack(b) {
   let comboDone = false;
   if (canCombo && Math.random() * 100 < 35 + st.combo) {
     const moves = unlockedMoves(m.star), g = GRADES[M.grade].mult;
-    const mults = [1.6, 2.2, 3.2].map(v => v * (1 + (g - 1) * 0.5));
+    const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
+    const mults = [1.6, 2.2, 3.2].map(v => v * (1 + (g - 1) * 0.5) * realmMult);
     const chain = [100, 50, 38];
     for (let i = 0; i < moves; i++) {
       if (i > 0 && Math.random() * 100 >= chain[i] + st.combo) break;
@@ -664,28 +677,25 @@ function playerAttack(b) {
       if (!ok || b.e.hpNow <= 0) break;
     }
   }
-  if (!comboDone) {
-    playerHit(b, 1, '⚔️ 평타(平打).');
-  }
+  if (!comboDone) playerHit(b, 1, '⚔️ 평타(平打).');
 }
+/* 적의 공격: 회피 → 반격(반격 스탯 확률로 흘리고 되받아침) → 피격 */
 function enemyTurn(b) {
   const e = b.e, st = b.st;
   const hitChance = Math.max(40, 95 - st.eva);
   if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격 — 경공으로 가볍게 흘려냈습니다.`, 'dodge'); return; }
-  if (b.guard && Math.random() * 100 < st.counter) {
+  if (Math.random() * 100 < st.counter) {
     bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'guard');
-    playerHit(b, 1.2, '<b class="move counter">【반격(反擊)】</b>');
+    playerHit(b, 1.0, '<b class="move counter">【반격(反擊)】</b>');
     return;
   }
   let dmg = dmgCalc(e.atk, st.def);
   const crit = Math.random() * 100 < Math.max(0, 8 - st.critRes / 2);
   if (crit) dmg = Math.round(dmg * 1.5);
-  let cut = 0;
-  if (b.guard) { cut = rint(50, 70); dmg = Math.max(1, Math.round(dmg * (100 - cut) / 100)); }
   S.hp = Math.max(0, S.hp - dmg);
   const [, , cls] = reaction(dmg, st.maxHp);
   const feel = { h1: '살짝 스쳤습니다.', h2: '살갗이 찢어집니다.', h3: '뼈가 울립니다!', h4: '입가로 피가 흐릅니다!', h5: '기혈이 뒤집힙니다!' }[cls];
-  bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''}${b.guard ? ` — 🛡️ 막아내 피해 ${cut}% 경감,` : ' —'} ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
+  bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''} — ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
 }
 function winBattle(b) {
   b.over = true; b.win = true;
@@ -697,11 +707,11 @@ function winBattle(b) {
   if (worn.length) bLine(`실전 경험 +1 (${worn.map(c => CATS[c].name).join('·')})`, 'muted');
   const silver = rint(...E.silver); S.silver += silver;
   bLine(`${hlSilver(silver)} 획득`, 'loot');
-  log(`${E.name} 토벌. ${hlSilver(silver)}, 실전 경험 +1`, 'good');
-  for (const [id, p] of E.drops) if (Math.random() < p) { if (give(id, 1, true)) { bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); log(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} ×1 획득`, 'loot'); } }
+  // 이 적에게 귀속된 드랍 테이블만 순회한다
+  for (const [id, p] of E.drops) if (Math.random() < p) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
   if (E.gear && Math.random() < E.gear[1]) {
     const it = makeGear(pick(Object.keys(EQUIP_BASES)), E.gear[0], rollDropRarity(!!E.boss), false);
-    if (giveGear(it, true)) { bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot'); log(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot'); }
+    if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
   S.kills++;
   progressMission(b.eid);
@@ -716,23 +726,21 @@ function winBattle(b) {
     };
     bLine(msgs[E.boss], 'gold');
     bLine(`${hlContrib('+' + reward)}`, 'gold');
-    log(`${hlContrib('+' + reward)}`, 'good');
-    log(msgs[E.boss], 'gold');
     const mount = SHOP_GEAR.find(g => g.boss === E.boss);
-    if (mount && giveGear(shopGear(mount.id), true)) { bLine(`🐴 두목이 부리던 ${hlItem(mount.name)}${jo(mount.name, '을를')} 얻었습니다.`, 'loot'); log(`🐴 ${hlItem(mount.name)} 획득 — 무장에서 탈것으로 착용하십시오.`, 'good'); }
+    if (mount && giveGear(shopGear(mount.id), true)) { bLine(`🐴 두목이 부리던 ${hlItem(mount.name)}${jo(mount.name, '을를')} 얻었습니다. 무장에서 탈것으로 착용하십시오.`, 'loot'); }
   }
 }
 function loseBattle(b) {
   b.over = true; b.win = false;
   const lost = Math.floor(S.silver * 0.1);
   S.silver -= lost;
-  bLine(`💀 눈앞이 캄캄해집니다… (은자 ${lost}냥을 잃었습니다)`, 'bad');
-  log(`${b.e.name}에게 패했습니다. 조운 사형이 업고 돌아왔습니다. 은자 -${lost}`, 'bad');
+  bLine(`💀 눈앞이 캄캄해집니다… 조운 사형이 업고 돌아왔습니다. (은자 ${lost}냥을 잃었습니다)`, 'bad');
 }
 function closeBattle() {
   const b = ui.battle; if (!b || !b.over) return;
+  stopBattleTimer();
   ui.battle = null;
-  if (!b.win && !b.fled) {
+  if (!b.win) {
     S.zone = null;
     S.hp = Math.max(1, Math.round(calcStats().maxHp * 0.1));
     ui.tab = 'yard';
@@ -740,9 +748,9 @@ function closeBattle() {
   save(); render();
 }
 function battleItem(id) {
-  const b = ui.battle; if (!b || b.over || !b.waiting || !has(id)) return;
+  const b = ui.battle; if (!b || b.over || !has(id)) return;
   useItem(id, true);
-  bLine(`${ITEMS[id].icon} ${ITEMS[id].name}${jo(ITEMS[id].name, '을를')} 삼켰습니다.`, 'good');
+  b.lines.push({ text: `${ITEMS[id].icon} ${ITEMS[id].name}${jo(ITEMS[id].name, '을를')} 삼켰습니다.`, cls: 'good' });
   renderBattle();
 }
 
@@ -814,7 +822,7 @@ function rest() {
 }
 function masterHint() {
   const gated = Object.entries(S.manuals).find(([, m]) => m.gate && !has(GATES[m.star]));
-  const pill = gated ? GATES[gated[1].star] : QUESTS[questIndex()] && QUESTS[questIndex()][0].includes('하급 돌파단') ? 'pillLow' : null;
+  const pill = gated ? GATES[gated[1].star] : QUESTS[questIndex()] && QUESTS[questIndex()][0].includes('소성 돌파단') ? 'pillLow' : null;
   const r = pill && RECIPES.find(x => x.out === pill);
   if (r && !S.codex.includes(r.id)) { addHint(r); render(); return; }
   log(`노벽송: "${pick([
@@ -925,14 +933,13 @@ const gearName = it => `${it.name}${it.enh ? ` +${it.enh}` : ''}`;
 const QUESTS = [
   ['비급 익히고 무공 장착하기', () => CAT_ORDER.every(c => S.active[c]), '무장 탭 행낭에서 비급 네 권을 [ 익히기 ] 한 뒤, 무공 탭에서 각각 장착하십시오.'],
   ['조운 대사형에게 오늘의 보급품 받기', () => !!S.flags.supplied, '정청의 조운에게 보급품을 받으십시오.'],
-  ['청풍산에서 첫 사냥', () => S.kills > 0, '강호행에서 청풍산으로 가, ⚔️ 기척이 있는 곳에서 싸우십시오.'],
-  ['화로에서 하급 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 4, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],
-  ['무공 4성 — 소관문 돌파', () => bestMugongStar() >= 4, '3성을 가득 채운 뒤 하급 돌파단을 복용하십시오.'],
+  ['청풍산에서 첫 사냥', () => S.kills > 0, '강호행에서 청풍산으로 가, 🐾 요수(妖獸) 칸을 밟으면 싸움이 시작됩니다.'],
+  ['화로에서 소성 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 6, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],
   ['청풍산 두목 외눈 멧돼지왕 토벌', () => !!S.flags.boss1, '청풍산 가장 깊은 곳, 👹 표시가 두목의 거처입니다.'],
   ['염화채 채주 적염도 토벌', () => !!S.flags.boss2, '화적패의 소굴 가장 깊은 곳에 채주가 있습니다.'],
-  ['무공 8성 — 중관문 돌파', () => bestMugongStar() >= 8, '7성을 채운 뒤 중급 돌파단을 복용하십시오.'],
+  ['무공 6성 — 소성(小成) 돌파', () => bestMugongStar() >= 6, '5성을 가득 채운 뒤 소성 돌파단을 복용하십시오.'],
   ['적룡방 방주 갈천 토벌', () => !!S.flags.boss3, '적룡방 가장 깊은 곳에 방주의 거처가 있습니다.'],
-  ['무공 12성 대성 — 대관문 돌파', () => bestMugongStar() >= 12, '11성을 채운 뒤 상급 돌파단을 복용하십시오.'],
+  ['무공 12성 — 대성(大成) 돌파', () => bestMugongStar() >= 12, '11성을 채운 뒤 대성 돌파단을 복용하십시오.'],
   ['장문인에게 하산령 받기', () => !!S.flags.hasan, '장문인을 찾아가십시오.'],
 ];
 function questIndex() { const i = QUESTS.findIndex(q => !q[1]()); return i < 0 ? QUESTS.length : i; }
@@ -1091,7 +1098,7 @@ function viewYeonmu() {
     const left = on ? (need(m.star) - m.txp) / trainRate(id) : 0;
     return `<div class="art ${on ? 'training' : ''}" data-manual="${cat}" role="button" tabindex="0">
       <div class="art-top"><span class="art-cat">${label(C.name, C.hanja)}</span><span class="art-star">${m.star}<small>성</small></span></div>
-      <div class="art-name">《${M.name}》${m.gate ? ' <span class="pill warn">관문</span>' : ''}</div>
+      <div class="art-name">《${M.name}》 ${realmTag(m.star)}${m.gate ? ' <span class="pill warn">관문</span>' : ''}</div>
       ${xpRows(id)}
       <div class="art-foot">
         <small class="muted">${m.star >= MAX_STAR ? '대성' : on ? (m.txp >= need(m.star) ? `수련 가득 참 · 실전 ${Math.max(0, needC(m.star) - Math.floor(m.cxp))}승 더` : `다음 성까지 약 ${fmtDur(left)}`) : `성당 수련 ${fmtDur(trainHours(m.star) * 3600)}`}</small>
@@ -1102,7 +1109,7 @@ function viewYeonmu() {
   const tm = tid && MANUALS[tid];
   return `<section class="panel" data-starsig="${starSig()}">
     ${head('연무장', '演武場', `<span class="pill ${tid ? '' : 'idle'}">${tid ? '수련 중' : '수련 정지'}</span>`)}
-    <p class="story">${tm ? `향이 타들어 갑니다. 《${tm.name}》 한 가지에만 온 정신을 모읍니다. 소관문까지 4시간, 중관문까지 8시간, 대관문까지 24시간이 걸립니다.` : '연무장이 고요합니다. 수련할 비급 하나를 골라 [ 수련하기 ]를 누르십시오. 한 번에 한 비급만 수련할 수 있습니다.'}</p>
+    <p class="story">${tm ? `향이 타들어 갑니다. 《${tm.name}》 한 가지에만 온 정신을 모읍니다. 1~5성은 성마다 8시간, 소성 이후 6~11성은 16시간이 걸립니다.` : '연무장이 고요합니다. 수련할 비급 하나를 골라 [ 수련하기 ]를 누르십시오. 한 번에 한 비급만 수련할 수 있습니다.'}</p>
     <div class="arts">${cards}</div>
   </section>`;
 }
@@ -1128,11 +1135,13 @@ function martialModal(id) {
       ${m.gate && has(pill) ? `<div><button class="btn primary" data-pill="${pill}">${ITEMS[pill].icon} ${ITEMS[pill].name} 복용</button></div>` : ''}`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2></div><div class="art-star">${m.star}<small>/12성</small></div></div>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
     <p class="num muted">현재 ${m.star}성 / 실전 ${pc}% / 수련 ${pt}%</p>
     ${xpRows(id)}
     <p class="story">${M.desc}</p>
     <h4>보너스 효과 (장착 시)</h4>${bonus}
+    <p class="${m.star >= MAX_STAR ? 'gold' : 'muted'}">${m.star >= MAX_STAR ? '🌟 ' : '대성 시 개방 — '}${DAESUNG_PASSIVE[cat].text}</p>
+    ${m.star < 6 ? '<p class="muted">소성(6성)에 이르면 장착 능력치가 30% 오릅니다.</p>' : ''}
     ${moves}${gateInfo}
     <div class="btns">${worn ? `<button class="btn danger" data-unequipm="${cat}">[ 장착 해제 ]</button>` : `<button class="btn primary" data-equipm="${id}">[ 장착하기 ]</button>`}<button class="btn ghost" data-act="closemodal">닫기</button></div>
   </div>`;
@@ -1146,7 +1155,7 @@ function viewMartial() {
     const M = MANUALS[id], m = S.manuals[id];
     return `<div class="mslot" data-mart="${id}" role="button" tabindex="0">
       <div class="mslot-cat">${label(C.name, C.hanja)}</div>
-      <b class="mslot-name">《${M.name}》</b>
+      <b class="mslot-name">《${M.name}》</b>${realmTag(m.star)}
       <span class="art-star">${m.star}<small>성</small></span>
       <button class="btn ghost sm" data-unequipm="${cat}">장착 해제</button>
     </div>`;
@@ -1155,7 +1164,7 @@ function viewMartial() {
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급');
   const cards = learned.map(id => {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
-    return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》</b><span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
+    return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》</b>${realmTag(m.star)}<span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
   }).join('');
   return `<section class="panel">
     ${head('무공', '武功')}
@@ -1303,7 +1312,8 @@ function viewField() {
   pad.splice(4, 0, `<div class="dir mid">${info.icon}</div>`);
   const cost = STAMINA_COST[info.type];
   let action;
-  if (info.type === 'battle' || info.type === 'boss') {
+  if (info.type === 'beast') action = `<p class="story">요수의 기척이 남아 있습니다.</p><div><button class="btn primary" data-act="interact">🐾 맞선다 <small>기력 ${STAMINA_COST.battle}</small></button></div>`;
+  else if (info.type === 'boss') {
     const E = ENEMIES[info.enemy], [, stext, scls] = sense(info.enemy);
     action = `<p class="story">${info.type === 'boss' ? '두목 ' : ''}<b>${E.name}</b>의 기척이 느껴집니다.</p><p class="story sense ${scls}">${stext}</p><div><button class="btn ${info.type === 'boss' ? 'danger' : 'primary'}" data-act="interact">⚔️ 맞선다 <small>기력 ${cost}</small></button></div>`;
   } else if (info.type === 'herb' || info.type === 'mine') {
@@ -1338,14 +1348,9 @@ function viewBattle() {
     <div class="blog" id="blog">${b.lines.map((l, i) => `<p class="${l.cls}${i >= (b.shown || 0) ? ' fresh' : ''}">${l.text}</p>`).join('')}</div>
     <div class="bctl">
       ${b.over ? `<button class="btn primary" data-act="closebattle">${b.win ? '전리품을 챙긴다' : b.fled ? '숨을 고른다' : '정신을 잃는다…'}</button>` : `
-        <div class="acts">
-          <button class="btn act-atk" data-bact="attack">⚔️ 공격</button>
-          <button class="btn act-def" data-bact="guard">🛡️ 방어</button>
-          <button class="btn act-run" data-bact="flee">💨 도주</button>
-        </div>
-        ${e.boss ? '' : '<button class="btn act-auto" data-act="auto">⚔️ 자동 공격 <small>활력 25% 미만이면 멈춤</small></button>'}
+        <div class="phase"><span class="phase-bar" style="animation-duration:${BATTLE_MS}ms"></span><small>${b.round + 1}합 · ${Math.round(BATTLE_MS / 1000)}초마다 공방이 오갑니다</small></div>
         ${items.length ? `<div class="chips">${items.map(id => `<button class="chip" data-bitem="${id}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : ''}
-        <small class="muted">방어하면 받는 피해가 50~70% 줄고, 반격 ${st.counter}% 확률로 흘려낸 뒤 되받아칩니다.</small>`}
+        <small class="muted">적의 공격을 반격 ${st.counter}% 확률로 흘려낸 뒤 되받아칩니다.</small>`}
     </div>
   </section>`;
 }
@@ -1567,7 +1572,6 @@ function onClick(e) {
   if (d.manual) { ui.modal = 'manual:' + d.manual; return renderModal(); }
   if (d.pill) return useItem(d.pill, false);
   if (d.use) return useItem(d.use, false);
-  if (d.bact) return playerAction(d.bact);
   if (d.bitem) return battleItem(d.bitem);
   if (d.offer) return offer(d.offer, false);
   if (d.offerall) return offer(d.offerall, true);
@@ -1588,7 +1592,7 @@ function onClick(e) {
     leave: leaveZone, interact, craft: doCraft, clearpot: () => { ui.pot = {}; render(); },
     rest, snack: arinSnack, talk: arinTalk, masterhint: masterHint, supply: jounSupply, reroll: rerollMissions,
     hasan: doHasan, closemodal: () => { ui.modal = null; render(); },
-    closebattle: closeBattle, auto: autoFight,
+    closebattle: closeBattle,
     reset: askReset,
     doreset: doReset,
   };
@@ -1615,6 +1619,18 @@ function boot() {
     const oldNeed = st => Math.round(40 * Math.pow(1.28, st - 1));
     for (const m of Object.values(S.manuals)) if (m.star < MAX_STAR) m.txp = m.txp / oldNeed(m.star) * need(m.star);
     S.v = 6;
+  }
+  if (S && S.v < 7) {
+    // 경계가 3개(3·7·11성)에서 2개(5·11성)로, 수련·실전 눈금도 바뀌었으므로 진행 비율을 유지해 환산한다
+    const oldT = st => Math.round((st <= 3 ? 4 / 3 : st <= 7 ? 2 : 6) * 3600), oldC = st => st <= 3 ? 10 : st <= 7 ? 20 : 40;
+    for (const m of Object.values(S.manuals)) {
+      if (m.star >= MAX_STAR) continue;
+      m.txp = m.txp / oldT(m.star) * need(m.star); m.cxp = m.cxp / oldC(m.star) * needC(m.star);
+      m.gate = false;
+    }
+    for (const id of Object.keys(S.manuals)) tryStar(id);
+    if (S.zone) S.zone = null;
+    S.v = 7;
   }
   if (S && S.zone && (!S.zone.layout || !S.zone.start || S.zone.layout.length !== MAP_H)) S.zone = null;
   if (!S) showIntro();

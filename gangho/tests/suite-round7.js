@@ -1,31 +1,14 @@
-/* 진행 속도, 재료 단서, 자동 공격, 조운의 창고, 장비 강화 */
+/* 재료 단서, 조운의 창고, 장비 강화 */
 'use strict';
-const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS } = require('./lib');
+const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
 module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
     console.log(`\n=== ${w}px ===`);
-    const p = await b.newPage({ viewport: { width: w, height: h } });
+    const p = await newPage(b, w, h);
     const errs = watchErrors(p);
     await p.goto(GAME_URL);
     await startEquipped(p);
-
-    // 1. 진행 속도: 소관문까지 수련 4시간 + 승리 30회
-    const pace = await p.evaluate(() => {
-      const r = {};
-      r.wins = [[1, 3], [4, 7], [8, 11]].map(([a, z]) => { let n = 0; for (let st = a; st <= z; st++) n += needC(st); return n; });
-      toggleTraining('mugong');
-      const id = S.active.mugong;
-      advance(4 * 3600 / trainBonus() - 60, true);
-      r.beforeWins = { star: S.manuals[id].star, gate: S.manuals[id].gate };
-      for (let i = 0; i < 30; i++) addXp(id, 'cxp', 1);
-      advance(120, true);
-      r.after = { star: S.manuals[id].star, gate: S.manuals[id].gate };
-      return r;
-    });
-    ok('1 관문 구간 승리 수 30/80/160', pace.wins.join('/') === '30/80/160', pace.wins.join('/'));
-    ok('1 수련만으로는 성이 오르지 않음', pace.beforeWins.star === 1, JSON.stringify(pace.beforeWins));
-    ok('1 수련 4시간 + 승리 30회 → 소관문 도달', pace.after.star === 3 && pace.after.gate, JSON.stringify(pace.after));
 
     // 2. 재료 단서
     const clue = await p.evaluate(() => {
@@ -44,24 +27,6 @@ module.exports = async (b) => {
     await p.click('[data-act="closemodal"]');
     await p.click('.ctile.locked');
     ok('2 단서 없는 칸은 미발견 안내', (await p.$$eval('.toast', e => e[e.length - 1].textContent)).includes('아직 발견하지 못한 비전'));
-
-    // 3. 자동 공격
-    const auto = await p.evaluate(() => {
-      enterZone('cheongpung'); S.hp = 99999; startBattle('boar');
-      const btn = !!document.querySelector('[data-act="auto"]');
-      autoFight(); const over = ui.battle.over, win = ui.battle.win; closeBattle();
-      S.hp = 99999; startBattle('boarKing'); const bossBtn = !!document.querySelector('[data-act="auto"]');
-      ui.battle.over = true; closeBattle(); if (S.zone) leaveZone();
-      return { btn, over, win, bossBtn };
-    });
-    ok('3 일반 몹 자동 공격으로 전투 종료', auto.btn && auto.over && auto.win);
-    ok('3 두목전에는 자동 공격 없음', !auto.bossBtn);
-    const stop = await p.evaluate(() => {
-      enterZone('cheongpung'); startBattle('boar'); S.hp = Math.floor(calcStats().maxHp * 0.2);
-      autoFight(); const r = { over: ui.battle.over, stopped: ui.battle.lines.some(l => l.text.includes('자동 공격을 멈춥니다')) };
-      ui.battle.over = true; closeBattle(); if (S.zone) leaveZone(); S.hp = calcStats().maxHp; return r;
-    });
-    ok('3 활력 25% 미만이면 자동 공격 멈춤', !stop.over && stop.stopped);
 
     // 4. 조운의 창고, 장비 강화
     const shop = await p.evaluate(() => { S.silver = 1000; const n0 = count('potionHp'); buyStore('potionHp'); return { spent: 1000 - S.silver, got: count('potionHp') - n0 }; });

@@ -1,11 +1,11 @@
 /* 핵심 규칙: 탭, 연무장, 강호행, 전투, 무장, 도감, 견문록, 테마 */
 'use strict';
-const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS } = require('./lib');
+const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
 module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
   console.log(`\n=== ${w}px ===`);
-  const p = await b.newPage({ viewport: { width: w, height: h } });
+  const p = await newPage(b, w, h);
   const errs = [];
   p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type()==='error' && !/ERR_CERT|ERR_FILE_NOT_FOUND/.test(m.text()) && errs.push(m.text()));
   await p.goto(GAME_URL);
@@ -23,15 +23,14 @@ module.exports = async (b) => {
     const before = CAT_ORDER.map(c => S.manuals[S.active[c]].txp); advance(3600, true);
     const after = CAT_ORDER.map(c => S.manuals[S.active[c]].txp);
     r.changed = CAT_ORDER.filter((c, i) => after[i] !== before[i]);
-    const seg = (a, b) => { let h = 0; for (let st = a; st <= b; st++) h += trainHours(st); return Math.round(h * 100) / 100; };
-    r.segs = [seg(1, 3), seg(4, 7), seg(8, 11)];
+    r.segs = [1, 5, 6, 11].map(st => trainHours(st));
     r.perStarBase = need(1) / (trainRate('tonap') / trainBonus()) / 3600;
     return r;
   });
   ok('2 기본 수련 정지', t.default === null);
   ok('2 정지 시 경험치 불변', t.idleUnchanged);
   ok('2 단일 비급만 누적', t.changed.length === 1 && t.changed[0] === 'simbeop', t.changed.join(','));
-  ok('2 관문 구간 시간표 4/8/24시간', t.segs.join('/') === '4/8/24' && Math.abs(t.perStarBase - 4 / 3) < 0.01, `구간 ${t.segs.join('/')}h · 1성→2성 ${(t.perStarBase * 60).toFixed(0)}분`);
+  ok('2 성당 수련 시간 (1~5성 8h, 6~11성 16h)', t.segs.join('/') === '8/8/16/16' && Math.abs(t.perStarBase - 8) < 0.01, `1·5·6·11성 ${t.segs.join('/')}h`);
   await p.click('[data-tab="yeonmu"]');
   ok('2 수련 중 카드 1개만 금빛', (await p.$$('.art.training')).length === 1);
   // 3
@@ -45,7 +44,7 @@ module.exports = async (b) => {
     r.bossReach = reachable(S.zone.layout, ...S.zone.start); let k; S.zone.layout.forEach((row,y)=>[...row].forEach((c,x)=>{ if(c==='K') k=`${x},${y}`; })); r.bossReach = r.bossReach.has(k);
     // 인접한 이벤트 노드 하나 처리
     const [sx, sy] = S.zone.start; let target = null;
-    for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if ('HMC'.includes(c) && c !== '') { target = [sx+dx, sy+dy, c]; break; } }
+    for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if ('HM'.includes(c) && c !== '') { target = [sx+dx, sy+dy, c]; break; } }
     if (!target) for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if (c !== '_' ) { S.zone.layout = S.zone.layout.map((row,y)=> y===sy+dy ? row.slice(0,sx+dx)+'H'+row.slice(sx+dx+1) : row); target=[sx+dx,sy+dy,'H']; break; } }
     move(target[0]-sx, target[1]-sy); interact();
     r.cleared = tileAt('cheongpung', target[0], target[1]) === 'o';
@@ -61,20 +60,20 @@ module.exports = async (b) => {
   ok('3 이동 시 자동 회복 없음', f.noRegen); ok('3 재입장 시 초기화', f.doneReset); ok('3 재입장 시 재배치', f.reshuffled);
   // 4
   const bt = await p.evaluate(() => {
-    startBattle('boar'); const r = {};
+    startBattle('boar'); stopBattleTimer(); const r = {};
     r.noStats = !/활력 \d|공격 \d|방어 \d/.test(document.querySelector('.bar.foe').textContent + document.querySelector('.blog').textContent);
     r.sense = SENSE_TEXT.some(([, t]) => document.querySelector('.blog').textContent.includes(t));
-    r.cmds = [...document.querySelectorAll('[data-bact]')].map(e => e.textContent.trim()).join(',');
-    let g = 0; S.hp = 99999;
-    for (let i = 0; i < 40 && !ui.battle.over; i++) playerAction('guard');
-    r.cut = ui.battle.lines.map(l => l.text).filter(t => /경감/.test(t)).map(t => +t.match(/피해 (\d+)% 경감/)[1]);
+    r.cmds = document.querySelectorAll('[data-bact], [data-act="auto"]').length;
+    r.phase = !!document.querySelector('.phase-bar');
+    S.hp = 99999; ui.battle.e.hpNow = 1e9;
+    for (let i = 0; i < 60; i++) battleRound();
     r.counter = ui.battle.lines.some(l => l.text.includes('반격(反擊)'));
     ui.battle.over = true; closeBattle();
     return r;
   });
-  ok('4 적 수치 비노출', bt.noStats); ok('4 육감 지문', bt.sense); ok('4 3지선다', bt.cmds === '⚔️ 공격,🛡️ 방어,💨 도주', bt.cmds);
-  ok('4 방어 50~70% 경감', bt.cut.length > 0 && bt.cut.every(c => c >= 50 && c <= 70), bt.cut.slice(0,8).join(','));
-  ok('4 반격 발생', bt.counter);
+  ok('4 적 수치 비노출', bt.noStats); ok('4 육감 지문', bt.sense);
+  ok('4 수동 선택지 없음 (자동 공방)', bt.cmds === 0 && bt.phase);
+  ok('4 반격 발생 (반격 스탯)', bt.counter);
   // 5
   await p.evaluate(() => { leaveZone(); });
   await p.click('[data-tab="bag"]');

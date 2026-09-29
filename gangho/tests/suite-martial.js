@@ -1,11 +1,11 @@
 /* 무공 탭: 비급 습득·장착/해제 */
 'use strict';
-const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS } = require('./lib');
+const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
 module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
   console.log(`\n=== ${w}px ===`);
-  const p = await b.newPage({ viewport: { width: w, height: h } });
+  const p = await newPage(b, w, h);
   const errs = [];
   p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type()==='error' && !/ERR_CERT|ERR_FILE_NOT_FOUND/.test(m.text()) && errs.push(m.text()));
   await p.goto(GAME_URL);
@@ -18,7 +18,7 @@ module.exports = async (b) => {
   // 빈 슬롯 상태: 연무장·전투
   await p.click('[data-tab="yeonmu"]');
   ok('3 미장착이면 연무장 수련 불가', (await p.$$('[data-train]')).length === 0 && (await p.$$('.empty-art')).length === 4);
-  const bare = await p.evaluate(() => { S.hp = 9999; enterZone('cheongpung'); startBattle('rabbit'); let n = 0; while (!ui.battle.over && n++ < 100) playerAction('attack'); const r = ui.battle.win; ui.battle.over = true; closeBattle(); leaveZone(); return r; });
+  const bare = await p.evaluate(() => { S.hp = 9999; enterZone('cheongpung'); const r = fightSync('rabbit').win; ui.battle.over = true; closeBattle(); leaveZone(); return r; });
   ok('무공 없이도 맨손 전투 가능', bare === true);
   // 행낭에서 익히기
   await p.click('[data-tab="bag"]'); await p.click('[data-filter="비급"]');
