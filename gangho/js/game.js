@@ -1203,4 +1203,4 @@ function boot() {
   setInterval(save, 10000);
   window.addEventListener('beforeunload', save);
 }
-document.addEventListener('DOMContentLoaded', boot);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
