@@ -12,6 +12,9 @@ const now = () => Date.now();
 const fmt = n => Math.floor(n).toLocaleString('ko-KR');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const today = () => new Date().toISOString().slice(0, 10);
+const hlItem = t => `<span class="hl-item">${t}</span>`;
+const hlSilver = n => `<span class="hl-silver">은자 ${fmt(n)}냥</span>`;
+const hlContrib = n => `<span class="hl-contrib">문파 공헌도 ${typeof n === 'number' ? fmt(n) : n}</span>`;
 const label = (ko, hj) => `<b class="ko">${ko}</b><small class="hj">${hj}</small>`;
 
 function josa(word, pair) {
@@ -24,18 +27,18 @@ function josa(word, pair) {
 const jo = (word, pair) => josa(word, pair).slice(word.length);
 
 const SAVE_KEY = 'ganghoKyeonmunrok_v2';
-const OFFLINE_CAP = 8 * 3600;
+const OFFLINE_CAP = 24 * 3600;
 const REST_CD = 300;
 const POT_MAX = 10;
 
 /* ───────── 상태 ───────── */
 let S = null;
-let ui = { tab: 'yeonmu', pot: {}, craft: 'alchemy', battle: null, modal: null, bagFilter: 'all', slotSel: null };
+let ui = { tab: 'hall', pot: {}, craft: 'alchemy', battle: null, modal: null, bagFilter: 'all', slotSel: null };
 
 function newState(name, mugongId) {
   const st = {
-    v: 2, name, created: now(), lastTick: now(),
-    hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, training: true,
+    v: 3, name, created: now(), lastTick: now(),
+    hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, activeTrainingSkillId: null,
     manuals: {}, active: { mugong: mugongId, simbeop: 'tonap', gyeonggong: 'pocheolsak', gigong: 'cheolpo' },
     inv: { potionHp: 3, herb: 2 },
     gear: [], equip: {},
@@ -43,7 +46,7 @@ function newState(name, mugongId) {
     perm: { maxHp: 0, maxMp: 0 },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 }, cook: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
-    zone: null, seen: {}, opened: {}, cleared: {}, gatherCd: {},
+    zone: null, seen: {},
     buffs: [], missions: [], arin: {}, supplyDay: '', restCd: 0, uid: 1,
     kills: 0, log: [],
   };
@@ -115,9 +118,17 @@ function calcStats() {
   s.mpRegen = Math.round(s.mpRegen * 10) / 10;
   return s;
 }
-function trainRate(st) {
-  st = st || calcStats();
-  return (1 + st.train / 100 + st.trainBuff) * (S.zone ? 0.5 : 1);
+/* 수련 시간표: 1~4성 구간 성당 8시간, 5~8성 16시간, 9~12성 24시간 (기본 효율 기준) */
+function trainHours(star) { return star <= 3 ? 8 : star <= 7 ? 16 : 24; }
+function trainBonus(st) { st = st || calcStats(); return 1 + st.train / 100 + st.trainBuff; }
+function trainRate(id, st) {
+  const m = S.manuals[id]; if (!m || m.star >= MAX_STAR) return 0;
+  return need(m.star) / (trainHours(m.star) * 3600) * trainBonus(st);
+}
+function fmtDur(sec) {
+  if (!isFinite(sec) || sec <= 0) return '0분';
+  const h = Math.floor(sec / 3600), mnt = Math.ceil((sec % 3600) / 60);
+  return h ? `${h}시간 ${mnt}분` : `${mnt}분`;
 }
 
 /* ───────── 경험치 & 성(星) ───────── */
@@ -172,14 +183,14 @@ function bagCap() { return calcStats().bag; }
 function give(id, n = 1, quiet = false) {
   if (!S.inv[id] && bagUsed() >= bagCap()) { log(`행낭이 가득 차 ${ITEMS[id].name}${jo(ITEMS[id].name, '을를')} 버렸습니다.`, 'bad'); return false; }
   S.inv[id] = (S.inv[id] || 0) + n;
-  if (!quiet) log(`${ITEMS[id].icon} ${ITEMS[id].name} ×${n} 획득`, 'loot');
+  if (!quiet) log(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} ×${n} 획득`, 'loot');
   return true;
 }
 function take(id, n = 1) { S.inv[id] -= n; if (S.inv[id] <= 0) delete S.inv[id]; }
 function giveGear(it, quiet) {
   if (bagUsed() >= bagCap()) { log(`행낭이 가득 차 ${it.name}${jo(it.name, '을를')} 두고 왔습니다.`, 'bad'); return false; }
   S.gear.push(it);
-  if (!quiet) log(`🗡️ [${RARITY[it.rarity].name}] ${it.name} 획득${it.unique ? ` — ${it.unique.text}` : ''}`, 'loot r' + it.rarity);
+  if (!quiet) log(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득${it.unique ? ` — ${it.unique.text}` : ''}`, 'loot');
   return true;
 }
 function makeGear(base, tier, rarity, crafted) {
@@ -294,7 +305,7 @@ function doCraft() {
       give(recipe.out, 1, true);
       result = { ok: true, first, text: `${ITEMS[recipe.out].icon} ${ITEMS[recipe.out].name}`, sub: ITEMS[recipe.out].desc };
     }
-    log(`${C.name} 성공: ${result.text}${first ? ' — 도감에 새로 기록!' : ''}`, 'good');
+    log(`${C.name} 성공: ${hlItem(result.text)}${first ? ' — 도감에 새로 기록!' : ''}`, 'good');
   } else {
     const fail = C.fail;
     S.inv[fail] = (S.inv[fail] || 0) + 1;
@@ -366,7 +377,22 @@ function normalizeZone(Z) {
 }
 for (const Z of Object.values(ZONES)) normalizeZone(Z);
 
-function tileAt(zid, x, y) { const row = ZONES[zid].grid[y]; if (!row || x < 0 || x >= row.length) return '_'; return row[x]; }
+function tileAt(zid, x, y) {
+  const Z = ZONES[zid], here = S && S.zone && S.zone.id === zid;
+  const row = (here ? S.zone.layout : Z.grid)[y];
+  if (!row || x < 0 || x >= row.length) return '_';
+  if (here && S.zone.done[`${x},${y}`]) return 'o';
+  return row[x];
+}
+/* 입장할 때마다 이벤트(적·채집·상자·기믹)를 길 위에 새로 흩뿌린다. 입구·두목·빈칸 모양은 그대로라 연결성은 유지된다. */
+function shuffleLayout(Z) {
+  const grid = Z.grid.map(r => [...r]);
+  const cells = [], events = [];
+  grid.forEach((r, y) => r.forEach((c, x) => { if (c !== '_' && c !== 'S' && c !== 'K') { cells.push([x, y]); if (c !== 'o') events.push(c); } }));
+  for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+  cells.forEach(([x, y], i) => { grid[y][x] = events[i] || 'o'; });
+  return grid.map(r => r.join(''));
+}
 function passable(zid, x, y) { return tileAt(zid, x, y) !== '_'; }
 function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags[u.boss]; }
 function reveal(zid, x, y) {
@@ -376,13 +402,14 @@ function reveal(zid, x, y) {
 function enterZone(zid) {
   if (!zoneUnlocked(zid)) return;
   const [x, y] = ZONES[zid].start;
-  S.zone = { id: zid, x, y };
+  S.zone = { id: zid, x, y, layout: shuffleLayout(ZONES[zid]), done: {} };
+  S.seen[zid] = {};
   reveal(zid, S.zone.x, S.zone.y);
   log(`${ZONES[zid].name}(${ZONES[zid].hanja})에 들어섰습니다.`, 'place');
   ui.tab = 'field'; render();
 }
 function leaveZone() {
-  if (ui.battle) return;
+  if (ui.battle || !S.zone) return;
   log(`${ZONES[S.zone.id].name}${jo(ZONES[S.zone.id].name, '을를')} 떠나 청풍문으로 돌아왔습니다.`, 'place');
   S.zone = null; render();
 }
@@ -395,12 +422,12 @@ function move(dx, dy) {
   render();
 }
 function nodeInfo(zid, x, y) {
-  const c = tileAt(zid, x, y), Z = ZONES[zid], key = `${zid}:${x},${y}`;
+  const c = tileAt(zid, x, y), Z = ZONES[zid];
   if ('123'.includes(c)) { const eid = Z.enemies[+c - 1]; return { type: 'battle', icon: '⚔️', label: ENEMIES[eid].name, enemy: eid }; }
-  if (c === 'H') return { type: 'herb', icon: '🌿', label: '약초 군락', cd: S.gatherCd[key] };
-  if (c === 'M') return { type: 'mine', icon: '⛏️', label: '광맥', cd: S.gatherCd[key] };
-  if (c === 'C') return { type: 'chest', icon: S.opened[key] ? '📦' : '🎁', label: S.opened[key] ? '빈 상자' : '보물상자', done: S.opened[key] };
-  if (c === 'G') return { type: 'gimmick', icon: '⚙️', label: Z.gimmick.name, done: S.cleared[zid] };
+  if (c === 'H') return { type: 'herb', icon: '🌿', label: '약초 군락' };
+  if (c === 'M') return { type: 'mine', icon: '⛏️', label: '광맥' };
+  if (c === 'C') return { type: 'chest', icon: '🎁', label: '보물상자' };
+  if (c === 'G') return { type: 'gimmick', icon: '⚙️', label: Z.gimmick.name };
   if (c === 'K') return { type: 'boss', icon: '👹', label: ENEMIES[Z.boss].name, enemy: Z.boss };
   if (c === 'S') return { type: 'gate', icon: '🏯', label: '입구' };
   return { type: 'path', icon: '·', label: '산길' };
@@ -414,36 +441,33 @@ function rollTable(table) {
   for (const [id, a, b, p] of table) if (Math.random() < (p ?? 1)) out.push([id, rint(a, b)]);
   return out;
 }
+function clearNode() { if (S.zone) S.zone.done[`${S.zone.x},${S.zone.y}`] = 1; }
+function giveSilver(n) { S.silver += n; log(`${hlSilver(n)} 획득`, 'loot'); }
 function interact() {
   if (!S.zone || ui.battle) return;
-  const { id: zid, x, y } = S.zone, Z = ZONES[zid], info = nodeInfo(zid, x, y), key = `${zid}:${x},${y}`;
+  const { id: zid, x, y } = S.zone, Z = ZONES[zid], info = nodeInfo(zid, x, y);
   if (info.type === 'battle') { if (spend(STAMINA_COST.battle)) startBattle(info.enemy); return; }
   if (info.type === 'boss') { if (spend(STAMINA_COST.boss)) startBattle(info.enemy); return; }
   if (info.type === 'herb' || info.type === 'mine') {
-    if (info.cd && info.cd > now()) return;
     if (!spend(STAMINA_COST[info.type])) return;
-    log(info.type === 'herb' ? '약초낫으로 풀숲을 헤쳤습니다.' : '곡괭이로 광맥을 두드렸습니다.', 'muted');
+    log(info.type === 'herb' ? '약초낫으로 풀숲을 헤쳐 남김없이 거두었습니다.' : '곡괭이로 광맥을 남김없이 캐냈습니다.', 'muted');
     for (const [id, n] of rollTable(Z[info.type])) give(id, n);
-    S.gatherCd[key] = now() + 90 * 1000;
+    clearNode();
   }
   if (info.type === 'chest') {
-    if (info.done || !spend(STAMINA_COST.chest)) return;
-    S.opened[key] = 1;
+    if (!spend(STAMINA_COST.chest)) return;
     log('녹슨 상자의 자물쇠를 비틀어 열었습니다.', 'muted');
-    for (const [id, a, b] of Z.chest) {
-      const n = rint(a, b);
-      if (id === 'silver') { S.silver += n; log(`은자 ${n}냥 획득`, 'loot'); } else give(id, n);
-    }
+    for (const [id, a, b] of Z.chest) { const n = rint(a, b); if (id === 'silver') giveSilver(n); else give(id, n); }
+    clearNode();
   }
   if (info.type === 'gimmick') {
-    if (info.done || !spend(STAMINA_COST.gimmick)) return;
+    if (!spend(STAMINA_COST.gimmick)) return;
     const st = calcStats(), g = Z.gimmick;
     if (st[g.stat] >= g.need) {
-      S.cleared[zid] = 1;
       log(`${g.name}: ${g.text}`, 'good');
-      for (const [id, a, b] of g.reward) { const n = rint(a, b); if (id === 'silver') { S.silver += n; log(`은자 ${n}냥 획득`, 'loot'); } else give(id, n); }
-    }
-    else log(`${g.name}: ${g.fail}`, 'bad');
+      for (const [id, a, b] of g.reward) { const n = rint(a, b); if (id === 'silver') giveSilver(n); else give(id, n); }
+      clearNode();
+    } else log(`${g.name}: ${g.fail}`, 'bad');
   }
   render();
 }
@@ -564,25 +588,27 @@ function enemyTurn(b) {
   let dmg = dmgCalc(e.atk, st.def);
   const crit = Math.random() * 100 < Math.max(0, 8 - st.critRes / 2);
   if (crit) dmg = Math.round(dmg * 1.5);
-  if (b.guard) dmg = Math.max(1, Math.round(dmg * 0.35));
+  let cut = 0;
+  if (b.guard) { cut = rint(50, 70); dmg = Math.max(1, Math.round(dmg * (100 - cut) / 100)); }
   S.hp = Math.max(0, S.hp - dmg);
   const [, , cls] = reaction(dmg, st.maxHp);
   const feel = { h1: '살짝 스쳤습니다.', h2: '살갗이 찢어집니다.', h3: '뼈가 울립니다!', h4: '입가로 피가 흐릅니다!', h5: '기혈이 뒤집힙니다!' }[cls];
-  bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''}${b.guard ? ' — 막아냈지만' : ' —'} ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
+  bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''}${b.guard ? ` — 🛡️ 막아내 피해 ${cut}% 경감,` : ' —'} ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
 }
 function winBattle(b) {
   b.over = true; b.win = true;
   const E = ENEMIES[b.eid];
   bLine(`🏆 ${josa(E.name, '을를')} 쓰러뜨렸습니다!`, 'win');
+  clearNode();
   for (const cat of CAT_ORDER) addXp(S.active[cat], 'cxp', E.xp);
   bLine(`실전 경험 +${E.xp} (4대 영역)`, 'muted');
   const silver = rint(...E.silver); S.silver += silver;
-  bLine(`은자 ${silver}냥`, 'loot');
-  log(`${E.name} 토벌. 은자 +${silver}, 실전 경험 +${E.xp}`, 'good');
-  for (const [id, p] of E.drops) if (Math.random() < p) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${ITEMS[id].name}`, 'loot'); }
+  bLine(`${hlSilver(silver)} 획득`, 'loot');
+  log(`${E.name} 토벌. ${hlSilver(silver)}, 실전 경험 +${E.xp}`, 'good');
+  for (const [id, p] of E.drops) if (Math.random() < p) { if (give(id, 1, true)) { bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); log(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} ×1 획득`, 'loot'); } }
   if (E.gear && Math.random() < E.gear[1]) {
     const it = makeGear(pick(Object.keys(EQUIP_BASES)), E.gear[0], rollDropRarity(!!E.boss), false);
-    if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${it.name}`, 'loot r' + it.rarity);
+    if (giveGear(it, true)) { bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot'); log(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot'); }
   }
   S.kills++;
   progressMission(b.eid);
@@ -596,10 +622,11 @@ function winBattle(b) {
       boss3: '방주 갈천이 강물 속으로 가라앉았습니다. 적룡방이 무너졌습니다. 이제 대성만이 남았습니다.',
     };
     bLine(msgs[E.boss], 'gold');
-    bLine(`문파 공헌도 +${reward}`, 'gold');
+    bLine(`${hlContrib('+' + reward)}`, 'gold');
+    log(`${hlContrib('+' + reward)}`, 'good');
     log(msgs[E.boss], 'gold');
     const mount = SHOP_GEAR.find(g => g.boss === E.boss);
-    if (mount && giveGear(shopGear(mount.id), true)) { bLine(`🐴 두목이 부리던 ${mount.name}${jo(mount.name, '을를')} 얻었습니다.`, 'loot r' + mount.rarity); log(`🐴 ${mount.name} 획득 — 무장에서 탈것으로 착용하십시오.`, 'good'); }
+    if (mount && giveGear(shopGear(mount.id), true)) { bLine(`🐴 두목이 부리던 ${hlItem(mount.name)}${jo(mount.name, '을를')} 얻었습니다.`, 'loot'); log(`🐴 ${hlItem(mount.name)} 획득 — 무장에서 탈것으로 착용하십시오.`, 'good'); }
   }
 }
 function loseBattle(b) {
@@ -643,7 +670,7 @@ function completeMission(i) {
   const m = S.missions[i]; if (!m || !missionReady(m) || S.zone) return;
   if (m.type === 'deliver') take(m.target, m.n);
   S.contrib += m.contrib; S.silver += m.silver;
-  log(`문파 임무 완료! 공헌도 +${m.contrib}, 은자 +${m.silver}`, 'good');
+  log(`문파 임무 완료! ${hlContrib('+' + m.contrib)}, ${hlSilver(m.silver)}`, 'good');
   S.missions.splice(i, 1); ensureMissions(); render();
 }
 function rerollMissions() {
@@ -664,7 +691,7 @@ function arinSnack() {
   if (S.arin.snack === today()) return;
   S.arin.snack = today();
   give('arinSnack', 1, true);
-  log(`아린: "${pick(['사형! 이거 몰래 구운 거예요. 조운 사형한텐 비밀!', '오늘 약과는 꿀을 두 배로 넣었어요!', '헤헤, 수련 힘들죠? 이거 먹어요!'])}" — 🍪 아린표 약과를 받았습니다.`, 'npc');
+  log(`아린: "${pick(['사형! 이거 몰래 구운 거예요. 조운 사형한텐 비밀!', '오늘 약과는 꿀을 두 배로 넣었어요!', '헤헤, 수련 힘들죠? 이거 먹어요!'])}" — 🍪 ${hlItem('아린표 약과')}를 받았습니다.`, 'npc');
   render();
 }
 function addHint(r) {
@@ -674,11 +701,10 @@ function addHint(r) {
 function recipeName(r) { return r.out.startsWith('eq:') ? EQUIP_BASES[r.out.split(':')[1]].names[+r.out.split(':')[2] - 1] : ITEMS[r.out].name; }
 function recipeIcon(r) { return r.out.startsWith('eq:') ? (EQUIP_BASES[r.out.split(':')[1]].slot === 'weapon' ? '🗡️' : '🛡️') : ITEMS[r.out].icon; }
 function arinHint() {
-  const free = S.arin.hint !== today();
-  if (!free && S.silver < 20) { toast('은자가 부족합니다.'); return; }
+  if (S.silver < 20) { toast('은자가 부족합니다.'); return; }
   const pool = RECIPES.filter(r => !S.codex.includes(r.id) && (r.hint.startsWith('아린') || r.hint.startsWith('조운')) && !/_[23]$/.test(r.id));
   if (!pool.length) { log('아린: "헤헤, 제가 아는 건 사형이 다 아는걸요?"', 'npc'); return; }
-  if (free) S.arin.hint = today(); else S.silver -= 20;
+  S.silver -= 20;
   addHint(pick(pool));
   render();
 }
@@ -719,10 +745,14 @@ function buyBadge(id) {
   if (!g || !g.cost || S.contrib < g.cost || ownsShop(id)) return;
   if (!giveGear(shopGear(id), true)) return;
   S.contrib -= g.cost;
-  log(`${g.name}${jo(g.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
+  log(`${hlItem(g.name)}${jo(g.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
   render();
 }
-function setActive(cat, id) { if (ui.battle) return; S.active[cat] = id; clampVitals(); render(); }
+function setActive(cat, id) {
+  if (ui.battle) return;
+  if (S.activeTrainingSkillId === S.active[cat]) S.activeTrainingSkillId = id;
+  S.active[cat] = id; clampVitals(); render();
+}
 function canHasan() { return S.flags.boss3 && bestMugongStar() >= 12 && !S.flags.hasan; }
 function doHasan() {
   if (!canHasan()) return;
@@ -751,17 +781,30 @@ function questIndex() { const i = QUESTS.findIndex(q => !q[1]()); return i < 0 ?
 
 /* ───────── 시간 흐름 ───────── */
 function advance(sec, offline) {
-  if (S.training) {
-    const rate = trainRate();
-    for (const cat of CAT_ORDER) addXp(S.active[cat], 'txp', rate * sec);
+  const id = S.activeTrainingSkillId;
+  if (id && S.manuals[id]) {
+    // 성이 오르면 속도가 바뀌므로 1분 단위로 나눠 누적한다
+    let left = sec;
+    while (left > 0) {
+      const step = Math.min(left, 60); left -= step;
+      if (S.manuals[id].star >= MAX_STAR) { S.activeTrainingSkillId = null; log(`《${MANUALS[id].name}》 대성. 폐관수련을 마칩니다.`, 'gold'); break; }
+      addXp(id, 'txp', trainRate(id) * step);
+    }
   }
   const t = now(), before = S.buffs.length;
   S.buffs = S.buffs.filter(b => b.until > t);
   if (!offline && S.buffs.length < before) log('음식 효과가 사라졌습니다.', 'muted');
 }
-function toggleTraining() {
-  S.training = !S.training;
-  log(S.training ? '가부좌를 틀고 폐관수련에 들어갑니다.' : '폐관수련을 잠시 멈추고 눈을 뜹니다.', 'muted');
+function toggleTraining(cat) {
+  const id = S.active[cat];
+  if (S.activeTrainingSkillId === id) {
+    S.activeTrainingSkillId = null;
+    log(`《${MANUALS[id].name}》 수련을 멈추고 눈을 뜹니다.`, 'muted');
+  } else {
+    if (S.manuals[id].star >= MAX_STAR) { toast('이미 대성한 비급입니다.'); return; }
+    S.activeTrainingSkillId = id;
+    log(`가부좌를 틀고 《${MANUALS[id].name}》 폐관수련에 들어갑니다.`, 'muted');
+  }
   render();
 }
 let lastFrame = now();
@@ -798,13 +841,13 @@ function portrait(who, seal, name) {
 
 /* ───────── 화면 ───────── */
 const TABS = [
+  ['hall', '정청', '正廳'],
   ['yeonmu', '연무장', '演武場'],
-  ['shrine', '무신상', '武神像'],
   ['forge', '화로', '火爐'],
   ['yard', '뒷마당', '後院'],
-  ['hall', '정청', '正廳'],
+  ['bag', '무장', '武裝'],
   ['field', '강호행', '江湖行'],
-  ['bag', '무장·행낭', '武裝'],
+  ['shrine', '무신상', '武神像'],
   ['codex', '도감', '圖鑑'],
 ];
 const BASE_TABS = new Set(['shrine', 'forge', 'yard', 'hall']);
@@ -858,6 +901,7 @@ function xpRows(id) {
 function starSig() { return Object.values(S.manuals).map(m => m.star + (m.gate ? 'g' : '')).join(); }
 function renderLive() {
   if (ui.tab !== 'yeonmu' && !(ui.modal || '').startsWith('manual:')) return;
+  if (ui.tab === 'yeonmu' && S.activeTrainingSkillId && Math.floor(now() / 1000) % 30 === 0 && !ui.modal) { render(); return; }
   for (const el of document.querySelectorAll('[data-live]')) {
     const m = S.manuals[el.dataset.live]; if (!m || m.star >= MAX_STAR) continue;
     const n = need(m.star);
@@ -868,18 +912,25 @@ function renderLive() {
   if (sig && sig.dataset.starsig !== starSig()) render();
 }
 function viewYeonmu() {
-  const rate = trainRate();
+  const tid = S.activeTrainingSkillId;
   const cards = CAT_ORDER.map(cat => {
     const id = S.active[cat], M = MANUALS[id], m = S.manuals[id], C = CATS[cat];
-    return `<button class="art" data-manual="${cat}">
+    const on = tid === id;
+    const left = on ? (need(m.star) - m.txp) / trainRate(id) : 0;
+    return `<div class="art ${on ? 'training' : ''}" data-manual="${cat}" role="button" tabindex="0">
       <div class="art-top"><span class="art-cat">${label(C.name, C.hanja)}</span><span class="art-star">${m.star}<small>성</small></span></div>
       <div class="art-name">《${M.name}》${m.gate ? ' <span class="pill warn">관문</span>' : ''}</div>
       ${xpRows(id)}
-    </button>`;
+      <div class="art-foot">
+        <small class="muted">${m.star >= MAX_STAR ? '대성' : on ? (m.txp >= need(m.star) ? '수련 가득 참 · 실전 필요' : `다음 성까지 약 ${fmtDur(left)}`) : `성당 ${trainHours(m.star)}시간`}</small>
+        <button class="btn sm ${on ? 'primary' : ''}" data-train="${cat}" ${m.star >= MAX_STAR ? 'disabled' : ''}>${on ? '[ 수련 중지 ]' : '[ 수련하기 ]'}</button>
+      </div>
+    </div>`;
   }).join('');
+  const tm = tid && MANUALS[tid];
   return `<section class="panel" data-starsig="${starSig()}">
-    ${head('연무장', '演武場', `<button class="btn ${S.training ? 'ghost' : 'primary'}" data-act="train">${S.training ? '⏸️ 폐관수련 중지' : '▶️ 폐관수련 시작'}</button>`)}
-    <p class="story">${S.training ? `향이 타들어 갑니다. 네 갈래의 기운이 쉬지 않고 쌓입니다.${S.zone ? ' 강호에 나와 있어 수련이 더딥니다.' : ''}` : '연무장이 고요합니다. 수련이 멈춰 있습니다.'} <span class="num muted">수련 ${S.training ? rate.toFixed(2) : '0'}/초</span></p>
+    ${head('연무장', '演武場', `<span class="pill ${tid ? '' : 'idle'}">${tid ? '수련 중' : '수련 정지'}</span>`)}
+    <p class="story">${tm ? `향이 타들어 갑니다. 《${tm.name}》 한 가지에만 온 정신을 모읍니다. 1~4성은 성마다 8시간, 5~8성은 16시간, 9~12성은 24시간이 걸립니다.` : '연무장이 고요합니다. 수련할 비급 하나를 골라 [ 수련하기 ]를 누르십시오. 한 번에 한 비급만 수련할 수 있습니다.'}</p>
     <div class="arts">${cards}</div>
   </section>`;
 }
@@ -972,7 +1023,7 @@ function viewYard() {
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
     <div class="btns">
       <button class="btn" data-act="snack" ${S.arin.snack === today() ? 'disabled' : ''}>🍪 ${S.arin.snack === today() ? '약과는 내일 또' : '일일 약과 받기'}</button>
-      <button class="btn" data-act="hint">🔖 ${S.arin.hint === today() ? '레시피 힌트 듣기 (은자 20냥)' : '레시피 힌트 듣기'}</button>
+      <button class="btn" data-act="hint" ${S.silver < 20 ? 'disabled' : ''}>🔖 조합법 물어보기 (은자 20냥)</button>
     </div>
   </section>`;
 }
@@ -1033,8 +1084,7 @@ function viewField() {
     const here = xx === x && yy === y;
     const adj = Math.abs(xx - x) <= 1 && Math.abs(yy - y) <= 1 && !here;
     const info = nodeInfo(zid, xx, yy);
-    const cd = info.cd && info.cd > now();
-    grid += `<button class="cell ${info.type} ${here ? 'here' : ''} ${adj ? 'adj' : ''} ${info.done || cd ? 'spent' : ''}" ${adj ? `data-move="${xx - x},${yy - y}"` : 'disabled'} title="${info.label}"><span>${info.icon}</span><small>${info.label}</small></button>`;
+    grid += `<button class="cell ${info.type} ${here ? 'here' : ''} ${adj ? 'adj' : ''}" ${adj ? `data-move="${xx - x},${yy - y}"` : 'disabled'} title="${info.label}"><span>${info.icon}</span><small>${info.label}</small></button>`;
   }
   const info = nodeInfo(zid, x, y);
   const pad = DIRS.map(([dx, dy, a]) => `<button class="dir" data-move="${dx},${dy}" ${passable(zid, x + dx, y + dy) ? '' : 'disabled'} aria-label="${a}">${a}</button>`);
@@ -1045,12 +1095,11 @@ function viewField() {
     const E = ENEMIES[info.enemy], [, stext, scls] = sense(info.enemy);
     action = `<p class="story">${info.type === 'boss' ? '두목 ' : ''}<b>${E.name}</b>의 기척이 느껴집니다.</p><p class="story sense ${scls}">${stext}</p><div><button class="btn ${info.type === 'boss' ? 'danger' : 'primary'}" data-act="interact">⚔️ 맞선다 <small>기력 ${cost}</small></button></div>`;
   } else if (info.type === 'herb' || info.type === 'mine') {
-    const cd = info.cd && info.cd > now();
-    action = cd ? '<p class="story muted">이미 훑고 지나간 자리입니다. 조금 뒤에 다시 오십시오.</p>' : `<p class="story">${info.type === 'herb' ? '약초가 무성합니다.' : '반짝이는 광맥이 드러나 있습니다.'}</p><div><button class="btn primary" data-act="interact">${info.type === 'herb' ? '🌿 채집' : '⛏️ 채광'} <small>기력 ${cost}</small></button></div>`;
-  } else if (info.type === 'chest') action = info.done ? '<p class="story muted">텅 빈 상자입니다.</p>' : `<p class="story">이끼 낀 상자가 반쯤 묻혀 있습니다.</p><div><button class="btn primary" data-act="interact">🎁 연다 <small>기력 ${cost}</small></button></div>`;
-  else if (info.type === 'gimmick') action = info.done ? '<p class="story muted">이미 풀어낸 기관입니다.</p>' : `<p class="story">${Z.gimmick.name}${jo(Z.gimmick.name, '이가')} 길가에 버티고 있습니다. 무언가 숨겨져 있을 것 같습니다.</p><div><button class="btn primary" data-act="interact">⚙️ 풀어본다 <small>기력 ${cost}</small></button></div>`;
+    action = `<p class="story">${info.type === 'herb' ? '약초가 무성합니다.' : '반짝이는 광맥이 드러나 있습니다.'}</p><div><button class="btn primary" data-act="interact">${info.type === 'herb' ? '🌿 채집' : '⛏️ 채광'} <small>기력 ${cost}</small></button></div>`;
+  } else if (info.type === 'chest') action = `<p class="story">이끼 낀 상자가 반쯤 묻혀 있습니다.</p><div><button class="btn primary" data-act="interact">🎁 연다 <small>기력 ${cost}</small></button></div>`;
+  else if (info.type === 'gimmick') action = `<p class="story">${Z.gimmick.name}${jo(Z.gimmick.name, '이가')} 길가에 버티고 있습니다. 무언가 숨겨져 있을 것 같습니다.</p><div><button class="btn primary" data-act="interact">⚙️ 풀어본다 <small>기력 ${cost}</small></button></div>`;
   else if (info.type === 'gate') action = '<p class="story">산문으로 돌아가는 길목입니다.</p>';
-  else action = '<p class="story muted">바람 소리만 들립니다.</p>';
+  else action = '<p class="story muted">바람 소리만 들립니다. 이곳의 일은 끝났습니다. 청풍문으로 돌아갔다가 다시 오면 산의 기척이 새로 바뀝니다.</p>';
   return `<section class="panel field">
     ${head(Z.name, Z.hanja, '<button class="btn ghost sm" data-act="leave">청풍문으로 귀환</button>')}
     <div class="field-grid">
@@ -1083,7 +1132,7 @@ function viewBattle() {
           <button class="btn act-run" data-bact="flee">💨 도주</button>
         </div>
         ${items.length ? `<div class="chips">${items.map(id => `<button class="chip" data-bitem="${id}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : ''}
-        <small class="muted">방어하면 받는 피해가 크게 줄고, 반격 ${st.counter}% 확률로 흘려낸 뒤 되받아칩니다.</small>`}
+        <small class="muted">방어하면 받는 피해가 50~70% 줄고, 반격 ${st.counter}% 확률로 흘려낸 뒤 되받아칩니다.</small>`}
     </div>
   </section>`;
 }
@@ -1183,7 +1232,7 @@ function recipeModal(rid) {
     <div class="sheet-head"><div><small class="muted">${C.name} ${C.hanja}</small><h2>${recipeIcon(r)} ${recipeName(r)}</h2></div></div>
     ${body}
     <h4>필요 재료</h4><ul class="mats-list">${mats}</ul>
-    <div class="btns"><button class="btn primary" data-fill="${r.id}" ${S.zone ? 'disabled' : ''}>[ 이 조합으로 화로 채우기 ]</button><button class="btn ghost" data-act="closemodal">닫기</button></div>
+    <div class="btns"><button class="btn primary" data-fill="${r.id}" ${S.zone ? 'disabled' : ''}>[ 화로로 가기 ]</button><button class="btn ghost" data-act="closemodal">닫기</button></div>
     ${S.zone ? '<small class="muted">화로는 청풍문에 돌아가야 쓸 수 있습니다.</small>' : ''}
   </div>`;
 }
@@ -1202,6 +1251,19 @@ function renderModal() {
   if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 들개를 쫓던 손이 이제 적룡방 방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
   wireImages();
   if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>모든 진행이 사라집니다. 정말 새로 시작하시겠습니까?</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;
+}
+
+/* 견문록 높이를 왼쪽 본문 패널과 1:1로 맞춘다 (넓은 화면에서만) */
+function syncSide() {
+  const main = $('#main'), side = $('.side');
+  const apply = () => {
+    if (innerWidth <= 960) { side.style.height = ''; return; }
+    side.style.height = Math.max(320, main.offsetHeight) + 'px';
+    const el = $('#log'); if (el) el.scrollTop = el.scrollHeight;
+  };
+  if (window.ResizeObserver) new ResizeObserver(apply).observe(main);
+  addEventListener('resize', apply);
+  apply();
 }
 
 /* ───────── 시작 화면 ───────── */
@@ -1244,12 +1306,13 @@ function showIntro() {
 
 /* ───────── 이벤트 ───────── */
 function onClick(e) {
-  const t = e.target.closest('button, [data-tab]');
+  const t = e.target.closest('button, [data-tab], [data-manual]');
   if (!t || t.disabled || !S) return;
   const d = t.dataset;
   if (d.tab) { if (ui.battle && d.tab !== 'field') return; ui.tab = d.tab; ui.craftResult = null; render(); return; }
   if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
   if (d.zone) return enterZone(d.zone);
+  if (d.train) return toggleTraining(d.train);
   if (d.manual) { ui.modal = 'manual:' + d.manual; return renderModal(); }
   if (d.pill) return useItem(d.pill, false);
   if (d.use) return useItem(d.use, false);
@@ -1273,7 +1336,7 @@ function onClick(e) {
   const acts = {
     leave: leaveZone, interact, craft: doCraft, clearpot: () => { ui.pot = {}; render(); },
     rest, snack: arinSnack, hint: arinHint, masterhint: masterHint, supply: jounSupply, reroll: rerollMissions,
-    train: toggleTraining, hasan: doHasan, closemodal: () => { ui.modal = null; render(); },
+    hasan: doHasan, closemodal: () => { ui.modal = null; render(); },
     closebattle: closeBattle,
     reset: () => { ui.modal = 'reset'; renderModal(); },
     doreset: () => { try { localStorage.removeItem(SAVE_KEY); } catch (err) { /* 무시 */ } location.reload(); },
@@ -1288,18 +1351,25 @@ function onChange(e) {
 function boot() {
   document.addEventListener('click', onClick);
   document.addEventListener('change', onChange);
+  document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ui.modal = 'manual:' + c.dataset.manual; renderModal(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.modal && ui.modal !== 'ending') { ui.modal = null; render(); } });
   S = load();
+  if (S && (S.v || 0) < 3) {
+    S.activeTrainingSkillId = null; delete S.training; delete S.gatherCd; delete S.opened; delete S.cleared;
+    S.v = 3;
+  }
+  if (S && S.zone && !S.zone.layout) S.zone = null;
   if (!S) showIntro();
   else {
     const away = Math.min(OFFLINE_CAP, (now() - S.lastTick) / 1000);
-    if (away > 30 && S.training) {
+    if (away > 30 && S.activeTrainingSkillId) {
       advance(away, true);
       log(`자리를 비운 ${Math.floor(away / 60)}분 동안 폐관수련이 이어졌습니다.`, 'gold');
     }
     ensureMissions();
     render();
   }
+  syncSide();
   lastFrame = now();
   setInterval(tick, 1000);
   setInterval(save, 10000);
