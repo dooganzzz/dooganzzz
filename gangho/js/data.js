@@ -278,15 +278,16 @@ const ENEMIES = {
    입구는 좌측 하단, 두목은 우측 상단 끝. 인접(대각 포함)한 노드끼리 연결된다. */
 const MAP_W = 12, MAP_H = 10;
 /* 산길 약 50%. 요수(妖獸)는 밟는 순간 지역 요수 중 하나가 무작위로 나타난다. 함정은 산길과 똑같이 보인다. */
-const MAP_SPEC = { void: [0.08, 0.1], beast: [23, 27], herb: [8, 10], mine: [8, 10], chest: [3, 4], gimmick: 1, trap: [4, 6] };
+const MAP_SPEC = { void: [0.08, 0.1], beast: [23, 27], chest: [19, 23], gimmick: 1, trap: [4, 6] };   // 채집 노드는 모두 금고로 통합
 /* 요수 출현 가중치: [약한 요수 1, 약한 요수 2, 중형] — 깊은 곳일수록 중형이 잦다 */
 const BEAST_WEIGHT = { shallow: [50, 35, 15], deep: [30, 30, 40] };
 /* 금고(金庫): 열면 네 가지 중 하나 */
 const VAULTS = [
-  { name: '은자 궤', icon: '💰', w: 35 },
-  { name: '약재 궤', icon: '🌿', w: 30 },
-  { name: '철물 궤', icon: '⛓️', w: 25 },
-  { name: '비급/장비 궤', icon: '📘', w: 10 },   // 희귀
+  { name: '약재 궤', icon: '🌿', w: 30 },        // 연단 재료 (옛 약초 군락)
+  { name: '철물 궤', icon: '⛓️', w: 30 },        // 주조 재료 (옛 광맥)
+  { name: '식재 궤', icon: '🍚', w: 18 },        // 조리 재료
+  { name: '은자 궤', icon: '💰', w: 18 },
+  { name: '비급/장비 궤', icon: '📘', w: 4 },    // 희귀
 ];
 const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.08 };
 const ZONES = {
@@ -323,7 +324,7 @@ const ZONES = {
 };
 const ZONE_ORDER = ['cheongpung', 'yeomhwa', 'jeokryong'];
 
-const STAMINA_COST = { battle: 4, herb: 3, mine: 3, chest: 2, gimmick: 5, boss: 12 };
+const STAMINA_COST = { battle: 4, herb: 3, mine: 3, chest: 3, gimmick: 5, boss: 12 };
 
 const HIT_TEXT = [
   [0.8, '기혈이 모조리 뒤흔들려 형체조차 유지하기 힘들 만큼 박살이 났습니다!', 'h5'],

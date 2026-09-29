@@ -92,14 +92,14 @@ module.exports = async (b) => {
       // 금고
       S.zone.layout = S.zone.layout.map((row, y) => y === ty ? row.slice(0, tx) + 'C' + row.slice(tx + 1) : row); delete S.zone.done[`${tx},${ty}`];
       const kinds = new Set();
-      for (let i = 0; i < 60; i++) { delete S.zone.done[`${tx},${ty}`]; const last = S.log[S.log.length - 1]; interact(); const l = S.log.slice(S.log.lastIndexOf(last) + 1).find(x => x.text.includes('금고를 열자')); if (l) kinds.add(VAULTS.find(v => l.text.includes(v.name)).name); }
+      for (let i = 0; i < 400; i++) { delete S.zone.done[`${tx},${ty}`]; const last = S.log[S.log.length - 1]; interact(); const l = S.log.slice(S.log.lastIndexOf(last) + 1).find(x => x.text.includes('금고를 열자')); if (l) kinds.add(VAULTS.find(v => l.text.includes(v.name)).name); }
       const label = nodeInfo('cheongpung', tx, ty).label;
       return { monsterName, started, enemy, picked, kinds: [...kinds].sort(), chestLabel: ZONES && '금고(金庫)', label };
     });
     ok('5 지도에 개별 몬스터명 없음', !enc.monsterName);
     ok('5 요수 칸에서 결투 시작 → 지역 요수와 전투', enc.started && ['rabbit', 'dog', 'boar'].includes(enc.enemy), enc.enemy);
     ok('5 요수는 지역 풀에서 가중치로 선택', Object.keys(enc.picked).length === 3, JSON.stringify(enc.picked));
-    ok('5 금고 네 종류가 무작위로', enc.kinds.length === 4, enc.kinds.join(','));
+    ok('5 금고 다섯 종류가 무작위로', enc.kinds.length === 5, enc.kinds.join(','));
 
     // 6. 숨은 함정
     const trap = await p.evaluate(() => {

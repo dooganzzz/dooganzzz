@@ -69,9 +69,9 @@ module.exports = async (b) => {
       if (!S.zone) enterZone('cheongpung');
       const [sx, sy] = [S.zone.x, S.zone.y]; const [tx, ty] = DIRS.map(([dx, dy]) => [sx + dx, sy + dy]).find(([x, y]) => passable('cheongpung', x, y) && !'YK'.includes(tileAt('cheongpung', x, y)));
       move(tx - sx, ty - sy);
-      const kinds = {}; let silverOk = true, bookSeen = false, alchemyOnly = true, forgeOnly = true;
+      const kinds = {}; let silverOk = true, bookSeen = false, alchemyOnly = true, forgeOnly = true, cookOnly = true;
       S.stamina = 9999;
-      for (let i = 0; i < 300; i++) {
+      for (let i = 0; i < 600; i++) {
         S.zone.layout = S.zone.layout.map((row, y) => y === ty ? row.slice(0, tx) + 'C' + row.slice(tx + 1) : row); delete S.zone.done[`${tx},${ty}`];
         const inv0 = { ...S.inv }, sil0 = S.silver, last = S.log[S.log.length - 1];
         interact();
@@ -81,14 +81,15 @@ module.exports = async (b) => {
         if (v === '은자 궤' && !(S.silver - sil0 >= 15 && S.silver - sil0 <= 35)) silverOk = false;
         if (v === '약재 궤' && gained.some(k => ITEMS[k].craftType !== 'alchemy')) alchemyOnly = false;
         if (v === '철물 궤' && gained.some(k => ITEMS[k].craftType !== 'forge')) forgeOnly = false;
+        if (v === '식재 궤' && (gained.some(k => ITEMS[k].craftType !== 'cooking') || !gained.length)) cookOnly = false;
         if (v === '비급/장비 궤' && gained.some(k => ITEMS[k].kind === '비급')) bookSeen = true;
       }
       const after = tileAt('cheongpung', tx, ty);
-      return { min: Math.min(...stat.counts), max: Math.max(...stat.counts), kinds, silverOk, alchemyOnly, forgeOnly, bookSeen, after, label: nodeInfo('cheongpung', 0, 0) && '금고(金庫)' };
+      return { min: Math.min(...stat.counts), max: Math.max(...stat.counts), kinds, silverOk, alchemyOnly, forgeOnly, cookOnly, bookSeen, after, label: nodeInfo('cheongpung', 0, 0) && '금고(金庫)' };
     });
-    ok('3 금고 3~4개 배치', vault.min >= 3 && vault.max <= 4, `${vault.min}~${vault.max}`);
-    ok('3 네 종류 무작위 (비급/장비 궤가 가장 드묾)', Object.keys(vault.kinds).length === 4 && vault.kinds['비급/장비 궤'] < vault.kinds['은자 궤'], JSON.stringify(vault.kinds));
-    ok('3 은자 궤 15~35냥 · 약재 궤 연단 재료 · 철물 궤 주조 재료', vault.silverOk && vault.alchemyOnly && vault.forgeOnly);
+    ok('3 금고 19~23개 (약초·광맥 통합)', vault.min >= 19 && vault.max <= 23, `${vault.min}~${vault.max}`);
+    ok('3 다섯 종류 무작위 (비급/장비 궤가 가장 드묾)', Object.keys(vault.kinds).length === 5 && vault.kinds['비급/장비 궤'] < vault.kinds['은자 궤'], JSON.stringify(vault.kinds));
+    ok('3 은자 궤 15~35냥 · 약재 궤 연단 · 철물 궤 주조 · 식재 궤 조리 재료만', vault.silverOk && vault.alchemyOnly && vault.forgeOnly && vault.cookOnly);
     ok('3 비급/장비 궤에서 미습득 하품 비급', vault.bookSeen);
     ok('3 연 금고는 산길로 전환', vault.after === 'o');
     await p.evaluate(() => { if (S.zone) leaveZone(); });

@@ -467,10 +467,8 @@ function generateLayout(Z) {
   };
   const deadEnd = (a, b) => deg(a) - deg(b) || depth(b) - depth(a);
   place('G', MAP_SPEC.gimmick, deadEnd);
-  place('C', R(...MAP_SPEC.chest), deadEnd);
+  place('C', R(...MAP_SPEC.chest));
   place('Y', R(...MAP_SPEC.beast));
-  place('H', R(...MAP_SPEC.herb));
-  place('M', R(...MAP_SPEC.mine));
   // 함정은 산길 칸에 숨긴다 (보이는 모습은 산길과 같다)
   let traps = R(...MAP_SPEC.trap);
   for (const c of paths()) { if (!traps) break; if (nearGate(c) || grid[c[1]][c[0]] !== 'o') continue; grid[c[1]][c[0]] = 'T'; traps--; }
@@ -570,6 +568,10 @@ function openVault(Z) {
   }
   if (v.name === '철물 궤') {                         // 주조 재료 다량
     for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4));
+  }
+  if (v.name === '식재 궤') {                         // 조리 재료
+    const pool = [...new Set([...Z.herb.map(r => r[0]), 'rice', 'salt'])].filter(id => ITEMS[id].craftType === 'cooking');
+    for (const id of pool) give(id, rint(1, 3));
   }
   if (v.name === '비급/장비 궤') {                    // 희귀: 아직 익히지 않은 입문(하품) 비급, 없으면 기본 장비
     const books = STARTERS.filter(id => !S.manuals[id] && !has('bk_' + id));

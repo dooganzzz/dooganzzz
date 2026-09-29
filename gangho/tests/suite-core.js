@@ -44,8 +44,8 @@ module.exports = async (b) => {
     r.bossReach = reachable(S.zone.layout, ...S.zone.start); let k; S.zone.layout.forEach((row,y)=>[...row].forEach((c,x)=>{ if(c==='K') k=`${x},${y}`; })); r.bossReach = r.bossReach.has(k);
     // 인접한 이벤트 노드 하나 처리
     const [sx, sy] = S.zone.start; let target = null;
-    for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if ('HM'.includes(c) && c !== '') { target = [sx+dx, sy+dy, c]; break; } }
-    if (!target) for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if (c !== '_' ) { S.zone.layout = S.zone.layout.map((row,y)=> y===sy+dy ? row.slice(0,sx+dx)+'H'+row.slice(sx+dx+1) : row); target=[sx+dx,sy+dy,'H']; break; } }
+    for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if (c === 'C') { target = [sx+dx, sy+dy, c]; break; } }
+    if (!target) for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if (c !== '_' ) { S.zone.layout = S.zone.layout.map((row,y)=> y===sy+dy ? row.slice(0,sx+dx)+'C'+row.slice(sx+dx+1) : row); target=[sx+dx,sy+dy,'C']; break; } }
     move(target[0]-sx, target[1]-sy); interact();
     r.cleared = tileAt('cheongpung', target[0], target[1]) === 'o';
     const hp = S.hp, sta = S.stamina; move(sx - target[0], sy - target[1]); move(target[0]-sx, target[1]-sy);
