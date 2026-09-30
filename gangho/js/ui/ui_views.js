@@ -85,7 +85,14 @@ function viewMartial() {
       <button class="btn ghost sm btn-unequip" data-unequipm="${cat}">장착 해제</button></div>
     </div></div>`;
   };
-  const slots = `${card('simbeop')}${card('mugong')}<div class="meditation-center-frame" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)</div></div>${card('gigong')}${card('gyeonggong')}`;
+  // 기운 순환 궤적: 가운데 좌선과 네 방위를 잇는 먹선 고리 (격자 뒤에 깔린다)
+  const orbit = `<svg class="qi-orbit" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs><filter id="inkBlur"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+    <circle cx="300" cy="300" r="238" class="orbit-ink" filter="url(#inkBlur)"/>
+    <circle cx="300" cy="300" r="238" class="orbit-flow"/>
+    <path class="orbit-spoke" d="M300 62v70M300 468v70M62 300h70M468 300h70"/>
+  </svg>`;
+  const slots = `${orbit}${card('simbeop')}${card('mugong')}<div class="meditation-center-frame" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)</div></div>${card('gigong')}${card('gyeonggong')}`;
   const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat));
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급');
   // 습득 비급: [무공] [심법] [경공] [기공] 탭으로 거른다 (카드를 누르면 상세·성급 창)

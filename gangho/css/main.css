@@ -860,3 +860,59 @@ body {
 .ware .item-grade-badge { width: auto; height: 18px; min-width: 30px; font-size: 10px; }
 .item-card-header { align-items: center; margin-bottom: 8px; }
 .lib-grid.shop { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }   /* 이름 + 가로 등급 뱃지가 한 줄에 들어가게 */
+
+/* ───────── 상태 › 무공: 좌선 3배 · 카드 컴팩트 · 기운 순환 궤적 · 비대칭 오프셋 · 수묵 테두리 ───────── */
+.mslots.martial-arts-core-layout { gap: 8px; max-width: 720px; margin: 0 auto; }
+.meditation-center-frame { width: 320px; height: 320px; background: radial-gradient(circle, rgba(45, 38, 30, .85) 0%, rgba(18, 16, 14, .5) 75%); border: 2px solid #5a4a35; box-shadow: 0 0 25px rgba(212, 175, 55, .12), inset 0 0 30px rgba(0, 0, 0, .6); margin: 10px; z-index: 1; }
+.meditation-aura-ring { inset: -10px; }
+.meditation-silhouette { width: 160px; height: 160px; opacity: .9; }
+.meditation-caption { font-size: 13px; font-weight: 600; letter-spacing: 2px; margin-top: 10px; }
+.skill-card-compact.mslot { width: 140px; min-height: auto; padding: 6px 8px; border-radius: 12px 4px 12px 4px; background: linear-gradient(145deg, #191714 0%, #12100e 100%); border: 1px solid #3d3427; box-shadow: 0 0 15px rgba(197, 160, 89, .08); transition: transform .25s ease, border-color .25s ease; position: relative; z-index: 1; }
+.skill-card-compact .slot-type-label { font-size: 10px; color: #9ca3af; margin-bottom: 2px; }
+.skill-card-compact .skill-title { font-size: 12px; font-weight: 700; color: #fbbf24; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 100%; }
+.skill-card-compact .skill-title .aff-tag { font-size: 9px; }
+.skill-card-compact .skill-level-row { gap: 4px; margin-bottom: 6px; }
+.skill-card-compact .realm { font-size: 9px; padding: 1px 4px; }
+.skill-card-compact .skill-level, .skill-card-compact .art-star { font-size: 11px; }
+.skill-card-compact .skill-btn-group { display: flex; flex-wrap: nowrap; gap: 4px; margin-top: 0; }
+.skill-card-compact .btn-upgrade, .skill-card-compact .btn-unequip { padding: 2px 4px; font-size: 10px; height: 22px; flex: 1; white-space: nowrap; }
+.skill-card-compact .btn-upgrade small { display: none; }
+/* 완전한 십자 대칭을 살짝 흐트러뜨린다 */
+.pos-12 { transform: translateY(-4px) rotate(-.6deg); }
+.pos-9 { transform: translate(-4px, -6px) rotate(.8deg); }
+.pos-3 { transform: translate(4px, 6px) rotate(-.8deg); }
+.pos-6 { transform: translateY(4px) rotate(.5deg); }
+/* 기운 순환 궤적 */
+.qi-orbit { grid-column: 1 / -1; grid-row: 1 / -1; width: min(100%, 600px); height: auto; aspect-ratio: 1; align-self: center; justify-self: center; pointer-events: none; z-index: 0; }
+.qi-orbit .orbit-ink { fill: none; stroke: rgba(197, 160, 89, .16); stroke-width: 10; }
+.qi-orbit .orbit-flow { fill: none; stroke: rgba(240, 207, 130, .45); stroke-width: 1.2; stroke-dasharray: 3 9; animation: orbitFlow 30s linear infinite; transform-origin: 300px 300px; }
+.qi-orbit .orbit-spoke { fill: none; stroke: rgba(197, 160, 89, .22); stroke-width: 1; stroke-dasharray: 2 4; }
+@keyframes orbitFlow { to { transform: rotate(360deg); } }
+@media (max-width: 760px) {
+  .meditation-center-frame { width: 170px; height: 170px; margin: 4px; }
+  .meditation-silhouette { width: 90px; height: 90px; }
+  .meditation-caption { font-size: 10px; letter-spacing: 1px; margin-top: 4px; }
+  .skill-card-compact.mslot, .pos-12 .skill-card-compact.mslot, .pos-6 .skill-card-compact.mslot { width: 100%; max-width: 140px; }
+}
+@media (max-width: 400px) {
+  .meditation-center-frame { width: 130px; height: 130px; }
+  .meditation-silhouette { width: 72px; height: 72px; }
+  .skill-card-compact .btn-upgrade, .skill-card-compact .btn-unequip { font-size: 9px; padding: 2px 2px; }
+}
+
+/* ───────── 상태 › 무장: 몸의 곡선을 따라 칸을 들여쓰고, 수묵 테두리 ───────── */
+.equip-column.equip-left { align-items: flex-end; }
+.equip-column.equip-right { align-items: flex-start; }
+.equip-column.equip-left .equip-slot-card[data-slot="ring"] { margin-right: 12px; }
+.equip-column.equip-left .equip-slot-card[data-slot="weapon"] { margin-right: 2px; }
+.equip-column.equip-left .equip-slot-card[data-slot="belt"] { margin-right: 8px; }
+.equip-column.equip-right .equip-slot-card[data-slot="jade"] { margin-left: 8px; }
+.equip-column.equip-right .equip-slot-card[data-slot="armor"] { margin-left: 4px; }
+.equip-column.equip-right .equip-slot-card[data-slot="ring2"] { margin-left: 10px; }
+.equip-slot-card { border-radius: 12px 4px 12px 4px; background: linear-gradient(145deg, #1b1815 0%, #13110f 100%); box-shadow: 0 0 15px rgba(197, 160, 89, .06); }
+@media (max-width: 760px) {
+  .equip-column.equip-left .equip-slot-card, .equip-column.equip-right .equip-slot-card { margin-left: 0; margin-right: 0; }
+}
+@media (max-width: 760px) {   /* 폰: 위치 편향은 빼고 기울기만 남긴다 (가장자리에 닿지 않게) */
+  .pos-12 { transform: rotate(-.6deg); } .pos-9 { transform: rotate(.8deg); } .pos-3 { transform: rotate(-.8deg); } .pos-6 { transform: rotate(.5deg); }
+}
