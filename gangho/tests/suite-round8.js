@@ -39,7 +39,7 @@ module.exports = async (b) => {
     ok('1 대성 극의 패시브', realm.passiveHp > 0, realm.passiveText);
     await p.evaluate(() => { ui.tab = 'yeonmu'; render(); });
     ok('1 카드에 경계 표시', (await p.$$('.art .realm')).length === 4);
-    await p.evaluate(() => { ui.tab = 'martial'; render(); });
+    await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'martial'; render(); });
     ok('1 무공 탭에 경계 표시', (await p.$$('.mslot .realm')).length === 4);
 
     // 2. 3초 자동 공방

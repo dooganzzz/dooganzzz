@@ -111,3 +111,7 @@
   .qi-rise { display: none; }
   .typing::after { content: none; }
 }
+
+/* 상태 하위 탭 호버 */
+.subtab { transition: color .18s, background .18s; }
+.subtab:not(.on):hover { color: var(--ink); background: rgba(212, 175, 55, .08); }

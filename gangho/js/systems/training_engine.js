@@ -88,7 +88,7 @@ function advance(sec, offline) {
 
 function toggleTraining(cat) {
   const id = S.active[cat];
-  if (!id) { notify.toast('먼저 무공 탭에서 비급을 장착하십시오.'); return; }
+  if (!id) { notify.toast('먼저 상태 탭의 무공에서 비급을 장착하십시오.'); return; }
   if (S.activeTrainingSkillId === id) {
     S.activeTrainingSkillId = null;
     log(`《${MANUALS[id].name}》 수련을 멈추고 눈을 뜹니다.`, 'muted');

@@ -57,7 +57,7 @@ function startNewGame(name, mugongId) {
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·포철삭·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
   log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 수련해라."', 'npc');
   log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
-  log('아린: "새 사형이다! 비급부터 익혀요. 무장 탭 행낭에 있어요!"', 'npc');
+  log('아린: "새 사형이다! 비급부터 익혀요. 상태 탭의 무공에 있어요!"', 'npc');
 }
 
 /* 예전 저장을 지금 규칙에 맞게 옮긴다. 비율을 유지해 진행도를 잃지 않는다.

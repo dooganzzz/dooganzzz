@@ -12,7 +12,7 @@ module.exports = async (b) => {
   await startEquipped(p);
   // 1
   const tabs = await p.$$eval('.tab .ko', els => els.map(e => e.textContent).join(','));
-  ok('1 탭 순서', tabs === '정청,무공,연무장,화로,뒷마당,무장,강호행,무신상,도감', tabs);
+  ok('1 탭 순서', tabs === '정청,상태,연무장,화로,뒷마당,강호행,무신상,도감', tabs);
   ok('1 첫 화면=정청', await p.$eval('.tab.on .ko', e => e.textContent) === '정청');
   // 2
   const t = await p.evaluate(() => {
@@ -76,7 +76,7 @@ module.exports = async (b) => {
   ok('4 반격 발생 (반격 스탯)', bt.counter);
   // 5
   await p.evaluate(() => { leaveZone(); });
-  await p.click('[data-tab="bag"]');
+  await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
   const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.martial-artist-img'), head: document.querySelector('.panel-head .ko').textContent }));
   ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸', bag.cap === 100);
   ok('5 상단 슬롯', bag.top === '투구,무기,옥패,호갑', bag.top); ok('5 하단 가로 5슬롯', bag.bottom === '신발,요대,가락지,신분패,탈것', bag.bottom); ok('5 실루엣 이미지', bag.img);

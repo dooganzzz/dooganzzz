@@ -83,7 +83,7 @@ function buyManual(id) {
   if (S.manuals[id] || has('bk_' + id) || !M.cost || S.contrib < M.cost) return;
   if (!give('bk_' + id, 1, true)) return;
   S.contrib -= M.cost;
-  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 무장 탭 행낭에서 [ 익히기 ] 하십시오.`, 'gold');
+  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 상태 탭의 무공에서 [ 익히기 ] 하십시오.`, 'gold');
   notify.refresh();
 }
 
@@ -121,7 +121,7 @@ function buyStore(id) {
 
 /* ───────── 순차 가이드 ───────── */
 const QUESTS = [
-  ['비급 익히고 무공 장착하기', () => CAT_ORDER.every(c => S.active[c]), '무장 탭 행낭에서 비급 네 권을 [ 익히기 ] 한 뒤, 무공 탭에서 각각 장착하십시오.'],
+  ['비급 익히고 무공 장착하기', () => CAT_ORDER.every(c => S.active[c]), '상태 탭의 무공에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.'],
   ['조운 대사형에게 오늘의 보급품 받기', () => !!S.flags.supplied, '정청의 조운에게 보급품을 받으십시오.'],
   ['청풍산에서 첫 사냥', () => S.kills > 0, '강호행에서 청풍산으로 가, 🐾 요수(妖獸) 칸을 밟으면 싸움이 시작됩니다.'],
   ['화로에서 소성 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 6, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],

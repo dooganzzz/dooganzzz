@@ -17,7 +17,8 @@ function onClick(e) {
   if (t.dataset.act === 'doreset') return doReset();
   if (!S) return;
   const d = t.dataset;
-  if (d.tab) { if (RT.battle && d.tab !== 'field') return; ui.tab = d.tab; ui.craftResult = null; render(); return; }
+  if (d.tab) { if (RT.battle && d.tab !== 'field') return; ui.tab = d.tab; if (d.sub) ui.statusSub = d.sub; ui.craftResult = null; render(); return; }
+  if (d.sub) { ui.statusSub = d.sub; return render(); }
   if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
   if (d.zone) return enterZone(d.zone);
   if (d.evchoice !== undefined && d.evkey) return chooseEvent(d.evkey, +d.evchoice);

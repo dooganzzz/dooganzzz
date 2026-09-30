@@ -1,4 +1,4 @@
-/* [화면] 문파 탭 화면: 정청·무공·연무장·화로·뒷마당·무장/행낭·무신상·도감 */
+/* [화면] 문파 탭 화면: 정청·상태(무장/행낭·무공)·연무장·화로·뒷마당·무신상·도감 */
 
 Bus.on('tick', () => renderLive());   // 연무장 수련 막대를 1초마다 갱신
 
@@ -63,7 +63,7 @@ function viewYeonmu() {
     if (!id) return `<div class="art empty-art">
       <div class="art-top"><span class="art-cat">${label(C.name, C.hanja)}</span></div>
       <p class="story muted">운용 중인 ${C.name}${jo(C.name, '이가')} 없습니다.</p>
-      <div><button class="btn sm" data-tab="martial">무공 탭에서 장착</button></div>
+      <div><button class="btn sm" data-tab="status" data-sub="martial">상태 › 무공에서 장착</button></div>
     </div>`;
     const on = tid === id;
     const left = on ? (need(m.star) - m.txp) / trainRate(id) : 0;
@@ -86,7 +86,16 @@ function viewYeonmu() {
   </section>`;
 }
 
-/* 무공 탭 */
+/* 상태 탭: [ 무장 ] / [ 무공 ] 하위 탭 */
+const STATUS_SUBS = [['gear', '무장', '武裝'], ['martial', '무공', '武功']];
+function viewStatus() {
+  const sub = STATUS_SUBS.some(([id]) => id === ui.statusSub) ? ui.statusSub : 'gear';
+  const bar = `<div class="subtabs" role="tablist" aria-label="상태">${STATUS_SUBS.map(([id, ko, hj]) =>
+    `<button class="subtab ${sub === id ? 'on' : ''}" role="tab" aria-selected="${sub === id}" data-sub="${id}">${label(ko, hj)}</button>`).join('')}</div>`;
+  return bar + (sub === 'martial' ? viewMartial() : viewBag());
+}
+
+/* 상태 › 무공 */
 function viewMartial() {
   const slots = CAT_ORDER.map(cat => {
     const id = S.active[cat], C = CATS[cat];
@@ -111,7 +120,7 @@ function viewMartial() {
   </section>
   <section class="panel">
     ${head('익힌 무공', '習得', `<span class="num muted">${learned.length}종</span>`)}
-    ${learned.length ? `<div class="mcards">${cards}</div>` : `<p class="story">아직 익힌 무공이 없습니다. ${books.length ? `행낭에 비급 ${books.length}권이 있습니다. 무장 탭 행낭에서 [ 익히기 ] 하십시오.` : ''}</p>`}
+    ${learned.length ? `<div class="mcards">${cards}</div>` : `<p class="story">아직 익힌 무공이 없습니다. ${books.length ? `비급 ${books.length}권을 가지고 있습니다. 아래에서 [ 익히기 ] 하십시오.` : ''}</p>`}
     ${books.length ? `<div class="chips">${books.map(k => `<button class="chip" data-use="${k}">📘 ${ITEMS[k].name} 익히기</button>`).join('')}</div>` : ''}
   </section>`;
 }

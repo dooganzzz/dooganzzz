@@ -1,7 +1,7 @@
 /* [화면] 탭 전환, 상단 상태줄, 정청 아코디언 접기/펼치기, 전체 다시 그리기 */
 
 /* 화면 상태 (저장하지 않음): 탭·접힘·화로 투입·창·행낭 필터·선택 슬롯 */
-let ui = { fold: { hq: false, missions: false, library: true }, tab: 'hall', pot: {}, craft: 'alchemy', modal: null, bagFilter: 'all', slotSel: null };
+let ui = { fold: { hq: false, missions: false, library: true }, tab: 'hall', pot: {}, craft: 'alchemy', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear' };
 
 /* 시스템 신호 → 화면 */
 Bus.on('refresh', () => render());
@@ -17,11 +17,10 @@ const label = (ko, hj) => `<b class="ko">${ko}</b><small class="hj">${hj}</small
 /* ───────── 화면 ───────── */
 const TABS = [
   ['hall', '정청', '正廳'],
-  ['martial', '무공', '武功'],
+  ['status', '상태', '狀態'],      // 하위: 무장 · 무공
   ['yeonmu', '연무장', '演武場'],
   ['forge', '화로', '火爐'],
   ['yard', '뒷마당', '後院'],
-  ['bag', '무장', '武裝'],
   ['field', '강호행', '江湖行'],
   ['shrine', '무신상', '武神像'],
   ['codex', '도감', '圖鑑'],
@@ -71,7 +70,7 @@ function render() {
     const [, ko, hj] = TABS.find(t => t[0] === ui.tab);
     main.innerHTML = `<section class="panel">${head(ko, hj)}<p class="story">지금은 ${ZONES[S.zone.id].name}에 나와 있습니다. 청풍문으로 돌아가야 이곳을 쓸 수 있습니다.</p><div><button class="btn" data-act="leave">청풍문으로 귀환</button></div></section>`;
   } else {
-    main.innerHTML = ({ martial: viewMartial, yeonmu: viewYeonmu, shrine: viewShrine, forge: viewForge, yard: viewYard, hall: viewHall, field: viewField, bag: viewBag, codex: viewCodex })[ui.tab]();
+    main.innerHTML = ({ status: viewStatus, yeonmu: viewYeonmu, shrine: viewShrine, forge: viewForge, yard: viewYard, hall: viewHall, field: viewField, codex: viewCodex })[ui.tab]();
   }
   renderLog();
   renderModal();

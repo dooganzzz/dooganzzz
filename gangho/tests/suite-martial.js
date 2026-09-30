@@ -11,7 +11,7 @@ module.exports = async (b) => {
   await p.goto(GAME_URL);
   await p.click('[data-starter="samjaeDo"]'); await p.click('#begin');
   const tabs = await p.$$eval('.tab .ko', e => e.map(x => x.textContent).join(','));
-  ok('1 탭 9개 순서', tabs === '정청,무공,연무장,화로,뒷마당,무장,강호행,무신상,도감', tabs);
+  ok('1 탭 8개 순서', tabs === '정청,상태,연무장,화로,뒷마당,강호행,무신상,도감', tabs);
   const st0 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, active: Object.values(S.active).filter(Boolean).length, books: Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').sort().join(',') }));
   ok('2 시작 시 장착·습득 없음', st0.learned === 0 && st0.active === 0);
   ok('2 비급 4권 지급', st0.books === 'bk_cheolpo,bk_pocheolsak,bk_samjaeDo,bk_tonap', st0.books);
@@ -21,15 +21,15 @@ module.exports = async (b) => {
   const bare = await p.evaluate(() => { S.hp = 9999; enterZone('cheongpung'); const r = fightSync('rabbit').win; RT.battle.over = true; closeBattle(); leaveZone(); return r; });
   ok('무공 없이도 맨손 전투 가능', bare === true);
   // 행낭에서 익히기
-  await p.click('[data-tab="bag"]'); await p.click('[data-filter="비급"]');
+  await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]'); await p.click('[data-filter="비급"]');
   const btns = await p.$$eval('.items .item button', e => e.map(x => x.textContent));
   ok('2 행낭 비급 [익히기] 버튼', btns.length === 4 && btns.every(t => t === '익히기'), btns.join(','));
   await p.click('[data-use="bk_samjaeDo"]');
   const l1 = await p.evaluate(() => ({ learned: !!S.manuals.samjaeDo, left: count('bk_samjaeDo') }));
   ok('2 익히기: 소모 + 습득 목록 등록', l1.learned && l1.left === 0);
   for (const k of ['bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) await p.click(`[data-use="${k}"]`);
-  // 무공 탭
-  await p.click('[data-tab="martial"]');
+  // 상태 › 무공
+  await p.click('[data-sub="martial"]');
   const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mcard b')].map(e => e.textContent).join(',') }));
   ok('3 상단 4대 슬롯 (빈 상태)', m1.slots === '무공,심법,경공,기공' && m1.empty === 4, m1.slots);
   ok('3 하단 익힌 무공 카드', m1.cards === '《삼재도법》,《토납법》,《포철삭》,《철포삼》', m1.cards);

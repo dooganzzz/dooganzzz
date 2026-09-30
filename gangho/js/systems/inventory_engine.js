@@ -101,7 +101,7 @@ function learnManual(bookId) {
   if (S.manuals[mid]) { notify.toast(`이미 익힌 무공입니다: ${M.name}`); return; }
   take(bookId, 1);
   S.manuals[mid] = { star: 1, cxp: 0, txp: 0, gate: false };
-  log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 무공 탭에서 장착할 수 있습니다.`, 'gold');
+  log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 상태 탭의 무공에서 장착할 수 있습니다.`, 'gold');
   notify.toast(`${M.name} 습득`);
   notify.refresh();
 }

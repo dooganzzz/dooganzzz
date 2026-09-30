@@ -37,7 +37,7 @@ module.exports = async (b) => {
       return { enh: w.enh, atk0, atk1: calcStats().atk, spent: 99999 - S.silver };
     });
     ok('4 장비 강화: 단계·공격력 상승, 은자 소모', enh.enh === 3 && enh.atk1 > enh.atk0 && enh.spent > 0, JSON.stringify(enh));
-    await p.evaluate(() => { ui.tab = 'bag'; ui.slotSel = 'weapon'; render(); });
+    await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'gear'; ui.slotSel = 'weapon'; render(); });
     ok('4 무장 화면 강화 버튼', !!(await p.$('[data-enhance="weapon"]')));
     await p.evaluate(() => { ui.tab = 'hall'; render(); });
     ok('4 정청에 조운의 창고', (await p.$$('[data-store]')).length >= 10);
