@@ -629,3 +629,21 @@ body {
 .codex-col.complete { border-color: var(--gold); }
 .codex-done { border-color: var(--gold); color: var(--gold-2); }
 .codex-bonus { font-size: .82rem; color: var(--gold-2); }
+
+/* 상단 재화·스탯 인디케이터: 전투 · 경험 · 은자 · 공헌을 한 줄에 가로 정렬 (한글 뱃지) */
+.user-status-bar { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; min-width: 0; }
+.status-chip { position: relative; display: inline-flex; flex-direction: row; align-items: center; gap: 6px; flex: none; height: 28px; padding: 0 10px 0 4px; border-radius: 14px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, .03); white-space: nowrap; line-height: 1; }
+.chip-badge { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 7px; border-radius: 10px; font-size: .7rem; font-weight: 800; letter-spacing: .02em; line-height: 1; }
+.chip-value { font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.badge-combat { background: #7a2a1f; color: #fff1ec; }
+.badge-exp { background: #1f5a4a; color: #eafff6; }
+.badge-silver { background: rgba(216, 178, 94, .18); color: var(--gold-2); border: 1px solid rgba(216, 178, 94, .45); }
+.badge-contrib { background: rgba(95, 176, 155, .15); color: #8ee0c8; border: 1px solid rgba(95, 176, 155, .45); }
+.status-chip .cp-delta { top: -10px; }
+@media (max-width: 640px) {
+  .status { flex-basis: 100%; }   /* 폰: 로고 아래 한 줄을 통째로 써서 네 항목이 한 줄에 들어가게 */
+  .user-status-bar { width: 100%; gap: 5px; }
+  .status-chip { flex: 1 1 auto; min-width: 0; justify-content: center; gap: 4px; padding: 0 6px 0 3px; }
+  .chip-badge { padding: 0 5px; font-size: .66rem; }
+  .chip-value { font-size: .82rem; overflow: hidden; text-overflow: ellipsis; }
+}

@@ -67,7 +67,12 @@ function renderHeader() {
   $('#status').innerHTML = `
     <div class="who"><span class="name">${esc(S.name)}</span><span class="sect">청풍문 제자 · ${S.expedition.zone ? `⛰️ ${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <b>${countdownText()}</b>` : '탐험지 미정'}</span></div>
     <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
-    <div class="purse"><span class="cp" title="종합 전투력"><i class="coin cpi">戰</i>${fmt(cp)}${cpDeltaHtml(cp)}</span><span class="xp" title="경험치 (상태 › 무공에서 성급 올리기)"><i class="coin c3">經</i>${fmt(S.exp)}</span><span title="은자"><i class="coin">銀</i>${fmt(S.silver)}</span><span title="문파 공헌도"><i class="coin c2">功</i>${fmt(S.contrib)}</span></div>`;
+    <div class="user-status-bar">
+      <div class="status-chip combat-power" title="종합 전투력"><span class="chip-badge badge-combat">전투</span><span class="chip-value" id="header-cp">${fmt(cp)}</span>${cpDeltaHtml(cp)}</div>
+      <div class="status-chip exp" title="경험치 (상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-exp">경험</span><span class="chip-value" id="header-exp">${fmt(S.exp)}</span></div>
+      <div class="status-chip silver" title="은자"><span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmt(S.silver)}</span></div>
+      <div class="status-chip contribution" title="문파 공헌도"><span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmt(S.contrib)}</span></div>
+    </div>`;
 }
 
 function renderTabs() {
