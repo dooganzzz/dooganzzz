@@ -3,12 +3,16 @@
    지금은 청풍산 · 검 · 흑비단독사 조합에서만 켠다 (SPRITE_TRIAL) */
 const SPRITE_TRIAL = [{ zone: 'cheongpung', weapon: 'sword', eid: 'viper' }];
 const SPRITE_SRC = { hero: w => `assets/art/sprites/hero_${w}.png`, stage: z => `assets/art/stages/${z}.jpg` };
-const FOE_FACES_RIGHT = new Set(['viper']);                 // 원화가 오른쪽을 보는 요수는 뒤집어 제자를 보게
+const FOE_FACES_RIGHT = new Set(['viper']);
+/* 요수 숨쉬기 스프라이트 (칸 수). 똬리를 늘렸다 줄였다 하는 식으로 바닥은 제자리 */
+const FOE_SHEET = { viper: 8 };                 // 원화가 오른쪽을 보는 요수는 뒤집어 제자를 보게
 function spriteOn(zid, eid) { const w = weaponType(); return SPRITE_TRIAL.some(t => t.zone === zid && t.eid === eid && t.weapon === w); }
 function spriteStage(zid, eid) {
   return `<div class="sprite-stage" id="spStage" style="background-image:url('${SPRITE_SRC.stage(zid)}')">
     <div class="sp-fighter sp-hero idle" id="spHero" data-f="0"><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(weaponType())}')"></div></div>
-    <div class="sp-fighter sp-foe idle ${FOE_FACES_RIGHT.has(eid) ? 'flip' : ''}" id="spFoe"><i class="sp-shadow"></i><img src="${ART_SRC.beast(eid)}" alt=""></div>
+    <div class="sp-fighter sp-foe idle ${FOE_FACES_RIGHT.has(eid) ? 'flip' : ''} ${FOE_SHEET[eid] ? 'sheet' : ''}" id="spFoe" data-f="0"><i class="sp-shadow"></i>${FOE_SHEET[eid]
+      ? `<div class="sp-fspr" style="background-image:url('assets/art/sprites/foe_${eid}.png');background-size:${FOE_SHEET[eid] * 100}% 100%"></div>`
+      : `<img src="${ART_SRC.beast(eid)}" alt="">`}</div>
   </div>`;
 }
 /* 무대 되돌리기 (처음부터) */
@@ -36,9 +40,13 @@ const SPF = { idle: 0, run1: 1, run2: 2, thrust: 3, slashA: 4, slashB: 5, slashC
 /* 가만히 서 있을 때: 대기 → 들숨 → 가득 → 날숨 → 대기 … (몸은 제자리, 가슴·어깨만) */
 const BREATH = [0, 0, 9, 10, 10, 11];
 let spBreathT = null;
+let spFoeT = null;
 function spBreathLoop() {
-  clearInterval(spBreathT); let i = 0;
+  clearInterval(spBreathT); clearInterval(spFoeT); let i = 0, j = 0;
   spBreathT = setInterval(() => { const h = $('#spHero'); if (!h) { clearInterval(spBreathT); return; } if (h.classList.contains('idle')) h.dataset.f = BREATH[i++ % BREATH.length]; }, 260);
+  const e = $('#spFoe'), n = e && e.classList.contains('sheet') ? e.querySelector('.sp-fspr') : null;
+  if (n) { const N = Math.round(parseFloat(n.style.backgroundSize) / 100);
+    spFoeT = setInterval(() => { if (!n.isConnected) { clearInterval(spFoeT); return; } if (e.classList.contains('idle')) n.style.backgroundPositionX = (j++ % N) * 100 / (N - 1) + '%'; }, 170); }
 }
 function spFrame(h, k) { h.dataset.f = SPF[k]; }
 function spStreak(kind) {

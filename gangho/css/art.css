@@ -410,3 +410,7 @@
 @keyframes spDust { from { opacity: .9; transform: translate(0, 0) scale(.5); } to { opacity: 0; transform: translate(var(--dx, -18px), -10px) scale(1.8); } }
 .sp-foe .sp-shadow { bottom: 7%; width: 80%; }
 .sp-shadow::after { background: rgba(35, 22, 8, .7); }
+/* 요수 스프라이트: 제자리에서 똬리가 늘었다 줄었다 */
+.sp-fspr { width: 100%; height: 100%; background-repeat: no-repeat; background-position: 0 0; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
+.sp-foe.flip .sp-fspr { transform: scaleX(-1); }
+.sp-foe.sheet.idle .sp-fspr { animation: none; }
