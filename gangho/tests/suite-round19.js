@@ -123,7 +123,7 @@ module.exports = async (b) => {
     ok('5 [결산 보기]/[자세히] 펼치기', !!dt && /(은자|경험치|요수|전투|승)/.test(dt), (dt || '').slice(0, 80));
     const gone = await p.evaluate(() => { S.expeditions = []; render(); return document.querySelectorAll('.chron-gone').length; });
     ok('5 지워진 탐험은 “상세 기록은 지워졌습니다”', gone > 0, String(gone));
-    ok('5 옆 견문록도 그대로', await p.evaluate(() => document.querySelectorAll('#log p').length > 0));
+    ok('5 옆 견문록은 없음 (견문록 탭 하나로)', await p.evaluate(() => !document.querySelector('#log') && document.querySelectorAll('.chron .chron-row').length > 0));
 
     // 6. 저장 이전: 단서 제거 · 정각 맞춤
     const mig = await p.evaluate(() => {

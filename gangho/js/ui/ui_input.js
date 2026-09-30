@@ -47,7 +47,7 @@ function onClick(e) {
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
-  if (d.add) { if (ITEMS[d.add].kind !== '재료') return; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
+  if (d.add) { if (!getFilteredMaterials(ui.craft).includes(d.add)) return; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
   if (d.rem) { ui.pot[d.rem]--; if (ui.pot[d.rem] <= 0) delete ui.pot[d.rem]; return render(); }
   if (d.mission) return completeMission(+d.mission);
   if (d.buymanual) return buyManual(d.buymanual);

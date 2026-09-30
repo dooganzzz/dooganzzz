@@ -23,17 +23,18 @@ module.exports = async (b) => {
     await p.click('.settle-sheet [data-act="closemodal"]');
 
     // 2. 견문록: 걸음마다 한 줄, 전투에는 [관찰하기]
+    await p.click('[data-tab="chronicle"]');
     const lg = await p.evaluate(() => {
-      const r = S.expeditions[0], top = document.querySelector('#log p');
-      const watch = [...document.querySelectorAll('#log .watch')];
-      return { head: top.className.includes('exp-head') && /청풍산 탐험/.test(top.textContent), watch: watch.length, battles: r.battles.length, sample: watch[0] && watch[0].closest('p').textContent, time: top.dataset.time === hhmm(r.at), sep: !S.log.some(l => /모습을 드러냈습니다/.test(l.text)) };
+      const r = S.expeditions[0], top = document.querySelector('.chron .chron-row');
+      const watch = [...document.querySelectorAll('.chron .watch')];
+      return { head: top.className.includes('exp-head') && /청풍산 탐험/.test(top.textContent), watch: watch.length, battles: r.battles.length, sample: watch[0] && watch[0].closest('.chron-text').textContent, time: top.querySelector('time').textContent === hhmm(r.at), sep: !S.log.some(l => /모습을 드러냈습니다/.test(l.text)) };
     });
     ok('2 견문록 맨 위에 탐험 요약', lg.head, JSON.stringify(lg));
     ok('2 전투마다 "…와 전투에서 승리/패배 [관찰하기]"', lg.watch === lg.battles && /(과|와) 전투에서 (승리|패배|무승부)\s*관찰하기/.test(lg.sample), lg.sample);
     ok('2 전투 대사는 견문록에 쏟아지지 않음 (관찰하기에서만)', lg.sep);
 
     // 3. 관찰하기 → 그 전투만 리플레이
-    await p.click('#log .watch');
+    await p.click('.chron .watch');
     await p.waitForTimeout(1600);
     const rp = await p.evaluate(() => { const bx = document.querySelector('#rpBox'); return { open: !!bx && /^replay:/.test(ui.modal), i: RP.i, lines: document.querySelectorAll('#rpLog p').length, intro: RP.key && replayData(RP.key).b.intro.length, prog: document.querySelector('#rpProg').textContent }; });
     ok('3 [관찰하기] → 관찰 창에서 합마다 재생', rp.open && rp.i >= 0 && rp.lines > rp.intro, JSON.stringify(rp));
@@ -63,7 +64,7 @@ module.exports = async (b) => {
     ok('4 11시간 밀리면 8번만 결산 (3번은 지나감)', hr.ran === 8 && hr.skipped, JSON.stringify(hr));
     ok('4 탐험은 한 시간 간격 시각으로 기록', hr.times && hr.next, JSON.stringify(hr));
     ok('4 기록은 최근 8번만 (오래된 것부터 삭제)', hr.kept === 8 && hr.oldestGone, JSON.stringify(hr));
-    const gone = await p.evaluate(() => { const b0 = document.querySelector('#log .watch[data-watch^="1:"]'); if (b0) b0.click(); else openReplay('1:0'); return { modal: ui.modal, toast: [...document.querySelectorAll('.toast')].some(t => /기록이 지워졌습니다/.test(t.textContent)) }; });
+    const gone = await p.evaluate(() => { const b0 = document.querySelector('.chron .watch[data-watch^="1:"]'); if (b0) b0.click(); else openReplay('1:0'); return { modal: ui.modal, toast: [...document.querySelectorAll('.toast')].some(t => /기록이 지워졌습니다/.test(t.textContent)) }; });
     ok('4 지워진 탐험의 [관찰하기] → 안내만', !/^replay:/.test(gone.modal || '') && gone.toast, JSON.stringify(gone));
 
     // 5. 강호행 탭의 탐험 기록 · 카운트다운
@@ -105,18 +106,18 @@ module.exports = async (b) => {
     ok('6 쓰러지면 기력을 잃고 회복해 다시 사냥 (기력이 다할 때까지)', sta.defeat && sta.defeatLog, JSON.stringify(sta));
     ok('6 위급하면 생혈고 자동 사용', sta.potion, JSON.stringify(sta));
 
-    // 7. 두목: 기척이 너무 무거우면 피하고, 쓰러뜨리면 다음 구역이 열림
+    // 7. 두목: 피하지 않고 맞선다, 쓰러뜨리면 다음 구역이 열림
     const boss = await p.evaluate(() => {
-      const W = EXPEDITION, keep = { from: W.bossFrom, ch: W.bossChance };
-      W.bossFrom = 0; W.bossChance = 1;
+      const W = EXPEDITION, keep = { from: W.bossFrom, ch: W.bossChance, mx: W.bossMax };
+      W.bossFrom = 0; W.bossChance = 1; W.bossMax = 1;
       const hpK = ENEMIES.redTiger.hp; ENEMIES.redTiger.hp = 999999;
       S.stamina = 100; const a = runExpedition(now());
       ENEMIES.redTiger.hp = 1;
       S.stamina = 100; S.inv.saenghyeol = 9; const k = runExpedition(now());
-      ENEMIES.redTiger.hp = hpK; W.bossFrom = keep.from; W.bossChance = keep.ch;
-      return { avoid: a.steps.some(s => s.k === 'avoid') && !a.battles.some(x => x.boss), won: k.battles.some(x => x.boss && x.win), flag: !!S.flags.boss1, open: zoneUnlocked('yeomhwa') };
+      ENEMIES.redTiger.hp = hpK; W.bossFrom = keep.from; W.bossChance = keep.ch; W.bossMax = keep.mx;
+      return { noAvoid: !a.steps.some(s => s.k === 'avoid') && a.battles.some(x => x.boss), won: k.battles.some(x => x.boss && x.win), flag: !!S.flags.boss1, open: zoneUnlocked('yeomhwa') };
     });
-    ok('7 두목의 기척이 너무 무거우면 제자가 피함', boss.avoid, JSON.stringify(boss));
+    ok('7 두목은 기척이 무거워도 회피 없이 맞선다', boss.noAvoid, JSON.stringify(boss));
     ok('7 두목 토벌 → 다음 구역(염화채) 열림', boss.won && boss.flag && boss.open, JSON.stringify(boss));
     await p.evaluate(() => { goTab('field'); render(); });
     await p.click('[data-dest="yeomhwa"]');
@@ -129,7 +130,7 @@ module.exports = async (b) => {
     const m0 = await p.evaluate(() => ({ purse: document.querySelector('.exp-purse b').textContent, btn: document.querySelectorAll('.mslot [data-starup]:not([disabled])').length }));
     await p.click('.mslot [data-starup]:not([disabled])');
     ok('8 상태 › 무공: 경험치 표시 · [▲ 성급] → 올라가고 경험치 줄어듦', m0.purse === '12,345' && m0.btn === 4 && await p.evaluate(() => S.exp < 12345 && Object.values(S.manuals).some(m => m.star >= 2)), JSON.stringify(m0));
-    await p.click('.mslot[data-mart]');
+    await p.click('.mcard[data-mart]');
     const md = await p.evaluate(() => ({ btn: !!document.querySelector('.sheet [data-starup]'), kv: document.querySelector('.sheet').textContent.includes('필요 경험치') }));
     ok('8 무공 상세 창에도 성급 올리기', md.btn && md.kv, JSON.stringify(md));
     await p.evaluate(() => { ui.modal = null; render(); });

@@ -47,9 +47,9 @@ module.exports = async (b) => {
   ok('4 반격 발생 (반격 스탯)', bt.counter);
   // 5
   await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
-  const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.martial-artist-img'), head: document.querySelector('.panel-head .ko').textContent }));
+  const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.character-portrait-card .portrait-img'), head: document.querySelector('.panel-head .ko').textContent }));
   ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸', bag.cap === 100);
-  ok('5 상단 슬롯', bag.top === '투구,무기,옥대,호갑', bag.top); ok('5 하단 가로 5슬롯', bag.bottom === '신발,허리띠,가락지,신분패,탈것', bag.bottom); ok('5 실루엣 이미지', bag.img);
+  ok('5 상단 슬롯', bag.top === '투구,무기,옥대,호갑', bag.top); ok('5 하단 가로 5슬롯', bag.bottom === '신발,허리띠,가락지,신분패,탈것', bag.bottom); ok('5 초상 카드 이미지', bag.img);
   // 7 + 6
   await p.evaluate(() => { S.silver = 100; render(); });
   await p.click('[data-tab="sect"]'); await p.click('[data-sub="yard"]');
@@ -57,7 +57,7 @@ module.exports = async (b) => {
   await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_low'); i++) { Object.assign(S.inv, { herb: 2, lingzhi: 1 }); ui.pot = { herb: 2, lingzhi: 1 }; doCraft(ui.craft, ui.pot); } });
   await p.click('[data-tab="codex"]'); await p.click('[data-codextab="alchemy"]');
   ok('6 안내문 없음', !(await p.$('.codex ~ .lede, .panel .lede')) && !(await p.content()).includes('아직 아무것도 모릅니다'));
-  ok('6 미발견 비법은 ???', await p.evaluate(() => document.querySelectorAll('.recipe-row.unknown').length === RECIPES.filter(r => r.craft === 'alchemy').length - 1 && /\?\?\?/.test(document.querySelector('.recipe-row.unknown').textContent)));
+  ok('6 미발견 비법은 숨김 (??? · 개수 없음)', await p.evaluate(() => document.querySelectorAll('.recipe-row').length === 1 && !document.querySelector('.recipe-row.unknown') && !/\?\?\?/.test(document.querySelector('#main').textContent)));
   await p.click('.recipe-row [data-recipe="a_low"]');
   const modalBtn = await p.$eval('.sheet [data-fill]', e => e.textContent.trim());
   ok('6 조합법 모달 + 화로로 가기', modalBtn === '[ 화로로 가기 ]' && !!(await p.$('.mats-list li')), modalBtn);
@@ -71,12 +71,10 @@ module.exports = async (b) => {
   ok('7 퀘스트 1개만', (await p.$$('.quest > b')).length === 1);
   // 8
   await p.evaluate(() => { give('herb', 2); S.silver += 5; log(`${hlSilver(5)} 획득`, 'loot'); log(`${hlContrib('+10')}`, 'good'); });
-  const logc = await p.evaluate(() => { const i = document.querySelector('.log .hl-item'), s = document.querySelector('.log .hl-silver'), c = document.querySelector('.log .hl-contrib'); const cs = el => el && getComputedStyle(el).color; return [cs(i), cs(s), cs(c)].join(' | '); });
+  await p.click('[data-tab="chronicle"]');
+  const logc = await p.evaluate(() => { const i = document.querySelector('.chron .hl-item'), s = document.querySelector('.chron .hl-silver'), c = document.querySelector('.chron .hl-contrib'); const cs = el => el && getComputedStyle(el).color; return [cs(i), cs(s), cs(c)].join(' | '); });
   ok('8 획득 하이라이트 색', logc === 'rgb(251, 191, 36) | rgb(253, 224, 71) | rgb(52, 211, 153)', logc);
-  await p.waitForTimeout(200);
-  const hs = await p.evaluate(() => ({ main: document.querySelector('#main').offsetHeight, side: document.querySelector('.side').offsetHeight, logScroll: document.querySelector('#log').scrollTop === 0, ov: getComputedStyle(document.querySelector('#log')).overflowY }));
-  ok('8 견문록 높이 동기화', w > 960 ? Math.abs(hs.main - hs.side) <= 2 : hs.side === 280, `main ${hs.main} / side ${hs.side}`);
-  ok('8 최신 기록이 맨 위 (scrollTop 0) + overflow auto', hs.logScroll && hs.ov === 'auto');
+  ok('8 옆 견문록 없음 · 초기화는 바닥글', await p.evaluate(() => !document.querySelector('.side') && !document.querySelector('#log') && !!document.querySelector('.footer [data-act="reset"]')));
   // 10
   const th = await p.evaluate(() => ({ body: getComputedStyle(document.body).backgroundImage.includes('radial-gradient(circle at 50% 15%') ? 'radial-gradient' : 'missing', panel: getComputedStyle(document.querySelector('.panel')).backgroundColor, blur: getComputedStyle(document.querySelector('.panel')).backdropFilter, border: getComputedStyle(document.querySelector('.panel')).borderTopColor }));
   ok('10 먹빛 글래스', th.body.includes('radial-gradient') && th.panel === 'rgba(18, 22, 29, 0.85)' && th.blur === 'blur(10px)' && th.border === 'rgba(212, 175, 55, 0.15)', JSON.stringify(th));

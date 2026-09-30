@@ -14,11 +14,11 @@ module.exports = async (b) => {
     const f = await p.evaluate(() => {
       const st = calcStats();
       const arts = CAT_ORDER.reduce((a, c) => { const id = S.active[c]; return a + (id ? GRADES[MANUALS[id].grade].mult * S.manuals[id].star * 10 : 0); }, 0);
-      const expect = Math.round(st.maxHp * 1.0 + st.maxMp * 1.5 + st.atk * 5.0 + st.def * 3.0 + arts);
+      const expect = Math.round(st.maxHp * 1.0 + st.maxMp * 1.5 + st.atk * 5.0 + st.def * 3.0 + arts + attrOf('agi') * 8);
       const parts = combatPowerParts(S);
-      return { cp: calculateCombatPower(S), expect, sum: parts.base + parts.gear + parts.arts, total: parts.total, int: Number.isInteger(calculateCombatPower()) };
+      return { cp: calculateCombatPower(S), expect, sum: parts.base + parts.gear + parts.arts + parts.agi, total: parts.total, int: Number.isInteger(calculateCombatPower()) };
     });
-    ok('1 calculateCombatPower = 활력×1 + 내력×1.5 + 공격×5 + 방어×3 + Σ(등급 계수×성×10)', f.cp === f.expect && f.int, JSON.stringify(f));
+    ok('1 calculateCombatPower = 활력×1 + 내력×1.5 + 공격×5 + 방어×3 + Σ(등급 계수×성×10) + 민첩×8', f.cp === f.expect && f.int, JSON.stringify(f));
     ok('1 내역 합 ≈ 전투력 (반올림 차 ≤ 2)', Math.abs(f.sum - f.total) <= 2, JSON.stringify(f));
     ok('1 다른 상태 객체도 계산 · 전역 S는 그대로', await p.evaluate(() => { const copy = JSON.parse(JSON.stringify(S)); copy.manuals[copy.active.mugong].star = 12; const a = calculateCombatPower(copy), b0 = calculateCombatPower(S); return a > b0 && S.manuals[S.active.mugong].star !== 12; }));
 
@@ -52,7 +52,7 @@ module.exports = async (b) => {
     // 2. 상태 탭 맨 위 카드
     await p.click('[data-tab="status"]');
     const card = await p.evaluate(() => { const c = document.querySelector('#main > .cp-card'); return c && { first: document.querySelector('#main').firstElementChild === c, value: c.querySelector('.cp-value').textContent, cp: fmt(calculateCombatPower(S)), parts: c.querySelectorAll('.cp-parts span').length, label: c.querySelector('.cp-label .ko').textContent }; });
-    ok('2 상태 탭 최상단 전투력 카드 (내역 3가지)', card && card.first && card.value === card.cp && card.parts === 3 && card.label === '전투력', JSON.stringify(card));
+    ok('2 상태 탭 최상단 전투력 카드 (내역 4가지: 민첩 포함)', card && card.first && card.value === card.cp && card.parts === 4 && card.label === '전투력', JSON.stringify(card));
     await p.click('[data-sub="martial"]');
     ok('2 무공 하위 탭에서도 카드 유지', await p.evaluate(() => document.querySelector('#main').firstElementChild.classList.contains('cp-card')));
     await p.click('[data-tab="bag"]');

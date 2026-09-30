@@ -66,7 +66,7 @@ module.exports = async (b) => {
       const it = S.gear.find(g => g.named === 'c_sword');
       r.made = !!it && RARITY[it.rarity].name === '중급' && S.codex.includes('f_c_sword');
       // 실패 → 찌꺼기
-      const s0 = count('slag'); S.inv.roughOre = (S.inv.roughOre || 0) + 1; doCraft('forge', { roughOre: 1 }); r.slag = count('slag') === s0 + 1;
+      const s0 = count('slag'); S.inv.roughOre = (S.inv.roughOre || 0) + 1; doCraft('forge', { roughOre: 1 }); r.slag = count('slag') === s0 + (talentOf().slag || 1);
       r.saeng = Object.keys(RECIPES.find(x => x.out === 'saenghyeol').in).every(id => ZONES.cheongpung.mats.includes(id));   // 건의: 생혈고는 청풍산 재료만
       r.fistName = EQUIP_BASES.fist.names[1];                                                                              // 건의: 이름 겹침 해소
       return r;
@@ -74,10 +74,10 @@ module.exports = async (b) => {
     ok('3 화로는 단조·단약 둘 · 조합식 단조 9 · 단약 8 (8품 6 + 돌파단 2)', fu.crafts === 'forge,alchemy' && fu.n.join() === '9,8' && fu.pillsKept, JSON.stringify(fu));
     ok('3 단조 중급 장비 9종 (지시서 능력치)', !fu.gear.length, fu.gear.join(','));
     ok('3 8품 단약 6종 · 기력 회복 아이템·음식 없음', fu.pills && fu.noSta, JSON.stringify(fu));
-    ok('3 단조 성공 → 중급 장비 · 도감 등재 · 실패 → 찌꺼기', fu.made && fu.slag, JSON.stringify(fu));
+    ok('3 단조 성공 → 중급 장비 · 도감 등재 · 실패 → 찌꺼기 (주력 단조면 2배)', fu.made && fu.slag, JSON.stringify(fu));
     ok('3 생혈고 조합식은 청풍산 재료만 · 2티어 권장 기본형은 "흑철 수투"', fu.saeng && fu.fistName === '흑철 수투', JSON.stringify(fu));
     await p.evaluate(() => { goTab('sect', 'forge'); ui.craft = 'forge'; render(); });
-    ok('3 화로 [단조] | [단약] 탭 · 비법 개수', await p.evaluate(() => document.querySelectorAll('.furnace-tabs [data-craft]').length === 2 && /비법 1\/9/.test(document.querySelector('.furnace .panel-head').textContent)));
+    ok('3 화로 [단조] | [단약] 탭 · 품계 표시 · 비법 개수는 숨김', await p.evaluate(() => { const t = document.querySelector('.furnace .panel-head').textContent; return document.querySelectorAll('.furnace-tabs [data-craft]').length === 2 && /단조 \d품/.test(t) && !/비법 \d+\/\d+/.test(t); }));
 
     // 4. 도감 4탭
     await p.click('[data-tab="codex"]');
@@ -85,11 +85,11 @@ module.exports = async (b) => {
     ok('4 도감: 몬스터 | 무공 | 단조 비법 | 단약 비법', cx.tabs === '몬스터|무공|단조 비법|단약 비법', cx.tabs);
     await p.click('[data-codextab="forge"]');
     const fr = await p.evaluate(() => ({ known: document.querySelectorAll('.recipe-row:not(.unknown)').length, unknown: document.querySelectorAll('.recipe-row.unknown').length, text: (document.querySelector('.recipe-row:not(.unknown)') || {}).textContent || '' }));
-    ok('4 단조 비법: 발견한 것은 재료·결과 공개, 나머지 ???', fr.known === 1 && fr.unknown === 8 && /청강검/.test(fr.text) && /거친 철광석 ×3/.test(fr.text), JSON.stringify(fr));
+    ok('4 단조 비법: 발견한 것만 재료·결과와 함께 (못 찾은 비법은 숨김)', fr.known === 1 && fr.unknown === 0 && /청강검/.test(fr.text) && /거친 철광석 ×3/.test(fr.text), JSON.stringify(fr));
     await p.click('[data-codextab="martial"]');
-    ok('4 무공: 익힌 무공만 공개', await p.evaluate(() => document.querySelectorAll('.codex-panel .beasts li:not(.unknown)').length === Object.keys(S.manuals).length && document.querySelectorAll('.codex-panel .beasts li.unknown').length > 0));
+    ok('4 무공: 익힌 무공만 공개', await p.evaluate(() => document.querySelectorAll('.codex-panel .beasts li:not(.unknown)').length === Object.keys(S.manuals).length && !document.querySelector('.codex-panel .beasts li.unknown')));
     await p.click('[data-codextab="monster"]');
-    ok('4 몬스터: 사냥터 3곳 · 못 만난 요수 ???', await p.evaluate(() => document.querySelectorAll('.codex-panel .codex-col').length === 3 && /\?\?\?/.test(document.querySelector('.codex-panel').textContent)));
+    ok('4 몬스터: 만난 요수가 있는 사냥터만 · ??? 없음', await p.evaluate(() => document.querySelectorAll('.codex-panel .codex-col').length === ZONE_ORDER.filter(z => [...ZONES[z].enemies, ZONES[z].boss].some(e => S.bestiary[e])).length && !/\?\?\?/.test(document.querySelector('.codex-panel').textContent)));
 
     // 5. 탐험 루프: 기력이 다할 때까지 (조우·패배·마을 치료가 모두 기력을 깎는다)
     const lp = await p.evaluate(() => {
@@ -102,12 +102,13 @@ module.exports = async (b) => {
       for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk *= 80;
       S.stamina = 100; const d = runExpedition(now());
       for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk /= 80;
-      r.defeats = d.defeats; r.fewSteps = d.steps.length <= Math.ceil(100 / (STAMINA_COST.battle * 0.8 + EXPEDITION.defeatSta * 0.8)) + 3;
+      r.defeats = d.defeats; r.drained = d.end === 'tired' && S.stamina <= EXPEDITION.minStamina + 0.001;
       return r;
     });
     ok('5 한 번 탐험의 조우는 10걸음 안팎 (기력 소모 상향)', lp.steps.every(n => n >= 5 && n <= 18), JSON.stringify(lp.steps));
-    ok('5 쓰러져도 탐험은 이어지고 기력이 크게 샌다', lp.defeats >= 2 && lp.fewSteps, JSON.stringify(lp));
-    ok('5 두목 회피 기준은 데이터 (bossAvoid)', await p.evaluate(() => typeof EXPEDITION.bossAvoid === 'number' && typeof senseRatio === 'function'));
+    ok('5 쓰러져도 탐험은 이어지고 기력이 다할 때까지 간다', lp.defeats >= 2 && lp.drained, JSON.stringify(lp));
+    const bp = await p.evaluate(() => { const keep = S.bossPity; S.bossPity = {}; const r = [bossChanceNow('cheongpung')]; S.bossPity.cheongpung = 5; r.push(bossChanceNow('cheongpung')); S.bossPity.cheongpung = 999; r.push(bossChanceNow('cheongpung')); S.bossPity = keep; return { r: r.map(x => Math.round(x * 1000) / 1000), noAvoid: !('bossAvoid' in EXPEDITION) }; });
+    ok('5 두목: 기척 회피 없음 · 2.5%에서 못 만날수록 +3%p (최대 50%)', bp.noAvoid && bp.r.join() === '0.025,0.175,0.5', JSON.stringify(bp));
 
     // 6. 저장 이전
     const mig = await p.evaluate(() => {

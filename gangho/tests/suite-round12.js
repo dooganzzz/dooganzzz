@@ -40,10 +40,10 @@ module.exports = async (b) => {
     await p.click('[data-sub="gear"]');
     ok('2 무장으로 전환', await p.evaluate(() => !!document.querySelector('.paperdoll') && ui.statusSub === 'gear'));
 
-    // 탐험 결산 창의 [성급 올리러 가기] → 상태 › 무공
+    // 탐험 결산 창의 [견문록 보기] → 견문록 탭, 해당 탐험 기록 강조
     await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.stamina = 100; const r = runExpedition(now()); ui.modal = 'settle:' + r.id; render(); });
-    await p.click('.settle-sheet [data-tab="status"][data-sub="martial"]');
-    ok('2 결산 창 [성급 올리러 가기] → 상태 › 무공 (창 닫힘)', await p.evaluate(() => ui.tab === 'status' && document.querySelector('.subtab.on .ko').textContent === '무공' && !ui.modal));
+    await p.click('.settle-sheet [data-act="gochron"]');
+    ok('2 결산 창 [견문록 보기] → 견문록 탭 (창 닫힘 · 해당 기록 펼침)', await p.evaluate(() => ui.tab === 'chronicle' && !ui.modal && !!document.querySelector('.chron-open details[open]')));
 
     ok('오류/가로스크롤 없음', errs.length === 0 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(' | '));
     await p.close();

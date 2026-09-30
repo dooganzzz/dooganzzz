@@ -5,6 +5,18 @@ function potKey(pot) { return Object.entries(pot).filter(([, v]) => v > 0).sort(
 const RECIPE_BY_KEY = {};
 for (const r of RECIPES) RECIPE_BY_KEY[r.craft + ':' + potKey(r.in)] = r;
 
+/* 기예별 유효 재료: 그 기예의 조합식에 한 번이라도 쓰이는 재료 id 집합 (조합식에 없는 재료는 어느 탭에도 뜨지 않는다) */
+const CRAFT_MATS = {};
+for (const r of RECIPES) for (const id of Object.keys(r.in)) (CRAFT_MATS[r.craft] = CRAFT_MATS[r.craft] || new Set()).add(id);
+const getValidForgeMaterials = () => CRAFT_MATS.forge || new Set();
+const getValidAlchemyMaterials = () => CRAFT_MATS.alchemy || new Set();
+/* 화로 탭(기예)에 올릴 수 있는 재료: 행낭에 1개 이상 있고, 그 기예의 유효 재료인 것 */
+function getFilteredMaterials(craft) {
+  const valid = craft === 'forge' ? getValidForgeMaterials() : getValidAlchemyMaterials();
+  return Object.keys(S.inv).filter(id => ITEMS[id] && ITEMS[id].kind === '재료' && valid.has(id) && count(id) > 0)
+    .sort((a, b) => ITEMS[a].name.localeCompare(ITEMS[b].name));
+}
+
 function potTotal(pot) { return Object.values(pot).reduce((a, b) => a + b, 0); }
 
 function fireText(craft) {

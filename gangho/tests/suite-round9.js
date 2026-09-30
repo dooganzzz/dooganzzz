@@ -65,27 +65,29 @@ module.exports = async (b) => {
     ok('3 비급/장비 궤에서 미습득 삼류 비급', vault.bookSeen);
 
     // 4. 견문록 역순
-    const lg = await p.evaluate(() => {
-      log('첫 번째 확인 기록', 'good'); log('두 번째 확인 기록', 'good');
-      const el = document.querySelector('#log');
-      const first = el.firstElementChild.textContent, second = el.children[1].textContent;
+    await p.evaluate(() => { ui.tab = 'chronicle'; ui.chronFilter = 'all'; render(); });
+    const lg = await p.evaluate(async () => {
+      const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+      const rows = () => [...document.querySelectorAll('.chron .chron-row .chron-text')].map(e => e.textContent);
+      log('첫 번째 확인 기록', 'good'); log('두 번째 확인 기록', 'good'); await frame(); await frame();
+      const [first, second] = rows();
       render();
-      return { first, second, afterRender: el.firstElementChild.textContent, top: el.scrollTop };
+      return { first, second, afterRender: rows()[0] };
     });
-    ok('4 새 기록이 맨 위 (prepend)', lg.first === '두 번째 확인 기록' && lg.second === '첫 번째 확인 기록', lg.first);
-    ok('4 다시 그려도 최신이 맨 위, scrollTop 0', lg.afterRender === '두 번째 확인 기록' && lg.top === 0);
+    ok('4 견문록 탭: 새 기록이 맨 위', lg.first === '두 번째 확인 기록' && lg.second === '첫 번째 확인 기록', lg.first);
+    ok('4 다시 그려도 최신이 맨 위', lg.afterRender === '두 번째 확인 기록');
 
     // 5. 정청 접기/펼치기
     await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
     const state = () => p.evaluate(() => ['hq', 'missions', 'library'].map(k => document.querySelector(`[data-foldbody="${k}"]`).classList.contains('collapsed') ? '접힘' : '펼침').join(','));
     const s0 = await state();
-    ok('5 기본: 정청 본부 펼침, 문파 임무 펼침, 장경각 접힘', s0 === '펼침,펼침,접힘', s0);
+    ok('5 기본: 정청 세 구역 모두 접힘', s0 === '접힘,접힘,접힘', s0);
     await p.click('[data-fold="library"]'); await p.click('[data-fold="missions"]');
     const s1 = await state();
     const arrows = await p.$$eval('.fold-arrow', e => e.map(x => x.textContent).join(''));
-    ok('5 헤더 클릭으로 토글 + 화살표 ▼/▲', s1 === '펼침,접힘,펼침' && arrows === '▲▼▲', `${s1} ${arrows}`);
+    ok('5 헤더 클릭으로 토글 + 화살표 ▼/▲', s1 === '접힘,펼침,펼침' && arrows === '▼▲▲', `${s1} ${arrows}`);
     await p.waitForTimeout(450);
-    const fh = await p.evaluate(() => ({ collapsed: document.querySelector('[data-foldbody="missions"]').getBoundingClientRect().height, cursor: getComputedStyle(document.querySelector('.fold-head')).cursor, trans: getComputedStyle(document.querySelector('.fold-body')).transitionProperty }));
+    const fh = await p.evaluate(() => ({ collapsed: document.querySelector('[data-foldbody="hq"]').getBoundingClientRect().height, cursor: getComputedStyle(document.querySelector('.fold-head')).cursor, trans: getComputedStyle(document.querySelector('.fold-body')).transitionProperty }));
     ok('5 접힌 구역은 높이 0, max-height 전환, 포인터 커서', fh.collapsed < 1 && /max-height/.test(fh.trans) && fh.cursor === 'pointer', JSON.stringify(fh));
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);

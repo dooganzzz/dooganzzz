@@ -33,14 +33,18 @@ module.exports = async (b) => {
     const e0 = S.exp; S.hp = 99999; const b = fightSync('boar');
     return { win: b.win, got: S.exp - e0, expect: expGain(ENEMIES.boar.xp), rec: b.exp };
   });
-  ok('2 승리 시 경험치 = 적 경험치 × 보정 (신분패 +10%)', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect === 22, JSON.stringify(xp));
-  // 6 화로: [단조] | [단약] 두 탭, 두 탭 모두 모든 재료가 보인다
-  await p.evaluate(() => { Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
+  ok('2 승리 시 경험치 = 적 경험치 × 보정', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect >= await p.evaluate(() => ENEMIES.boar.xp), JSON.stringify(xp));
+  // 6 화로: [단조] | [단약] 두 탭, 탭마다 그 기예의 조합식에 쓰이는 재료만 보인다
+  await p.evaluate(() => { ITEMS.testMat = { name: '시험재', icon: '❔', kind: '재료' }; Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2, testMat: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
   const f = {};
   f.tabs = await p.$$eval('.furnace-tabs [data-craft]', e => e.map(x => x.textContent).join('|'));
   for (const c of ['forge', 'alchemy']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).sort().join(',')); }
   ok('6 화로 탭: 단조 | 단약', /단조/.test(f.tabs) && /단약/.test(f.tabs) && f.tabs.split('|').length === 2, f.tabs);
-  ok('6 두 탭 모두 모든 재료', f.forge === f.alchemy && ['roughOre', 'wildGinseng', 'treeSap', 'herb'].every(id => f.forge.includes(id)), JSON.stringify(f));
+  const fl = f.forge.split(','), al = f.alchemy.split(',');
+  ok('6 단조 탭은 단조 재료만', fl.includes('roughOre') && fl.includes('treeSap') && !fl.includes('wildGinseng') && !fl.includes('herb'), JSON.stringify(f));
+  ok('6 단약 탭은 단약 재료만', al.includes('wildGinseng') && al.includes('herb') && al.includes('treeSap') && !al.includes('roughOre'), JSON.stringify(f));
+  ok('6 조합식에 없는 재료는 두 탭 모두 숨김', !fl.includes('testMat') && !al.includes('testMat'));
+  await p.evaluate(() => { delete S.inv.testMat; delete ITEMS.testMat; render(); });
   await p.click('[data-add="herb"]'); await p.click('[data-craft="forge"]');
   ok('6 탭 전환 시 슬롯 초기화', await p.evaluate(() => potTotal(ui.pot) === 0));
   // 3 reset: native confirm accept

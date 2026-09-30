@@ -9,13 +9,12 @@ function furnaceTabs() {
 function viewFurnace() {
   if (!CRAFTS[ui.craft]) ui.craft = 'forge';
   const C = CRAFTS[ui.craft], lv = S.crafts[ui.craft] || { lv: 1, xp: 0 };
-  // 재료는 두 탭 모두에서 전부 보인다 (어느 재료가 어디에 쓰이는지도 연구 거리)
-  const mats = Object.keys(S.inv).filter(id => ITEMS[id].kind === '재료').sort((a, b) => ITEMS[a].name.localeCompare(ITEMS[b].name));
+  // 탭(기예)마다 그 기예의 조합식에 쓰이는 재료만 보인다
+  const mats = getFilteredMaterials(ui.craft);
   const flat = Object.entries(ui.pot).filter(([, n]) => n > 0).flatMap(([id, n]) => Array(n).fill(id));
   const res = ui.craftResult;
-  const known = RECIPES.filter(r => r.craft === ui.craft), found = known.filter(r => S.codex.includes(r.id)).length;
   return `<section class="panel furnace">
-    ${head('화로', '火爐', `<span class="num muted">${C.name} ${craftGrade(lv.lv)}${S.talent === ui.craft ? ' · 주력' : ''} · 비법 ${found}/${known.length}</span>`)}
+    ${head('화로', '火爐', `<span class="num muted">${C.name} ${craftGrade(lv.lv)}${S.talent === ui.craft ? ' · 주력' : ''}</span>`)}
     ${furnaceTabs()}
     <p class="muted furnace-desc">${C.desc} 조합식은 알려져 있지 않습니다. 성공하면 도감에 적힙니다.</p>
     <div class="forge">
@@ -28,7 +27,7 @@ function viewFurnace() {
       </div>
       <div class="mats">
         <h4>재료</h4>
-        ${mats.length ? `<div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : '<p class="muted">재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>'}
+        ${mats.length ? `<div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : `<p class="muted">${C.name}에 쓸 재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>`}
       </div>
     </div>
   </section>

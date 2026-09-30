@@ -23,7 +23,7 @@ module.exports = async (b) => {
     const cm = await p.evaluate(() => ({ title: document.querySelector('.sheet h2').textContent, hidden: !!document.querySelector('.hidden-mat'), mats: [...document.querySelectorAll('.mats-list li span')].map(e => e.textContent).join(' | ') }));
     ok('2 발견한 조합식 창: 재료 전부 공개', !cm.hidden && /야생 삼채/.test(cm.mats) && /청령목 수액/.test(cm.mats), `${cm.title} — ${cm.mats}`);
     await p.click('[data-act="closemodal"]');
-    ok('2 미발견 비법은 ??? (누를 수 없음)', await p.evaluate(() => document.querySelectorAll('.recipe-row.unknown').length > 0 && !document.querySelector('.recipe-row.unknown [data-recipe]')));
+    ok('2 미발견 비법은 목록에 없음', await p.evaluate(() => !document.querySelector('.recipe-row.unknown') && [...document.querySelectorAll('.recipe-row [data-recipe]')].every(b => S.codex.includes(b.dataset.recipe))));
 
     // 4. 전방 구매, 장비 강화
     const shop = await p.evaluate(() => { S.silver = 1000; const n0 = count('saenghyeol'); buyItem('saenghyeol'); return { spent: 1000 - S.silver, got: count('saenghyeol') - n0 }; });
@@ -34,8 +34,10 @@ module.exports = async (b) => {
       return { enh: w.enh, atk0, atk1: calcStats().atk, spent: 99999 - S.silver };
     });
     ok('4 장비 강화: 단계·공격력 상승, 은자 소모', enh.enh === 3 && enh.atk1 > enh.atk0 && enh.spent > 0, JSON.stringify(enh));
-    await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'gear'; ui.slotSel = 'weapon'; render(); });
-    ok('4 무장 화면 강화 버튼', !!(await p.$('[data-enhance="weapon"]')));
+    await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'gear'; render(); });
+    await p.click('[data-slot="weapon"]');
+    ok('4 무장 슬롯 팝업의 강화 버튼', !!(await p.$('.sheet [data-enhance="weapon"]')));
+    await p.click('[data-act="closemodal"]');
     await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'shop'; render(); });
     ok('4 청풍문 › 전방 진열', (await p.$$('[data-buy]')).length === await p.evaluate(() => SHOP_STOCK.length));
 

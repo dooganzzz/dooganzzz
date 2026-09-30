@@ -69,7 +69,7 @@ module.exports = async (b) => {
       Object.assign(W, w0);
       return { events: rec.steps.filter(s => s.k === 'event').length, vaults: rec.steps.filter(s => s.k === 'vault').length };
     });
-    ok('탐험 한 번에 기연은 한 번 (나머지는 금고로)', once.events === 1 && once.vaults > 3, JSON.stringify(once));
+    ok('탐험 한 번에 기연은 한 번 (금고는 계획대로 1~3)', once.events === 1 && once.vaults >= 1 && once.vaults <= 3, JSON.stringify(once));
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));
