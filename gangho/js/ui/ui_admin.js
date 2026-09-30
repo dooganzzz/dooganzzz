@@ -186,6 +186,7 @@ const GM_CMDS = {
     const p = (CLOUD.players || []).find(x => x.id === pid); if (!p || !p.save) return gmTrace('warn', '이 유저의 저장이 DB에 없습니다');
     if (importSave(JSON.parse(p.save))) gmTrace('gm', `DB 저장 불러오기: ${p.name} (지금 저장은 백업해 둠)`);
   },
+  importobj(st) { if (importSave(st)) gmTrace('gm', `웹 유저 저장 불러오기: ${st.name} (지금 저장은 백업해 둠)`); else gmTrace('warn', '저장 형식이 맞지 않습니다'); },
   importundo() { if (restoreSave('import')) gmTrace('gm', '불러오기 전 저장으로 되돌림'); },
   cheat(what) {
     if (what === 'reset') { gmTrace('gm', '데이터 완전 초기화'); doReset(); return; }
@@ -308,11 +309,12 @@ function gmBindPanel(panel) {
     if (d.gmaipat) { GM.aiPattern = d.gmaipat; return gmRender(); }
     if (d.gmdbtab) { GM.dbTab = d.gmdbtab; return gmRender(); }
     if (d.gmimport) return gmDo('importplayer', d.gmimport);
+    if (d.gmsupa) { supaPlayerSave(d.gmsupa).then(st => st ? gmDo('importobj', st) : gmTrace('warn', '저장이 비어 있습니다'), e => gmTrace('warn', `저장을 받지 못했습니다: ${e.message}`)); return; }
     if (d.gm === 'airestore' || d.gm === 'importundo') return gmDo(d.gm);
     if (d.gm === 'cloudsync') { cloudSync(true); return; }
     if (d.gm) return gmCheat(d.gm);
   });
-  panel.addEventListener('submit', e => { e.preventDefault(); if (e.target.dataset.gmform === 'state' && S) gmApplyState(e.target); });
+  panel.addEventListener('submit', e => { e.preventDefault(); if (e.target.dataset.gmform === 'state' && S) gmApplyState(e.target); if (e.target.dataset.gmform === 'supa') supaLoadPlayers(e.target.elements.pass.value); });
   panel.addEventListener('input', e => { const k = e.target.dataset.gminput; if (k) { GM[k] = e.target.value; gmRenderItems(); } });
 }
 
@@ -332,7 +334,7 @@ function gmBindGameTrace() {
 
 /* 6. 유저: 접속 중인 사람(room) · DB에 동기화된 모든 캐릭터(db). 게임 창 오버레이에서만 (별도 창은 아티팩트 기능이 없다) */
 function gmViewUsers() {
-  if (GM_REMOTE || typeof CLOUD === 'undefined') return '<p class="gm-muted">유저 탭은 게임 창의 GM 오버레이에서 여십시오. (별도 창에서는 claude.ai 접속자·DB 기능을 쓸 수 없습니다)</p>';
+  if (GM_REMOTE || typeof CLOUD === 'undefined') return '<p class="gm-muted">claude.ai 접속자 · DB는 게임 창의 GM 오버레이에서만 보입니다.</p>' + gmSupaSection();
   const nm = id => (id && CLOUD.names[id]) || '이름 비공개';
   const since = t => { if (!t) return '—'; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
   const onlineIds = new Set(CLOUD.peers.map(p => p.by || p.presence.uid).filter(Boolean));
@@ -349,7 +351,8 @@ function gmViewUsers() {
     <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>전투력</th><th>탐험지</th><th>보는 화면</th><th>기기</th></tr></thead><tbody>${peers || '<tr><td colspan="7" class="gm-muted">접속자 정보가 없습니다.</td></tr>'}</tbody></table>
     <h4 class="gm-h">전체 유저 (DB)</h4>
     <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>전투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>기기</th><th>마지막 동기화</th><th></th></tr></thead><tbody>${players || `<tr><td colspan="11" class="gm-muted">${CLOUD.admin ? '아직 동기화된 유저가 없습니다.' : '주인·편집자만 전체 유저를 볼 수 있습니다.'}</td></tr>`}</tbody></table>
-    <p class="gm-muted">유저 ID는 claude.ai가 주는 익명 토큰이라 화면에는 이름으로 풀어 보입니다. IP 주소는 claude.ai가 페이지에 알려 주지 않아 볼 수 없습니다.</p>`;
+    <p class="gm-muted">claude.ai 유저 ID는 익명 토큰이라 화면에는 이름으로 풀어 보입니다 (claude.ai는 IP를 알려 주지 않습니다). IP는 아래 웹 유저(Supabase) 기록에만 남습니다.</p>
+    ${gmSupaSection()}`;
 }
 
 /* 7. AI 자동 플레이: 지금 캐릭터로 1 · 2 · 3일을 미리 살아 본다 (실행 전 저장은 백업) */

@@ -44,6 +44,10 @@ function save() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가 환경 */ }
 }
 
+/* 웹 기록(Supabase)용 익명 id와 비밀값: 저장마다 한 번 만든다 */
+function randHex(n) { const a = new Uint8Array(n); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => { a[i] = Math.random() * 256; }); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+function ensureCloudId(st) { if (st && !st.cloudId) { st.cloudId = 'g' + randHex(12); st.cloudToken = randHex(16); } }
+
 /* 저장 백업 · 되돌리기 (운영자 AI 자동 플레이 전에 떠 둔다) · 다른 저장 들여오기 */
 function backupSave(tag) { if (!S) return false; try { localStorage.setItem(SAVE_KEY + ':' + tag, JSON.stringify({ at: Date.now(), S })); return true; } catch (e) { return false; } }
 function backupInfo(tag) { try { const raw = localStorage.getItem(SAVE_KEY + ':' + tag); return raw ? JSON.parse(raw).at : null; } catch (e) { return null; } }
@@ -54,6 +58,7 @@ function restoreSave(tag) {
 }
 function importSave(st, keepBackup = true) {
   if (!st || typeof st !== 'object' || !st.manuals) return false;
+  if (keepBackup) { delete st.cloudId; delete st.cloudToken; }   // 남의 저장을 들여오면 새 익명 id로 (원래 주인의 기록을 덮지 않게)
   if (keepBackup) backupSave('import');
   S = migrate(st); save(); notify.refresh();
   return true;
@@ -77,7 +82,7 @@ function log(text, cls = '', t = now(), ref) {
 
 /* 새 게임: 프롤로그 뒤 제자 설정(이름·4대 스탯·입문 무공·기예)을 마치면 부른다 */
 function startNewGame(name, mugongId, opts = {}) {
-  S = newState(name, mugongId, opts);
+  S = newState(name, mugongId, opts); ensureCloudId(S);
   const wt = MANUALS[mugongId].weapon;
   S.equip.weapon = makeNamedGear(STARTER_GEAR[wt]);
   S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
@@ -185,6 +190,7 @@ function migrate(st) {
   delete st.knownMats;
   st.zoneLog = st.zoneLog || {}; st.craftNotes = st.craftNotes || [];
   if (st.expedition && st.expedition.nextAt && new Date(st.expedition.nextAt).getMinutes() + new Date(st.expedition.nextAt).getSeconds() !== 0 && st.expedition.nextAt > Date.now()) st.expedition.nextAt = nextTopOfHour(Date.now());
+  ensureCloudId(st);
   return st;
 }
 
