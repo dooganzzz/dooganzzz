@@ -147,6 +147,14 @@ function renderModal() {
       if (RP.playing) RP.timer = setTimeout(replayStep, 500);
     }
   }
+  if (ui.modal === 'npc' && ui.npcTalk) {
+    const W = { master: ['노벽송', '장문인', '松'], joun: ['조운', '대사형', '雲'], arin: ['아린', '사매', '璘'] }[ui.npcTalk.who] || ['', '', ''];
+    const line = l => { const said = l.text.startsWith(W[0] + ':'); return `<p class="npc-line ${said ? 'said' : 'narr'} ${l.cls || ''}">${chronDecor(said ? l.text.slice(W[0].length + 1).trim() : l.text)}</p>`; };
+    m.innerHTML = `<div class="sheet npc-sheet" role="dialog" aria-modal="true" aria-label="${W[0]}와의 대화">
+      <div class="npc-sheet-head">${portrait(ui.npcTalk.who, W[2], W[0])}<div><p class="eyebrow">對話 · 대화</p><h2>${label(W[0], W[1])}</h2></div></div>
+      <div class="npc-lines">${ui.npcTalk.lines.map(line).join('')}</div>
+      <div class="btns"><button class="btn primary" data-act="closemodal">알겠습니다</button></div></div>`;
+  }
   if (ui.modal === 'awaken' && ui.awaken) { const a = ui.awaken;
     m.innerHTML = `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>
       <div class="shrine-stage">${shrineArt(true)}</div>
@@ -178,37 +186,45 @@ const PROLOGUE = [
   '원작에서 청풍문은 제1장이 끝나기도 전에 멸문한다. 아무도 기억하지 않는 엑스트라 문파다. 그런데 오늘 아침, 산문을 두드린 풋내기 하나가 석상 앞에 무릎을 꿇었을 때 — 내 목소리가 그 아이의 머릿속에 닿았다.',
   '움직일 수 없는 나 대신, 이 제자가 강호를 걷는다. 나는 원작을 안다. 이 아이는 모른다.',
 ];
+/* 서장은 한 단계씩 먹이 번지듯 드러난다: 서문 → (누르면) 제자 이름 → 4대 스탯 → 입문 무공 → 기예와 시작 단추.
+   자동 검사(웹드라이버)에서는 한 번에 모두 펼친다 */
+const INTRO_STEPS = 4;
 function showIntro() {
   let chosen = 'samjaeGeom', talent = 'forge';
+  let stage = navigator.webdriver ? INTRO_STEPS : 0, fresh = 0;   // fresh: 방금 드러난 단계 (그 단계만 번지며 나타난다)
   const attr = Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';
   const left = () => ATTR_TOTAL - Object.values(attr).reduce((a, b) => a + b, 0);
-  const eff = k => { const d = attr[k] - ATTR_BASE, P = ATTRS[k].per, sg = v => (v > 0 ? '+' : '') + (Math.round(v * 10) / 10);
-    if (ATTRS[k].abs) return Object.entries(ATTRS[k].abs).map(([s, v]) => `${STAT_NAMES[s] || s} ${sg(v * attr[k])}%`).join(' · ');   // 민첩: 수치 그대로
-    return d === 0 ? '기본' : Object.entries(P).map(([s, v]) => `${s === 'elem' ? '오행 극' : STAT_NAMES[s] || s} ${sg(v * d)}${s === 'elem' ? '%p' : ''}`).join(' · '); };
+  const step = (n, html) => stage >= n ? `<section class="intro-step ${fresh === n ? 'reveal' : ''}" data-step="${n}">${html}</section>` : '';
+  // 입문 무공은 가장 화려한 비급 표지(일류) 위에 병기 문양으로
+  const starterIco = id => icoWrap([[ITEM_ART('book_g1'), 'cover'], [ITEM_ART('emb_' + MANUALS[id].weapon), 'emb']], '📘', 'book g1 starter-ico');
+  const TALENT_ICO = { forge: 'assets/art/ui/c_hammer.png', alchemy: ART_SRC.cauldron() };
   const draw = () => {
     const name = $('#pname') ? $('#pname').value : '이름 없는 제자';
-    m.innerHTML = `<div class="sheet intro">
+    m.innerHTML = `<div class="sheet intro stage-${stage}">
+      <div class="intro-hero" aria-hidden="true"><img src="assets/art/banner.jpg" alt="" onerror="this.remove()"></div>
       <p class="eyebrow">江湖見聞錄 · 序章</p>
       <h1>강호견문록</h1>
-      <div class="prologue">${PROLOGUE.map(p => `<p class="story">${p}</p>`).join('')}</div>
-      <h3 class="intro-h">제자 만들기</h3>
+      <div class="prologue ${stage === 0 && fresh === 0 ? 'reveal-lines' : ''}">${PROLOGUE.map((p, i) => `<p class="story" style="--i:${i}">${p}</p>`).join('')}</div>
+      ${step(1, `<h3 class="intro-h">제자 만들기</h3>
       <label class="field-l" for="pname">제자의 이름</label>
-      <input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off">
-      <p class="field-l">4대 기본 스탯 <small class="muted">4대 기본 스탯 합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
+      <input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off">`)}
+      ${step(2, `<p class="field-l">4대 기본 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
       <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
         <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
         <button class="btn sm ghost" data-attr="${k}" data-d="-1" ${attr[k] <= ATTR_MIN ? 'disabled' : ''} aria-label="${A.name} 내리기">−</button>
         <b class="attr-val">${attr[k]}</b>
-        <button class="btn sm ghost" data-attr="${k}" data-d="1" ${attr[k] >= ATTR_MAX || left() <= 0 ? 'disabled' : ''} aria-label="${A.name} 올리기">＋</button>
-        <small class="attr-eff">${eff(k)}</small></div>`).join('')}</div>
-      <p class="field-l">입문 무공</p>
-      <div class="starters">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}"><b>${M.name}</b><small>[${WEAPON_SHORT[M.weapon]}]</small></button>`; }).join('')}</div>
-      <p class="field-l">기예 <small class="muted">(技藝)</small></p>
-      <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><b>${T.name} <small>${T.hanja}</small></b><em class="talent-sub">${T.sub}</em><small>${T.desc}</small></button>`).join('')}</div>
-      <p class="muted">${left() ? `남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.` : '병기 상성: 권장 › 검/도 › 창·암기 › 권장 … 입문 무공이 곧 첫 병기입니다.'}</p>
-      <button class="btn primary big" id="begin" ${left() ? 'disabled' : ''}>제자에게 말을 건다</button>
+        <button class="btn sm ghost" data-attr="${k}" data-d="1" ${attr[k] >= ATTR_MAX || left() <= 0 ? 'disabled' : ''} aria-label="${A.name} 올리기">＋</button></div>`).join('')}</div>`)}
+      ${step(3, `<p class="field-l">입문 무공 <small class="muted">입문 무공이 곧 첫 병기입니다</small></p>
+      <div class="starters starter-books">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}">${starterIco(id)}<b>${M.name}</b><small>${WEAPON_SHORT[M.weapon]}</small></button>`; }).join('')}</div>`)}
+      ${step(4, `<p class="field-l">기예 <small class="muted">(技藝)</small></p>
+      <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><span class="talent-ico" style="background-image:url('${TALENT_ICO[k]}')"></span><b>${T.name} <small>${T.hanja}</small></b><em class="talent-sub">${T.sub}</em></button>`).join('')}</div>
+      <p class="muted">${left() ? `남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.` : '병기 상성: 권장 › 검/도 › 창·암기 › 권장 …'}</p>
+      <button class="btn primary big" id="begin" ${left() ? 'disabled' : ''}>제자에게 말을 건다</button>`)}
+      ${stage < INTRO_STEPS ? `<button class="intro-next" data-intro-next>▼ 눌러서 계속</button>` : ''}
     </div>`;
+    fresh = -1;
+    const nx = m.querySelector('[data-step="' + stage + '"]'); if (nx && stage > 0) nx.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   };
   draw();
   m.onclick = e => {
@@ -224,6 +240,9 @@ function showIntro() {
       startNewGame(name, chosen, { attr: { ...attr }, talent });
       goTab('sect', 'hall');
       render();
+      return;
     }
+    // 입력칸·단추가 아닌 곳을 누르면 다음 단계가 드러난다
+    if (stage < INTRO_STEPS && (e.target.closest('[data-intro-next]') || !e.target.closest('input, button, label'))) { stage++; fresh = stage; draw(); }
   };
 }

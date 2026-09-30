@@ -2,6 +2,16 @@
 
 /* ───────── 이벤트 ───────── */
 /* 문서 전체에 한 번만 건다. 버튼의 data-* 속성으로 어떤 시스템 함수를 부를지 고른다. */
+/* 인물에게 말을 걸면 그 사이에 오간 말(견문록에 남는 줄)을 대화 창으로 띄운다 */
+function npcTalk(who, fn) {
+  const last = S.log[S.log.length - 1];
+  fn();
+  const from = S.log.lastIndexOf(last) + 1;
+  ui.npcTalk = { who, lines: S.log.slice(from).map(e => ({ text: e.text, cls: e.cls })) };
+  if (ui.npcTalk.lines.length) ui.modal = 'npc';
+  render();
+}
+
 function bindInput() {
   document.addEventListener('click', onClick);
   document.addEventListener('change', onChange);
@@ -26,6 +36,8 @@ function onClick(e) {
   if (d.starup) return askStarUp(d.starup);
   if (d.fold) return toggleFold(d.fold);
   if (d.shopmode) { ui.shopMode = d.shopmode; return render(); }
+  if (d.shopbuy) { ui.shopBuy = d.shopbuy; return render(); }
+  if (d.shopgear) { ui.shopGear = d.shopgear; return render(); }
   if (d.buy) return askBuy(d.buy);
   if (d.buygear) { const [base, t] = d.buygear.split(':'); return askBuyGear(base, +t); }
   if (d.sell || d.sellall) {                                 // 판매는 재확인
@@ -64,8 +76,7 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     craft: () => askCraft(), clearpot: () => { ui.pot = {}; render(); },
-    rest: () => showConfirmModal({ title: '휴식', message: '평상에 누워 쉬시겠습니까? 활력과 내력이 모두 찹니다.', confirmText: '휴식', cancelText: '취소', onConfirm: rest }),
-    confirmok: confirmAccept, calm: toggleCalm, talk: arinTalk, masterhint: masterHint, jounguide: jounGuide, supply: jounSupply, reroll: () => S.silver < getQuestRefreshCost() ? rerollMissions() : requestActionConfirm({ title: '새 임무 받기', description: '지금 받은 토벌 임무 세 개를 모두 버리고 새로 받습니다. 쌓아 둔 진행도도 사라집니다.', details: [`은자 -${getQuestRefreshCost()}냥`, `다음 갱신 ${getQuestRefreshCost() + 10}냥 (자정에 10냥으로 초기화)`], confirmText: '새 임무 받기', onConfirm: rerollMissions }),
+    confirmok: confirmAccept, calm: toggleCalm, talk: () => npcTalk('arin', arinCare), masterhint: () => npcTalk('master', masterHint), jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply), reroll: () => S.silver < getQuestRefreshCost() ? rerollMissions() : requestActionConfirm({ title: '새 임무 받기', description: '지금 받은 토벌 임무 세 개를 모두 버리고 새로 받습니다. 쌓아 둔 진행도도 사라집니다.', details: [`은자 -${getQuestRefreshCost()}냥`, `다음 갱신 ${getQuestRefreshCost() + 10}냥 (자정에 10냥으로 초기화)`], confirmText: '새 임무 받기', onConfirm: rerollMissions }),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },
     gochron: () => {                                          // 결산 창 → 견문록 탭, 방금 탐험의 결산을 펼쳐 보인다

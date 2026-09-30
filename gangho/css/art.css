@@ -144,10 +144,10 @@
 .item-ico.mini { width: 30px; height: 30px; margin-right: 6px; }
 .item-ico.card { width: 40px; height: 40px; margin-right: 8px; }
 /* 비급: 등급별 표지 위, 표지 가운데 이름표 자리에 분류 문양 */
-/* 문양은 표지 한가운데에 크게. 삼류·이류는 먹빛(이류는 상아빛 테), 일류는 금빛으로 */
+/* 문양은 표지 한가운데에 크게, 먹빛으로. 이류는 상아빛 테, 일류는 금빛 광채 */
 .item-ico.book > .emb { inset: 20% 26% 24%; width: 48%; height: 56%; filter: drop-shadow(0 0 1px rgba(255, 255, 255, .7)); }
 .item-ico.book.g2 > .emb { filter: drop-shadow(0 0 1px rgba(255, 240, 210, .95)) drop-shadow(0 0 2px rgba(255, 240, 210, .6)); }
-.item-ico.book.g1 > .emb { filter: invert(1) sepia(1) saturate(3) brightness(1.05) drop-shadow(0 0 2px rgba(0, 0, 0, .95)) drop-shadow(0 0 3px rgba(240, 207, 130, .6)); }
+.item-ico.book.g1 > .emb { filter: drop-shadow(0 0 1px #fff6dc) drop-shadow(0 0 2px rgba(255, 240, 200, .95)) drop-shadow(0 0 5px rgba(240, 207, 130, .8)); }
 .item .icon .item-ico.book, .ware .icon .item-ico.book { width: 46px; height: 46px; }
 .item-ico.book.mini { width: 40px; height: 40px; }
 .item .icon, .ware .icon { display: grid; place-items: center; }
@@ -200,8 +200,8 @@
 .furnace-stage .cauldron-wrap::before { content: ''; position: absolute; inset: 6%; border-radius: 50%; border: 10px solid rgba(215, 230, 220, .08); box-shadow: 0 0 40px rgba(160, 220, 200, .08), inset 0 0 30px rgba(160, 220, 200, .06); }
 .furnace-stage .cauldron-art { width: 100%; height: 100%; }
 .furnace-stage .cauldron-art > img { object-fit: contain; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, .7)); }
-.furnace-stage.alchemy { min-height: 600px; }
-.furnace-stage.alchemy .stage-ui { margin-top: 318px; padding-top: 0; }
+.furnace-stage.alchemy { min-height: 640px; }
+.furnace-stage.alchemy .stage-ui { margin-top: 384px; padding-top: 0; }
 .furnace-stage.alchemy .furnace-fire { margin: 0 0 4px; }
 .furnace-stage .stage-ui { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 16px 18px; }
 .furnace-stage.forge .stage-ui { margin-top: auto; }
@@ -227,7 +227,7 @@
   .pot.furnace-stage { min-height: 380px; }
   .furnace-stage .cauldron-wrap { width: 280px; }
   .furnace-stage.alchemy { min-height: 520px; }
-  .furnace-stage.alchemy .stage-ui { margin-top: 232px; }
+  .furnace-stage.alchemy .stage-ui { margin-top: 288px; }
   .furnace-stage .pot-slots { gap: 7px; }
   .btn.plaque { min-width: 130px; padding: 9px 16px; }
 }
@@ -254,3 +254,46 @@
 .craft-fx.fail i { width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: radial-gradient(circle, rgba(18, 16, 14, .9), rgba(30, 28, 26, 0) 70%); filter: blur(3px); opacity: 0; animation: smokeRise var(--t) ease-out var(--dl) forwards; }
 @keyframes smokeRise { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 20% { opacity: .95; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--h) * -1)) scale(calc(var(--s) * 3)); } }
 .furnace-stage.fx-shake { animation: shake .35s linear; }
+
+/* ───────── 서장: 먹이 번지듯 한 단계씩 ───────── */
+.sheet.intro { position: relative; overflow: hidden; }
+.intro-hero { margin: -26px -26px 4px; height: 150px; overflow: hidden; position: relative; }
+.intro-hero img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; display: block; opacity: .9; }
+.intro-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(15, 13, 11, 0) 40%, var(--panel, #13161b) 100%); }
+.sheet.intro.stage-0 .eyebrow, .sheet.intro.stage-0 h1 { animation: inkReveal 1.6s ease both; }
+.sheet.intro.stage-0 h1 { animation-delay: .4s; }
+.prologue.reveal-lines .story { animation: inkReveal 1.6s ease both; animation-delay: calc(1s + var(--i) * 1.1s); }
+.intro-step.reveal { animation: inkReveal 1.1s ease both; }
+@keyframes inkReveal { from { opacity: 0; filter: blur(6px); transform: translateY(6px); } to { opacity: 1; filter: none; transform: none; } }
+.intro-next { display: block; margin: 6px auto 0; padding: 8px 18px; background: none; border: none; color: var(--gold-2); font-size: .95rem; letter-spacing: .1em; cursor: pointer; animation: nextPulse 1.8s ease-in-out infinite; }
+.sheet.intro.stage-0 .intro-next { animation: inkReveal 1s ease 5.6s both, nextPulse 1.8s ease-in-out 6.6s infinite; }
+@keyframes nextPulse { 50% { opacity: .45; transform: translateY(3px); } }
+.intro .attr-row { grid-template-areas: "name minus val plus"; }
+/* 입문 무공: 일류 비급 표지 아이콘 */
+.starter-books { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.starter-books .starter { flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 10px 6px; text-align: center; }
+.starter-books .starter .starter-ico { width: 78px; height: 78px; }
+.starter-books .starter .starter-ico > .emb { inset: 18% 22% 22%; width: 56%; height: 60%; }
+.starter-books .starter b { font-size: .92rem; }
+.starter-books .starter.on .starter-ico > img.cover { filter: drop-shadow(0 0 8px rgba(240, 207, 130, .8)); }
+/* 기예: 대장간 망치·모루 / 단로 */
+.talents .starter { align-items: center; text-align: center; gap: 4px; }
+.talent-ico { display: block; width: 72px; height: 72px; background: center / contain no-repeat; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .6)); }
+.talents .starter.on .talent-ico { filter: drop-shadow(0 0 10px rgba(240, 207, 130, .7)); }
+@media (max-width: 640px) {
+  .starter-books { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .starter-books .starter .starter-ico { width: 52px; height: 52px; }
+  .intro-hero { height: 110px; margin: -20px -20px 4px; }
+}
+
+/* ───────── 인물 대화 창 ───────── */
+.npc-sheet { max-width: 520px; }
+.npc-sheet-head { display: flex; align-items: center; gap: 14px; }
+.npc-sheet-head .npc-portrait { width: 84px; height: 84px; }
+.npc-sheet-head h2 { margin: 0; }
+.npc-lines { display: flex; flex-direction: column; gap: 8px; }
+.npc-line { margin: 0; line-height: 1.7; }
+.npc-line.said { position: relative; padding: 10px 14px; border-radius: 10px; background: rgba(240, 207, 130, .07); border: 1px solid rgba(240, 207, 130, .22); font-family: var(--serif); color: #efe6d2; }
+.npc-line.narr { font-size: .92rem; color: var(--silver); padding: 0 4px; }
+.npc-line .item-ico.sm { width: 22px; height: 22px; }
+.combat-log-stream .chron-ico { width: 22px; height: 22px; }

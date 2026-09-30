@@ -60,6 +60,18 @@ function addHint(r) {
 
 function arinTalk() { log(`아린: "${pick(ARIN_TALK)}"`, 'npc'); }
 
+/* 아린(사매): 은자 10냥을 받고 약초 찜질과 죽 한 그릇으로 활력·내력을 모두 채워 준다 (뒷마당 휴식을 대신한다) */
+const ARIN_CARE = 10;
+function arinCare() {
+  if (S.silver < ARIN_CARE) { log(`아린: "사형, 약초값은 받아야죠… 은자 ${ARIN_CARE}냥이에요. 헤헤."`, 'npc'); return false; }
+  const st = calcStats();
+  S.silver -= ARIN_CARE; S.hp = st.maxHp; S.mp = st.maxMp;
+  log(`아린: "${pick(ARIN_TALK)}"`, 'npc');
+  log(`아린이 약초 찜질을 해 주고 따끈한 죽을 내옵니다. 활력·내력이 모두 찼습니다. ${hlSilver(-ARIN_CARE)}`, 'good');
+  notify.refresh();
+  return true;
+}
+
 function rest() {
   const st = calcStats();
   S.hp = st.maxHp; S.mp = st.maxMp;

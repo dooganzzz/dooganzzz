@@ -24,7 +24,6 @@ function viewFurnace() {
           ? `<div class="stage-bg">${artPic(ART_SRC.forgeScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>`
           : `<div class="stage-bg ink"></div><div class="cauldron-wrap">${artPic(ART_SRC.cauldron(), '<svg viewBox="0 0 10 10"></svg>', 'cauldron-art')}</div>`}
         <div class="stage-ui">
-          ${ui.craft === 'forge' ? '' : furnaceFire(ui.craft)}
           <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${itemIco(flat[i])}<small>${ITEMS[flat[i]].name}</small></button>` : `<div class="slot">${i === 0 && !flat.length ? '<small class="slot-hint">재료</small>' : ''}</div>`).join('')}</div>
           <p class="story flame">${fireText(ui.craft)}</p>
           <div class="btns plaque-btns"><button class="btn plaque primary" data-act="craft" ${flat.length ? '' : 'disabled'}>${ui.craft === 'forge' ? '불 지펴 두드리기' : '단로에 불 넣기'}</button><button class="btn plaque" data-act="clearpot" ${flat.length ? '' : 'disabled'}>비우기</button></div>

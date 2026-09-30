@@ -36,9 +36,16 @@ function chronDecor(html) {
       byKey: new Map(pairs.map(([id, I]) => [I.icon + '|' + I.name, id])) };
   }
   let out = html.replace(chronItemRe.re, (m, ic, sp, tag, name) => { const id = chronItemRe.byKey.get(ic + '|' + name); return id ? `${itemIco(id, 'sm')}${tag}${name}` : m; });
-  out = out.replace(/⚔️/g, () => `<i class="chron-ico" style="background-image:url('assets/art/ui/${/패배|쓰러/.test(html) ? 'c_lose' : 'c_win'}.png')"></i>`);
-  for (const [e, f] of Object.entries(CHRON_UI)) if (out.includes(e)) out = out.split(e).join(`<i class="chron-ico" style="background-image:url('assets/art/ui/${f}.png')"></i>`);
-  for (const [e, f] of Object.entries(CHRON_ITEM)) if (out.includes(e)) out = out.split(e).join(`<i class="chron-ico" style="background-image:url('${ITEM_ART(f)}')"></i>`);
+  // 태그 밖 글자에서만 기호를 바꾼다 (아이템 그림의 속성에 든 기호는 건드리지 않게)
+  const ico = src => `<i class="chron-ico" style="background-image:url('${src}')"></i>`;
+  const lose = /패배|쓰러/.test(html);
+  out = out.split(/(<[^>]+>)/).map(part => {
+    if (part.startsWith('<')) return part;
+    part = part.replace(/⚔️/g, () => ico(`assets/art/ui/${lose ? 'c_lose' : 'c_win'}.png`));
+    for (const [e, f] of Object.entries(CHRON_UI)) if (part.includes(e)) part = part.split(e).join(ico(`assets/art/ui/${f}.png`));
+    for (const [e, f] of Object.entries(CHRON_ITEM)) if (part.includes(e)) part = part.split(e).join(ico(ITEM_ART(f)));
+    return part;
+  }).join('');
   const who = CHRON_NPC.find(([n]) => out.startsWith(n + ':') || out.startsWith(n + '이 ') || out.startsWith(n + '가 '));
   if (who && IMG[who[1]]) out = `<i class="npc-face" style="background-image:url('${IMG[who[1]]}')"></i>` + out;
   return out;

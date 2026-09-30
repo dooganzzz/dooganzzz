@@ -68,7 +68,7 @@ function prepPanel() {
     ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1;
       const tz = X.zone ? ` — ${ZONES[X.zone].name} ${zoneTerrainText(X.zone)} ${m < 1 ? '<b class="good">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn">불일치 · 기력 +20%</span>' : ''}` : '';
       return row(!!(e && t) && m <= 1, '상성', `기공 ${e ? elemTag(e) : '<span class="warn">오행 없음</span>'} · 경공 ${t ? terrainTag(t) : '<span class="warn">지형 없음</span>'}${tz} · 병기 ${weaponTag(weaponType())}`, go('status', 'martial', '무공')); })()}
-    ${row(true, '준비한 단약', S.buffs.length ? S.buffs.map(b => b.name).join(', ') : '없음 (골계단·통맥환·해독산·청심단은 다음 원정 동안 효과)', go('sect', 'yard', '뒷마당'))}
+    ${row(true, '준비한 단약', S.buffs.length ? S.buffs.map(b => b.name).join(', ') : '없음 (골계단·통맥환·해독산·청심단은 다음 원정 동안 효과)', go('bag', null, '행낭'))}
   </ul>`;
 }
 
@@ -147,7 +147,7 @@ function replayModal(key) {
       <div class="plaque foe ${b.boss ? 'boss' : ''}" id="pl-foe"><div class="seal-av foe">${ENEMIES[b.eid] ? beastArt(b.eid) : sealChar(b.name)}</div><div class="pl-info"><h3>${b.name}</h3><small>${b.boss ? '두목(頭目)' : '요수(妖獸)'} ${ENEMIES[b.eid] ? elemTag(ENEMIES[b.eid].elem) + weaponTag(ENEMIES[b.eid].wtype) : ''}</small><div id="rpFoe">${vbar('hp foe', s.foe.hp, s.foe.hp, s.foe.maxHp, '기세', true)}</div></div></div>
       <div class="move-banner" id="moveBanner" aria-hidden="true"></div>
     </div>
-    <div class="blog combat-log-stream" id="rpLog">${b.intro.map(l => `<p class="log-line ${l.cls}">${l.text}</p>`).join('')}</div>
+    <div class="blog combat-log-stream" id="rpLog">${b.intro.map(l => `<p class="log-line ${l.cls}">${chronDecor(l.text)}</p>`).join('')}</div>
     <div class="rp-ctl">
       <button class="btn sm" data-rp="toggle" id="rpToggle">${RP.playing ? '⏸ 멈춤' : '▶ 재생'}</button>
       ${[1, 2, 4].map(x => `<button class="chip ${RP.speed === x ? 'on' : ''}" data-rp="speed" data-x="${x}">${x}×</button>`).join('')}
@@ -168,7 +168,7 @@ function replayStep() {
   $('#rpMe').innerHTML = vbar('hp', r.me.hp, prev.me.hp, s.me.maxHp, '활력') + bar('mp', r.me.mp, s.me.maxMp, '내력');
   $('#rpFoe').innerHTML = vbar('hp foe', r.foe, prev.foe, s.foe.maxHp, '기세', true);
   const logEl = $('#rpLog');
-  logEl.insertAdjacentHTML('beforeend', r.lines.map(l => `<p class="log-line ${l.cls} fresh">${l.text}</p>`).join(''));
+  logEl.insertAdjacentHTML('beforeend', r.lines.map(l => `<p class="log-line ${l.cls} fresh">${chronDecor(l.text)}</p>`).join(''));
   logEl.scrollTop = logEl.scrollHeight;
   const last = RP.i >= b.rounds.length - 1;
   $('#rpRound').textContent = last ? (b.win ? '勝' : b.fled ? '和' : '敗') : `${RP.i + 1}합`;

@@ -16,7 +16,7 @@ const label = (ko, hj) => `<b class="ko">${ko}</b><small class="hj">${hj}</small
 /* ───────── 화면 ───────── */
 /* 1차 탭 */
 const TABS = [
-  ['sect', '청풍문', '淸風門'],    // 하위: 정청 · 화로 · 뒷마당 · 무신상 · 전방
+  ['sect', '청풍문', '淸風門'],    // 하위: 정청 · 화로 · 연무장 · 무신상 · 전방
   ['status', '상태', '狀態'],      // 하위: 무장 · 무공
   ['bag', '행낭', '行囊'],
   ['field', '강호행', '江湖行'],
@@ -24,7 +24,7 @@ const TABS = [
   ['codex', '도감', '圖鑑'],
 ];
 /* 2차 탭 (청풍문 시설 · 상태) */
-const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yard', '뒷마당', '後院'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
+const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
 const STATUS_SUBS = [['gear', '무장', '武裝'], ['martial', '무공', '武功']];
 const SUBS = { sect: SECT_SUBS, status: STATUS_SUBS };
 const SUB_KEY = { sect: 'sectSub', status: 'statusSub' };
@@ -113,7 +113,7 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, yard: viewYard, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]();
+  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]();
   renderModal();
   typewriteAll();
   wireImages();

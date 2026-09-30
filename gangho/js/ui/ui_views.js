@@ -1,4 +1,4 @@
-/* [화면] 탭 화면: 청풍문(정청·화로·뒷마당·무신상·전방) · 상태(무장·무공) · 행낭 · 도감 */
+/* [화면] 탭 화면: 청풍문(정청·화로·연무장·무신상·전방) · 상태(무장·무공) · 행낭 · 도감 */
 
 /* ───────── 이미지 (없으면 대체 그림) ───────── */
 const IMG = {
@@ -167,32 +167,6 @@ function viewYeonmu() {
   </section>`;
 }
 
-/* 뒷마당 */
-function viewYard() {
-  const pills = Object.keys(S.inv).filter(id => ITEMS[id].use && ITEMS[id].kind === '단약');
-  return `<section class="panel">
-    ${head('뒷마당', '後院')}
-    <div class="row">
-      <div class="card">
-        <h3>평상에 누워 휴식</h3>
-        <p class="story">햇볕이 좋습니다. 한숨 돌리면 활력·내력이 돌아옵니다.</p>
-        <div><button class="btn primary" data-act="rest">휴식</button></div>
-      </div>
-      <div class="card">
-        <h3>단약 먹기</h3>
-        ${pills.length ? `<div class="chips">${pills.map(id => `<button class="chip" data-use="${id}" title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : '<p class="muted">가진 단약이 없습니다. 화로 › 단약에서 빚어 보십시오.</p>'}
-        ${S.buffs.length ? `<div class="chips">${S.buffs.map(b => `<span class="pill">${b.name} · 다음 원정</span>`).join('')}</div>` : ''}
-      </div>
-    </div>
-  </section>
-  <section class="panel npc">
-    <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
-    <div class="btns">
-      <button class="btn" data-act="talk">💬 이야기 나누기</button>
-    </div>
-  </section>`;
-}
-
 /* 정청 */
 function viewHall() {
   const qi = questIndex(), q = QUESTS[qi];
@@ -207,7 +181,9 @@ function viewHall() {
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
-      <div class="npc-acts"><button class="btn ghost sm" data-act="jounguide">문파 안내</button><button class="btn ${supplied ? 'ghost' : 'primary'} sm" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>`;
+      <div class="npc-acts"><button class="btn ghost sm" data-act="jounguide">문파 안내</button><button class="btn ${supplied ? 'ghost' : 'primary'} sm" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
+    <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 다친 데 없어요? 약초 찜질 해 줄게요!"</p></div>
+      <div class="npc-acts"><button class="btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'primary' : 'ghost'} sm" data-act="talk" title="은자 ${ARIN_CARE}냥 · 활력·내력 모두 회복">말 걸기 <small>(은자 ${ARIN_CARE}냥 · 회복)</small></button></div></div>`;
   const missions = `
     <div class="btns"><button class="btn ghost sm" data-act="reroll">새 임무 (은자 ${getQuestRefreshCost()}냥)</button><small class="muted">갱신할 때마다 10냥씩 오르고, 매일 자정에 10냥으로 돌아갑니다.</small></div>
     <ul class="missions">${S.missions.map((m, i) => {
@@ -253,6 +229,8 @@ const DOLL_SVG = `<svg class="martial-artist-img fallback" viewBox="0 0 240 360"
 </svg>`;
 
 /* 청풍문 › 전방(廛房): 왕 가의 구매 / 판매 */
+/* 전방 장비 진열 분류 */
+const SHOP_GEAR_TABS = { weapon: { ko: '무기', hj: '武器', slots: ['weapon'] }, armor: { ko: '갑옷', hj: '甲胄', slots: ['armor', 'helmet', 'boots'] }, acc: { ko: '장신구', hj: '裝身具', slots: ['belt', 'jade', 'ring', 'badge', 'mount'] } };
 function viewShop() {
   const mode = ui.shopMode === 'sell' ? 'sell' : 'buy';
   const toggle = `<div class="subtabs shop-mode" role="tablist" aria-label="거래" style="--n:2">${[['buy', '구매', '買'], ['sell', '판매', '賣']].map(([id, ko, hj]) =>
@@ -261,14 +239,21 @@ function viewShop() {
   let body;
   if (mode === 'buy') {
     const wares = SHOP_STOCK.map(([id, pr]) => { const I = ITEMS[id]; return `<div class="ware"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num muted">보유 ${count(id)}</span><small>${I.desc}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buy="${id}">사기</button></div>`; }).join('');
-    const gear = SHOP_GEAR_STOCK.map(([base, t, pr]) => { const B = gearSpec(base, t); const st = Object.entries(B.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
-      return `<div class="ware"><span class="icon">${gearIco(B)}</span><div><b class="item-name grade-low">${B.name}</b> ${gradeBadge(RARITY[0].name)} <span class="num muted">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_SHORT[B.wtype] : ''}</span><small>${st}${B.desc ? ` — ${B.desc}` : ''}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buygear="${base}:${t}">사기</button></div>`; }).join('');
-    body = `<h4 class="ware-head">소모품 · 재료</h4><div class="wares">${wares}</div><h4 class="ware-head">기본 장비</h4><div class="wares">${gear}</div>`;
+    const gearRow = ([base, t, pr]) => { const B = gearSpec(base, t); const st = Object.entries(B.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
+      return `<div class="ware"><span class="icon">${gearIco(B)}</span><div><b class="item-name grade-low">${B.name}</b> ${gradeBadge(RARITY[0].name)} <span class="num muted">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_SHORT[B.wtype] : ''}</span><small>${st}${B.desc ? ` — ${B.desc}` : ''}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buygear="${base}:${t}">사기</button></div>`; };
+    // 구매: [소모품] | [장비] → 장비는 [무기] | [갑옷] | [장신구]
+    const tabs = (key, cur, list, cls) => `<div class="subtabs ${cls}" role="tablist" style="--n:${list.length}">${list.map(([id, ko, hj]) => `<button class="subtab ${cur === id ? 'on' : ''}" role="tab" aria-selected="${cur === id}" data-${key}="${id}">${label(ko, hj)}</button>`).join('')}</div>`;
+    const bt = ui.shopBuy === 'gear' ? 'gear' : 'items';
+    const gt = SHOP_GEAR_TABS[ui.shopGear] ? ui.shopGear : 'weapon';
+    const gearRows = SHOP_GEAR_STOCK.filter(([base, t]) => SHOP_GEAR_TABS[gt].slots.includes(gearSpec(base, t).slot)).map(gearRow).join('');
+    body = tabs('shopbuy', bt, [['items', '소모품', '消耗品'], ['gear', '장비', '裝備']], 'shop-buy-tabs')
+      + (bt === 'items' ? `<div class="wares">${wares}</div>`
+        : tabs('shopgear', gt, Object.entries(SHOP_GEAR_TABS).map(([id, g]) => [id, g.ko, g.hj]), 'shop-gear-tabs') + (gearRows ? `<div class="wares">${gearRows}</div>` : '<p class="story muted">지금은 들여놓은 물건이 없소.</p>'));
   } else {
     const items = Object.keys(S.inv).filter(id => itemSellPrice(id) > 0);
     const gears = S.gear.filter(it => gearSellPrice(it) > 0);
     const rowI = id => { const I = ITEMS[id], n = count(id), pr = itemSellPrice(id); return `<div class="ware"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num">×${n}</span><small>한 개 ${fmt(pr)}냥</small></div>${price(pr * n)}<div class="btns"><button class="btn sm" data-sell="${id}">1개 팔기</button>${n > 1 ? `<button class="btn ghost sm" data-sellall="${id}">전부</button>` : ''}</div></div>`; };
-    const rowG = it => `<div class="ware"><span class="icon">${it.slot === 'weapon' ? '🗡️' : '🛡️'}</span><div><b class="r${it.rarity}">[${RARITY[it.rarity].name}] ${gearName(it)}</b> <span class="num muted">${SLOTS[it.slot].name}</span><small>${statLine(it)}</small></div>${price(gearSellPrice(it))}<button class="btn sm" data-sellgear="${it.uid}">팔기</button></div>`;
+    const rowG = it => `<div class="ware"><span class="icon">${gearIco(it)}</span><div><b class="r${it.rarity}">[${RARITY[it.rarity].name}] ${gearName(it)}</b> <span class="num muted">${SLOTS[it.slot].name}</span><small>${statLine(it)}</small></div>${price(gearSellPrice(it))}<button class="btn sm" data-sellgear="${it.uid}">팔기</button></div>`;
     body = items.length || gears.length
       ? `${gears.length ? `<h4 class="ware-head">보관 장비 <small class="muted">착용 중인 장비는 팔 수 없습니다</small></h4><div class="wares">${gears.map(rowG).join('')}</div>` : ''}
          ${items.length ? `<h4 class="ware-head">소지품</h4><div class="wares">${items.map(rowI).join('')}</div>` : ''}`
