@@ -28,9 +28,9 @@ module.exports = async (b) => {
   for (const k of ['bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
   // 상태 › 무공
   await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
-  const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mcard b')].map(e => e.textContent).join(',') }));
-  ok('3 상단 4대 슬롯 (빈 상태)', m1.slots === '무공,심법,경공,기공' && m1.empty === 4, m1.slots);
-  ok('3 하단 익힌 무공 카드', m1.cards === '《삼재도법》,《토납법》,《포철삭》흙土,《철포삼》金', m1.cards);
+  const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mcard b')].map(e => e.textContent).join(','), total: (document.querySelector('.total-count-badge') || {}).textContent }));
+  ok('3 방위 4대 슬롯 (빈 상태 · 12시 심법 9시 무공 3시 기공 6시 경공)', m1.slots === '심법,무공,기공,경공' && m1.empty === 4, m1.slots);
+  ok('3 습득 비급: [무공] 탭에 《삼재도법》 · 전체 4권', m1.cards === '《삼재도법》' && /4/.test(m1.total || ''), JSON.stringify(m1));
   await p.click('.mcard >> text=《삼재도법》');
   const md = await p.evaluate(() => { const sh = document.querySelector('.sheet'); return { title: sh.querySelector('h2').textContent, prog: sh.querySelector('p.num').textContent, desc: sh.querySelector('p.story').textContent, bonus: [...sh.querySelectorAll('.kv span')].map(e => e.textContent).slice(0, 2).join(','), btn: sh.querySelector('[data-equipm]') && sh.querySelector('[data-equipm]').textContent }; });
   ok('4 명칭·등급', md.title.includes('《삼재도법》') && md.title.includes('[삼류 무공]'), md.title);
@@ -44,7 +44,7 @@ module.exports = async (b) => {
   ok('4 장착 → 슬롯 반영·능력치 상승', e1.active === 'samjaeDo' && e1.atk > atk0, `공격력 ${atk0}→${e1.atk}`);
   ok('4 장착 상태 → [ 장착 해제 ]', e1.btn === '[ 장착 해제 ]');
   await p.click('[data-act="closemodal"]');
-  for (const id of ['tonap', 'pocheolsak', 'cheolpo']) { await p.click(`.mcard[data-mart="${id}"]`); await p.click('[data-equipm]'); await p.click('[data-act="closemodal"]'); }
+  for (const [id, tab] of [['tonap', 'heart'], ['pocheolsak', 'agility'], ['cheolpo', 'aura']]) { await p.click(`[data-skilltab="${tab}"]`); await p.click(`.mcard[data-mart="${id}"]`); await p.click('[data-equipm]'); await p.click('[data-act="closemodal"]'); }
   ok('3 네 슬롯 모두 장착', (await p.$$('.mslot.empty')).length === 0);
   // 장착 슬롯의 [▲ 성급] 단추: 수련치가 모자라면 비활성, 채우면 올라감
   ok('3 장착 슬롯에 성급 올리기 단추 (수련치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="tonap"]'); return !!b && b.disabled; }));

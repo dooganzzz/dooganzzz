@@ -177,7 +177,7 @@ function playerHit(b, mult, o) {
   if (typeof o === 'string') o = { desc: o };
   const e = b.e, st = b.st, A = b.aff || NO_AFF, v = stanceVars(b);
   const hitChance = Math.max(55, 95 - e.eva) + A.myHit + (st.acc || 0);
-  if (o.banner && b.fx) b.fx.push({ side: 'banner', t: o.banner, k: o.cls === 'counter' ? 'counter' : 'move' });
+  if (o.banner && b.fx) b.fx.push({ side: 'banner', t: o.banner, k: o.cls === 'counter' ? 'counter' : 'move', w: o.w || weaponType(), n: o.n || 0 });   // w·n: 관찰 창 초식 연출(병기 · 몇 번째 초식)
   if (o.title) bLine(o.title, `log-stance-title ${o.cls || ''}`);
   bLine(stanceFill(o.desc, v), 'log-stance-desc');
   if (A.wp > 0 && !b.affSaid) { b.affSaid = true; bLine('[상성 우위] 병기의 이점을 살린 궤적이 적의 빈틈을 파고든다!', 'log-stance-desc aff-up'); }
@@ -227,7 +227,7 @@ function playerAttack(b) {
       S.mp -= cost;
       comboDone = true;
       const sc = M.stances[i];
-      const ok = playerHit(b, mults[i], { title: `【 ${M.name} - ${sc.name} !! 】`, desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: sc.name,
+      const ok = playerHit(b, mults[i], { title: `【 ${M.name} - ${sc.name} !! 】`, desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: sc.name, w: M.weapon, n: i + 1,
         critUp: (M.chainCrit || 0) * hitsInRow, weaken: M.weaken, stanceBleed: M.stanceBleed });
       if (ok) hitsInRow++;
       if (!ok || b.e.hpNow <= 0) break;

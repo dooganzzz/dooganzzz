@@ -60,14 +60,18 @@ function addHint(r) {
 
 function arinTalk() { log(`아린: "${pick(ARIN_TALK)}"`, 'npc'); }
 
-/* 아린(사매): 은자 10냥을 받고 약초 찜질과 죽 한 그릇으로 활력·내력을 모두 채워 준다 (뒷마당 휴식을 대신한다) */
+/* 아린(사매): 죽 한 그릇으로 활력·내력을 모두 채워 준다 (뒷마당 휴식을 대신한다).
+   하루 첫 그릇은 공짜, 그 뒤로는 한 그릇에 은자 10냥 */
 const ARIN_CARE = 10;
+const arinFree = () => S.arinFreeDay !== today();
 function arinCare() {
-  if (S.silver < ARIN_CARE) { log(`아린: "사형, 약초값은 받아야죠… 은자 ${ARIN_CARE}냥이에요. 헤헤."`, 'npc'); return false; }
+  const free = arinFree();
+  if (!free && S.silver < ARIN_CARE) { log(`아린: "사형, 쌀값은 받아야죠… 은자 ${ARIN_CARE}냥이에요. 헤헤."`, 'npc'); return false; }
   const st = calcStats();
-  S.silver -= ARIN_CARE; S.hp = st.maxHp; S.mp = st.maxMp;
-  log(`아린: "${pick(ARIN_TALK)}"`, 'npc');
-  log(`아린이 약초 찜질을 해 주고 따끈한 죽을 내옵니다. 활력·내력이 모두 찼습니다. ${hlSilver(-ARIN_CARE)}`, 'good');
+  if (free) S.arinFreeDay = today(); else S.silver -= ARIN_CARE;
+  S.hp = st.maxHp; S.mp = st.maxMp;
+  log(`아린: "${free ? '오늘 첫 그릇은 공짜예요! 뜨거우니까 천천히 드세요.' : '맛있게 드세요, 사형!'}"`, 'npc');
+  log(`아린이 끓여 온 죽을 마셨습니다. 활력·내력이 모두 회복되었습니다.${free ? '' : ` ${hlSilver(-ARIN_CARE)}`}`, 'good');
   notify.refresh();
   return true;
 }

@@ -19,7 +19,7 @@ module.exports = async (b) => {
     await p.mouse.click(5, 5);
     const tw2 = await p.evaluate(() => ({ typing: document.querySelectorAll('.typing').length, texts: [...document.querySelectorAll('[data-tw="npc"]')].map(e => e.textContent.length) }));
     ok('3 클릭하면 전부 즉시 표시', tw2.typing === 0 && tw2.texts.every(n => n > 10), JSON.stringify(tw2));
-    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'yard'; render(); ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
     ok('3 두 번째 방문부터는 바로 전체 문장', (await p.$$('.typing')).length === 0);
 
     await p.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });

@@ -32,7 +32,7 @@ function playFx(fx) {
     if (f.side === 'banner') {
       const el = $('#moveBanner'); if (!el) return;
       el.innerHTML = `<span class="${f.k}">${f.t}</span>`; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-      const ar = el.closest('.arena'); if (ar) { ar.classList.remove('flash'); void ar.offsetWidth; ar.classList.add('flash'); }
+      const ar = el.closest('.arena'); if (ar) { ar.classList.remove('flash'); void ar.offsetWidth; ar.classList.add('flash'); if (!reduce) stanceAnim(ar, f); }
       return;
     }
     const pl = document.getElementById(f.side === 'me' ? 'pl-me' : 'pl-foe'); if (!pl) return;
@@ -51,6 +51,27 @@ function playFx(fx) {
       if (f.side === 'me') { const ar = pl.closest('.arena'); if (ar) { ar.classList.remove('hurt'); void ar.offsetWidth; ar.classList.add('hurt'); } }
     }, i * 120);
   });
+}
+
+/* 초식 연출: 초식이 터지면 요수 쪽 허공에 병기마다 다른 먹선 동작이 그려진다.
+   검 = 가는 세 줄 베기 · 도 = 두꺼운 초승달 내려치기 · 창 = 곧은 찌르기와 파문 · 권장 = 겹겹 충격파와 장인(掌印) · 암기 = 날아가는 비표들.
+   몇 번째 초식인지(n)에 따라 획 수·크기가 늘고, 셋째 초식은 금빛. 초식 이름으로 기울기를 바꿔 초식마다 모양이 조금씩 다르다 */
+const STANCE_SVG = {
+  sword: (k) => Array.from({ length: 2 + k }, (_, i) => `<path class="stroke" style="--d:${i * 90}ms" d="M${18 + i * 14} ${104 - i * 10}Q${96 + i * 6} ${8 + i * 12} ${186 - i * 8} ${26 + i * 16}"/>`).join(''),
+  blade: (k) => `<path class="fill" d="M24 22Q120 ${40 + k * 6} 178 112Q${118 - k * 4} 70 24 22Z"/><path class="stroke" style="--d:60ms" d="M24 22Q120 ${40 + k * 6} 178 112"/>` + (k > 1 ? `<path class="stroke" style="--d:200ms" d="M40 12Q132 36 190 96"/>` : ''),
+  spear: (k) => `<path class="stroke thrust" d="M6 60H194"/><path class="fill" d="M194 60l-18-8v16z"/>` + Array.from({ length: k }, (_, i) => `<circle class="ring" style="--d:${120 + i * 110}ms" cx="180" cy="60" r="${10 + i * 6}"/>`).join(''),
+  fist: (k) => Array.from({ length: 1 + k }, (_, i) => `<circle class="ring" style="--d:${i * 120}ms" cx="130" cy="60" r="${16 + i * 12}"/>`).join('') + `<path class="fill palm" d="M118 74c-6-10-4-26 2-34 2-6 8-4 8 2v-10c0-6 8-6 8 0v-4c0-6 8-6 8 0v6c0-6 8-6 8 0v24c0 12-8 22-20 22-6 0-10-2-14-6z"/>`,
+  hidden: (k) => Array.from({ length: 3 + k * 2 }, (_, i) => `<path class="dart" style="--d:${i * 70}ms;--y:${(i % 5) * 18 - 36}px" d="M10 60h26m0 0l-7-4m7 4l-7 4"/>`).join(''),
+};
+const hashStr = t => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+function stanceAnim(ar, f) {
+  const w = STANCE_SVG[f.w] ? f.w : 'sword', n = f.k === 'counter' ? 1 : Math.min(3, Math.max(1, f.n || 1));
+  const tilt = (hashStr(f.t) % 31) - 15;
+  const el = document.createElement('div');
+  el.className = `stance-anim w-${w} n${n} ${f.k === 'counter' ? 'counter' : ''}`;
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = `<svg viewBox="0 0 200 120" style="transform:rotate(${tilt}deg)">${STANCE_SVG[w](n)}</svg>`;
+  ar.appendChild(el); setTimeout(() => el.remove(), 1500);
 }
 
 /* 적중 자국: 인장 위로 칼바람 한 줄, 치명타면 먹물이 번진다 */

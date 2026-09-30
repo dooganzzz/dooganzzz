@@ -18,26 +18,28 @@ module.exports = async (b) => {
     ok('1 시스템에 옛 창고 함수 없음', await p.evaluate(() => typeof buyStore === 'undefined' && typeof JOUN_SHOP === 'undefined'));
     await p.click('[data-act="jounguide"]');
     const g = await p.evaluate(() => S.log[S.log.length - 1].text);
+    ok('1 [문파 안내] → 대화 창에 대사가 뜬다', await p.evaluate(() => ui.modal === 'npc' && /조운/.test(document.querySelector('.npc-sheet').textContent)));
+    await p.click('[data-act="closemodal"]');
     ok('1 [문파 안내] → 대사형이 할 일을 짚어 줌', /^조운: "/.test(g), g);
     const g2 = await p.evaluate(() => { give('bk_cpSim', 1, true); jounGuide(); const t = S.log[S.log.length - 1].text; take('bk_cpSim', 1); return t; });
     ok('1 안내는 상황에 맞게 (비급 있으면 익히기 안내)', /상태 탭의 무공에서 \[ 익히기 \]/.test(g2), g2);
 
     // 2. 청풍문 › 전방
     const subs = await p.$$eval('.subtabs:not(.lib-tabs) .subtab', els => els.map(e => e.dataset.sub).join(','));
-    ok('2 서브탭 순서: 정청 | 화로 | 뒷마당 | 연무장 | 무신상 | 전방', subs === 'hall,forge,yard,yeonmu,shrine,shop', subs);
+    ok('2 서브탭 순서: 정청 | 화로 | 연무장 | 무신상 | 전방', subs === 'hall,forge,yeonmu,shrine,shop', subs);
     await p.click('.subtabs [data-sub="shop"]');
-    const shop = await p.evaluate(() => ({ head: document.querySelector('.shop-panel .panel-head .ko').textContent, npc: document.querySelector('.shop-panel .npc-head h3').textContent, mode: document.querySelector('.shop-mode .subtab.on').dataset.shopmode, items: document.querySelectorAll('[data-buy]').length, gear: document.querySelectorAll('[data-buygear]').length, purse: document.querySelector('.shop-panel .purse').textContent }));
+    const shop = await p.evaluate(() => ({ head: document.querySelector('.shop-panel .panel-head .ko').textContent, npc: document.querySelector('.shop-panel .npc-head h3').textContent, mode: document.querySelector('.shop-mode .subtab.on').dataset.shopmode, items: document.querySelectorAll('[data-buy]').length, gear: (() => { let n = 0; for (const t of Object.keys(SHOP_GEAR_TABS)) { ui.shopBuy = 'gear'; ui.shopGear = t; render(); n += document.querySelectorAll('[data-buygear]').length; } ui.shopBuy = 'items'; render(); return n; })(), purse: document.querySelector('.shop-panel .purse').textContent }));
     ok('2 청풍전방 왕 가 인터페이스', shop.head === '청풍전방' && /왕 가/.test(shop.npc) && /청풍전방 주인/.test(shop.npc), JSON.stringify(shop));
     ok('3 구매 탭: 소모품·재료 + 기본 장비 진열, 소지 은자 표시', shop.mode === 'buy' && shop.items >= 7 && shop.gear >= 8 && /은자/.test(shop.purse), JSON.stringify(shop));
 
     // 3. 구매: 은자 차감 + 행낭 반영
     const buy = await p.evaluate(() => { S.silver = 100; const n0 = count('saenghyeol'); document.querySelector('[data-buy="saenghyeol"]').click(); const asked = ui.modal === 'confirm'; document.querySelector('[data-act="confirmok"]').click(); return { asked, silver: S.silver, got: count('saenghyeol') - n0, log: S.log[S.log.length - 1].text }; });
     ok('3 구매: 은자 -30, 생혈고 +1', buy.silver === 70 && buy.got === 1 && /전방에서/.test(buy.log), JSON.stringify(buy));
-    const bg = await p.evaluate(() => { S.silver = 100; const g0 = S.gear.length; document.querySelector('[data-buygear="g_straightSword:1"]').click(); document.querySelector('[data-act="confirmok"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity, named: it.named }; });
+    const bg = await p.evaluate(() => { S.silver = 100; ui.shopBuy = 'gear'; ui.shopGear = 'weapon'; render(); const g0 = S.gear.length; document.querySelector('[data-buygear="g_straightSword:1"]').click(); document.querySelector('[data-act="confirmok"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity, named: it.named }; });
     ok('3 하급 장비 구매 → 행낭 보관 장비', bg.silver === 55 && bg.added === 1 && bg.name === '직도형 박검' && bg.rarity === 0 && bg.named === 'g_straightSword', JSON.stringify(bg));
 
     // 은자 부족: 구매 차단 + 견문록 오류
-    const poor = await p.evaluate(() => { S.silver = 3; const n0 = count('saenghyeol'), g0 = S.gear.length; document.querySelector('[data-buy="saenghyeol"]').click(); const l1 = S.log[S.log.length - 1]; document.querySelector('[data-buygear="g_hunterCoat:1"]').click(); const l2 = S.log[S.log.length - 1];
+    const poor = await p.evaluate(() => { S.silver = 3; ui.shopBuy = 'items'; render(); const n0 = count('saenghyeol'), g0 = S.gear.length; document.querySelector('[data-buy="saenghyeol"]').click(); const l1 = S.log[S.log.length - 1]; ui.shopBuy = 'gear'; ui.shopGear = 'armor'; render(); document.querySelector('[data-buygear="g_hunterCoat:1"]').click(); const l2 = S.log[S.log.length - 1]; ui.shopBuy = 'items'; render();
       return { silver: S.silver, got: count('saenghyeol') - n0, gear: S.gear.length - g0, l1: l1.text, c1: l1.cls, l2: l2.text, short: document.querySelector('[data-buy="saenghyeol"]').classList.contains('short') }; });
     ok('3 은자 부족 → 구매 차단 (은자·행낭 그대로)', poor.silver === 3 && poor.got === 0 && poor.gear === 0, JSON.stringify(poor));
     ok('3 은자 부족 → 견문록 오류 기록', /은자가 부족해 생혈고/.test(poor.l1) && poor.c1 === 'bad' && /사냥꾼 가죽옷/.test(poor.l2), poor.l1);

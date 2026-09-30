@@ -7,7 +7,7 @@ const GYEONG = { grass: '초상비', water: '답수보', earth: '지행보', woo
 const GIGONG = { wood: '목령진기', fire: '벽화공', earth: '후토공', metal: '백금결', water: '유수심법' };
 const FOES = [['살쾡이', 'wood', 'fist'], ['사나운 멧돼지', 'earth', 'spear'], ['흑비단독사', 'water', 'hidden'], ['청풍산 산토끼', 'wood', 'fist'], ['흑풍채 척후병', 'metal', 'blade'], ['흑풍채 탈영병', 'earth', 'spear'], ['흑풍채 투석수', 'fire', 'hidden'], ['바위 등껍질 거북', 'earth', 'fist'], ['청령목괴', 'wood', 'spear'], ['적염 호랑이', 'fire', 'fist']];
 const WEAPONS = { fist: ['무명 붕대', '거친 가죽 토수', '무쇠 징 권갑', '목인갑', '동선 장갑'], sword: ['녹슨 연습검', '날 무딘 철검', '청동 세검', '단풍목 목검', '직도형 박검'], blade: ['이가 빠진 마도', '무쇠 낭도', '흑철 박도', '벌목용 벌채도', '두정 단도'], spear: ['대나무 죽창', '녹슨 편곤창', '백랍목 장창', '철침 단창', '사냥용 삼지창'], hidden: ['무딘 철표창', '자갈 주머니', '녹슨 비도', '조잡한 철질려', '목제 비연침'] };
-const ACC = { armor: ['해진 삼베 도포', '질긴 사냥꾼 가죽옷', '청풍문 규격 도포'], ring: ['무쇠 가락지', '흑각 가락지', '청동 가락지'], belt: ['거친 삼베 허리띠', '무두질한 가죽 요대', '흑사 편직 요대'], jade: ['탁한 청옥대', '투박한 백옥대', '운문 연옥대'] };
+const ACC = { armor: ['해진 삼베 도포', '질긴 사냥꾼 가죽옷', '청풍문 규격 도포'], ring: ['무쇠 가락지', '흑각 가락지', '청동 가락지'], belt: ['거친 삼베 요대', '무두질한 가죽 요대', '흑사 편직 요대'], jade: ['탁한 청옥대', '투박한 백옥대', '운문 연옥대'] };
 
 module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
@@ -97,7 +97,7 @@ module.exports = async (b) => {
     ok('4 장비 등급 하급 < 중급 < 상급 < 진품 < 명품 < 극품', eq.grades === '하급<중급<상급<진품<명품<극품', eq.grades);
     ok('4 하급 장비 37종 (무기 25 · 방어구 3 · 장신구 9)', eq.total === 37 && !eq.miss.length && eq.named, JSON.stringify(eq.miss));
     ok('4 지정 능력치 (무쇠 가락지 공격 +2 · 흑각 기력 -2% · 가죽 요대 방어 +3 · 청옥대 기공 +3% · 백옥대 내력 +15)', eq.stats.iron === 2 && eq.stats.horn === 2 && eq.stats.leather === 3 && eq.stats.dull === 3 && eq.stats.white === 15 && eq.stats.cp, JSON.stringify(eq.stats));
-    ok('4 하급 고정 등급 · 슬롯 가락지/허리띠/옥대 · 입문 무기·해진 삼베 도포로 시작', eq.item[1] === '하급' && eq.slots === '가락지,허리띠,옥대' && /^g_/.test(eq.starter[0]) && eq.starter[1] === 'g_hempRobe', JSON.stringify(eq));
+    ok('4 하급 고정 등급 · 슬롯 가락지/요대/옥대 · 입문 무기·해진 삼베 도포로 시작', eq.item[1] === '하급' && eq.slots === '가락지,요대,옥대' && /^g_/.test(eq.starter[0]) && eq.starter[1] === 'g_hempRobe', JSON.stringify(eq));
     const fx = await p.evaluate(() => {
       const r = {}, eqp = slot => S.equip[slot];
       const keep = { ring: eqp('ring'), jade: eqp('jade'), belt: eqp('belt') };
@@ -123,7 +123,7 @@ module.exports = async (b) => {
     const drop = await p.evaluate(() => { const n = {}; for (let i = 0; i < 60; i++) { const it = dropGear(1, 0); n[it.named ? 'named' : 'base']= (n[it.named ? 'named' : 'base'] || 0) + 1; } const hi = dropGear(2, 1); return { n, hi: !hi.named && hi.tier === 2 }; });
     ok('4 청풍산(1티어) 하급 드랍·공양은 하급 장비 37종에서 · 그 밖은 기본형', drop.n.named === 60 && drop.hi, JSON.stringify(drop));
     await p.evaluate(() => { goTab('sect', 'shop'); render(); });
-    ok('4 전방에 하급 장비 진열 ([하급] 이름 · 설명)', await p.evaluate(() => [...document.querySelectorAll('[data-buygear]')].length >= 10 && /\[하급\] 직도형 박검/.test(document.querySelector('.shop-panel').textContent)));
+    ok('4 전방 › 구매 › 장비에 하급 장비 진열 (이름 · 하급 뱃지 · 설명, 무기·갑옷·장신구 탭 합계 10종 이상)', await p.evaluate(() => { let n = 0; for (const t of Object.keys(SHOP_GEAR_TABS)) { ui.shopBuy = 'gear'; ui.shopGear = t; render(); n += document.querySelectorAll('[data-buygear]').length; } ui.shopGear = 'weapon'; render(); const w = [...document.querySelectorAll('.shop-panel .ware')].find(e => /직도형 박검/.test(e.textContent)); return n >= 10 && !!w && /하급/.test(w.textContent); }));
 
     // 5. 화면: 무공 상세 초식 · 관찰 창 3단계
     await p.evaluate(() => { S.manuals.paseok = { star: 12 }; ui.modal = 'mart:paseok'; renderModal(); });

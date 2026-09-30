@@ -49,10 +49,10 @@ module.exports = async (b) => {
   await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
   const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.character-portrait-card .portrait-img'), head: document.querySelector('.panel-head .ko').textContent }));
   ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸 이상 (근력 각인·장비로 늘어남)', bag.cap >= 100, String(bag.cap));
-  ok('5 상단 슬롯', bag.top === '투구,무기,옥대,호갑', bag.top); ok('5 하단 가로 5슬롯', bag.bottom === '신발,허리띠,가락지,신분패,탈것', bag.bottom); ok('5 초상 카드 이미지', bag.img);
+  ok('5 몸 둘레 슬롯 (왼쪽 가락지·무기·요대 · 가운데 투구 · 오른쪽 옥대·호갑·가락지)', bag.top === '가락지,무기,요대,투구,옥대,호갑,가락지', bag.top); ok('5 하단 가로 3슬롯', bag.bottom === '신발,신분패,탈것', bag.bottom); ok('5 초상 카드 이미지', bag.img);
   // 7 + 6
   await p.evaluate(() => { S.silver = 100; render(); });
-  await p.click('[data-tab="sect"]'); await p.click('[data-sub="yard"]');
+  await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');
   ok('7 아린 힌트 버튼 제거됨', !(await p.$('[data-act="hint"]')));
   await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_low'); i++) { Object.assign(S.inv, { herb: 2, lingzhi: 1 }); ui.pot = { herb: 2, lingzhi: 1 }; doCraft(ui.craft, ui.pot); } });
   await p.click('[data-tab="codex"]'); await p.click('[data-codextab="alchemy"]');
@@ -67,7 +67,7 @@ module.exports = async (b) => {
   ok('9 화로 10칸', (await p.$$('.pot-slots .slot')).length === 10);
   // 7 portraits + quest
   await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');
-  ok('7 초상화 컨테이너', (await p.$$('.npc-portrait')).length === 2);
+  ok('7 초상화 컨테이너 (정청: 노벽송·조운·아린)', (await p.$$('.npc-portrait')).length === 3);
   ok('7 퀘스트 1개만', (await p.$$('.quest > b')).length === 1);
   // 8
   await p.evaluate(() => { give('herb', 2); S.silver += 5; log(`${hlSilver(5)} 획득`, 'loot'); log(`${hlContrib('+10')}`, 'good'); });

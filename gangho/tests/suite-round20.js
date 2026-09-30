@@ -21,7 +21,7 @@ module.exports = async (b) => {
     for (let i = 0; i < 4; i++) await p.click('[data-attr="con"][data-d="-1"]').catch(() => {});
     ok('1 한 스탯은 3 아래로 못 내림', await p.evaluate(() => document.querySelector('[data-attrrow="con"] .attr-val').textContent === '3' && document.querySelector('[data-attr="con"][data-d="-1"]').disabled));
     for (let i = 0; i < 3; i++) await p.click('[data-attr="str"][data-d="1"]');
-    ok('1 효과 미리보기', await p.evaluate(() => /공격력 \+8/.test(document.querySelector('[data-attrrow="str"] .attr-eff').textContent)));
+    ok('1 스탯은 관여 능력치만 (세부 수치 숨김)', await p.evaluate(() => !document.querySelector('.attr-eff') && /공격력/.test(document.querySelector('[data-attrrow="str"]').textContent)));
     await p.click('[data-starter="samjaeChang"]'); await p.click('[data-talent="alchemy"]');
     await p.fill('#pname', '석상제자');
     await p.click('#begin');
@@ -175,7 +175,7 @@ module.exports = async (b) => {
     await p.evaluate(() => { ui.modal = 'mart:' + S.active.gigong; renderModal(); });
     ok('7 기공 상세: 극하는 오행 · 극당하는 오행', await p.evaluate(() => /木 속성 적에게 피해 \+25%/.test(document.querySelector('.sheet').textContent) && /火 속성 적에게는 -25%/.test(document.querySelector('.sheet').textContent)));
     await p.evaluate(() => { ui.modal = null; ui.statusSub = 'gear'; render(); });
-    ok('7 전투력 카드 아래 4대 스탯 · 주력 기예', ...(await p.evaluate(() => { const t = document.querySelector('.cp-attr').textContent; return [t.includes(`근력 ${attrOf('str')}`) && t.includes(`민첩 ${attrOf('agi')}`) && /기예 단약/.test(t), t + ' / 민첩 ' + attrOf('agi')]; })));   // 비급 각인이 더해진 값
+    ok('7 전투력 카드 아래 4대 스탯 · 주력 기예', ...(await p.evaluate(() => { const t = document.querySelector('.cp-attr').textContent; return [t.includes(`근력 ${attrOf('str')}`) && t.includes(`민첩 ${attrOf('agi')}`) && /기예 연단/.test(t), t + ' / 민첩 ' + attrOf('agi')]; })));   // 비급 각인이 더해진 값
 
     // 8. 주력 기예 효과
     const tl = await p.evaluate(() => {

@@ -153,7 +153,9 @@ function renderModal() {
     m.innerHTML = `<div class="sheet npc-sheet" role="dialog" aria-modal="true" aria-label="${W[0]}와의 대화">
       <div class="npc-sheet-head">${portrait(ui.npcTalk.who, W[2], W[0])}<div><p class="eyebrow">對話 · 대화</p><h2>${label(W[0], W[1])}</h2></div></div>
       <div class="npc-lines">${ui.npcTalk.lines.map(line).join('')}</div>
-      <div class="btns"><button class="btn primary" data-act="closemodal">알겠습니다</button></div></div>`;
+      <div class="btns">${ui.npcTalk.offer
+        ? `<button class="btn primary" data-act="arineat">죽 마시기 <small>(${arinFree() ? '오늘 첫 그릇 무료' : `은자 ${ARIN_CARE}냥`})</small></button><button class="btn ghost" data-act="arinno">거절한다</button>`
+        : '<button class="btn primary" data-act="closemodal">알겠습니다</button>'}</div></div>`;
   }
   if (ui.modal === 'awaken' && ui.awaken) { const a = ui.awaken;
     m.innerHTML = `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>

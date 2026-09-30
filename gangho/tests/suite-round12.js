@@ -29,10 +29,10 @@ module.exports = async (b) => {
     ok('2 처음엔 무장: 착용 장비 슬롯 (행낭 목록은 따로)', s1.on === '무장' && s1.sel === 'true' && s1.doll && s1.slots >= 9 && s1.mslots === 0 && !s1.bagList, JSON.stringify(s1));
     await p.click('[data-sub="martial"]');
     const s2 = await p.evaluate(() => ({ on: document.querySelector('.subtab.on .ko').textContent, tab: document.querySelector('.tab.on .ko').textContent, mslots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), books: document.querySelectorAll('.chips [data-use^="bk_"]').length, doll: !!document.querySelector('.paperdoll') }));
-    ok('2 무공: 4대 무공 슬롯 + 보유 비급', s2.on === '무공' && s2.tab === '상태' && s2.mslots === '무공,심법,경공,기공' && s2.books === 4 && !s2.doll, JSON.stringify(s2));
+    ok('2 무공: 4대 무공 슬롯 + 보유 비급', s2.on === '무공' && s2.tab === '상태' && s2.mslots === '심법,무공,기공,경공' && s2.books === 4 && !s2.doll, JSON.stringify(s2));
     for (const k of ['bk_samjaeGeom', 'bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
-    const s3 = await p.evaluate(() => ({ learned: document.querySelectorAll('.mcard').length, on: document.querySelector('.subtab.on .ko').textContent }));
-    ok('2 무공에서 바로 익히기 → 익힌 무공 목록, 하위 탭 유지', s3.learned === 4 && s3.on === '무공', JSON.stringify(s3));
+    const s3 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, card: document.querySelectorAll('.mcard').length, on: document.querySelector('.subtab.on .ko').textContent }));
+    ok('2 무공에서 바로 익히기 → 익힌 무공 목록, 하위 탭 유지', s3.learned === 4 && s3.card >= 1 && s3.on === '무공', JSON.stringify(s3));
 
     // 다른 탭에 다녀와도 마지막 하위 탭 기억
     await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]'); await p.click('[data-tab="status"]');

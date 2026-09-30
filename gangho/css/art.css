@@ -297,3 +297,40 @@
 .npc-line.narr { font-size: .92rem; color: var(--silver); padding: 0 4px; }
 .npc-line .item-ico.sm { width: 22px; height: 22px; }
 .combat-log-stream .chron-ico { width: 22px; height: 22px; }
+
+/* ───────── 관찰 창: 초식 연출 ───────── */
+.arena { position: relative; }
+.stance-anim { position: absolute; top: 4%; bottom: 4%; left: 42%; right: 6%; z-index: 4; pointer-events: none; }
+.stance-anim svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 4px rgba(0, 0, 0, .8)); }
+.stance-anim .stroke { fill: none; stroke: #eef3ff; stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: 260; stroke-dashoffset: 260; animation: stanceDraw .45s cubic-bezier(.2, .8, .2, 1) var(--d, 0ms) forwards, stanceFade 1.4s ease forwards; }
+.stance-anim .fill { opacity: 0; animation: stanceFlash .6s ease-out .05s forwards; }
+.stance-anim .ring { fill: none; stroke-width: 3; opacity: 0; transform-box: fill-box; transform-origin: center; animation: stanceRing .8s ease-out var(--d, 0ms) forwards; }
+.stance-anim .dart { fill: none; stroke: #d7dde6; stroke-width: 2.4; stroke-linecap: round; opacity: 0; animation: stanceDart .55s cubic-bezier(.3, .7, .3, 1) var(--d, 0ms) forwards; }
+/* 병기별 색 */
+.stance-anim.w-sword .stroke { stroke: #e8f1ff; }
+.stance-anim.w-blade .stroke { stroke: #ffd9a0; stroke-width: 5; } .stance-anim.w-blade .fill { fill: rgba(255, 170, 80, .45); }
+.stance-anim.w-spear .stroke { stroke: #bff0dc; stroke-width: 4; } .stance-anim.w-spear .fill { fill: #bff0dc; } .stance-anim.w-spear .ring { stroke: #8fe3c2; }
+.stance-anim.w-fist .ring { stroke: #ff9a8a; } .stance-anim.w-fist .fill { fill: rgba(255, 120, 100, .55); }
+.stance-anim.w-hidden .dart { stroke: #dfe6ef; }
+/* 셋째 초식은 금빛 · 반격은 청록 */
+.stance-anim.n3 .stroke, .stance-anim.n3 .dart { stroke: #ffe08a; } .stance-anim.n3 .ring { stroke: #ffd36a; } .stance-anim.n3 .fill { fill: rgba(255, 210, 110, .55); }
+.stance-anim.n3 svg { filter: drop-shadow(0 0 8px rgba(255, 200, 90, .8)); }
+.stance-anim.counter .stroke, .stance-anim.counter .dart { stroke: #9ff0e0; } .stance-anim.counter .ring { stroke: #7fe0cf; }
+@keyframes stanceDraw { to { stroke-dashoffset: 0; } }
+@keyframes stanceFade { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes stanceFlash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes stanceRing { 0% { opacity: 0; transform: scale(.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(2.2); } }
+@keyframes stanceDart { 0% { opacity: 0; transform: translate(0, var(--y)); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(150px, var(--y)); } }
+
+/* 관찰 창 기록: 합마다 칸 · 제자 얼굴 · 새 아이콘 */
+.rp-turn { margin: 0 0 6px; }
+.rp-turn .turn-sep { display: flex; align-items: center; gap: 10px; margin: 10px 0 6px; color: #b89b5e; font-family: var(--serif); font-size: .85rem; letter-spacing: .12em; }
+.rp-turn .turn-sep::before, .rp-turn .turn-sep::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212, 175, 55, .45), transparent); }
+.rp-turn.now { border-left: 2px solid rgba(240, 207, 130, .55); padding-left: 8px; background: linear-gradient(90deg, rgba(240, 207, 130, .05), transparent 60%); }
+.rp-turn:not(.now):not(.intro) { opacity: .72; }
+.combat-log-stream .rp-ico { width: 24px; height: 24px; margin: -5px 5px 0 0; }
+.combat-log-stream .rp-ico:first-child[style*="portraits/hero"] { border-radius: 50%; border: 1.5px solid rgba(212, 175, 55, .7); background-size: cover; background-position: center 20%; }
+.combat-log-stream .rp-ico[style*="art/beasts"] { border-radius: 50%; background-color: rgba(255, 255, 255, .05); }
+.seal-av.hero { padding: 0; overflow: hidden; }
+.seal-av.hero .hero-av { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; }
+.npc-line.offer { color: #f0cf82; font-weight: 700; padding: 2px 4px; }

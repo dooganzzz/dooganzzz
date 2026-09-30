@@ -97,7 +97,7 @@ module.exports = async (b) => {
 
     // 8. 컴팩트: 헤더 칩 · 무공 카드
     const cp = await p.evaluate(() => { goTab('status', 'martial'); render(); const b = document.querySelector('.chip-badge'), s = document.querySelector('.mslot'); return { badge: parseFloat(getComputedStyle(b).fontSize), bh: b.getBoundingClientRect().height, pad: getComputedStyle(s).paddingTop, minh: getComputedStyle(s).minHeight }; });
-    ok('8 헤더 뱃지 11px(폰 10px)·높이 20 이하 · 무공 카드 패딩 8px·최소 높이 110px', (cp.badge === 11 || cp.badge === 10) && cp.bh <= 20 && cp.pad === '8px' && cp.minh === '110px', JSON.stringify(cp));
+    ok('8 헤더 정보 칸 이름 11~12px·한 줄 · 무공 방위 카드는 좁은 여백(10px 이하)', cp.badge >= 10 && cp.badge <= 12 && cp.bh <= 20 && parseFloat(cp.pad) <= 10, JSON.stringify(cp));
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

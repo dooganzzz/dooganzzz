@@ -182,8 +182,8 @@ function viewHall() {
     </div>
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
       <div class="npc-acts"><button class="btn ghost sm" data-act="jounguide">문파 안내</button><button class="btn ${supplied ? 'ghost' : 'primary'} sm" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
-    <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 다친 데 없어요? 약초 찜질 해 줄게요!"</p></div>
-      <div class="npc-acts"><button class="btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'primary' : 'ghost'} sm" data-act="talk" title="은자 ${ARIN_CARE}냥 · 활력·내력 모두 회복">말 걸기 <small>(은자 ${ARIN_CARE}냥 · 회복)</small></button></div></div>`;
+    <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 배고프죠? 죽 끓여 놨어요!"</p></div>
+      <div class="npc-acts"><button class="btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'primary' : 'ghost'} sm" data-act="talk" title="죽 한 그릇 · 활력·내력 모두 회복">말 걸기 <small>(${arinFree() ? '오늘 첫 죽 무료' : `죽 은자 ${ARIN_CARE}냥`})</small></button></div></div>`;
   const missions = `
     <div class="btns"><button class="btn ghost sm" data-act="reroll">새 임무 (은자 ${getQuestRefreshCost()}냥)</button><small class="muted">갱신할 때마다 10냥씩 오르고, 매일 자정에 10냥으로 돌아갑니다.</small></div>
     <ul class="missions">${S.missions.map((m, i) => {
