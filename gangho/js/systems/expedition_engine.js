@@ -137,18 +137,26 @@ function runExpedition(at = now()) {
   const tm = terrainMult(zid), mult = tm * (1 - (st0.staSave || 0) / 100);
   rec.terrain = { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(mult * 1000) / 1000, extra: 0 };
   const spend = base => { const c = base * mult; S.stamina -= c; rec.terrain.extra += c - base; };
+  const recover = () => { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; };
+  rec.defeats = 0; rec.villages = 0;
   try {
     while (S.stamina >= W.minStamina && guard++ < 300) {
       const depth = 1 - S.stamina / budget;
-      if (S.hp < calcStats().maxHp * W.retreatAt && !has('saenghyeol')) {       // 스스로 물러나기: 벌칙 없이 번 것을 들고 귀환
-        step('retreat', () => { log(EXP_TEXT.retreat, 'muted'); return { t: '🩸 상처가 깊어 스스로 발길을 돌렸습니다', cls: 'muted' }; });
-        rec.end = 'retreat'; break;
+      if (S.hp < calcStats().maxHp * W.villageAt && !has('saenghyeol')) {      // 마을 치료: 기력을 써서 활력·내력을 채우고 다시 오른다
+        if (S.stamina < W.villageSta) break;
+        spend(W.villageSta); recover(); rec.villages++;
+        step('village', () => { log(EXP_TEXT.village, 'muted'); return { t: '🏘️ 마을로 내려가 상처를 치료하고 다시 올랐습니다 (기력 소모)', cls: 'muted' }; });
+        continue;
       }
+      const lost = () => {                                    // 패배: 기력을 크게 잃고, 추슬러 다시 사냥
+        rec.defeats++; spend(W.defeatSta); recover();
+        rec.steps[rec.steps.length - 1].d.push({ text: EXP_TEXT.defeat, cls: 'bad' });
+      };
       if (Z.boss && !bossSeen && depth >= W.bossFrom && S.stamina >= STAMINA_COST.boss && Math.random() < W.bossChance) {
         bossSeen = true;
-        if (sense(Z.boss)[2] === 'strong') { step('avoid', () => { log(EXP_TEXT.avoid, 'muted'); return { t: `🌫️ ${ENEMIES[Z.boss].name}의 기척 — 너무 무거워 물러났습니다`, cls: 'muted' }; }); continue; }
+        if (senseRatio(Z.boss) < W.bossAvoid) { step('avoid', () => { log(EXP_TEXT.avoid, 'muted'); return { t: `🌫️ ${ENEMIES[Z.boss].name}의 기척 — 너무 무거워 물러났습니다`, cls: 'muted' }; }); continue; }
         spend(STAMINA_COST.boss);
-        if (step('boss', () => stepBattle(rec, Z.boss)).lost) { rec.end = 'defeat'; break; }
+        if (step('boss', () => stepBattle(rec, Z.boss)).lost) lost();
         continue;
       }
       let k = weighted(W.weights);
@@ -157,7 +165,7 @@ function runExpedition(at = now()) {
       spend(COST[k]);
       const r = step(k, () => k === 'beast' ? stepBattle(rec, pickBeast(Z, depth))
         : k === 'vault' ? stepVault(Z) : k === 'event' ? stepEvent(rec, zid, used) : k === 'trap' ? stepTrap() : stepGimmick(Z));
-      if (r.lost) { rec.end = 'defeat'; break; }
+      if (r.lost) lost();
     }
   } finally { RT.journal = null; }
   // 결산
@@ -165,11 +173,6 @@ function runExpedition(at = now()) {
   for (const id of new Set([...Object.keys(S.inv), ...Object.keys(before.inv)])) {
     const d = (S.inv[id] || 0) - (before.inv[id] || 0);
     if (d > 0) g.items[id] = d; else if (d < 0) g.used[id] = -d;
-  }
-  if (rec.end === 'defeat') {
-    g.lost = g.silver > 0 ? Math.floor(g.silver * W.defeatLoss) : 0;
-    S.silver -= g.lost; g.silver -= g.lost;
-    S.hp = Math.max(1, Math.round(calcStats().maxHp * 0.1));
   }
   rec.gain = g;
   rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
@@ -179,13 +182,13 @@ function runExpedition(at = now()) {
   // 구역에서 겪은 것 (정답 대신 경험만 남는다)
   const zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
   zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = at;
-  if (rec.end === 'defeat') zl.defeats++; if (rec.end === 'retreat') zl.retreats++;
+  zl.defeats += rec.defeats; zl.retreats += rec.villages;
   for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }
   if (rec.steps.some(st => st.k === 'avoid')) zl.bossMet++;
   S.expeditions.push(rec);
   while (S.expeditions.length > W.keep) S.expeditions.shift();   // 오래된 기록부터 지운다
   writeExpeditionLog(rec);
-  notify.trace('sys', `탐험 ${zid}: ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${g.silver} · 경험치 ${g.exp}${rec.end === 'defeat' ? ' · 패배 귀환' : ''}`);
+  notify.trace('sys', `탐험 ${zid}: ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${g.silver} · 경험치 ${g.exp}${rec.defeats ? ` · 쓰러짐 ${rec.defeats}` : ''}`);
   return rec;
 }
 
@@ -198,7 +201,7 @@ function writeExpeditionLog(rec) {
     log(`${s.t}${watch}`, `exp-step ${s.cls}`, rec.at, { r: rec.id, s: rec.steps.indexOf(s) });
   }
   const items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
-  log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 경험치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.end === 'defeat' ? ` · <b class="warn">쓰러져 귀환 (은자 -${g.lost})</b>` : rec.end === 'retreat' ? ' · 일찍 귀환' : ''}`, 'exp-head', rec.at, { r: rec.id });
+  log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 경험치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.defeats ? ` · <b class="warn">쓰러짐 ${rec.defeats}번</b>` : ''}${rec.villages ? ` · 마을 치료 ${rec.villages}번` : ''}`, 'exp-head', rec.at, { r: rec.id });
 }
 
 /* ───────── 일정: 매시 정각, 최대 8번까지 쌓임 ───────── */

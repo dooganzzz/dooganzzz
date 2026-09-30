@@ -64,7 +64,7 @@ function jounGuide() {
     [Object.keys(S.manuals).some(id => !starUpBlock(id)), '경험치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
     [!has('saenghyeol', 3), '생혈고가 떨어져 간다. 탐험 중에 위급하면 그걸 바르니, 화로에서 달이든 전방에서 사든 넉넉히 챙겨라.'],
     [ready, `문파 임무 ${ready}건은 바로 완료할 수 있다. 정청 문파 임무에서 공헌도를 받아 가라.`],
-    [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].end === 'defeat', '지난 탐험에서 쓰러졌다지? 탐험지를 낮추든지, 무공과 장비를 더 올려라.'],
+    [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].defeats, '지난 탐험에서 쓰러졌다지? 쓰러질 때마다 기력이 크게 샌다. 탐험지를 낮추든지, 무공과 장비를 더 올려라.'],
     [S.gear.length >= 3, '행낭에 안 쓰는 장비가 쌓였다. 청풍전방 왕 가에게 가면 은자로 바꿔 준다.'],
     [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],
   ];

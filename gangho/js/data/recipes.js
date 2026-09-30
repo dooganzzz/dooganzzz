@@ -17,7 +17,7 @@ const RECIPES = [
 
   // ───── 단약 (8품) ─────
   { id: 'a_sohwan',   craft: 'alchemy', in: { wildGinseng: 2, treeSap: 1 },                  out: 'potionMp' },
-  { id: 'a_saeng',    craft: 'alchemy', in: { wildGinseng: 1, wildcatHide: 1, mistDew: 1 },  out: 'saenghyeol' },
+  { id: 'a_saeng',    craft: 'alchemy', in: { wildGinseng: 1, wildcatHide: 1, treeSap: 1 },  out: 'saenghyeol' },
   { id: 'a_golgye',   craft: 'alchemy', in: { boarMolar: 2, redClay: 1 },                    out: 'golgye' },
   { id: 'a_tongmaek', craft: 'alchemy', in: { wildGinseng: 2, redStone: 1 },                 out: 'tongmaek' },
   { id: 'a_haedok',   craft: 'alchemy', in: { silentReed: 2, centipedeLeg: 1 },              out: 'haedok' },

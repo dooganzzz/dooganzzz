@@ -36,7 +36,7 @@ module.exports = async (b) => {
 
     // 2. 기척 지문: 3단계 (제자가 두목을 피할지 가늠하는 데도 쓴다)
     const so = await p.evaluate(() => {
-      const r = { tiers: SENSE_TEXT.map(t => t[2]).join(','), weak: sense('rabbit')[2], strong: sense('galcheon')[2] };
+      const r = { tiers: SENSE_TEXT.map(t => t[2]).join(','), weak: sense('rabbit')[2], strong: sense('byeokhaeryong')[2] };
       r.colors = ['weak', 'even', 'strong'].map(c => { const el = document.createElement('p'); el.className = 'sense ' + c; document.body.appendChild(el); const col = getComputedStyle(el).color; el.remove(); return col; }).join(' | ');
       S.hp = 1e9; const b = fightSync('rabbit'); r.intro = b.intro.some(l => /^sense /.test(l.cls));
       return r;
@@ -55,14 +55,13 @@ module.exports = async (b) => {
         if (v === '은자 궤' && !(S.silver - sil0 >= 15 && S.silver - sil0 <= 35)) silverOk = false;
         if (v === '약재 궤' && gained.some(k => ITEMS[k].craftType !== 'alchemy')) alchemyOnly = false;
         if (v === '철물 궤' && gained.some(k => ITEMS[k].craftType !== 'forge')) forgeOnly = false;
-        if (v === '식재 궤' && (gained.some(k => ITEMS[k].craftType !== 'cooking') || !gained.length)) cookOnly = false;
         if (v === '비급/장비 궤' && gained.some(k => ITEMS[k].kind === '비급')) bookSeen = true;
         if (bagUsed() > 80) for (const k of Object.keys(S.inv)) if (ITEMS[k].kind === '재료') delete S.inv[k];
       }
       return { kinds, silverOk, alchemyOnly, forgeOnly, cookOnly, bookSeen };
     });
-    ok('3 다섯 종류 무작위 (비급/장비 궤가 가장 드묾)', Object.keys(vault.kinds).length === 5 && vault.kinds['비급/장비 궤'] < vault.kinds['은자 궤'], JSON.stringify(vault.kinds));
-    ok('3 은자 궤 15~35냥 · 약재 궤 연단 · 철물 궤 주조 · 식재 궤 조리 재료만', vault.silverOk && vault.alchemyOnly && vault.forgeOnly && vault.cookOnly);
+    ok('3 네 종류 무작위 (비급/장비 궤가 가장 드묾)', Object.keys(vault.kinds).length === 4 && vault.kinds['비급/장비 궤'] < vault.kinds['은자 궤'], JSON.stringify(vault.kinds));
+    ok('3 은자 궤 15~35냥 · 약재 궤 단약 · 철물 궤 단조 재료만', vault.silverOk && vault.alchemyOnly && vault.forgeOnly);
     ok('3 비급/장비 궤에서 미습득 삼류 비급', vault.bookSeen);
 
     // 4. 견문록 역순

@@ -12,7 +12,7 @@ module.exports = async (b) => {
     // 1. 프롤로그 · 제자 만들기
     const i0 = await p.evaluate(() => ({ pro: [...document.querySelectorAll('.prologue p')].map(e => e.textContent).join(' '), rows: document.querySelectorAll('.attr-row').length, plus: [...document.querySelectorAll('[data-attr][data-d="1"]')].every(e => e.disabled), begin: !document.querySelector('#begin').disabled, talents: document.querySelectorAll('[data-talent]').length, starters: document.querySelectorAll('[data-starter]').length }));
     ok('1 프롤로그: 소설 속 청풍문 무신상에 빙의한 나', /강호견문록/.test(i0.pro) && /무신상/.test(i0.pro) && /청풍문/.test(i0.pro) && /제자/.test(i0.pro), i0.pro.slice(0, 60));
-    ok('1 3대 스탯(근력·체력·지력) · 입문 무공 5종 · 보조 기예 4종', i0.rows === 3 && i0.starters === 5 && i0.talents === 4, JSON.stringify(i0));
+    ok('1 3대 스탯(근력·체력·지력) · 입문 무공 5종 · 보조 기예 3종', i0.rows === 3 && i0.starters === 5 && i0.talents === 3, JSON.stringify(i0));
     ok('1 처음엔 남은 점수 0 → ＋ 막힘, 바로 시작 가능', i0.plus && i0.begin);
     await p.click('[data-attr="int"][data-d="-1"]');
     const i1 = await p.evaluate(() => ({ left: document.querySelector('#attrLeft').textContent, begin: document.querySelector('#begin').disabled, plus: !document.querySelector('[data-attr="str"][data-d="1"]').disabled }));
@@ -27,7 +27,7 @@ module.exports = async (b) => {
     await p.click('#begin');
     const s0 = await p.evaluate(() => { const st = calcStats(); return { attr: S.attr, talent: S.talent, alch: S.crafts.alchemy.lv, forge: S.crafts.forge.lv, name: S.name, weapon: S.equip.weapon.wtype, atk: st.atk, hp: st.maxHp, mp: st.maxMp, log: S.log.some(l => /무신상/.test(l.text)) }; });
     ok('1 배분 반영: 근력 10 · 체력 3 · 지력 5', s0.attr.str === 10 && s0.attr.con === 3 && s0.attr.int === 5, JSON.stringify(s0.attr));
-    ok('1 보조 기예 의술 → 연단 솜씨 3단계부터', s0.talent === 'medic' && s0.alch === 3 && s0.forge === 1, JSON.stringify(s0));
+    ok('1 보조 기예 의술 → 단약 솜씨 3단계부터', s0.talent === 'medic' && s0.alch === 3 && s0.forge === 1, JSON.stringify(s0));
     ok('1 입문 무공 = 첫 병기 (창) · 첫 기록은 석상 시점', s0.weapon === 'spear' && s0.name === '석상제자' && s0.log, JSON.stringify(s0));
     const st = await p.evaluate(() => {
       const base = () => { const s = calcStats(); return { atk: s.atk, hp: s.maxHp, mp: s.maxMp, def: s.def, bag: s.bag }; };
@@ -51,7 +51,7 @@ module.exports = async (b) => {
       r.me = myElem();                                  // 철포삼 = 金
       const keepInt = S.attr.int; S.attr.int = 6;         // 지력 기준값에서 비교
       // 청령목괴 = 木·창, 내 병기 = 창 → 병기는 호각이라 오행만 본다
-      const A = affinity('treant'), B = affinity('bandit'), C = affinity('boar');
+      const A = affinity('treant'), B = affinity('eliteAxe'), C = affinity('boar');
       r.rabbit = [A.el, A.dealt, A.taken, A.wp]; r.bandit = [B.el, B.foe]; r.boar = C.el;
       S.attr.int = 10; r.int = affinity('treant').dealt; S.attr.int = 6;
       // 같은 난수로 한 대: 상극 우세 vs 상성 없음
@@ -65,7 +65,7 @@ module.exports = async (b) => {
     ok('2 오행 상극: 木剋土 · 火剋金 · 土剋水 · 金剋木 · 水剋火', el.beats.split(',').sort().join() === '木剋土,水剋火,火剋金,土剋水,金剋木'.split(',').sort().join(), el.beats);
     ok('2 극하면 1, 극당하면 -1, 상생·무속성 0', el.rel === '1,-1,0,0', el.rel);
     ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×1.25 · 받는 피해 ×0.75', el.me === 'metal' && el.rabbit[0] === 1 && el.rabbit[1] === 1.25 && el.rabbit[2] === 0.75 && el.rabbit[3] === 0, JSON.stringify(el));
-    ok('2 金 기공 vs 火 화적: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
+    ok('2 金 기공 vs 火 정예 도부수: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
     ok('2 지력이 높으면 극할 때 위력 추가', el.int > 1.25, String(el.int));
     ok('2 실제 타격에 반영 (같은 난수 기준 1.25배)', Math.abs(el.ratio - 1.25) < 0.03, String(el.ratio));
 
@@ -75,10 +75,10 @@ module.exports = async (b) => {
       const m = pairs.map(([a, b]) => weaponRel(a, b));
       const anti = Object.keys(WEAPON_ADV).every(a => Object.keys(WEAPON_ADV).every(b => a === b || weaponRel(a, b) === -weaponRel(b, a)));
       const keep = S.equip.weapon.wtype, r = {};
-      S.equip.weapon.wtype = 'spear'; const A = affinity('hyangju'); r.spearVsHidden = [A.wp, A.myHit];   // 향주 = 암기
-      S.equip.weapon.wtype = 'sword'; const B = affinity('hyangju'); r.swordVsHidden = [B.wp, B.myHit, Math.round(B.dealt / (B.el > 0 ? 1.25 : B.el < 0 ? 0.75 : 1) * 100) / 100];
-      S.equip.weapon.wtype = 'fist'; const C = affinity('bandit'); r.fistVsBlade = C.wp;
-      S.equip.weapon.wtype = 'hidden'; const D = affinity('bandit'); r.hiddenVsBlade = [D.wp, D.foeHit];
+      S.equip.weapon.wtype = 'spear'; const A = affinity('diver'); r.spearVsHidden = [A.wp, A.myHit];   // 향주 = 암기
+      S.equip.weapon.wtype = 'sword'; const B = affinity('diver'); r.swordVsHidden = [B.wp, B.myHit, Math.round(B.dealt / (B.el > 0 ? 1.25 : B.el < 0 ? 0.75 : 1) * 100) / 100];
+      S.equip.weapon.wtype = 'fist'; const C = affinity('eliteAxe'); r.fistVsBlade = C.wp;
+      S.equip.weapon.wtype = 'hidden'; const D = affinity('eliteAxe'); r.hiddenVsBlade = [D.wp, D.foeHit];
       const E = affinity('wildcat'); r.beast = [E.wp, E.fwt];   // 살쾡이 = 권장(발톱), 내 병기 = 암기
       S.equip.weapon.wtype = keep;
       return { m: m.join(), anti, r };
@@ -94,7 +94,7 @@ module.exports = async (b) => {
       const r = { terr: myTerrain(), terrains: Object.keys(TERRAINS).join(), zones: ZONE_ORDER.map(z => ZONES[z].terrain.join('/')) };
       r.mult = ZONE_ORDER.map(terrainMult).join();              // 포철삭(흙): 청풍산 흙·풀·나무 일치, 염화채 흙·평 일치, 적룡방 물·나무 불일치
       const g = S.active.gyeonggong; S.active.gyeonggong = null; r.none = terrainMult('cheongpung'); S.active.gyeonggong = g;
-      const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.potionHp = 20; return runExpedition(now()); };
+      const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.saenghyeol = 20; return runExpedition(now()); };
       const a = [], m = [];
       for (let i = 0; i < 4; i++) a.push(run());
       S.manuals.dapsu = { star: 1 }; equipManual('dapsu');     // 답수보(물) → 청풍산 불일치
@@ -121,7 +121,7 @@ module.exports = async (b) => {
       const r = {};
       r.fails = [...new Set(Object.values(CRAFTS).map(c => c.fail))].join();
       r.old = ['twistedIron', 'burntAsh', 'dregs'].some(k => ITEMS[k]);
-      S.inv.slag = 0; for (const c of Object.keys(CRAFTS)) { S.inv.salt = (S.inv.salt || 0) + 3; doCraft(c, { salt: 3 }); }
+      S.inv.slag = 0; for (const c of Object.keys(CRAFTS)) { S.inv.herb = (S.inv.herb || 0) + 3; doCraft(c, { herb: 3 }); }
       r.slag = count('slag');
       S.inv.slag = 2; r.none = pray(1);
       S.inv.slag = 14; const p0 = S.shrine.pulls || 0;
@@ -133,7 +133,7 @@ module.exports = async (b) => {
       r.books = Object.keys(S.inv).filter(k => /^bk_/.test(k)); r.nBooks = GACHA.books.length;
       return r;
     });
-    ok('5 모든 기예의 실패물은 검게 탄 찌꺼기 하나', gc.fails === 'slag' && !gc.old && gc.slag === 3, JSON.stringify(gc));
+    ok('5 모든 기예의 실패물은 검게 탄 찌꺼기 하나', gc.fails === 'slag' && !gc.old && gc.slag === 2, JSON.stringify(gc));
     ok('5 찌꺼기가 모자라면 공양 불가', gc.none === null);
     ok('5 [공양 10회]: 찌꺼기가 모자라면 되는 만큼 (14개 → 4회)', gc.got === 4 && gc.left === 2 && gc.pulls === 4, JSON.stringify(gc));
     ok('5 결과는 약재·소모품·광석·장비·영단·비급 중 하나', gc.kinds && ['herb', 'supply', 'ore', 'gear'].every(k => gc.dist[k] > 0), JSON.stringify(gc.dist));
@@ -148,12 +148,12 @@ module.exports = async (b) => {
     // 6. 심상수련장
     await p.click('.subtabs [data-sub="yeonmu"]');
     const ym = await p.evaluate(() => ({ view: !!document.querySelector('.yeonmu'), rows: [...document.querySelectorAll('.sim-row')].map(r => r.querySelector('b').textContent), met: Object.keys(S.bestiary).map(e => ENEMIES[e].name) }));
-    ok('6 연무장 › 심상수련장: 만나 본 상대만 목록에', ym.view && ym.rows.length === ym.met.length && ym.rows.every(n => ym.met.includes(n)) && !ym.rows.includes('방주 갈천'), JSON.stringify(ym));
+    ok('6 연무장 › 심상수련장: 만나 본 상대만 목록에', ym.view && ym.rows.length === ym.met.length && ym.rows.every(n => ym.met.includes(n)) && !ym.rows.includes('수룡방주 벽해룡'), JSON.stringify(ym));
     const sim = await p.evaluate(() => {
       const snap = () => JSON.stringify({ hp: S.hp, mp: S.mp, exp: S.exp, silver: S.silver, inv: S.inv, best: S.bestiary, log: S.log.length, sta: S.stamina, kills: S.kills });
-      S.inv.potionHp = 5; const before = snap();
+      S.inv.saenghyeol = 5; const before = snap();
       const bt = simulate('rabbit'), many = simulateMany('boar', 10);
-      return { same: snap() === before, sim: bt.sim, over: bt.over, unknown: simulate('galcheon'), many };
+      return { same: snap() === before, sim: bt.sim, over: bt.over, unknown: simulate('byeokhaeryong'), many };
     });
     ok('6 가상 전투: 기력·경험치·은자·행낭·도감·견문록 모두 그대로', sim.same && sim.sim && sim.over, JSON.stringify(sim));
     ok('6 만나 본 적 없는 상대는 불러낼 수 없음', sim.unknown === null);
@@ -168,7 +168,7 @@ module.exports = async (b) => {
     // 7. 요수 도감 · 무공 상성 표식
     await p.click('[data-tab="codex"]');
     const cx = await p.evaluate(() => ({ known: document.querySelectorAll('.beasts li:not(.unknown)').length, unknown: document.querySelectorAll('.beasts li.unknown').length, met: Object.keys(S.bestiary).filter(e => ZONE_ORDER.some(z => [...ZONES[z].enemies, ZONES[z].boss].includes(e))).length, total: document.querySelectorAll('.beasts li').length, tag: !!document.querySelector('.beasts .aff-tag') }));
-    ok('7 요수 도감: 만난 요수는 오행·병기, 못 만난 요수는 ？', cx.known === cx.met && cx.unknown === cx.total - cx.met && cx.total === 18 && cx.tag, JSON.stringify(cx));
+    ok('7 요수 도감: 만난 요수는 오행·병기, 못 만난 요수는 ？', cx.known === cx.met && cx.unknown === cx.total - cx.met && cx.total === 30 && cx.tag, JSON.stringify(cx));
     await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
     ok('7 무공 칸에 기공 오행 · 경공 지형 표식', await p.evaluate(() => /金/.test(document.querySelector('.mslot .aff-tag.el-metal').textContent) && !!document.querySelector('.mslot .aff-tag.tr')));
     await p.evaluate(() => { ui.modal = 'mart:' + S.active.gigong; renderModal(); });
@@ -179,17 +179,16 @@ module.exports = async (b) => {
     // 8. 보조 기예 효과
     const tl = await p.evaluate(() => {
       const r = {}, keep = S.talent;
-      const heal = t => { S.talent = t; const bt = { st: calcStats(), fx: [], lines: [], sim: true, pots: 1 }; RT.battle = bt; S.hp = 1; autoPotion(bt); RT.battle = null; return S.hp - 1; };
+      const heal = t => { S.talent = t; const bt = { st: calcStats(), fx: [], lines: [], sim: true, pots: { hp: 1, mp: 0 } }; RT.battle = bt; S.hp = 1; autoPotion(bt); RT.battle = null; return S.hp - 1; };
       r.medic = heal('medic'); r.plain = heal(null);
-      const food = t => { S.talent = t; S.stamina = 0; S.inv.jumeokbap = 1; useItem('jumeokbap'); return S.stamina; };
-      r.chef = food('chef'); r.nochef = food(null);
+      r.noChef = !TALENTS.chef && !CRAFTS.cook;
       S.talent = 'smelt'; r.smelt = talentOf().rate === 5 && talentOf().craft === 'forge';
       S.talent = 'gather'; r.gather = talentOf().drop;
       S.talent = keep;
       return r;
     });
-    ok('8 의술: 금창약 회복 +30%', Math.abs(tl.medic / tl.plain - 1.3) < 0.02, JSON.stringify(tl));
-    ok('8 조리: 음식 기력 +25%', Math.abs(tl.chef / tl.nochef - 1.25) < 0.05, JSON.stringify(tl));
+    ok('8 의술: 생혈고 회복 +30%', Math.abs(tl.medic / tl.plain - 1.3) < 0.02, JSON.stringify(tl));
+    ok('8 조리 기예·보조 기예 조리 없음', tl.noChef, JSON.stringify(tl));
     ok('8 제련: 주조 성공률 +5 · 채집: 드랍 +15%p', tl.smelt && tl.gather === 0.15, JSON.stringify(tl));
 
     // 9. 예전 저장 이전

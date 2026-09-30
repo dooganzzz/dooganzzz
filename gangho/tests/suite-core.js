@@ -54,12 +54,11 @@ module.exports = async (b) => {
   await p.evaluate(() => { S.silver = 100; render(); });
   await p.click('[data-tab="sect"]'); await p.click('[data-sub="yard"]');
   ok('7 아린 힌트 버튼 제거됨', !(await p.$('[data-act="hint"]')));
-  await p.evaluate(() => { S.inv.herb = 2; ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_hp'); i++) { S.inv.herb = 2; ui.pot = { herb: 2 }; doCraft(ui.craft, ui.pot); } });   // 성공률 상한 98%라 한 번에 실패할 수 있음
-  await p.click('[data-tab="codex"]');
+  await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_low'); i++) { Object.assign(S.inv, { herb: 2, lingzhi: 1 }); ui.pot = { herb: 2, lingzhi: 1 }; doCraft(ui.craft, ui.pot); } });
+  await p.click('[data-tab="codex"]'); await p.click('[data-codextab="alchemy"]');
   ok('6 안내문 없음', !(await p.$('.codex ~ .lede, .panel .lede')) && !(await p.content()).includes('아직 아무것도 모릅니다'));
-  await p.click('.ctile.locked'); const toast = await p.$$eval('.toast', e => e[e.length - 1].textContent);
-  ok('6 미해금 토스트', toast.includes('아직 발견하지 못한 비전'), toast);
-  await p.click('.ctile.known');
+  ok('6 미발견 비법은 ???', await p.evaluate(() => document.querySelectorAll('.recipe-row.unknown').length === RECIPES.filter(r => r.craft === 'alchemy').length - 1 && /\?\?\?/.test(document.querySelector('.recipe-row.unknown').textContent)));
+  await p.click('.recipe-row [data-recipe="a_low"]');
   const modalBtn = await p.$eval('.sheet [data-fill]', e => e.textContent.trim());
   ok('6 조합법 모달 + 화로로 가기', modalBtn === '[ 화로로 가기 ]' && !!(await p.$('.mats-list li')), modalBtn);
   await p.click('.sheet [data-fill]');

@@ -27,7 +27,7 @@ module.exports = async (b) => {
       render(); const r = {}; r.sync0 = S.combatPower === calculateCombatPower(S);
       const cp0 = S.combatPower; unequip('weapon'); r.unequip = S.combatPower < cp0 && S.combatPower === calculateCombatPower(S);
       const cp1 = S.combatPower; const uid = S.gear[S.gear.length - 1].uid; equipItem(uid); r.equip = S.combatPower > cp1;
-      const cp2 = S.combatPower; S.perm.maxHp += 40; useItem('potionHp'); r.perm = S.combatPower === cp2 + 40 || S.combatPower > cp2;
+      const cp2 = S.combatPower; S.perm.maxHp += 40; useItem('saenghyeol'); r.perm = S.combatPower === cp2 + 40 || S.combatPower > cp2;
       return r;
     });
     ok('1 S.combatPower: 처음부터 계산값과 같음', m.sync0);

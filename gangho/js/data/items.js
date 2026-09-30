@@ -125,7 +125,7 @@ const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train',
 /* 장비 기본형: slot → names[tier-1], stats[tier-1] */
 
 const EQUIP_BASES = {
-  fist  : { slot: 'weapon', wtype: 'fist', names: ['철권갑', '흑철 권갑', '한철 권갑'], stats: [{ atk: 7 }, { atk: 20 }, { atk: 42 }] },
+  fist  : { slot: 'weapon', wtype: 'fist', names: ['철권갑', '흑철 수투', '한철 권갑'], stats: [{ atk: 7 }, { atk: 20 }, { atk: 42 }] },
   sword : { slot: 'weapon', wtype: 'sword', names: ['철검', '흑철검', '한철검'], stats: [{ atk: 8, crit: 1 }, { atk: 22, crit: 2 }, { atk: 45, crit: 3 }] },
   blade : { slot: 'weapon', wtype: 'blade', names: ['박도', '흑철도', '한철 귀두도'], stats: [{ atk: 10 }, { atk: 26 }, { atk: 52 }] },
   spear : { slot: 'weapon', wtype: 'spear', names: ['철창', '흑철창', '한철 장창'], stats: [{ atk: 9, spd: 1 }, { atk: 24, spd: 2 }, { atk: 48, spd: 3 }] },

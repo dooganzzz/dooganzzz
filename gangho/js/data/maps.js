@@ -1,23 +1,25 @@
 /* [데이터] 탐험 규칙 · 조우 가중치 · 금고 보상 풀 · 사건(기연) 표 — 순수 정적 데이터 (로직 없음) */
 
-/* 자동 탐험: 매시 정각(현지 시각)마다, 제자가 고른 구역으로 나가 기력을 모두 쓸 때까지 조우를 겪는다.
+/* 자동 탐험: 매시 정각(현지 시각)마다, 제자가 고른 구역으로 나가 기력을 모두 쓸 때까지 사냥한다.
+   기력은 숨겨진 능력치. 조우·패배·마을 치료가 모두 기력을 깎고, 기력이 바닥나야 돌아온다.
    interval: 탐험 간격(ms) · maxQueue: 자리를 비운 동안 쌓이는 최대 횟수 · keep: 보관하는 탐험 기록 수
    weights: 한 걸음마다 무엇을 만날지 · bossFrom: 기력을 이만큼 쓴 뒤부터 두목이 나올 수 있음
    potionAt: 활력이 이 비율 아래면 생혈고를 바름 · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율
-   retreatAt: 생혈고가 없고 활력이 이 비율 아래면 스스로 발길을 돌림 (벌칙 없음)
-   defeatLoss: 쓰러지면 이번 탐험에서 번 은자 중 잃는 비율 */
+   villageAt: 생혈고가 없고 활력이 이 비율 아래면 마을로 내려가 치료 (기력 villageSta 소모, 활력·내력 회복 후 다시 사냥)
+   defeatSta: 쓰러지면 잃는 기력 (활력·내력을 회복하고 다시 사냥)
+   bossAvoid: 두목의 기척 비율(senseRatio)이 이보다 낮으면 제자가 피한다 — 낮을수록 무모하게 덤빈다 */
 const EXPEDITION = {
   interval: 3600000, maxQueue: 8, keep: 8,
-  weights: { beast: 60, vault: 20, event: 6, trap: 7, gimmick: 7 },
-  bossFrom: 0.6, bossChance: 0.3, potionAt: 0.35, breathe: 0.08, retreatAt: 0.3, defeatLoss: 0.5, minStamina: 3, maxRounds: 60,
+  weights: { beast: 62, vault: 16, event: 6, trap: 8, gimmick: 8 },
+  bossFrom: 0.5, bossChance: 0.35, potionAt: 0.35, breathe: 0.06, villageAt: 0.3, villageSta: 12, defeatSta: 25, bossAvoid: 0.3, minStamina: 3, maxRounds: 60,
 };
 /* 탐험 중 조우 문구 */
 const EXP_TEXT = {
   depart: ['짐을 꾸려 산문을 나섭니다.', '새벽 안개를 헤치고 길을 떠납니다.', '조운 사형의 배웅을 받으며 출발합니다.'],
   avoid: '멀리서 느껴지는 기척이 너무 무겁습니다. 몸을 낮춰 조용히 물러났습니다.',
   tired: '기력이 다해 발걸음을 돌립니다.',
-  retreat: '상처가 깊고 생혈고도 떨어졌습니다. 무리하지 않고 발길을 돌립니다.',
-  defeat: '눈앞이 캄캄해집니다… 지나던 약초꾼이 청풍문까지 업어다 주었습니다.',
+  village: '상처가 깊고 생혈고도 떨어졌습니다. 산 아래 마을로 내려가 상처를 싸매고 다시 오릅니다.',
+  defeat: '눈앞이 캄캄해집니다… 지나던 약초꾼의 오두막에서 정신을 차리고, 비틀거리며 다시 길을 나섭니다.',
 };
 
 /* 요수 출현 가중치: 적의 rank(1 약함 · 2 중간 · 3 강함)별 — 탐험 후반(기력 절반 이상 쓴 뒤)일수록 강한 요수가 잦다 */
@@ -34,7 +36,7 @@ const VAULTS = [
 const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.08 };
 
 /* 걸음마다 드는 기력 (기력은 숨겨진 능력치. 매 정각 출발 때 가득 차고, 아이템으로는 회복되지 않는다) */
-const STAMINA_COST = { battle: 4, herb: 3, mine: 3, chest: 3, gimmick: 5, boss: 12 };
+const STAMINA_COST = { battle: 12, chest: 8, gimmick: 10, boss: 20 };
 
 /* ───────── 사냥터 사건 (기연 奇緣) ─────────
    zones: 나오는 지역 ('all'이면 어디서나). 선택지 req는 조건(부족하면 고를 수 없음),

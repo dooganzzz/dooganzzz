@@ -32,23 +32,23 @@ module.exports = async (b) => {
 
     // 2. 출정 준비 점검표
     const prep0 = await p.evaluate(() => { render(); return [...document.querySelectorAll('.prep li')].map(li => `${li.className}:${li.querySelector('.prep-k').textContent}`); });
-    ok('2 출정 준비 7줄 (탐험지·무공·병기·장비·금창약·상성·음식)', prep0.length === 7 && prep0.map(s => s.split(':')[1]).join() === '탐험지,무공,병기,장비,금창약,상성,준비한 음식', prep0.join(' | '));
+    ok('2 출정 준비 7줄 (탐험지·무공·병기·장비·생혈고·상성·단약)', prep0.length === 7 && prep0.map(s => s.split(':')[1]).join() === '탐험지,무공,병기,장비,생혈고,상성,준비한 단약', prep0.join(' | '));
     const warn = await p.evaluate(() => {
       const r = {}, cat = CAT_ORDER[0], keep = S.active[cat];
-      S.active[cat] = null; S.inv.potionHp = 0; render();
+      S.active[cat] = null; S.inv.saenghyeol = 0; render();
       const li = k => [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent === k);
       r.art = li('무공').classList.contains('warn') && /비어 있음/.test(li('무공').textContent);
-      r.pot = li('금창약').classList.contains('warn');
+      r.pot = li('생혈고').classList.contains('warn');
       r.link = !!li('무공').querySelector('[data-tab="status"][data-sub="martial"]');
       S.active[cat] = keep;
       const mu = S.active.mugong, wt = MANUALS[mu].weapon, other = Object.keys(WEAPON_TYPES).find(t => t !== wt);
       const w = S.equip.weapon, t0 = w && w.wtype; if (w) w.wtype = other; render();
       r.weapon = !w || (li('병기').classList.contains('warn') && /초식이 나가지 않음/.test(li('병기').textContent));
-      if (w) w.wtype = t0; S.inv.potionHp = 5; render();
-      r.fixed = li('무공').classList.contains('ok') && li('금창약').classList.contains('ok');
+      if (w) w.wtype = t0; S.inv.saenghyeol = 5; render();
+      r.fixed = li('무공').classList.contains('ok') && li('생혈고').classList.contains('ok');
       return r;
     });
-    ok('2 빈 무공 칸·금창약 부족 경고 + [무공] 바로가기', warn.art && warn.pot && warn.link, JSON.stringify(warn));
+    ok('2 빈 무공 칸·생혈고 부족 경고 + [무공] 바로가기', warn.art && warn.pot && warn.link, JSON.stringify(warn));
     ok('2 무공과 병기가 안 맞으면 경고', warn.weapon, JSON.stringify(warn));
     ok('2 갖추면 경고 해제', warn.fixed, JSON.stringify(warn));
     await p.click('.prep [data-tab="status"][data-sub="martial"]');
@@ -70,12 +70,12 @@ module.exports = async (b) => {
     // 4. 조합: 단서 없음 · 연구 노트
     const nt = await p.evaluate(() => {
       const r = {};
-      S.crafts.cook.lv = 1; S.craftNotes = []; goTab('sect', 'forge'); ui.craft = 'cook';
-      const rec = RECIPES.find(x => x.craft === 'cook'), wrong = { salt: 2 };
-      Object.assign(S.inv, { salt: 5 }); doCraft('cook', wrong);
+      S.crafts.alchemy.lv = 1; S.craftNotes = []; goTab('sect', 'forge'); ui.craft = 'alchemy';
+      const rec = RECIPES.find(x => x.craft === 'alchemy'), wrong = { herb: 2 };
+      Object.assign(S.inv, { herb: 5 }); doCraft('alchemy', wrong);
       for (const [id, n] of Object.entries(rec.in)) S.inv[id] = (S.inv[id] || 0) + n * 30;
-      for (let i = 0; i < 25 && !(S.craftNotes.find(n => n.ok)); i++) doCraft('cook', { ...rec.in });
-      Object.assign(S.inv, { salt: 5 }); doCraft('cook', wrong);           // 같은 조합 다시 → 한 줄만
+      for (let i = 0; i < 25 && !(S.craftNotes.find(n => n.ok)); i++) doCraft('alchemy', { ...rec.in });
+      Object.assign(S.inv, { herb: 5 }); doCraft('alchemy', wrong);           // 같은 조합 다시 → 한 줄만
       r.notes = S.craftNotes.map(n => `${n.ok ? 'ok' : n.near ? 'near' : 'fail'}:${Object.keys(n.mats).join('+')}`);
       r.okOut = (S.craftNotes.find(n => n.ok) || {}).out === rec.out;
       r.nomats = !('knownMats' in S);
@@ -85,7 +85,7 @@ module.exports = async (b) => {
       ui.pot = {}; render();
       return r;
     });
-    ok('4 해 본 조합이 연구 노트에 (같은 조합은 한 줄)', nt.notes.filter(s => s === 'fail:salt').length === 1 && nt.notes.some(s => s.startsWith('ok:')) && nt.okOut, nt.notes.join(' | '));
+    ok('4 해 본 조합이 연구 노트에 (같은 조합은 한 줄)', nt.notes.filter(s => s === 'fail:herb').length === 1 && nt.notes.some(s => s.startsWith('ok:')) && nt.okOut, nt.notes.join(' | '));
     ok('4 재료 단서(knownMats) 없음', nt.nomats);
     ok('4 화로에 같은 조합을 넣으면 “이미 해 본 조합” 경고', /이미 해 본 조합/.test(nt.warn) && /실패/.test(nt.warn), nt.warn);
     ok('4 화로 아래 연구 노트 목록 (최신이 위)', nt.list.length === nt.notes.length && nt.list[0] === 'fail', nt.list.join(','));
@@ -93,12 +93,12 @@ module.exports = async (b) => {
       const rec = RECIPES.find(x => x.craft === 'forge' && !S.codex.includes(x.id)) || RECIPES[RECIPES.length - 1];
       for (const [id, n] of Object.entries(rec.in)) S.inv[id] = (S.inv[id] || 0) + n * 2;
       const R = Math.random; Math.random = () => 0.999; doCraft(rec.craft, { ...rec.in }); Math.random = R;   // 맞는 조합인데 운이 없어 실패
-      const n = craftNoteFor(rec.craft, rec.in), wrongN = craftNoteFor('cook', { salt: 2 });
+      const n = craftNoteFor(rec.craft, rec.in), wrongN = craftNoteFor('alchemy', { herb: 2 });
       return { near: n && n.near && !n.ok, wrong: wrongN && !wrongN.near, codex: S.codex.includes(rec.id) };
     });
     ok('4 맞는 조합이 운으로 실패하면 “불길이 크게 일렁임” (틀린 조합은 그냥 실패)', near.near && near.wrong && !near.codex, JSON.stringify(near));
-    await p.evaluate(() => { ui.tab = 'codex'; render(); });
-    ok('4 도감에 단서 칸 없음', await p.evaluate(() => !document.querySelector('.ctile.clue, .hidden-mat') && document.querySelectorAll('.ctile.known').length >= 1));
+    await p.evaluate(() => { ui.tab = 'codex'; ui.codexTab = 'alchemy'; render(); });
+    ok('4 도감에 단서 칸 없음', await p.evaluate(() => !document.querySelector('.ctile.clue, .hidden-mat') && document.querySelectorAll('.recipe-row:not(.unknown)').length >= 1));
     ok('4 사건 보상의 단서 → 경험치', await p.evaluate(() => !JSON.stringify(EVENTS).includes('clue')));
 
     // 5. 견문록 1차 탭

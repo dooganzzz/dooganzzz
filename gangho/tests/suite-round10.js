@@ -47,10 +47,10 @@ module.exports = async (b) => {
         const label = line.slice(2).split(' — ')[0]; r.picks[label] = (r.picks[label] || 0) + 1;
         if (ev.choices.find(c => c.label === label).req && reqFail(ev.choices.find(c => c.label === label).req)) r.gatedPicked++; }
       EVENTS.length = 0; EVENTS.push(...orig);
-      // 조건 아이템 소모: 부상당한 약초꾼 첫 선택지(금창약)만 가능한 상황을 만들어 소모 확인
-      const herb = EVENTS.find(e => e.id === 'herbalist'), pot0 = (S.inv.potionHp = 5);
+      // 조건 아이템 소모: 부상당한 약초꾼 첫 선택지(생혈고)만 가능한 상황을 만들어 소모 확인
+      const herb = EVENTS.find(e => e.id === 'herbalist'), pot0 = (S.inv.saenghyeol = 5);
       let tookSeen = false;
-      for (let i = 0; i < 30 && !tookSeen; i++) { const p0 = count('potionHp'); RT.journal = []; stepEvent({ battles: [] }, 'cheongpung', new Set(EVENTS.filter(e => e.id !== 'herbalist').map(e => e.id))); const t = RT.journal.map(l => l.text).join('\n'); RT.journal = null; if (t.includes(herb.choices[0].label)) tookSeen = count('potionHp') === p0 - herb.choices[0].req.item[1]; S.inv.potionHp = 5; }
+      for (let i = 0; i < 30 && !tookSeen; i++) { const p0 = count('saenghyeol'); RT.journal = []; stepEvent({ battles: [] }, 'cheongpung', new Set(EVENTS.filter(e => e.id !== 'herbalist').map(e => e.id))); const t = RT.journal.map(l => l.text).join('\n'); RT.journal = null; if (t.includes(herb.choices[0].label)) tookSeen = count('saenghyeol') === p0 - herb.choices[0].req.item[1]; S.inv.saenghyeol = 5; }
       r.took = tookSeen;
       // 전투로 이어지는 사건 + 승리 보너스
       S.equip.weapon = makeGear(MANUALS[S.active.mugong].weapon, 2, 3, false);

@@ -57,11 +57,11 @@ module.exports = async (b) => {
       }
       return seen;
     });
-    const allowed = { rabbit: ['rabbitHide', 'rabbitMeat'], wildcat: ['dogFang', 'roughHide'], viper: ['viperFang', 'herb'], boar: ['boarHide', 'boarMeat', 'boarTusk'], redTiger: ['blackiron', 'emberStone', 'tigerBone'] };
+    const allowed = await p.evaluate(() => Object.fromEntries(Object.entries(DROPS).map(([e, t]) => [e, t.map(([id]) => id)])));   // 드랍 표(drops.js)만
     for (const [eid, got] of Object.entries(drops)) ok(`3 ${eid} 드랍은 고유 테이블만`, got.every(k => allowed[eid].includes(k)) && got.length > 0, got.join(','));
     ok('3 살쾡이는 토끼 재료를 떨구지 않음', !drops.wildcat.some(k => /rabbit/.test(k)));
 
-    // 5. 탐험 조우: 요수 가중치(후반일수록 중형), 금고 다섯 종류, 함정
+    // 5. 탐험 조우: 요수 가중치(후반일수록 강한 요수), 금고 네 종류, 함정
     const enc = await p.evaluate(() => {
       const Z = ZONES.cheongpung, pick = depth => { const c = {}; for (let i = 0; i < 2000; i++) { const e = pickBeast(Z, depth); c[e] = (c[e] || 0) + 1; } return c; };
       const early = pick(0.1), late = pick(0.9);
@@ -74,8 +74,9 @@ module.exports = async (b) => {
     });
     ok('5 요수는 지역 풀(청풍산 9종)에서 가중치로', Object.keys(enc.early).length === 9 && Object.keys(enc.early).every(e => enc.pool.includes(e)), JSON.stringify(enc.early));
     ok('5 탐험 후반일수록 강한 요수(rank 3)가 잦음', enc.s1 > enc.s0 * 1.8, `초반 ${enc.s0} · 후반 ${enc.s1}`);
-    ok('5 금고 다섯 종류가 무작위로', enc.kinds.length === 5, enc.kinds.join(','));
+    ok('5 금고 네 종류가 무작위로 (식재 궤 없음)', enc.kinds.length === 4 && !enc.kinds.includes('식재 궤'), enc.kinds.join(','));
     ok('6 함정: 활력·기력 감소', enc.trap.hp > 0 && enc.trap.sta === 5 && /덫/.test(enc.trap.t), JSON.stringify(enc.trap));
+    ok('6 청풍산 드랍은 청풍산 재료 6종 (두목은 돌파단 재료도)', await p.evaluate(() => ZONES.cheongpung.enemies.every(e => DROPS[e].every(([id]) => ZONES.cheongpung.mats.includes(id)))));
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

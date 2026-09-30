@@ -1,4 +1,4 @@
-/* 기예 재료 분류, 구역 해금, 전투 경험치, 초기화 */
+/* 화로 조합식·탭, 구역 해금, 전투 경험치, 초기화 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -11,22 +11,22 @@ module.exports = async (b) => {
   await p.goto(GAME_URL);
   await startEquipped(p);
   if (w === 1280) {
-    const rc = await p.evaluate(() => RECIPES.filter(r => Object.keys(r.in).some(id => ITEMS[id].craftType !== CRAFT_TYPE[r.craft])).map(r => r.id));
-    ok('6 레시피 재료가 한 분류뿐', rc.length === 0, rc.join(','));
-    const un = await p.evaluate(() => Object.entries(ITEMS).filter(([, I]) => I.kind === '재료' && !I.craftType).map(([id]) => id));
-    ok('6 모든 재료에 craftType', un.length === 0, un.join(','));
+    const rc = await p.evaluate(() => RECIPES.filter(r => !CRAFTS[r.craft] || Object.keys(r.in).some(id => !ITEMS[id] || ITEMS[id].kind !== '재료') || !(r.out.startsWith('gear:') ? CRAFT_GEAR[r.out.slice(5)] : ITEMS[r.out])).map(r => r.id));
+    ok('6 조합식의 재료·결과가 모두 존재 (단조·단약만)', rc.length === 0 && (await p.evaluate(() => Object.keys(CRAFTS).join())) === 'forge,alchemy', rc.join(','));
+    const dup = await p.evaluate(() => { const k = RECIPES.map(r => r.craft + ':' + potKey(r.in)); return k.length - new Set(k).size; });
+    ok('6 같은 재료 구성의 조합식이 둘 이상 없음', dup === 0, String(dup));
   }
   // 1
   await p.click('[data-tab="sect"]'); await p.click('[data-sub="yard"]');
   const yard = await p.$eval('#main', e => e.textContent);
   ok('1 아린 조합법 물어보기 제거', !/조합법 물어보기|레시피 힌트/.test(yard) && !(await p.$('[data-act="hint"]')));
-  ok('1 약과·대화만', !!(await p.$('[data-act="snack"]')) && !!(await p.$('[data-act="talk"]')));
+  ok('1 약과 없음 · 대화만', !(await p.$('[data-act="snack"]')) && !!(await p.$('[data-act="talk"]')));
   // 5
   await p.click('[data-tab="field"]');
   const z1 = await p.$$eval('.zone:not(.locked) h3 .ko', e => e.map(x => x.textContent).join(','));
   ok('5 초기에는 청풍산만 열림', z1 === '청풍산', z1);
   await p.evaluate(() => { S.flags.boss1 = true; render(); });
-  ok('5 멧돼지왕 처치 후 염화채 열림', (await p.$$eval('.zone:not(.locked) h3 .ko', e => e.map(x => x.textContent).join(','))) === '청풍산,염화채');
+  ok('5 청풍산 두목 처치 후 염화채 열림', (await p.$$eval('.zone:not(.locked) h3 .ko', e => e.map(x => x.textContent).join(','))) === '청풍산,염화채');
   await p.evaluate(() => { S.flags.boss1 = false; render(); });
   // 2 전투 승리 → 경험치 (적의 xp × 경험치 획득 보정)
   const xp = await p.evaluate(() => {
@@ -34,15 +34,14 @@ module.exports = async (b) => {
     return { win: b.win, got: S.exp - e0, expect: expGain(ENEMIES.boar.xp), rec: b.exp };
   });
   ok('2 승리 시 경험치 = 적 경험치 × 보정 (신분패 +10%)', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect === 22, JSON.stringify(xp));
-  // 6 forge filter
-  await p.evaluate(() => { Object.assign(S.inv, { iron: 2, herb: 2, rabbitMeat: 2, wood: 1, salt: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
-  const ITEMS_CT = await p.evaluate(() => Object.fromEntries(Object.entries(ITEMS).map(([k, v]) => [k, v.craftType])));
+  // 6 화로: [단조] | [단약] 두 탭, 두 탭 모두 모든 재료가 보인다
+  await p.evaluate(() => { Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
   const f = {};
-  for (const c of ['forge', 'alchemy', 'cook']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).join(',')); }
-  ok('6 주조 재료만', f.forge.split(',').every(id => ['iron','wood','boarHide','boarTusk','rabbitHide','dogFang'].includes(id)) && !/herb|rabbitMeat|salt/.test(f.forge), f.forge);
-  ok('6 연단 재료만', f.alchemy.split(',').every(id => ITEMS_CT[id] === 'alchemy'), f.alchemy);
-  ok('6 조리 재료만', f.cook.split(',').every(id => ITEMS_CT[id] === 'cooking'), f.cook);
-  await p.click('[data-craft="cook"]'); await p.click('[data-add="salt"]'); await p.click('[data-craft="forge"]');
+  f.tabs = await p.$$eval('.furnace-tabs [data-craft]', e => e.map(x => x.textContent).join('|'));
+  for (const c of ['forge', 'alchemy']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).sort().join(',')); }
+  ok('6 화로 탭: 단조 | 단약', /단조/.test(f.tabs) && /단약/.test(f.tabs) && f.tabs.split('|').length === 2, f.tabs);
+  ok('6 두 탭 모두 모든 재료', f.forge === f.alchemy && ['roughOre', 'wildGinseng', 'treeSap', 'herb'].every(id => f.forge.includes(id)), JSON.stringify(f));
+  await p.click('[data-add="herb"]'); await p.click('[data-craft="forge"]');
   ok('6 탭 전환 시 슬롯 초기화', await p.evaluate(() => potTotal(ui.pot) === 0));
   // 3 reset: native confirm accept
   p.once('dialog', d => { d.accept(); });

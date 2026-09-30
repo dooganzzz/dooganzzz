@@ -38,7 +38,7 @@ function zoneCard(zid) {
   const exp = !zl ? '<small class="muted">다녀온 적이 없습니다. 무엇이 기다리는지 모릅니다.</small>'
     : `<div class="zone-log">
         <span>다녀옴 <b>${zl.trips}</b>번</span><span><b>${zl.wins}</b>승 <b class="${zl.losses ? 'warn' : ''}">${zl.losses}</b>패</span>
-        ${zl.defeats ? `<span class="warn">쓰러짐 ${zl.defeats}</span>` : ''}${zl.retreats ? `<span>일찍 귀환 ${zl.retreats}</span>` : ''}
+        ${zl.defeats ? `<span class="warn">쓰러짐 ${zl.defeats}</span>` : ''}${zl.retreats ? `<span>마을 치료 ${zl.retreats}</span>` : ''}
       </div>
       <small class="muted">만난 요수: ${seen.length ? seen.map(e => ENEMIES[e].name).join(' · ') : '—'} · 두목: ${zl.bossMet ? `${B.name}${S.flags[B.boss] ? ' <b class="gold">토벌</b>' : zl.bossWon ? '' : ' (아직 못 이김)'}` : '？'}</small>`;
   return `<div class="zone ${open ? '' : 'locked'} ${here ? 'here' : ''}">
@@ -75,8 +75,8 @@ function viewField() {
   const X = S.expedition, st = calcStats(), cur = X.zone && ZONES[X.zone];
   const recs = [...S.expeditions].reverse().map(r => {
     const sm = recSummary(r), Z = ZONES[r.zone];
-    return `<details class="exp-rec ${r.end === 'defeat' ? 'defeat' : ''}">
-      <summary><time>${recTime(r)}</time><b>${Z.name}</b><span>${sm.head}</span>${r.end === 'defeat' ? '<em class="warn">쓰러져 귀환</em>' : ''}</summary>
+    return `<details class="exp-rec ${r.defeats ? 'defeat' : ''}">
+      <summary><time>${recTime(r)}</time><b>${Z.name}</b><span>${sm.head}</span>${r.defeats ? `<em class="warn">쓰러짐 ${r.defeats}</em>` : ''}</summary>
       ${sm.items.length || sm.gear.length ? `<p class="exp-loot">${[...sm.items, ...sm.gear].map(t => `<span>${t}</span>`).join('')}</p>` : ''}
       ${terrainLine(r) ? `<p class="muted tr-line">⛰ ${terrainLine(r)}</p>` : ''}
       <ol class="exp-steps">${r.steps.map(s => `<li class="${s.cls}">${s.t}${s.b !== undefined ? ` <button class="watch" data-watch="${r.id}:${s.b}">관찰하기</button>` : ''}</li>`).join('')}</ol>
@@ -107,8 +107,8 @@ function settleModal(ids) {
     <p class="eyebrow">見聞錄 · 탐험 결산</p>
     <h2>${recs.length > 1 ? `탐험 ${recs.length}번의 결산` : '탐험에서 돌아왔습니다'}</h2>
     <div class="settle-total"><span>${tot.w}승 ${tot.l}패</span><span>${hlSilver(tot.s)}</span><span>경험치 +${fmt(tot.e)}</span></div>
-    <ol class="settle-list">${recs.map(r => { const sm = recSummary(r); return `<li class="${r.end === 'defeat' ? 'defeat' : ''}">
-      <div><time>${recTime(r)}</time> <b>${ZONES[r.zone].name}</b> <span>${sm.head}</span>${r.end === 'defeat' ? ' <em class="warn">쓰러져 귀환</em>' : ''}</div>
+    <ol class="settle-list">${recs.map(r => { const sm = recSummary(r); return `<li class="${r.defeats ? 'defeat' : ''}">
+      <div><time>${recTime(r)}</time> <b>${ZONES[r.zone].name}</b> <span>${sm.head}</span>${r.defeats ? ` <em class="warn">쓰러짐 ${r.defeats}</em>` : ''}</div>
       ${sm.items.length || sm.gear.length ? `<small>${[...sm.items, ...sm.gear].join(' · ')}</small>` : ''}
       ${terrainLine(r) ? `<small class="muted tr-line">⛰ ${terrainLine(r)}</small>` : ''}
       <div class="settle-watch">${r.battles.map((b, i) => `<button class="watch ${b.win ? '' : 'lost'} ${b.boss ? 'boss' : ''}" data-watch="${r.id}:${i}" title="${b.name} — ${b.win ? '승리' : '패배'}">${b.boss ? '👹' : ''}${sealChar(b.name)}</button>`).join('')}</div>

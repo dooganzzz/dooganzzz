@@ -46,7 +46,7 @@ module.exports = async (b) => {
     await p.click('.gm-tab[data-gmtab="trace"]');
     await p.keyboard.press('Escape');
     await p.click('[data-tab="status"]');
-    await p.evaluate(() => { S.silver = 0; goTab('sect', 'shop'); render(); buyItem('potionHp'); S.hp = 1e9; fight('rabbit'); give('herb', 2); take('herb', 1); });
+    await p.evaluate(() => { S.silver = 0; goTab('sect', 'shop'); render(); buyItem('saenghyeol'); S.hp = 1e9; fight('rabbit'); give('herb', 2); take('herb', 1); });
     await p.keyboard.press('F1');
     const tr = await p.evaluate(() => ({ kinds: GM.trace.map(r => r.kind), top: GM.trace[0].text, rows: document.querySelectorAll('#gmTrace li').length, first: document.querySelector('#gmTrace li span:last-child').textContent, time: document.querySelector('#gmTrace li time').textContent, inLog: S.log.some(l => /콘솔/.test(l.text)) }));
     ok('2 탭 전환·클릭 추적', tr.kinds.includes('tab') && tr.kinds.includes('click'), tr.kinds.slice(0, 12).join(','));
@@ -64,19 +64,19 @@ module.exports = async (b) => {
     await p.click('.gm-tab[data-gmtab="items"]');
     const it = await p.evaluate(() => ({ rows: document.querySelectorAll('#gmItemRows tr').length, total: Object.keys(ITEMS).length, head: [...document.querySelectorAll('.gm-table th')].map(e => e.textContent).slice(0, 4).join(',') }));
     ok('3 전체 아이템 표 (ID·이름·분류·가치)', it.rows === it.total && it.head === 'ID,이름,분류,가치', JSON.stringify(it));
-    await p.fill('[data-gminput="itemQ"]', '금창');
+    await p.fill('[data-gminput="itemQ"]', '생혈');
     ok('3 검색', await p.evaluate(() => document.querySelectorAll('#gmItemRows tr').length === 1 && document.activeElement.dataset.gminput === 'itemQ'));
-    const sp = await p.evaluate(() => { const n0 = count('potionHp'); document.querySelector('[data-gmspawn="potionHp"][data-n="1"]').click(); const n1 = count('potionHp'); document.querySelector('[data-gmspawn="potionHp"][data-n="10"]').click(); return [n1 - n0, count('potionHp') - n1]; });
+    const sp = await p.evaluate(() => { const n0 = count('saenghyeol'); document.querySelector('[data-gmspawn="saenghyeol"][data-n="1"]').click(); const n1 = count('saenghyeol'); document.querySelector('[data-gmspawn="saenghyeol"][data-n="10"]').click(); return [n1 - n0, count('saenghyeol') - n1]; });
     ok('3 [+1 소환] [+10 소환] → 행낭', sp[0] === 1 && sp[1] === 10, sp.join(','));
 
     // 4. 조합법
     await p.click('.gm-tab[data-gmtab="recipes"]');
     const rc = await p.evaluate(() => ({ rows: document.querySelectorAll('[data-gmmats]').length, total: RECIPES.length }));
     ok('4 모든 레시피 (재료·결과)', rc.rows === rc.total, JSON.stringify(rc));
-    const mats = await p.evaluate(() => { const r = RECIPES.find(x => x.id === 'f_armor_2'); const before = Object.fromEntries(Object.keys(r.in).map(id => [id, count(id)])); document.querySelector('[data-gmmats="f_armor_2"]').click(); return Object.entries(r.in).every(([id, n]) => count(id) - before[id] === n); });
+    const mats = await p.evaluate(() => { const r = RECIPES.find(x => x.id === 'f_c_armor'); const before = Object.fromEntries(Object.keys(r.in).map(id => [id, count(id)])); document.querySelector('[data-gmmats="f_c_armor"]').click(); return Object.entries(r.in).every(([id, n]) => count(id) - before[id] === n); });
     ok('4 [필요 재료 지급] → 재료 세트가 행낭에', mats);
-    await p.click('[data-gmcraft="cook"]');
-    ok('4 기예별 거르기', await p.evaluate(() => document.querySelectorAll('[data-gmmats]').length === RECIPES.filter(r => r.craft === 'cook').length));
+    await p.click('[data-gmcraft="alchemy"]');
+    ok('4 기예별 거르기', await p.evaluate(() => document.querySelectorAll('[data-gmmats]').length === RECIPES.filter(r => r.craft === 'alchemy').length));
 
     // 5. 쾌속 치트
     await p.click('.gm-tab[data-gmtab="cheat"]');

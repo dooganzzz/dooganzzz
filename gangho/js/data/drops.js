@@ -19,7 +19,7 @@ const DROPS = {
   fireViper:  [['scorpionSac', 0.5], ['redStone', 0.3]],
   redWolf:    [['wolfSinew', 0.7], ['redClay', 0.3]],
   eagle:      [['wolfSinew', 0.3], ['redStone', 0.4]],
-  logger:     [['bladeShard', 0.3], ['blackwood', 0.5]],
+  logger:     [['bladeShard', 0.4], ['redClay', 0.4]],
   cannoneer:  [['redStone', 0.6], ['scorpionSac', 0.2]],
   charger:    [['redClay', 0.5], ['blackIngot', 0.3]],
   eliteAxe:   [['bladeShard', 0.6], ['blackIngot', 0.3]],

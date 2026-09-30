@@ -47,13 +47,14 @@ function affinityText(a) {
   return `오행 ${elem} · 병기 ${weap}${a.weak ? ` · <b class="good">약점 공략 (+${Math.round(a.weak * 100)}%)</b>` : ''}`;
 }
 
-function sense(eid) {
+/* 기척 비율: 내가 버티는 합 수 ÷ 적을 쓰러뜨리는 데 드는 합 수 (속도 보정). 높을수록 내가 유리 */
+function senseRatio(eid) {
   const E = ENEMIES[eid], st = calcStats(), a = affinity(eid, st);
   const myTurns = E.hp / (dmgBase(st.atk, E.def) * 1.3 * a.dealt);
   const foeTurns = st.maxHp / Math.max(1, dmgBase(E.atk, st.def) * a.taken * (1 - st.eva / 100) * (1 + ((E.hits || 1) - 1) * 0.6));
-  const ratio = (foeTurns / myTurns) * (st.spd / E.spd);
-  return SENSE_TEXT.find(([t]) => ratio >= t);
+  return (foeTurns / myTurns) * (st.spd / E.spd);
 }
+function sense(eid) { const ratio = senseRatio(eid); return SENSE_TEXT.find(([t]) => ratio >= t); }
 
 /* 한 판을 끝까지 계산한다. 속도가 빠른 쪽이 먼저 치고, 합마다 대사·연출·양쪽 활력을 기록해 두면
    화면(관찰하기)이 그 기록을 그대로 다시 튼다. opts.bonus: 기연 전투에서 이기면 받는 추가 보상

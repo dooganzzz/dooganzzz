@@ -19,7 +19,7 @@ module.exports = async (b) => {
     const f1 = await p.evaluate(() => { const r = S.expeditions[0]; return { recs: S.expeditions.length, modal: ui.modal, settle: !!document.querySelector('.settle-sheet'), zone: S.expedition.zone, next: nextExpeditionIn(), at: (d => d.getMinutes() * 60 + d.getSeconds())(new Date(S.expedition.nextAt)), stamina: S.stamina, steps: r.steps.length, battles: r.battles.length, kinds: [...new Set(r.steps.map(s => s.k))] }; });
     ok('1 처음 고르면 첫 탐험이 곧바로 → 결산 창', f1.recs === 1 && f1.settle && /^settle:/.test(f1.modal), JSON.stringify(f1));
     ok('1 다음 출발은 다음 정각 · 기력은 모두 소모', f1.next > 0 && f1.next <= 3600000 && f1.at === 0 && f1.stamina === 0, JSON.stringify(f1));
-    ok('1 한 번의 탐험에 여러 조우 (전투 포함)', f1.steps >= 10 && f1.battles >= 5 && f1.kinds.includes('beast'), JSON.stringify(f1));
+    ok('1 한 번의 탐험에 여러 조우 (전투 포함, 10걸음 안팎)', f1.steps >= 5 && f1.steps <= 18 && f1.battles >= 2 && f1.kinds.includes('beast'), JSON.stringify(f1));
     await p.click('.settle-sheet [data-act="closemodal"]');
 
     // 2. 견문록: 걸음마다 한 줄, 전투에는 [관찰하기]
@@ -73,38 +73,37 @@ module.exports = async (b) => {
     await p.waitForTimeout(2100);
     ok('5 다음 출발 카운트다운이 1초마다 갱신', await p.evaluate(cd => { const t = document.querySelector('[data-countdown]').textContent; return /^(\d+:)?\d+:\d\d$/.test(t) && t !== cd; }, fr.cd));
 
-    // 6. 기력·음식·버프·자동 금창약·귀환
+    // 6. 기력(숨김) · 증강 단약 · 자동 생혈고 · 마을 치료 · 패배 후 재출전
     const sta = await p.evaluate(() => {
       const r = {}, st = calcStats();
-      S.stamina = 0; lastFrame = now() - 5000; tick(); r.regen = S.stamina > 0 && S.stamina < 1;
-      S.stamina = st.maxSta; give('jumeokbap', 1, true); useItem('jumeokbap'); r.over = S.stamina === st.maxSta + 20;
-      give('lingzhiBap', 1, true); useItem('lingzhiBap'); r.buff = S.buffs.some(x => x.key === 'train') && calcStats().trainBuff > 0;
-      r.expBuffed = expGain(100) > expGain(100, { ...calcStats(), trainBuff: 0 });
-      const sta0 = S.stamina; S.expedition.nextAt = now() - 1; const rec = settleExpeditions()[0];
-      r.budget = sta0 === st.maxSta + 60 && rec.budget === sta0;         // 주먹밥 +20, 산채밥 +40
+      S.stamina = 0; lastFrame = now() - 5000; tick(); r.noRegen = S.stamina === 0;                 // 틱으로는 차오르지 않는다
+      r.noFood = !Object.values(ITEMS).some(I => I.use && I.use.stamina) && !document.querySelector('#status .bar.sta');
+      give('golgye', 1, true); const d0 = calcStats().def; useItem('golgye'); r.buff = S.buffs.some(x => x.key === 'defFlat') && calcStats().def === d0 + 15;
+      S.stamina = 7; S.expedition.nextAt = now() - 1; const rec = settleExpeditions()[0];
+      r.full = rec.budget === calcStats().maxSta;                       // 정각 출발 때만 가득
       r.cleared = S.buffs.length === 0;
-      // 활력이 바닥나고 금창약이 없으면 스스로 귀환 (벌칙 없음)
-      delete S.inv.potionHp; const hp = W => { S.stamina = 100; S.hp = 1; };
-      const rf = EXPEDITION.retreatAt; EXPEDITION.retreatAt = 2;   // 곧바로 귀환하게
-      S.stamina = 100; const r2 = runExpedition(now()); EXPEDITION.retreatAt = rf;
-      r.retreat = r2.end === 'retreat' && r2.steps[r2.steps.length - 1].k === 'retreat' && !r2.gain.lost;
-      // 쓰러지면 번 은자 절반을 잃고 활력 10%
-      S.inv.potionHp = 0; delete S.inv.potionHp;
-      const E0 = ENEMIES.rabbit.atk; for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk *= 60;
-      S.stamina = 100; const r3 = runExpedition(now());
+      // 생혈고가 없고 활력이 바닥나면 마을로 내려가 치료하고 (기력 소모) 다시 사냥
+      delete S.inv.saenghyeol;
+      const va = EXPEDITION.villageAt; EXPEDITION.villageAt = 2;          // 곧바로 마을로
+      S.stamina = 100; const r2 = runExpedition(now()); EXPEDITION.villageAt = va;
+      r.village = r2.villages > 0 && r2.steps.some(x => x.k === 'village') && r2.end === 'tired';
+      // 쓰러지면 기력을 크게 잃고 활력·내력을 회복해 다시 사냥 (은자는 잃지 않는다)
+      for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk *= 60;
+      const s0 = S.silver; S.stamina = 100; const r3 = runExpedition(now());
       for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk /= 60;
-      r.defeat = r3.end === 'defeat' && S.hp === Math.max(1, Math.round(calcStats().maxHp * 0.1));
-      // 자동 금창약
-      S.inv.potionHp = 3; S.hp = 1; const bt = { eid: 'rabbit', e: { ...ENEMIES.rabbit, hpNow: 30 }, lines: [], fx: [], st: calcStats(), over: false }; RT.battle = bt; autoPotion(bt); RT.battle = null;
-      r.potion = count('potionHp') === 2 && S.hp > 1 && bt.lines.some(l => /금창약/.test(l.text));
+      r.defeat = r3.defeats >= 2 && r3.end === 'tired' && !('lost' in r3.gain) && r3.steps.filter(x => x.b !== undefined).length >= 2;
+      r.defeatLog = r3.steps.some(x => (x.d || []).some(l => /다시 길을 나섭니다/.test(l.text)));
+      // 자동 생혈고
+      S.inv.saenghyeol = 3; S.hp = 1; const bt = { eid: 'rabbit', e: { ...ENEMIES.rabbit, hpNow: 30 }, lines: [], fx: [], st: calcStats(), over: false }; RT.battle = bt; autoPotion(bt); RT.battle = null;
+      r.potion = count('saenghyeol') === 2 && S.hp > 1 && bt.lines.some(l => /생혈고/.test(l.text));
       return r;
     });
-    ok('6 기력은 한 시간에 걸쳐 차오름 (틱)', sta.regen, JSON.stringify(sta));
-    ok('6 음식 기력은 최대치를 넘어 쌓이고 다음 탐험 예산이 됨', sta.over && sta.budget, JSON.stringify(sta));
-    ok('6 음식·영단 효과는 다음 탐험 한 번 (경험치 보정) 뒤 사라짐', sta.buff && sta.expBuffed && sta.cleared, JSON.stringify(sta));
-    ok('6 활력 바닥 + 금창약 없음 → 스스로 귀환 (벌칙 없음)', sta.retreat, JSON.stringify(sta));
-    ok('6 쓰러지면 패배 귀환 (활력 10%)', sta.defeat, JSON.stringify(sta));
-    ok('6 위급하면 금창약 자동 복용', sta.potion, JSON.stringify(sta));
+    ok('6 기력은 숨겨진 능력치: 틱·음식으로 차오르지 않고 화면에 없음', sta.noRegen && sta.noFood, JSON.stringify(sta));
+    ok('6 정각 출발 때만 기력이 가득', sta.full, JSON.stringify(sta));
+    ok('6 증강 단약(골계단)은 다음 탐험 한 번 뒤 사라짐', sta.buff && sta.cleared, JSON.stringify(sta));
+    ok('6 생혈고 없이 활력 바닥 → 마을 치료(기력 소모) 후 다시 사냥', sta.village, JSON.stringify(sta));
+    ok('6 쓰러지면 기력을 잃고 회복해 다시 사냥 (기력이 다할 때까지)', sta.defeat && sta.defeatLog, JSON.stringify(sta));
+    ok('6 위급하면 생혈고 자동 사용', sta.potion, JSON.stringify(sta));
 
     // 7. 두목: 기척이 너무 무거우면 피하고, 쓰러뜨리면 다음 구역이 열림
     const boss = await p.evaluate(() => {
@@ -113,7 +112,7 @@ module.exports = async (b) => {
       const hpK = ENEMIES.redTiger.hp; ENEMIES.redTiger.hp = 999999;
       S.stamina = 100; const a = runExpedition(now());
       ENEMIES.redTiger.hp = 1;
-      S.stamina = 100; S.inv.potionHp = 9; const k = runExpedition(now());
+      S.stamina = 100; S.inv.saenghyeol = 9; const k = runExpedition(now());
       ENEMIES.redTiger.hp = hpK; W.bossFrom = keep.from; W.bossChance = keep.ch;
       return { avoid: a.steps.some(s => s.k === 'avoid') && !a.battles.some(x => x.boss), won: k.battles.some(x => x.boss && x.win), flag: !!S.flags.boss1, open: zoneUnlocked('yeomhwa') };
     });

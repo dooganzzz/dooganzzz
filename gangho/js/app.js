@@ -148,17 +148,15 @@ function migrate(st) {
   return st;
 }
 
-/* 시간 흐름: 1초마다 기력이 조금씩 차오르고(한 시간이면 가득), 탐험 시각이 되면 결산한다 */
+/* 시간 흐름: 탐험 시각이 되면 결산한다 (기력은 정각 출발 때만 가득 찬다) */
 let lastFrame = now();
 function tick() {
   if (!S) return;
   const t = now(), dt = Math.min(5, (t - lastFrame) / 1000); lastFrame = t;
-  const maxSta = calcStats().maxSta;
-  if (S.stamina < maxSta) S.stamina = Math.min(maxSta, S.stamina + maxSta * dt / 3600);
   const recs = settleExpeditions(t);
   if (recs.length) {
     const r = recs[recs.length - 1];
-    notify.toast(`⛰️ 탐험에서 돌아왔습니다 — ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver >= 0 ? '+' : ''}${r.gain.silver}${r.end === 'defeat' ? ' · 쓰러져 귀환' : ''}`);
+    notify.toast(`⛰️ 탐험에서 돌아왔습니다 — ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver >= 0 ? '+' : ''}${r.gain.silver}${r.defeats ? ` · 쓰러짐 ${r.defeats}번` : ''}`);
   }
   Bus.emit('tick');
 }
