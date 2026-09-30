@@ -12,8 +12,8 @@ module.exports = async (b) => {
   await startEquipped(p);
   // 1
   const tabs = await p.$$eval('.tab .ko', els => els.map(e => e.textContent).join(','));
-  ok('1 탭 순서', tabs === '정청,상태,연무장,화로,뒷마당,강호행,무신상,도감', tabs);
-  ok('1 첫 화면=정청', await p.$eval('.tab.on .ko', e => e.textContent) === '정청');
+  ok('1 탭 순서', tabs === '청풍문,상태,행낭,강호행,도감', tabs);
+  ok('1 첫 화면=청풍문 › 정청', await p.$eval('.tab.on .ko', e => e.textContent) === '청풍문' && await p.$eval('.subtab.on .ko', e => e.textContent) === '정청');
   // 2
   const t = await p.evaluate(() => {
     const r = {}; r.default = S.activeTrainingSkillId;
@@ -31,7 +31,7 @@ module.exports = async (b) => {
   ok('2 정지 시 경험치 불변', t.idleUnchanged);
   ok('2 단일 비급만 누적', t.changed.length === 1 && t.changed[0] === 'simbeop', t.changed.join(','));
   ok('2 성당 수련 시간 (1~5성 8h, 6~11성 16h)', t.segs.join('/') === '8/8/16/16' && Math.abs(t.perStarBase - 8) < 0.01, `1·5·6·11성 ${t.segs.join('/')}h`);
-  await p.click('[data-tab="yeonmu"]');
+  await p.click('[data-tab="sect"]'); await p.click('[data-sub="yeonmu"]');
   ok('2 수련 중 카드 1개만 금빛', (await p.$$('.art.training')).length === 1);
   // 3
   await p.click('[data-tab="field"]');
@@ -82,9 +82,9 @@ module.exports = async (b) => {
   ok('5 상단 슬롯', bag.top === '투구,무기,옥패,호갑', bag.top); ok('5 하단 가로 5슬롯', bag.bottom === '신발,요대,가락지,신분패,탈것', bag.bottom); ok('5 실루엣 이미지', bag.img);
   // 7 + 6
   await p.evaluate(() => { S.silver = 100; render(); });
-  await p.click('[data-tab="yard"]');
+  await p.click('[data-tab="sect"]'); await p.click('[data-sub="yard"]');
   ok('7 아린 힌트 버튼 제거됨', !(await p.$('[data-act="hint"]')));
-  await p.evaluate(() => { S.inv.herb = 2; ui.tab = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_hp'); i++) { S.inv.herb = 2; ui.pot = { herb: 2 }; doCraft(ui.craft, ui.pot); } });   // 성공률 상한 98%라 한 번에 실패할 수 있음
+  await p.evaluate(() => { S.inv.herb = 2; ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_hp'); i++) { S.inv.herb = 2; ui.pot = { herb: 2 }; doCraft(ui.craft, ui.pot); } });   // 성공률 상한 98%라 한 번에 실패할 수 있음
   await p.click('[data-tab="codex"]');
   ok('6 안내문 없음', !(await p.$('.codex ~ .lede, .panel .lede')) && !(await p.content()).includes('아직 아무것도 모릅니다'));
   await p.click('.ctile.locked'); const toast = await p.$$eval('.toast', e => e[e.length - 1].textContent);
@@ -93,11 +93,11 @@ module.exports = async (b) => {
   const modalBtn = await p.$eval('.sheet [data-fill]', e => e.textContent.trim());
   ok('6 조합법 모달 + 화로로 가기', modalBtn === '[ 화로로 가기 ]' && !!(await p.$('.mats-list li')), modalBtn);
   await p.click('.sheet [data-fill]');
-  ok('6 화로 이동·재료 투입', await p.evaluate(() => ui.tab === 'forge' && potTotal(ui.pot) > 0));
+  ok('6 화로 이동·재료 투입', await p.evaluate(() => ui.tab === 'sect' && ui.sectSub === 'forge' && potTotal(ui.pot) > 0));
   ok('9 성공률 % 비노출', !(await p.$eval('#main', e => /\d+%/.test(e.textContent))));
   ok('9 화로 10칸', (await p.$$('.pot-slots .slot')).length === 10);
   // 7 portraits + quest
-  await p.click('[data-tab="hall"]');
+  await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');
   ok('7 초상화 컨테이너', (await p.$$('.npc-portrait')).length === 2);
   ok('7 퀘스트 1개만', (await p.$$('.quest > b')).length === 1);
   // 8
@@ -111,7 +111,7 @@ module.exports = async (b) => {
   // 10
   const th = await p.evaluate(() => ({ body: getComputedStyle(document.body).backgroundImage.includes('radial-gradient(circle at 50% 15%') ? 'radial-gradient' : 'missing', panel: getComputedStyle(document.querySelector('.panel')).backgroundColor, blur: getComputedStyle(document.querySelector('.panel')).backdropFilter, border: getComputedStyle(document.querySelector('.panel')).borderTopColor }));
   ok('10 먹빛 글래스', th.body.includes('radial-gradient') && th.panel === 'rgba(18, 22, 29, 0.85)' && th.blur === 'blur(10px)' && th.border === 'rgba(212, 175, 55, 0.15)', JSON.stringify(th));
-  ok('무신상 탭 독립', await p.evaluate(() => { ui.tab = 'shrine'; render(); return !!document.querySelector('.altar'); }));
+  ok('무신상 탭 독립', await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'shrine'; render(); return !!document.querySelector('.altar'); }));
   const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));
   }

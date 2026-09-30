@@ -85,7 +85,7 @@ function fillPot(rid) {
   if (S.zone) return;
   const r = RECIPES.find(x => x.id === rid);
   const full = S.codex.includes(r.id);
-  ui.craft = r.craft; ui.pot = Object.fromEntries(Object.entries(r.in).filter(([id]) => full || (S.knownMats || {})[id])); ui.tab = 'forge'; ui.craftResult = null; ui.modal = null; render();
+  ui.craft = r.craft; ui.pot = Object.fromEntries(Object.entries(r.in).filter(([id]) => full || (S.knownMats || {})[id])); goTab('sect', 'forge'); ui.modal = null; render();
 }
 
 function renderModal() {
@@ -139,7 +139,7 @@ function showIntro() {
       const name = ($('#pname').value || '').trim().slice(0, 8) || '무명';
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
       startNewGame(name, chosen);
-      ui.tab = 'hall';
+      goTab('sect', 'hall');
       render();
     }
   };

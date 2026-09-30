@@ -37,7 +37,7 @@ module.exports = async (b) => {
     ok('1 5성이 차면 소성 관문', realm.gate5.star === 5 && realm.gate5.gate, JSON.stringify(realm.gate5));
     ok('1 소성 돌파 → 6성 소성, 위력 상향', realm.after.star === 6 && realm.after.realm === '소성' && realm.after.atkUp > 0, JSON.stringify(realm.after));
     ok('1 대성 극의 패시브', realm.passiveHp > 0, realm.passiveText);
-    await p.evaluate(() => { ui.tab = 'yeonmu'; render(); });
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'yeonmu'; render(); });
     ok('1 카드에 경계 표시', (await p.$$('.art .realm')).length === 4);
     await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'martial'; render(); });
     ok('1 무공 탭에 경계 표시', (await p.$$('.mslot .realm')).length === 4);

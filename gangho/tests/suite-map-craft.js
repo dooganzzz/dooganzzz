@@ -43,7 +43,7 @@ module.exports = async (b) => {
     ok('6 모든 재료에 craftType', un.length === 0, un.join(','));
   }
   // 1
-  await p.click('[data-tab="yard"]');
+  await p.click('[data-tab="sect"]'); await p.click('[data-sub="yard"]');
   const yard = await p.$eval('#main', e => e.textContent);
   ok('1 아린 조합법 물어보기 제거', !/조합법 물어보기|레시피 힌트/.test(yard) && !(await p.$('[data-act="hint"]')));
   ok('1 약과·대화만', !!(await p.$('[data-act="snack"]')) && !!(await p.$('[data-act="talk"]')));
@@ -66,7 +66,7 @@ module.exports = async (b) => {
   });
   ok('2 승리당 실전 +1 고정', xp.win && xp.diff.every(d => d === 1), JSON.stringify(xp));
   // 6 forge filter
-  await p.evaluate(() => { leaveZone(); Object.assign(S.inv, { iron: 2, herb: 2, rabbitMeat: 2, wood: 1, salt: 1 }); ui.tab = 'forge'; render(); });
+  await p.evaluate(() => { leaveZone(); Object.assign(S.inv, { iron: 2, herb: 2, rabbitMeat: 2, wood: 1, salt: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
   const ITEMS_CT = await p.evaluate(() => Object.fromEntries(Object.entries(ITEMS).map(([k, v]) => [k, v.craftType])));
   const f = {};
   for (const c of ['forge', 'alchemy', 'cook']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).join(',')); }
@@ -76,7 +76,7 @@ module.exports = async (b) => {
   await p.click('[data-craft="cook"]'); await p.click('[data-add="salt"]'); await p.click('[data-craft="forge"]');
   ok('6 탭 전환 시 슬롯 초기화', await p.evaluate(() => potTotal(ui.pot) === 0));
   // 4
-  await p.evaluate(() => { toggleTraining('gigong'); ui.tab = 'yeonmu'; render(); });
+  await p.evaluate(() => { toggleTraining('gigong'); ui.tab = 'sect'; ui.sectSub = 'yeonmu'; render(); });
   const sh = await p.evaluate(() => { const a = document.querySelectorAll('.progress-fill.training-active'); return { n: a.length, anim: a[0] && getComputedStyle(a[0]).animationName, inTraining: a[0] && !!a[0].closest('.art.training') }; });
   ok('4 수련 중 1개 바만 애니메이션', sh.n === 1 && sh.anim === 'trainingFlow' && sh.inTraining, JSON.stringify(sh));
   await p.evaluate(() => { toggleTraining('gigong'); });

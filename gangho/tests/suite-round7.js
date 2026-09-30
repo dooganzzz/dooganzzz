@@ -12,7 +12,7 @@ module.exports = async (b) => {
 
     // 2. 재료 단서
     const clue = await p.evaluate(() => {
-      S.crafts.cook.lv = 99; ui.tab = 'forge'; ui.craft = 'cook';
+      S.crafts.cook.lv = 99; ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'cook';
       for (let i = 0; i < 20 && !S.codex.includes('c_rabbit'); i++) { Object.assign(S.inv, { rabbitMeat: 1, salt: 1 }); ui.pot = { rabbitMeat: 1, salt: 1 }; doCraft(ui.craft, ui.pot); }   // 성공률 상한 98%
       ui.tab = 'codex'; render();
       const clues = [...document.querySelectorAll('.ctile.clue')].map(e => e.dataset.recipe);
@@ -39,7 +39,7 @@ module.exports = async (b) => {
     ok('4 장비 강화: 단계·공격력 상승, 은자 소모', enh.enh === 3 && enh.atk1 > enh.atk0 && enh.spent > 0, JSON.stringify(enh));
     await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'gear'; ui.slotSel = 'weapon'; render(); });
     ok('4 무장 화면 강화 버튼', !!(await p.$('[data-enhance="weapon"]')));
-    await p.evaluate(() => { ui.tab = 'hall'; render(); });
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
     ok('4 정청에 조운의 창고', (await p.$$('[data-store]')).length >= 10);
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);

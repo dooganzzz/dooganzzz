@@ -1,4 +1,4 @@
-/* [화면] 문파 탭 화면: 정청·상태(무장/행낭·무공)·연무장·화로·뒷마당·무신상·도감 */
+/* [화면] 탭 화면: 청풍문(정청·연무장·화로·뒷마당·무신상) · 상태(무장·무공) · 행낭 · 도감 */
 
 Bus.on('tick', () => renderLive());   // 연무장 수련 막대를 1초마다 갱신
 
@@ -45,8 +45,8 @@ function xpRows(id) {
 function starSig() { return Object.values(S.manuals).map(m => m.star + (m.gate ? 'g' : '')).join(); }
 
 function renderLive() {
-  if (ui.tab !== 'yeonmu' && !/^(manual|mart):/.test(ui.modal || '')) return;
-  if (ui.tab === 'yeonmu' && S.activeTrainingSkillId && Math.floor(now() / 1000) % 30 === 0 && !ui.modal) { render(); return; }
+  if (screen() !== 'yeonmu' && !/^(manual|mart):/.test(ui.modal || '')) return;
+  if (screen() === 'yeonmu' && S.activeTrainingSkillId && Math.floor(now() / 1000) % 30 === 0 && !ui.modal) { render(); return; }
   for (const el of document.querySelectorAll('[data-live]')) {
     const m = S.manuals[el.dataset.live]; if (!m || m.star >= MAX_STAR) continue;
     const rows = el.querySelectorAll('.xprow');
@@ -84,15 +84,6 @@ function viewYeonmu() {
     <p class="story">${tm ? `향이 타들어 갑니다. 《${tm.name}》 한 가지에만 온 정신을 모읍니다. 1~5성은 성마다 8시간, 소성 이후 6~11성은 16시간이 걸립니다.` : '연무장이 고요합니다. 수련할 비급 하나를 골라 [ 수련하기 ]를 누르십시오. 한 번에 한 비급만 수련할 수 있습니다.'}</p>
     <div class="arts">${cards}</div>
   </section>`;
-}
-
-/* 상태 탭: [ 무장 ] / [ 무공 ] 하위 탭 */
-const STATUS_SUBS = [['gear', '무장', '武裝'], ['martial', '무공', '武功']];
-function viewStatus() {
-  const sub = STATUS_SUBS.some(([id]) => id === ui.statusSub) ? ui.statusSub : 'gear';
-  const bar = `<div class="subtabs" role="tablist" aria-label="상태">${STATUS_SUBS.map(([id, ko, hj]) =>
-    `<button class="subtab ${sub === id ? 'on' : ''}" role="tab" aria-selected="${sub === id}" data-sub="${id}">${label(ko, hj)}</button>`).join('')}</div>`;
-  return bar + (sub === 'martial' ? viewMartial() : viewBag());
 }
 
 /* 상태 › 무공 */
@@ -247,7 +238,8 @@ const DOLL_SVG = `<svg class="martial-artist-img fallback" viewBox="0 0 240 360"
   </g>
 </svg>`;
 
-function viewBag() {
+/* 상태 › 무장: 착용 장비 슬롯 · 선택 장비 강화 · 능력치 */
+function viewGear() {
   const st = calcStats();
   const slot = s => {
     const it = S.equip[s];
@@ -259,8 +251,6 @@ function viewBag() {
   };
   const sel = ui.slotSel && S.equip[ui.slotSel];
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-  const kinds = ['all', '비급', '재료', '영약', '영단', '음식', '부산물', '증표'];
-  const items = Object.keys(S.inv).filter(id => ui.bagFilter === 'all' || ITEMS[id].kind === ui.bagFilter);
   return `<section class="panel">
     ${head('무장', '武裝')}
     <div class="bag-top">
@@ -277,8 +267,14 @@ function viewBag() {
         <div class="statsheet">${statList}</div>
       </div>
     </div>
-  </section>
-  <section class="panel">
+  </section>`;
+}
+
+/* 행낭: 보관 장비 · 소지품 */
+function viewBag() {
+  const kinds = ['all', '비급', '재료', '영약', '영단', '음식', '부산물', '증표'];
+  const items = Object.keys(S.inv).filter(id => ui.bagFilter === 'all' || ITEMS[id].kind === ui.bagFilter);
+  return `<section class="panel">
     ${head('행낭', '行囊', `<span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
     ${S.gear.length ? `<div class="gears">${S.gear.map(it => `<div class="gear r${it.rarity}"><div class="gtop"><span class="grade r${it.rarity}">${RARITY[it.rarity].name}</span><b>${it.name}</b><small class="muted">${SLOTS[it.slot].name}</small></div><small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}<div class="btns"><button class="btn sm" data-equip="${it.uid}">착용</button><button class="btn ghost sm" data-discard="${it.uid}">버리기</button></div></div>`).join('')}</div>` : ''}
     <div class="chips">${kinds.map(k => `<button class="chip ${ui.bagFilter === k ? 'on' : ''}" data-filter="${k}">${k === 'all' ? '전체' : k}</button>`).join('')}</div>

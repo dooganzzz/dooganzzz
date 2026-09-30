@@ -106,7 +106,7 @@ module.exports = async (b) => {
     ok('4 다시 그려도 최신이 맨 위, scrollTop 0', lg.afterRender === '두 번째 확인 기록' && lg.top === 0);
 
     // 5. 정청 접기/펼치기
-    await p.evaluate(() => { ui.tab = 'hall'; render(); });
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
     const state = () => p.evaluate(() => ['hq', 'missions', 'library'].map(k => document.querySelector(`[data-foldbody="${k}"]`).classList.contains('collapsed') ? '접힘' : '펼침').join(','));
     const s0 = await state();
     ok('5 기본: 정청 본부 펼침, 문파 임무 펼침, 장경각 접힘', s0 === '펼침,펼침,접힘', s0);

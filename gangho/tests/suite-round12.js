@@ -10,13 +10,12 @@ module.exports = async (b) => {
     await p.goto(GAME_URL);
     await p.click('#begin');
 
-    // 1. 1차 탭
+    // 1. 1차 탭 (청풍문 개편 뒤: 청풍문 · 상태 · 행낭 · 강호행 · 도감)
     const tabs = await p.$$eval('#tabs .tab', els => els.map(e => [e.dataset.tab, e.querySelector('.ko').textContent, e.querySelector('.hj').textContent]));
-    ok('1 1차 탭 순서: 정청 → 상태 → 연무장 → 화로 → 뒷마당 → 강호행 → 무신상 → 도감', tabs.map(t => t[1]).join(',') === '정청,상태,연무장,화로,뒷마당,강호행,무신상,도감', tabs.map(t => t[1]).join(','));
-    ok('1 무공·무장 독립 탭 없음', !tabs.some(t => ['martial', 'bag'].includes(t[0]) || ['무공', '무장'].includes(t[1])));
-    ok('1 상태 탭 한자 狀態', tabs[1][0] === 'status' && tabs[1][2] === '狀態');
+    ok('1 상태 탭은 청풍문 바로 오른쪽', tabs[0][0] === 'sect' && tabs[1][0] === 'status' && tabs[1][2] === '狀態', tabs.map(t => t[1]).join(','));
+    ok('1 무공·무장 독립 탭 없음', !tabs.some(t => ['martial', 'gear'].includes(t[0]) || ['무공', '무장'].includes(t[1])));
     const bar = await p.evaluate(() => { const t = document.querySelector('#tabs'); const r = [...t.querySelectorAll('.tab')].map(e => e.getBoundingClientRect()); return { over: t.scrollWidth - t.clientWidth, inView: r.every(x => x.left >= 0 && x.right <= innerWidth + 0.5) }; });
-    ok('1 탭 바 가로 스크롤 없음 · 8개 모두 화면 안', bar.over <= 0 && bar.inView, JSON.stringify(bar));
+    ok('1 탭 바 가로 스크롤 없음 · 모두 화면 안', bar.over <= 0 && bar.inView, JSON.stringify(bar));
 
     // 3. 안내 지문
     const arin = await p.evaluate(() => S.log.map(l => l.text).find(t => t.startsWith('아린:')));
@@ -25,9 +24,9 @@ module.exports = async (b) => {
 
     // 2. 하위 탭
     await p.click('[data-tab="status"]');
-    const s1 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, sel: document.querySelector('.subtab.on').getAttribute('aria-selected'), doll: !!document.querySelector('.paperdoll'), slots: document.querySelectorAll('.dslot').length, mslots: document.querySelectorAll('.mslot').length }));
+    const s1 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, sel: document.querySelector('.subtab.on').getAttribute('aria-selected'), doll: !!document.querySelector('.paperdoll'), slots: document.querySelectorAll('.dslot').length, mslots: document.querySelectorAll('.mslot').length, bagList: !!document.querySelector('.items, [data-filter]') }));
     ok('2 하위 탭 [ 무장 ] / [ 무공 ]', s1.subs === '무장,무공', s1.subs);
-    ok('2 처음엔 무장: 착용 장비 슬롯', s1.on === '무장' && s1.sel === 'true' && s1.doll && s1.slots >= 9 && s1.mslots === 0, JSON.stringify(s1));
+    ok('2 처음엔 무장: 착용 장비 슬롯 (행낭 목록은 따로)', s1.on === '무장' && s1.sel === 'true' && s1.doll && s1.slots >= 9 && s1.mslots === 0 && !s1.bagList, JSON.stringify(s1));
     await p.click('[data-sub="martial"]');
     const s2 = await p.evaluate(() => ({ on: document.querySelector('.subtab.on .ko').textContent, tab: document.querySelector('.tab.on .ko').textContent, mslots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), books: document.querySelectorAll('.chips [data-use^="bk_"]').length, doll: !!document.querySelector('.paperdoll') }));
     ok('2 무공: 4대 무공 슬롯 + 보유 비급', s2.on === '무공' && s2.tab === '상태' && s2.mslots === '무공,심법,경공,기공' && s2.books === 4 && !s2.doll, JSON.stringify(s2));
@@ -36,13 +35,13 @@ module.exports = async (b) => {
     ok('2 무공에서 바로 익히기 → 익힌 무공 목록, 하위 탭 유지', s3.learned === 4 && s3.on === '무공', JSON.stringify(s3));
 
     // 다른 탭에 다녀와도 마지막 하위 탭 기억
-    await p.click('[data-tab="hall"]'); await p.click('[data-tab="status"]');
+    await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]'); await p.click('[data-tab="status"]');
     ok('2 마지막 하위 탭 기억', await p.$eval('.subtab.on .ko', e => e.textContent) === '무공');
     await p.click('[data-sub="gear"]');
     ok('2 무장으로 전환', await p.evaluate(() => !!document.querySelector('.paperdoll') && ui.statusSub === 'gear'));
 
     // 연무장 빈 슬롯 버튼 → 상태 › 무공
-    await p.evaluate(() => { for (const c of CAT_ORDER) if (S.active[c]) unequipManual(c); ui.tab = 'yeonmu'; render(); });
+    await p.evaluate(() => { for (const c of CAT_ORDER) if (S.active[c]) unequipManual(c); ui.tab = 'sect'; ui.sectSub = 'yeonmu'; render(); });
     await p.click('.empty-art [data-tab="status"]');
     ok('2 연무장 "상태 › 무공에서 장착" → 무공 하위 탭', await p.evaluate(() => ui.tab === 'status' && document.querySelector('.subtab.on .ko').textContent === '무공'));
     await p.evaluate(() => { toggleTraining('mugong'); });

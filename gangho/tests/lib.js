@@ -21,7 +21,7 @@ function watchErrors(p) {
 // 새 게임을 시작하고 행낭의 비급을 모두 익혀 장착한다
 async function startEquipped(p) {
   await p.click('#begin');
-  await p.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); ui.tab = 'hall'; render(); });
+  await p.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
 }
 const VIEWPORTS = [[1280, 900], [390, 844]];
 // 3초 주기 자동 전투를 검사에서는 즉시 끝까지 돌린다

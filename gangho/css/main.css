@@ -487,16 +487,20 @@ body {
 .map-scroll .cell { transition: transform .15s ease, box-shadow .18s ease, filter .18s ease; }
 .map-scroll .cell.gimmick { color: #8fd49a; }
 
-/* 상태 탭: [ 무장 ] / [ 무공 ] 하위 탭 (한 덩어리 토글) */
-.subtabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 10px; background: rgba(9, 11, 13, .7); border: 1px solid rgba(212, 175, 55, .15); max-width: 360px; }
+/* 2차 탭: 청풍문 [ 정청 · 연무장 · 화로 · 뒷마당 · 무신상 ], 상태 [ 무장 · 무공 ] (한 덩어리 토글) */
+.subtabs { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 10px; background: rgba(9, 11, 13, .7); border: 1px solid rgba(212, 175, 55, .15); max-width: calc(var(--n, 2) * 150px); }
 .subtab { display: flex; justify-content: center; align-items: baseline; padding: 9px 12px; border: 0; border-radius: 7px; background: none; color: var(--dim); font-size: 1rem; cursor: pointer; }
 .subtab.on { color: var(--ink); background: linear-gradient(180deg, rgba(212, 175, 55, .22), rgba(212, 175, 55, .08)); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .55); }
 .subtab.on .hj { color: var(--gold); }
-@media (max-width: 640px) { .subtabs { max-width: none; } }
-
-/* 좁은 화면: 1차 탭 8개를 4×2 격자로 모두 보이게 (가로 스크롤 없음). 한자는 한글 아래 작게 */
 @media (max-width: 640px) {
-  .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 2px; overflow: visible; padding-block: 4px 8px; }
+  .subtabs { max-width: none; }
+  .subtab { flex-direction: column; align-items: center; gap: 1px; padding: 8px 2px; font-size: .92rem; min-width: 0; }
+  .subtab .hj { margin-left: 0; font-size: .6em; letter-spacing: .12em; }
+}
+
+/* 좁은 화면: 1차 탭 5개를 한 줄 격자로 모두 보이게 (가로 스크롤 없음). 한자는 한글 아래 작게 */
+@media (max-width: 640px) {
+  .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; overflow: visible; padding-block: 4px 8px; }
   .tab { flex-direction: column; align-items: center; gap: 1px; padding: 7px 2px 8px; font-size: .95rem; min-width: 0; }
   .tab .hj { margin-left: 0; font-size: .6em; letter-spacing: .12em; }
 }

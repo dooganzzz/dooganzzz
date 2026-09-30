@@ -172,7 +172,7 @@ function closeBattle() {
   if (!b.win) {
     S.zone = null;
     S.hp = Math.max(1, Math.round(calcStats().maxHp * 0.1));
-    notify.view({ tab: 'yard' });
+    notify.view({ tab: 'sect', sectSub: 'yard' });
   }
   notify.save(); notify.refresh();
 }
