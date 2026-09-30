@@ -19,6 +19,7 @@ function viewFurnace() {
     <p class="muted furnace-desc">${C.desc} 조합식은 알려져 있지 않습니다. 성공하면 도감에 적힙니다.</p>
     <div class="forge">
       <div class="pot">
+        ${furnaceFire(ui.craft)}
         <p class="story flame">${fireText(ui.craft)}</p>
         <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${ITEMS[flat[i]].icon}<small>${ITEMS[flat[i]].name}</small></button>` : '<div class="slot"></div>').join('')}</div>
         <div class="btns"><button class="btn primary" data-act="craft" ${flat.length ? '' : 'disabled'}>${C.name}</button><button class="btn ghost" data-act="clearpot" ${flat.length ? '' : 'disabled'}>비우기</button></div>

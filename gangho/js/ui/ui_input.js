@@ -62,7 +62,7 @@ function onClick(e) {
   const acts = {
     craft: () => doCraft(ui.craft, ui.pot), clearpot: () => { ui.pot = {}; render(); },
     rest: () => showConfirmModal({ title: '휴식', message: '평상에 누워 쉬시겠습니까? 활력과 내력이 모두 찹니다.', confirmText: '휴식', cancelText: '취소', onConfirm: rest }),
-    confirmok: confirmAccept, talk: arinTalk, masterhint: masterHint, jounguide: jounGuide, supply: jounSupply, reroll: rerollMissions,
+    confirmok: confirmAccept, calm: toggleCalm, talk: arinTalk, masterhint: masterHint, jounguide: jounGuide, supply: jounSupply, reroll: rerollMissions,
     hasan: doHasan, closemodal: () => { replayStop(); ui.modal = null; render(); },
     gochron: () => {                                          // 결산 창 → 견문록 탭, 방금 탐험의 결산을 펼쳐 보인다
       replayStop(); ui.modal = null; goTab('chronicle'); ui.chronFilter = 'all'; ui.chronOpen = +d.rec; render();

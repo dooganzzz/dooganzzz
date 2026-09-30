@@ -100,5 +100,6 @@ function render() {
   renderModal();
   typewriteAll();
   wireImages();
+  artAfterRender();
   save();
 }

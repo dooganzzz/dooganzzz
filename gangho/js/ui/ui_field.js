@@ -42,6 +42,7 @@ function zoneCard(zid) {
       </div>
       <small class="muted">만난 요수: ${seen.length ? seen.map(e => ENEMIES[e].name).join(' · ') : '—'} · 두목: ${zl.bossMet ? `${B.name}${S.flags[B.boss] ? ' <b class="gold">토벌</b>' : zl.bossWon ? '' : ' (아직 못 이김)'}` : '？'}</small>`;
   return `<div class="zone ${open ? '' : 'locked'} ${here ? 'here' : ''}">
+    <div class="zone-scene">${zoneArt(zid)}</div>
     <div class="zone-top"><h3>${label(Z.name, Z.hanja)}</h3>${here ? '<span class="pill here-pill">현재 탐험지</span>' : ''}</div>
     <p class="story">${Z.desc}</p>
     <p class="zone-terrain">지형 ${(Z.terrain || []).map(terrainTag).join('')}</p>
@@ -85,7 +86,7 @@ function viewField() {
   return `<section class="panel">
     ${head('강호행', '江湖行', `<span class="pill">${cur ? `⛰️ ${cur.name}` : '탐험지 미정'}</span>`)}
     <div class="exp-status">
-      <div class="exp-next"><small>다음 출발 ${X.nextAt ? `<b class="clock">${clockHM(X.nextAt)}</b>` : ''}</small><b data-countdown>${countdownText()}</b></div>
+      <div class="exp-next"><small>다음 출발 ${X.nextAt ? `<b class="clock">${clockHM(X.nextAt)}</b>` : ''}</small><b data-countdown>${countdownText()}</b>${X.nextAt ? incenseClock() : ''}</div>
       <div class="exp-sta"><small class="muted">매시 정각, 제자가 이 준비 그대로 떠납니다. 그 전에 갖춰 두십시오.</small></div>
     </div>
     <h4 class="prep-head">출정 준비</h4>
@@ -136,13 +137,14 @@ function openReplay(key) {
 function replayStop() { clearTimeout(RP.timer); RP.timer = null; }
 function replayModal(key) {
   const d = replayData(key); if (!d) return '';
-  const { rec, b } = d, s = b.start;
+  const { rec, b } = d, s = b.start, zid = rec ? rec.zone : zoneOfEnemy(b.eid);
   return `<div class="sheet replay-sheet" id="rpBox" data-key="${key}">
     <p class="eyebrow">${rec ? `觀察 · ${ZONES[rec.zone].name} 탐험 ${recTime(rec)}` : '心象 · 심상수련장 · 보상 없음'}</p>
-    <div class="arena">
+    <div class="arena ${b.boss ? 'boss-in' : ''}">
+      ${zid ? `<div class="arena-bg">${zoneArt(zid)}</div>` : ''}
       <div class="plaque me" id="pl-me"><div class="seal-av">${esc(S.name[0] || '我')}</div><div class="pl-info"><h3>${esc(S.name)}</h3><div id="rpMe">${vbar('hp', s.me.hp, s.me.hp, s.me.maxHp, '활력')}${bar('mp', s.me.mp, s.me.maxMp, '내력')}</div></div></div>
       <div class="vs"><span>對</span><small id="rpRound">준비</small></div>
-      <div class="plaque foe ${b.boss ? 'boss' : ''}" id="pl-foe"><div class="seal-av foe">${sealChar(b.name)}</div><div class="pl-info"><h3>${b.name}</h3><small>${b.boss ? '두목(頭目)' : '요수(妖獸)'} ${ENEMIES[b.eid] ? elemTag(ENEMIES[b.eid].elem) + weaponTag(ENEMIES[b.eid].wtype) : ''}</small><div id="rpFoe">${vbar('hp foe', s.foe.hp, s.foe.hp, s.foe.maxHp, '기세', true)}</div></div></div>
+      <div class="plaque foe ${b.boss ? 'boss' : ''}" id="pl-foe"><div class="seal-av foe">${ENEMIES[b.eid] ? beastArt(b.eid) : sealChar(b.name)}</div><div class="pl-info"><h3>${b.name}</h3><small>${b.boss ? '두목(頭目)' : '요수(妖獸)'} ${ENEMIES[b.eid] ? elemTag(ENEMIES[b.eid].elem) + weaponTag(ENEMIES[b.eid].wtype) : ''}</small><div id="rpFoe">${vbar('hp foe', s.foe.hp, s.foe.hp, s.foe.maxHp, '기세', true)}</div></div></div>
       <div class="move-banner" id="moveBanner" aria-hidden="true"></div>
     </div>
     <div class="blog" id="rpLog">${b.intro.map(l => `<p class="${l.cls}">${l.text}</p>`).join('')}</div>

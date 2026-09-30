@@ -21,7 +21,7 @@ function codexMonsters() {
     if (!met.length) return '';
     const done = (S.codexRewards || {})[z], R = CODEX_REWARDS[z];
     const rows = met.map(e => { const E = ENEMIES[e];
-      return `<li><b>${E.name}</b>${E.boss ? ' <span class="pill warn">두목</span>' : ''}${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small>${E.trait ? `<em class="trait">${E.trait}</em>` : ''}</li>`; }).join('');
+      return `<li>${beastArt(e, 'mini')}<b>${E.name}</b>${E.boss ? ' <span class="pill warn">두목</span>' : ''}${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small>${E.trait ? `<em class="trait">${E.trait}</em>` : ''}</li>`; }).join('');
     return `<article class="codex-col ${done ? 'complete' : ''}"><h3>${label(Z.name, Z.hanja)}${done ? ' <span class="pill codex-done">도감 완성</span>' : ''}</h3>
       ${done ? `<p class="codex-bonus">✦ ${R.text}</p>` : ''}<p class="muted zone-terrain">지형 ${Z.terrain.map(terrainTag).join('')}</p><ul class="beasts">${rows}</ul></article>`;
   }).join('');

@@ -100,6 +100,7 @@ function viewShrine() {
   const old = S.shrine.total ? `<div class="blessings"><div><small>공격력</small><b>+${S.shrine.atk}</b></div><div><small>최대 내력</small><b>+${S.shrine.mp}</b></div><div><small>회피율</small><b>+${S.shrine.eva}%</b></div><div><small>치명타율</small><b>+${Math.floor(S.shrine.total / 10) * 2}%</b></div></div><p class="muted">예전 봉헌(${S.shrine.total}회)으로 받은 힘은 그대로 남아 있습니다.</p>` : '';
   return `<section class="panel altar">
     ${head('무신상', '武神像', `<span class="pill">나 · 我</span>`)}
+    <div class="shrine-stage">${shrineArt()}</div>
     <p class="story">청풍문 마당의 이끼 낀 석상. 이 안에 갇힌 것이 바로 당신입니다. 제자가 화로에서 태워 먹은 찌꺼기를 바치면, 당신은 그 탁한 기운을 삼켜 쓸 만한 무언가로 돌려줍니다. 무엇이 나올지는 당신도 모릅니다.</p>
     <div class="gacha">
       <div class="gacha-have"><span class="offer-icon">${ITEMS.slag.icon}</span><b>${ITEMS.slag.name}</b><span class="num">${fmt(n)}개</span></div>
@@ -109,7 +110,7 @@ function viewShrine() {
       </div>
       <p class="muted">화로에서 조합에 실패하면 (단조·단약 모두) 검게 탄 찌꺼기가 남습니다. 누적 공양 ${fmt(S.shrine.pulls || 0)}회.</p>
     </div>
-    ${res && res.length ? `<div class="gacha-res"><h4>돌아온 것</h4><ul>${res.map(g => `<li class="${g.cls}">${g.text}</li>`).join('')}</ul></div>` : ''}
+    ${res && res.length ? `<div class="gacha-res"><h4>돌아온 것</h4><ul>${res.map((g, i) => `<li class="${g.cls}" style="--i:${i}">${g.text}</li>`).join('')}</ul></div>` : ''}
     <details class="gacha-table"><summary>나올 수 있는 것</summary><ul>${GACHA.table.map(e => `<li><span>${e.name}</span><b>${Math.round(e.w / tot * 100)}%</b></li>`).join('')}</ul><small class="muted">비급은 삼류 무공 25종·입문 무공 가운데 아직 없는 것. 장비는 열린 구역의 최고 티어 (청풍산은 하급 장비 37종 중 하나).</small></details>
     ${old}
   </section>`;
@@ -122,7 +123,7 @@ function viewYeonmu() {
   const rows = ids.map(e => {
     const E = ENEMIES[e], a = affinity(e), r = sim && sim.many && sim.many.eid === e ? sim.many : null;
     return `<li class="sim-row ${E.boss ? 'boss' : ''}">
-      <div class="sim-foe"><b>${E.name}</b>${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small></div>
+      <div class="sim-foe">${beastArt(e, 'mini')}<b>${E.name}</b>${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small></div>
       <div class="sim-aff">${affinityText(a)}</div>
       ${r ? `<div class="sim-stat">${r.n}판 모의: <b class="${r.wins / r.n >= 0.7 ? 'good' : r.wins / r.n >= 0.4 ? '' : 'warn'}">${r.wins}승</b> ${r.n - r.wins - r.draws}패${r.draws ? ` ${r.draws}무` : ''} · 평균 ${r.rounds}합${r.wins ? ` · 이겼을 때 남은 활력 ${r.hpLeft}%` : ''}</div>` : ''}
       <div class="btns"><button class="btn sm primary" data-sim="${e}">겨루기</button><button class="btn sm ghost" data-simx="${e}">10판 모의</button></div>
@@ -247,11 +248,11 @@ function viewGear() {
   const st = calcStats();
   const slot = s => {
     const it = S.equip[s];
-    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}" aria-haspopup="dialog"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
+    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}" aria-haspopup="dialog">${slotIcon(s)}<small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
   };
   const acc = s => {
     const it = S.equip[s];
-    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
+    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${slotIcon(s)}<small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
   };
   const slotCount = s => { const n = S.gear.filter(g => g.slot === s).length; return n ? `<em class="slot-n" title="행낭에 이 부위 장비 ${n}점">+${n}</em>` : ''; };
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');

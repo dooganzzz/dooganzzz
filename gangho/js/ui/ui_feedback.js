@@ -27,7 +27,7 @@ function toast(text) {
 /* 한 합의 연출: 체력 잔상이 따라 줄고, 맞은 쪽이 흔들리고, 피해 숫자가 떠오르며, 초식 이름이 현판처럼 뜬다 */
 function playFx(fx) {
   requestAnimationFrame(() => { for (const g of document.querySelectorAll('.bar-ghost[data-to]')) g.style.width = g.dataset.to + '%'; });
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = reduceMotion();
   fx.forEach((f, i) => {
     if (f.side === 'banner') {
       const el = $('#moveBanner'); if (!el) return;
@@ -42,20 +42,32 @@ function playFx(fx) {
     n.style[f.side === 'me' ? 'left' : 'right'] = (4 + Math.random() * 14) + 'px'; n.style.animationDelay = (i * 120) + 'ms';
     pl.appendChild(n); setTimeout(() => n.remove(), 1600 + i * 120);
     if (f.k === 'miss' || f.k === 'dodge' || reduce) return;
-    // 적중: 0.1초 섬광 / 치명·강타: 0.15초 잔떨림
+    // 적중: 0.1초 섬광 + 칼바람 / 치명·강타: 0.15초 잔떨림 + 먹물 번짐 / 내가 맞으면 가장자리가 붉게
     setTimeout(() => {
       if (!pl.isConnected) return;
       pl.classList.remove('flash-hit'); void pl.offsetWidth; pl.classList.add('flash-hit');
       if (f.big) { pl.classList.remove('shake'); void pl.offsetWidth; pl.classList.add('shake'); }
+      hitMark(pl, f);
+      if (f.side === 'me') { const ar = pl.closest('.arena'); if (ar) { ar.classList.remove('hurt'); void ar.offsetWidth; ar.classList.add('hurt'); } }
     }, i * 120);
   });
+}
+
+/* 적중 자국: 인장 위로 칼바람 한 줄, 치명타면 먹물이 번진다 */
+function hitMark(pl, f) {
+  const av = pl.querySelector('.seal-av'); if (!av) return;
+  const m = document.createElement('span');
+  m.className = f.k === 'crit' ? 'fx-ink' : 'fx-slash';
+  if (f.k === 'crit') m.innerHTML = '<svg viewBox="0 0 60 60"><path d="M30 6q8 10 18 6q-4 10 6 16q-10 4-6 14q-10-4-16 8q-4-10-16-8q4-10-8-16q10-4 6-14q10 4 16-6z"/></svg>';
+  else m.style.setProperty('--rot', (f.side === 'me' ? 35 : -35) + (Math.random() * 20 - 10) + 'deg');
+  av.appendChild(m); setTimeout(() => m.remove(), 700);
 }
 
 /* 타자기 연출: 인물의 첫 대사와 기연 문구를 한 글자씩. 누르면 곧바로 전부 보인다 */
 const typedOnce = new Set(), typing = new Set();
 
 function typewriteAll() {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = reduceMotion();
   for (const el of document.querySelectorAll('[data-tw]')) {
     const full = el.textContent, key = el.dataset.tw + '|' + full;
     const live = [...typing].find(j => j.key === key);
