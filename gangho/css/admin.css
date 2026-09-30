@@ -70,3 +70,11 @@
 html:has(body.gm-standalone), body.gm-standalone { margin: 0; height: 100%; background: #0a0f0c; color-scheme: dark; }
 body.gm-standalone .gm-panel { position: static; inset: auto; height: 100vh; background: none; display: block; }
 body.gm-standalone .gm-box { width: 100%; max-width: none; height: 100vh; border-left: 0; box-shadow: none; }
+
+/* 유저 · AI 탭 */
+.gm-h { margin: 12px 0 4px; font-size: 13px; opacity: .85; }
+.gm-me { font-size: 10px; padding: 0 4px; border-radius: 3px; background: #3a6; color: #fff; }
+.gm-on { color: #4c4; } .gm-off { color: #777; }
+.gm-notes { list-style: none; margin: 0; padding: 0; font-size: 12px; max-height: 320px; overflow: auto; }
+.gm-notes li { display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); }
+.gm-notes time { flex: none; width: 80px; opacity: .6; }

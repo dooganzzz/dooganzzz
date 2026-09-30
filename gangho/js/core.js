@@ -5,10 +5,12 @@ const rint = (a, b) => Math.floor(rnd(a, b + 1));
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const tri = n => (n * (n + 1)) / 2;
-const now = () => Date.now();
+/* 게임 시계. 평소엔 실제 시각, AI 자동 플레이 중에만 과거로 돌려 놓고 한 시간씩 앞으로 감는다 */
+const CLOCK = { shift: 0 };
+const now = () => Date.now() + CLOCK.shift;
 const fmt = n => Math.floor(n).toLocaleString('ko-KR');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => new Date(now()).toISOString().slice(0, 10);
 const hhmm = t => { const d = new Date(t || Date.now()); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const hlItem = t => `<span class="hl-item">${t}</span>`;
 const hlSilver = n => `<span class="hl-silver">은자 ${fmt(n)}냥</span>`;
@@ -35,9 +37,11 @@ function fmtDur(sec) {
    동기 호출이므로 신호를 보낸 줄에서 곧바로 처리된다. */
 const Bus = (() => {
   const handlers = {};
+  let muted = 0;                                              // AI 자동 플레이 중에는 화면 신호를 잠시 끈다
   return {
     on(type, fn) { (handlers[type] = handlers[type] || []).push(fn); },
-    emit(type, ...args) { for (const fn of handlers[type] || []) fn(...args); },
+    emit(type, ...args) { if (muted) return; for (const fn of handlers[type] || []) fn(...args); },
+    mute(on) { muted = Math.max(0, muted + (on ? 1 : -1)); },
   };
 })();
 /* 시스템이 쓰는 신호 모음 */

@@ -12,8 +12,8 @@ const GM_ENABLED = true;
 const GM_REMOTE = !!window.GM_REMOTE;
 const GM_CHANNEL = 'gangho-gm';
 
-const GM = { open: false, tab: 'state', trace: [], itemQ: '', itemKind: 'all', recipeCraft: 'all', resetArm: false };
-const GM_TABS = [['state', '유저 상태'], ['trace', '행동 추적'], ['items', '아이템 DB'], ['recipes', '조합법'], ['cheat', '쾌속 치트']];
+const GM = { open: false, tab: 'state', trace: [], itemQ: '', itemKind: 'all', recipeCraft: 'all', resetArm: false, aiPattern: 'life', aiReport: null, aiBusy: false, dbTab: 'monsters' };
+const GM_TABS = [['state', '유저 상태'], ['users', '유저'], ['ai', 'AI 자동 플레이'], ['trace', '행동 추적'], ['items', '아이템 DB'], ['db', '게임 DB'], ['recipes', '조합법'], ['cheat', '쾌속 치트']];
 const GM_TRACE_MAX = 300;
 const GM_KIND = { tab: '탭', view: '화면', click: '클릭', battle: '전투', 'item+': '획득', 'item-': '소모', warn: '경고', notice: '알림', error: '예외', gm: 'GM', sys: '시스템' };
 
@@ -46,8 +46,8 @@ function gmToggle(force) {
 function gmRender() {
   const panel = $('#gmPanel'); if (!panel) return;
   const tabs = GM_TABS.map(([id, name]) => `<button class="gm-tab ${GM.tab === id ? 'on' : ''}" data-gmtab="${id}" role="tab" aria-selected="${GM.tab === id}">${name}</button>`).join('');
-  const body = !S && GM.tab !== 'trace' && GM.tab !== 'cheat' ? '<p class="gm-muted">게임을 시작하면 볼 수 있습니다.</p>'
-    : ({ state: gmViewState, trace: gmViewTrace, items: gmViewItems, recipes: gmViewRecipes, cheat: gmViewCheat })[GM.tab]();
+  const body = !S && !['trace', 'cheat', 'users', 'db'].includes(GM.tab) ? '<p class="gm-muted">게임을 시작하면 볼 수 있습니다.</p>'
+    : ({ state: gmViewState, users: gmViewUsers, ai: gmViewAI, trace: gmViewTrace, items: gmViewItems, db: gmViewDB, recipes: gmViewRecipes, cheat: gmViewCheat })[GM.tab]();
   panel.innerHTML = `<div class="gm-box" role="dialog" aria-label="운영자 콘솔">
     <div class="gm-top"><b>GM 콘솔</b>${GM_REMOTE ? `<small id="gmConn" class="gm-conn">연결 중…</small>` : `<small>F1 · \` 로 여닫기</small><button class="gm-btn gm-pop" data-gm="popout" title="관리자 창을 따로 띄웁니다">새 창 ↗</button><button class="gm-x" data-gm="close" aria-label="닫기">✕</button>`}</div>
     <div class="gm-tabs" role="tablist">${tabs}</div>
@@ -172,6 +172,18 @@ const GM_CMDS = {
     for (const [id, n] of Object.entries(r.in)) give(id, n, true);
     gmTrace('gm', `재료 지급: ${rid} ← ${Object.entries(r.in).map(([id, n]) => `${id}×${n}`).join(', ')}`);
   },
+  ai(days, pattern) {
+    if (!S) return;
+    backupSave('ai');
+    GM.aiReport = aiRun(days, pattern);
+    gmTrace('gm', `AI 자동 플레이 ${days}일: 전투력 ${GM.aiReport.before.cp} → ${GM.aiReport.after.cp} (${GM.aiReport.ms}ms)`);
+  },
+  airestore() { if (restoreSave('ai')) { GM.aiReport = null; gmTrace('gm', 'AI 실행 전 저장으로 되돌림'); } else gmTrace('warn', '되돌릴 백업이 없습니다'); },
+  importplayer(pid) {
+    const p = (CLOUD.players || []).find(x => x.id === pid); if (!p || !p.save) return gmTrace('warn', '이 유저의 저장이 DB에 없습니다');
+    if (importSave(JSON.parse(p.save))) gmTrace('gm', `DB 저장 불러오기: ${p.name} (지금 저장은 백업해 둠)`);
+  },
+  importundo() { if (restoreSave('import')) gmTrace('gm', '불러오기 전 저장으로 되돌림'); },
   cheat(what) {
     if (what === 'reset') { gmTrace('gm', '데이터 완전 초기화'); doReset(); return; }
     if (!S) return;
@@ -184,14 +196,14 @@ const GM_CMDS = {
       S.stamina = Math.max(S.stamina, calcStats().maxSta);
       const r = runExpedition(now());
       gmTrace('gm', `탐험 즉시: ${r.zone} ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver} · 수련치 ${r.gain.exp}`);
-      notify.view({ modal: 'settle:' + r.id });
+      notify.view({ tab: 'field' });
     }
     if (what === 'hour' || what === 'hours8') {               // 예약 시각을 앞당겨 실제 결산 경로(settleExpeditions)를 그대로 탄다
       const h = what === 'hour' ? 1 : 10;
       S.expedition.nextAt -= h * EXPEDITION.interval;
       const recs = settleExpeditions();
       gmTrace('gm', `${h}시간 경과: 탐험 ${recs.length}번 결산`);
-      if (recs.length) notify.view({ modal: 'settle:' + recs.map(r => r.id).join(',') });
+      if (recs.length) notify.view({ tab: 'field' });
     }
   },
 };
@@ -219,7 +231,7 @@ function gmOpenChannel(onMessage) {
 function gmBroadcast() {
   if (GM_REMOTE || !gmChan) return;
   const b = RT.battle;
-  gmPost({ type: 'state', S, battle: b ? { eid: b.eid, round: b.round, over: b.over, win: b.win } : null, at: Date.now() });
+  gmPost({ type: 'state', S, ai: GM.aiReport, battle: b ? { eid: b.eid, round: b.round, over: b.over, win: b.win } : null, at: Date.now() });
 }
 function gmPopout() {
   const w = window.open('admin.html', 'ganghoGM', 'width=880,height=940');
@@ -241,7 +253,7 @@ function gmRemoteInit() {
     if (msg.type === 'trace') { GM.trace.unshift(msg.entry); if (GM.trace.length > GM_TRACE_MAX) GM.trace.length = GM_TRACE_MAX; if (GM.tab === 'trace') gmRenderTrace(); }
     if (msg.type === 'backlog' && !GM.trace.length) { GM.trace = msg.trace.slice(0, GM_TRACE_MAX); if (GM.tab === 'trace') gmRenderTrace(); }
     if (msg.type === 'state') {
-      S = msg.S; RT.battle = msg.battle;
+      S = msg.S; RT.battle = msg.battle; if (msg.ai !== undefined && msg.ai !== GM.aiReport) { GM.aiReport = msg.ai; if (GM.tab === 'ai') gmRender(); }
       if (!drawn || hadS !== !!S) { gmRender(); drawn = true; hadS = !!S; }
       else if (GM.tab === 'state') gmRenderLive();
       else if (GM.tab === 'items') gmRenderItems();
@@ -289,6 +301,12 @@ function gmBindPanel(panel) {
     if (d.gmspawn) return gmSpawn(d.gmspawn, +d.n);
     if (d.gmcraft) { GM.recipeCraft = d.gmcraft; return gmRender(); }
     if (d.gmmats) return gmGiveMats(d.gmmats);
+    if (d.gmai) { GM.aiBusy = true; gmRender(); setTimeout(() => { gmDo('ai', +d.gmai, GM.aiPattern); GM.aiBusy = false; gmRender(); }, 30); return; }
+    if (d.gmaipat) { GM.aiPattern = d.gmaipat; return gmRender(); }
+    if (d.gmdbtab) { GM.dbTab = d.gmdbtab; return gmRender(); }
+    if (d.gmimport) return gmDo('importplayer', d.gmimport);
+    if (d.gm === 'airestore' || d.gm === 'importundo') return gmDo(d.gm);
+    if (d.gm === 'cloudsync') { cloudSync(true); return; }
     if (d.gm) return gmCheat(d.gm);
   });
   panel.addEventListener('submit', e => { e.preventDefault(); if (e.target.dataset.gmform === 'state' && S) gmApplyState(e.target); });
@@ -307,4 +325,52 @@ function gmBindGameTrace() {
   window.addEventListener('error', e => gmTrace('error', `${e.message} @ ${(e.filename || '').split('/').pop()}:${e.lineno}`));
   window.addEventListener('unhandledrejection', e => gmTrace('error', `Promise: ${e.reason && e.reason.message || e.reason}`));
   gmTrace('sys', '콘솔 준비');
+}
+
+/* 6. 유저: 접속 중인 사람(room) · DB에 동기화된 모든 캐릭터(db). 게임 창 오버레이에서만 (별도 창은 아티팩트 기능이 없다) */
+function gmViewUsers() {
+  if (GM_REMOTE || typeof CLOUD === 'undefined') return '<p class="gm-muted">유저 탭은 게임 창의 GM 오버레이에서 여십시오. (별도 창에서는 claude.ai 접속자·DB 기능을 쓸 수 없습니다)</p>';
+  const nm = id => (id && CLOUD.names[id]) || '이름 비공개';
+  const since = t => { if (!t) return '—'; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
+  const onlineIds = new Set(CLOUD.peers.map(p => p.by || p.presence.uid).filter(Boolean));
+  const ZN = z => (z && ZONES[z] ? ZONES[z].name : '—');
+  const peers = CLOUD.peers.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(nm(p.by || p.presence.uid))}${p.isMe ? ' <b class="gm-me">나</b>' : ''}${p.guest ? ' <small>(외부)</small>' : ''}</td><td>${esc(p.presence.char || '—')}</td><td class="gm-num">${p.presence.cp ? fmt(p.presence.cp) : '—'}</td><td>${ZN(p.presence.zone)}</td><td>${esc(p.presence.tab || '—')}</td><td>${esc(p.presence.device || '—')}</td></tr>`).join('');
+  const players = [...CLOUD.players].sort((a, b) => (b.syncedAt || 0) - (a.syncedAt || 0)).map((p, i) => `<tr>
+    <td>${i + 1}</td><td>${onlineIds.has(p.id) ? '<b class="gm-on">●</b>' : '<span class="gm-off">○</span>'} ${esc(nm(p.id))}${p.id === CLOUD.uid ? ' <b class="gm-me">나</b>' : ''}</td>
+    <td>${esc(p.name || '—')}</td><td class="gm-num">${p.cp ? fmt(p.cp) : '—'}</td><td>${esc(p.mugong || '—')} ${p.star || 0}성</td><td class="gm-num">${fmt(p.silver || 0)}</td><td>${ZN(p.zone)}</td>
+    <td class="gm-num">${p.runs || 0}번 · 두목 ${p.bosses || 0}</td><td>${esc(p.device || '—')}</td><td>${since(p.syncedAt)}</td>
+    <td class="gm-acts">${p.save && p.id !== CLOUD.uid ? `<button class="gm-btn" data-gmimport="${esc(p.id)}" title="이 유저의 저장을 지금 게임으로 가져옵니다 (지금 저장은 백업)">저장 불러오기</button>` : ''}</td></tr>`).join('');
+  return `<div class="gm-kv"><div><span>접속 중</span><b>${CLOUD.peers.length}명</b></div><div><span>DB 유저</span><b>${CLOUD.admin ? CLOUD.players.length + '명' : '권한 없음'}</b></div><div><span>내 동기화</span><b>${since(CLOUD.syncedAt)}</b></div></div>
+    <div class="gm-bar"><button class="gm-btn primary" data-gm="cloudsync" ${CLOUD.db ? '' : 'disabled'}>[지금 DB 동기화]</button>${typeof backupInfo === 'function' && backupInfo('import') ? '<button class="gm-btn" data-gm="importundo">[불러오기 전으로 되돌리기]</button>' : ''}<small class="gm-muted">${esc(CLOUD.note || '저장이 바뀔 때마다(1분 간격 확인) players DB에 올라갑니다.')}</small></div>
+    <h4 class="gm-h">지금 접속 중</h4>
+    <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>전투력</th><th>탐험지</th><th>보는 화면</th><th>기기</th></tr></thead><tbody>${peers || '<tr><td colspan="7" class="gm-muted">접속자 정보가 없습니다.</td></tr>'}</tbody></table>
+    <h4 class="gm-h">전체 유저 (DB)</h4>
+    <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>전투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>기기</th><th>마지막 동기화</th><th></th></tr></thead><tbody>${players || `<tr><td colspan="11" class="gm-muted">${CLOUD.admin ? '아직 동기화된 유저가 없습니다.' : '주인·편집자만 전체 유저를 볼 수 있습니다.'}</td></tr>`}</tbody></table>
+    <p class="gm-muted">유저 ID는 claude.ai가 주는 익명 토큰이라 화면에는 이름으로 풀어 보입니다. IP 주소는 claude.ai가 페이지에 알려 주지 않아 볼 수 없습니다.</p>`;
+}
+
+/* 7. AI 자동 플레이: 지금 캐릭터로 1 · 2 · 3일을 미리 살아 본다 (실행 전 저장은 백업) */
+function gmViewAI() {
+  const R = GM.aiReport, bk = typeof backupInfo === 'function' ? backupInfo('ai') : null;
+  const pats = Object.entries(AI_PATTERNS).map(([k, P]) => `<button class="gm-btn ${GM.aiPattern === k ? 'on' : ''}" data-gmaipat="${k}">${P.name}</button>`).join('');
+  const d = (a, b, f = fmt) => `${f(a)} → <b>${f(b)}</b>`;
+  const rep = !R ? '<p class="gm-muted">아직 돌린 기록이 없습니다.</p>' : `
+    <div class="gm-kv"><div><span>기간</span><b>${R.days}일</b></div><div><span>패턴</span><b>${R.pattern.split(' (')[0]}</b></div><div><span>전투력</span><b>${d(R.before.cp, R.after.cp)}</b></div><div><span>무공 성</span><b>${R.before.star} → ${R.after.star}</b></div><div><span>은자</span><b>${d(R.before.silver, R.after.silver)}</b></div><div><span>공헌도</span><b>${d(R.before.contrib, R.after.contrib)}</b></div><div><span>탐험지</span><b>${ZONES[R.before.zone] ? ZONES[R.before.zone].name : '—'} → ${ZONES[R.after.zone] ? ZONES[R.after.zone].name : '—'}</b></div><div><span>계산 시간</span><b>${R.ms}ms</b></div></div>
+    <table class="gm-table"><thead><tr><th>날</th><th>탐험</th><th>승</th><th>패</th><th>쓰러짐</th><th>두목</th><th>전투력</th><th>무공</th><th>심법·경공·기공</th><th>은자</th><th>수련치</th><th>탐험지</th></tr></thead><tbody>${R.daily.map(x => `<tr><td>${x.label}</td><td class="gm-num">${x.runs}</td><td class="gm-num">${x.wins}</td><td class="gm-num">${x.losses}</td><td class="gm-num">${x.defeats}</td><td class="gm-num">${x.bosses}</td><td class="gm-num">${fmt(x.end.cp)}</td><td>${x.end.stars.mugong}성</td><td>${x.end.stars.simbeop}·${x.end.stars.gyeonggong}·${x.end.stars.gigong}성</td><td class="gm-num">${fmt(x.end.silver)}</td><td class="gm-num">${fmt(x.end.exp)}</td><td>${ZONES[x.end.zone] ? ZONES[x.end.zone].name : '—'}</td></tr>`).join('')}</tbody></table>
+    <h4 class="gm-h">있었던 일</h4><ol class="gm-notes">${R.notes.map(n => `<li><time>${n.day}일 ${hhmm(n.t)}</time><span>${esc(n.text)}</span></li>`).join('') || '<li class="gm-muted">특별한 일이 없었습니다.</li>'}</ol>`;
+  return `<p class="gm-muted">지금 캐릭터로 며칠을 미리 살아 봅니다. 시계를 그만큼 앞당겨 매시 정각 강호행이 실제 규칙 그대로 돌고, 접속한 시각마다 AI가 보상 받기 · 성급 · 돌파단 · 생혈고 · 장비 · 무공 · 임무 · 공양 · 탐험지를 스스로 고릅니다. 실행 전 저장은 백업됩니다.</p>
+    <div class="gm-bar">${pats}</div>
+    <div class="gm-cheats">${[1, 2, 3].map(n => `<button class="gm-btn big primary" data-gmai="${n}" ${S && !GM.aiBusy ? '' : 'disabled'}>[${n}일 돌리기]</button>`).join('')}
+      <button class="gm-btn big" data-gm="airestore" ${bk ? '' : 'disabled'}>[AI 실행 전으로 되돌리기]${bk ? ` <small>${hhmm(bk)} 백업</small>` : ''}</button></div>
+    ${GM.aiBusy ? '<p class="gm-muted">AI가 강호를 누비는 중…</p>' : ''}
+    ${rep}`;
+}
+
+/* 8. 게임 DB: 지금 게임에 들어 있는 데이터 전체 (요수 · 무공 · 탐험지 · 그림 연결) */
+function gmViewDB() {
+  const tabs = [['monsters', `요수 ${Object.keys(ENEMIES).length}`], ['manuals', `무공 ${Object.keys(MANUALS).length}`], ['zones', `탐험지 ${ZONE_ORDER.length}`]];
+  const bar = `<div class="gm-bar">${tabs.map(([k, n]) => `<button class="gm-btn ${GM.dbTab === k ? 'on' : ''}" data-gmdbtab="${k}">${n}</button>`).join('')}<small class="gm-muted">데이터 파일(js/data)을 그대로 읽어 보여 줍니다</small></div>`;
+  if (GM.dbTab === 'manuals') return bar + `<table class="gm-table"><thead><tr><th>ID</th><th>이름</th><th>분류</th><th>등급</th><th>병기·속성</th><th>초식 (소성 · 대성)</th><th>초식 그림</th></tr></thead><tbody>${Object.entries(MANUALS).map(([id, M]) => `<tr><td><code>${id}</code></td><td>${M.name}</td><td>${CATS[M.cat].name}</td><td>${M.grade}</td><td>${M.weapon ? WEAPON_TYPES[M.weapon] : M.terrain || M.elem || '—'}</td><td>${(M.stances || []).map(x => x.name).join(' · ')}</td><td>${M.cat === 'mugong' && M.weapon ? `<code>fx/${id}_1 · _2</code>` : '—'}</td></tr>`).join('')}</tbody></table>`;
+  if (GM.dbTab === 'zones') return bar + `<table class="gm-table"><thead><tr><th>ID</th><th>이름</th><th>단계</th><th>요수</th><th>두목</th><th>열림 조건</th><th>무대 · 산길</th></tr></thead><tbody>${ZONE_ORDER.map(z => { const Z = ZONES[z]; return `<tr><td><code>${z}</code></td><td>${Z.name}</td><td>${Z.tier}</td><td>${Z.enemies.map(e => ENEMIES[e].name).join(', ')}</td><td>${ENEMIES[Z.boss] ? ENEMIES[Z.boss].name : '—'}</td><td>${Z.unlock ? Z.unlock.boss : '처음부터'}</td><td><code>stages/${z}.jpg · travel/${z}.jpg</code></td></tr>`; }).join('')}</tbody></table>`;
+  return bar + `<table class="gm-table"><thead><tr><th>ID</th><th>이름</th><th>단계</th><th>탐험지</th><th>활력</th><th>공격</th><th>방어</th><th>수련치</th><th>스프라이트</th></tr></thead><tbody>${Object.entries(ENEMIES).map(([id, E]) => `<tr><td><code>${id}</code></td><td>${E.boss ? '👹 ' : ''}${E.name}</td><td>${E.tier || '—'}</td><td>${(ZONES[zoneOfEnemy(id)] || {}).name || '—'}</td><td class="gm-num">${fmt(E.hp || 0)}</td><td class="gm-num">${fmt(E.atk || 0)}</td><td class="gm-num">${fmt(E.def || 0)}</td><td class="gm-num">${fmt(E.xp || 0)}</td><td><code>foe_${id}</code></td></tr>`).join('')}</tbody></table>`;
 }

@@ -40,6 +40,21 @@ function save() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가 환경 */ }
 }
 
+/* 저장 백업 · 되돌리기 (운영자 AI 자동 플레이 전에 떠 둔다) · 다른 저장 들여오기 */
+function backupSave(tag) { if (!S) return false; try { localStorage.setItem(SAVE_KEY + ':' + tag, JSON.stringify({ at: Date.now(), S })); return true; } catch (e) { return false; } }
+function backupInfo(tag) { try { const raw = localStorage.getItem(SAVE_KEY + ':' + tag); return raw ? JSON.parse(raw).at : null; } catch (e) { return null; } }
+function restoreSave(tag) {
+  let raw = null; try { raw = localStorage.getItem(SAVE_KEY + ':' + tag); } catch (e) { /* 저장소 접근 불가 */ }
+  if (!raw) return false;
+  return importSave(JSON.parse(raw).S, false);
+}
+function importSave(st, keepBackup = true) {
+  if (!st || typeof st !== 'object' || !st.manuals) return false;
+  if (keepBackup) backupSave('import');
+  S = migrate(st); save(); notify.refresh();
+  return true;
+}
+
 function load() {
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) return JSON.parse(raw); } catch (e) { /* 무시 */ }
   return null;
