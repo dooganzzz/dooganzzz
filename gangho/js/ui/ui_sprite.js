@@ -13,6 +13,7 @@ function spriteStage(zid, eid) {
 }
 /* 무대 되돌리기 (처음부터) */
 function spriteReset() {
+  spBreathLoop();
   const h = $('#spHero'), f = $('#spFoe'); if (!h || !f) return;
   h.className = 'sp-fighter sp-hero idle'; spFrame(h, 'idle'); f.className = f.className.replace(/\b(ko|lunge|hit)\b/g, '').trim() + ' idle';
 }
@@ -30,8 +31,15 @@ function spSlash(gold) {
   s.innerHTML = [0, 1, 2].map(i => `<path style="animation-delay:${i * 80}ms,${i * 80}ms" d="M${18 + i * 14} ${104 - i * 10}Q${96 + i * 6} ${8 + i * 12} ${186 - i * 8} ${26 + i * 16}"/>`).join('');
   st.appendChild(s); setTimeout(() => s.remove(), 1100);
 }
-/* 제자 스프라이트시트 칸: 0 대기 · 1~2 달리기 · 3 찌르기 · 4~6 가로베기(준비·베기·마무리) · 7 피격 · 8 회피 */
+/* 제자 스프라이트시트 칸: 0 대기 · 1~2 달리기 · 3 찌르기 · 4~6 가로베기(준비·베기·마무리) · 7 피격 · 8 회피 · 9~11 호흡(가슴 들썩) */
 const SPF = { idle: 0, run1: 1, run2: 2, thrust: 3, slashA: 4, slashB: 5, slashC: 6, hurt: 7, dodge: 8 };
+/* 가만히 서 있을 때: 대기 → 들숨 → 가득 → 날숨 → 대기 … (몸은 제자리, 가슴·어깨만) */
+const BREATH = [0, 0, 9, 10, 10, 11];
+let spBreathT = null;
+function spBreathLoop() {
+  clearInterval(spBreathT); let i = 0;
+  spBreathT = setInterval(() => { const h = $('#spHero'); if (!h) { clearInterval(spBreathT); return; } if (h.classList.contains('idle')) h.dataset.f = BREATH[i++ % BREATH.length]; }, 260);
+}
 function spFrame(h, k) { h.dataset.f = SPF[k]; }
 function spStreak(kind) {
   const st = $('#spStage'); if (!st) return;

@@ -133,6 +133,7 @@ function openReplay(key) {
   replayStop();
   Object.assign(RP, { key, i: -1, speed: RP.speed || 1, playing: true });
   ui.modal = 'replay:' + key; renderModal();
+  if ($('#spStage')) spBreathLoop();
 }
 function replayStop() { clearTimeout(RP.timer); RP.timer = null; }
 /* 관찰 창 기록 한 줄: 누가 한 행동인지(제자 얼굴 · 요수 그림)와 결과(적중·빗나감·회피·치명·피해·상성·연격·중독·출혈)를 수묵 아이콘으로 */

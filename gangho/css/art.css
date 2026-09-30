@@ -358,23 +358,28 @@
 .sp-fighter { position: absolute; bottom: 21%; z-index: 2; transition: left .28s cubic-bezier(.3, .7, .3, 1), right .28s cubic-bezier(.3, .7, .3, 1); }
 .sp-hero { left: 10%; width: 27%; aspect-ratio: 646 / 380; transition: left .43s cubic-bezier(.45, .05, .6, 1); }
 .sp-hero.dash { left: 38%; } .sp-hero.retreat { left: 10%; transition-duration: .3s; } .sp-hero.back { left: 4%; }
-.sp-spr { width: 100%; height: 100%; background: 0 0 / 900% 100% no-repeat; }
-.sp-hero[data-f="0"] .sp-spr { background-position: 0.0% 0; }
-.sp-hero[data-f="1"] .sp-spr { background-position: 12.5% 0; }
-.sp-hero[data-f="2"] .sp-spr { background-position: 25.0% 0; }
-.sp-hero[data-f="3"] .sp-spr { background-position: 37.5% 0; }
-.sp-hero[data-f="4"] .sp-spr { background-position: 50.0% 0; }
-.sp-hero[data-f="5"] .sp-spr { background-position: 62.5% 0; }
-.sp-hero[data-f="6"] .sp-spr { background-position: 75.0% 0; }
-.sp-hero[data-f="7"] .sp-spr { background-position: 87.5% 0; }
-.sp-hero[data-f="8"] .sp-spr { background-position: 100.0% 0; }
+.sp-spr { width: 100%; height: 100%; background: 0 0 / 1200% 100% no-repeat; }
+.sp-hero[data-f="0"] .sp-spr { background-position: 0.000% 0; }
+.sp-hero[data-f="1"] .sp-spr { background-position: 9.091% 0; }
+.sp-hero[data-f="2"] .sp-spr { background-position: 18.182% 0; }
+.sp-hero[data-f="3"] .sp-spr { background-position: 27.273% 0; }
+.sp-hero[data-f="4"] .sp-spr { background-position: 36.364% 0; }
+.sp-hero[data-f="5"] .sp-spr { background-position: 45.455% 0; }
+.sp-hero[data-f="6"] .sp-spr { background-position: 54.545% 0; }
+.sp-hero[data-f="7"] .sp-spr { background-position: 63.636% 0; }
+.sp-hero[data-f="8"] .sp-spr { background-position: 72.727% 0; }
+.sp-hero[data-f="9"] .sp-spr { background-position: 81.818% 0; }
+.sp-hero[data-f="10"] .sp-spr { background-position: 90.909% 0; }
+.sp-hero[data-f="11"] .sp-spr { background-position: 100.000% 0; }
+
 .sp-foe { right: 10%; width: 18%; aspect-ratio: 1; bottom: 19%; }
 .sp-foe.lunge { right: 40%; }
 .sp-foe img { width: 100%; height: 100%; object-fit: contain; }
 .sp-spr, .sp-foe img { filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
 .sprite-stage::after { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: linear-gradient(to bottom, rgba(255, 246, 225, .0) 40%, rgba(255, 238, 205, .10) 100%); mix-blend-mode: soft-light; }
 .sp-foe.flip img { transform: scaleX(-1); }
-.sp-fighter.idle .sp-spr, .sp-fighter.idle img { animation: spBreath 1.5s ease-in-out infinite; }
+/* 제자는 호흡 프레임(가슴만 들썩)으로, 요수만 몸 전체가 숨쉰다 */
+.sp-foe.idle img { animation: spBreath 1.5s ease-in-out infinite; }
 .sp-foe.flip.idle img { animation-name: spBreathFlip; }
 @keyframes spBreath { 50% { transform: translateY(-2px) scaleY(1.012); } }
 @keyframes spBreathFlip { 0%, 100% { transform: scaleX(-1); } 50% { transform: scaleX(-1) translateY(-2px) scaleY(1.012); } }
