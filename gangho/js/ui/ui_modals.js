@@ -149,7 +149,7 @@ function renderModal() {
   }
   if (ui.modal === 'awaken' && ui.awaken) { const a = ui.awaken;
     m.innerHTML = `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>
-      <div class="shrine-stage">${shrineArt()}</div>
+      <div class="shrine-stage">${shrineArt(true)}</div>
       <p class="story">탁기 ${GACHA.awaken}개를 모두 삼킨 무신이 제자에게 권능의 한 조각을 내려 줍니다.</p>
       <ul class="awaken-list"><li>영구 능력치 <b>${a.statName} +${a.statVal}</b> · <b>최대 활력 +${a.hp}</b></li><li>하사품 <b class="r1">《${esc(a.item.name)}》</b>${a.item.grade ? ` <span class="pill grade-2">${a.item.grade}</span>` : ''}</li></ul>
       <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`; }

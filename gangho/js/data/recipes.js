@@ -1,6 +1,6 @@
 /* [데이터] 화로 비밀 조합식 — 순수 정적 데이터 (로직 없음)
-   craft: forge(단조) · alchemy(단약) · in: {재료: 개수} (정확히 같아야 한다) · out: 아이템 id 또는 'gear:장비 id'(CRAFT_GEAR)
-   처음엔 모두 비공개(???). 한 번이라도 성공하면 도감 › 단조/단약 비법에 영구 등재된다.
+   craft: forge(단조) · alchemy(연단) · in: {재료: 개수} (정확히 같아야 한다) · out: 아이템 id 또는 'gear:장비 id'(CRAFT_GEAR)
+   처음엔 모두 비공개(???). 한 번이라도 성공하면 도감 › 단조/연단 비법에 영구 등재된다.
    hint: 인물에게 들을 수 있는 귀띔 (돌파단만) */
 
 const RECIPES = [
@@ -28,7 +28,7 @@ const RECIPES = [
   { id: 'f_t3_jade',   craft: 'forge', in: { wildcatHide: 3, treeSap: 3, blackIngot: 1 },  out: 'gear:t3_jade' },
   { id: 'f_c_belt',   craft: 'forge', in: { wildcatHide: 3, wolfSinew: 2 },               out: 'gear:c_belt' },
 
-  // ───── 단약 (8품) ─────
+  // ───── 연단: 단약 (8품) ─────
   { id: 'a_sohwan',   craft: 'alchemy', in: { wildGinseng: 2, treeSap: 1 },                  out: 'potionMp' },
   { id: 'a_saeng',    craft: 'alchemy', in: { wildGinseng: 1, wildcatHide: 1, treeSap: 1 },  out: 'saenghyeol' },
   { id: 'a_golgye',   craft: 'alchemy', in: { boarMolar: 2, redClay: 1 },                    out: 'golgye' },

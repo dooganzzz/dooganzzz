@@ -12,7 +12,7 @@ const LOG_MAX = 400;
 
 const DEFAULT_ATTR = () => Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
 
-/* opts.attr: 4대 스탯 배분 {str, con, agi, int} · opts.talent: 주력 기예 'forge'(단조) | 'alchemy'(단약) (TALENTS) */
+/* opts.attr: 4대 스탯 배분 {str, con, agi, int} · opts.talent: 주력 기예 'forge'(단조) | 'alchemy'(연단) (TALENTS) */
 function newState(name, mugongId, opts = {}) {
   const st = {
     v: 8, name, created: now(), lastTick: now(),

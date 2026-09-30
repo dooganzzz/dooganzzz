@@ -183,6 +183,55 @@
 .shrine-art > img { object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .6)); }
 .altar.blessing .shrine-art.loaded > img { animation: shrineBless 2.2s ease-out; }
 @keyframes shrineBless { 0% { filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .6)); } 35% { filter: drop-shadow(0 0 18px rgba(255, 214, 120, .95)) brightness(1.25); } 100% { filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .6)); } }
-.awaken-sheet .shrine-art { width: 200px; }
+.awaken-sheet .shrine-art { width: 240px; height: auto; }
 /* 원화 가장자리가 직선으로 잘린 곳(옥좌 오른쪽·받침 아래)을 먹빛으로 스며들게 */
 .shrine-art > img { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 86%, transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 86%, transparent 100%); mask-composite: intersect; }
+
+/* ───────── 화로: 단조는 대장간 풍경, 연단은 수묵 단로 ─────────
+   그림 가장자리는 먹빛으로 번지고, 재료 칸은 모루(단조) · 단로 몸통(연단) 위에 놓인다 */
+.pot.furnace-stage { position: relative; overflow: hidden; padding: 0; gap: 0; min-height: 440px; justify-content: flex-end; border: 1px solid #3b2f22; border-radius: 10px; background: #0d0a08; box-shadow: inset 0 0 40px rgba(0, 0, 0, .7); }
+.furnace-stage .stage-bg { position: absolute; inset: 0; pointer-events: none; }
+.furnace-stage .stage-bg .art-frame { width: 100%; height: 100%; }
+.furnace-stage .stage-bg .art-frame > img { object-fit: cover; object-position: 50% 45%; }
+.furnace-stage .stage-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 40%, rgba(10, 8, 6, .8) 100%), linear-gradient(to bottom, transparent 45%, rgba(10, 8, 6, .82) 100%); }
+/* 연단: 옅은 먹 번짐 바탕 + 뒤의 둥근 광배 */
+.furnace-stage .stage-bg.ink { background: radial-gradient(circle at 50% 36%, rgba(170, 190, 180, .16), transparent 55%), radial-gradient(ellipse at 20% 80%, rgba(120, 130, 128, .12), transparent 50%), radial-gradient(ellipse at 85% 20%, rgba(120, 130, 128, .1), transparent 45%), #121513; }
+.furnace-stage .cauldron-wrap { position: absolute; left: 50%; top: 12px; width: 380px; max-width: 86%; aspect-ratio: 1; transform: translateX(-50%); pointer-events: none; }
+.furnace-stage .cauldron-wrap::before { content: ''; position: absolute; inset: 6%; border-radius: 50%; border: 10px solid rgba(215, 230, 220, .08); box-shadow: 0 0 40px rgba(160, 220, 200, .08), inset 0 0 30px rgba(160, 220, 200, .06); }
+.furnace-stage .cauldron-art { width: 100%; height: 100%; }
+.furnace-stage .cauldron-art > img { object-fit: contain; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, .7)); }
+.furnace-stage.alchemy { min-height: 600px; }
+.furnace-stage.alchemy .stage-ui { margin-top: 318px; padding-top: 0; }
+.furnace-stage.alchemy .furnace-fire { margin: 0 0 4px; }
+.furnace-stage .stage-ui { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 16px 18px; }
+.furnace-stage.forge .stage-ui { margin-top: auto; }
+/* 재료 칸: 모서리에 마름모 장식이 달린 네모 칸 */
+.furnace-stage .pot-slots { width: min(380px, 100%); grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.furnace-stage .slot { position: relative; border-radius: 6px; border: 1.5px solid rgba(232, 222, 198, .5); background: rgba(22, 18, 14, .62); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .35), 0 2px 6px rgba(0, 0, 0, .5); backdrop-filter: blur(1px); }
+.furnace-stage .slot::before, .furnace-stage .slot::after { content: ''; position: absolute; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; transform: rotate(45deg); background: #1a1511; border: 1.5px solid rgba(232, 222, 198, .6); }
+.furnace-stage .slot::before { top: -5px; } .furnace-stage .slot::after { bottom: -5px; }
+.furnace-stage .slot.full { border-color: var(--gold-2); background: rgba(58, 44, 24, .7); }
+.furnace-stage .slot-hint { color: rgba(232, 222, 198, .7); font-style: italic; }
+.furnace-stage.alchemy .slot { border-color: rgba(220, 235, 228, .55); background: rgba(236, 240, 236, .1); }
+.furnace-stage .flame { margin: 0; text-align: center; font-size: .9rem; color: #e9dcc0; text-shadow: 0 1px 4px rgba(0, 0, 0, .95); }
+.furnace-stage .furnace-fire { width: 160px; height: 40px; margin: -4px 0; }
+/* 명패 버튼: 단조는 나무·청동 명패, 연단은 옥빛 알약 */
+.btn.plaque { display: inline-flex; justify-content: center; align-items: center; text-align: center; min-width: 180px; padding: 11px 26px; font-family: var(--serif, serif); font-size: 1.02rem; font-weight: 700; letter-spacing: .12em; color: #f3e2b8; border: 2px solid #9c7432; border-radius: 6px; background: linear-gradient(180deg, #6a4a27 0%, #4a3219 55%, #3a2713 100%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 220, 160, .25), 0 4px 10px rgba(0, 0, 0, .6); text-shadow: 0 1px 2px #000; }
+.btn.plaque:hover:not(:disabled) { border-color: #d9ad55; filter: brightness(1.12); }
+.btn.plaque:disabled { opacity: .55; }
+.btn.plaque.primary { border-color: #d4af37; }
+.furnace-stage.alchemy .btn.plaque.primary { border-radius: 999px; min-width: 240px; color: #ffe9a8; border-color: #c9a34a; background: radial-gradient(ellipse at 50% 30%, #3f7a52 0%, #24503a 55%, #173526 100%); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .5), 0 0 16px rgba(80, 200, 140, .25), 0 4px 10px rgba(0, 0, 0, .6); }
+.plaque-btns { gap: 10px; justify-content: center; }
+.furnace-stage .note-warn, .furnace-stage .result { position: relative; z-index: 1; margin: 0 16px 16px; }
+@media (max-width: 640px) {
+  .pot.furnace-stage { min-height: 380px; }
+  .furnace-stage .cauldron-wrap { width: 280px; }
+  .furnace-stage.alchemy { min-height: 520px; }
+  .furnace-stage.alchemy .stage-ui { margin-top: 232px; }
+  .furnace-stage .pot-slots { gap: 7px; }
+  .btn.plaque { min-width: 130px; padding: 9px 16px; }
+}
+
+/* 각성: 눈을 뜬 무신상 */
+.shrine-art.awake > img { animation: awakeGlow 3s ease-in-out infinite; }
+@keyframes awakeGlow { 50% { filter: drop-shadow(0 0 18px rgba(255, 210, 110, .8)) brightness(1.08); } }

@@ -12,7 +12,7 @@ module.exports = async (b) => {
     // 1. 프롤로그 · 제자 만들기
     const i0 = await p.evaluate(() => ({ pro: [...document.querySelectorAll('.prologue p')].map(e => e.textContent).join(' '), rows: document.querySelectorAll('.attr-row').length, plus: [...document.querySelectorAll('[data-attr][data-d="1"]')].every(e => e.disabled), begin: !document.querySelector('#begin').disabled, talents: document.querySelectorAll('[data-talent]').length, starters: document.querySelectorAll('[data-starter]').length }));
     ok('1 프롤로그: 소설 속 청풍문 무신상에 빙의한 나', /강호견문록/.test(i0.pro) && /무신상/.test(i0.pro) && /청풍문/.test(i0.pro) && /제자/.test(i0.pro), i0.pro.slice(0, 60));
-    ok('1 4대 스탯(근력·체력·민첩·지력) · 입문 무공 5종 · 기예 2종(단조·단약)', i0.rows === 4 && i0.starters === 5 && i0.talents === 2, JSON.stringify(i0));
+    ok('1 4대 스탯(근력·체력·민첩·지력) · 입문 무공 5종 · 기예 2종(단조·연단)', i0.rows === 4 && i0.starters === 5 && i0.talents === 2, JSON.stringify(i0));
     ok('1 처음엔 남은 점수 0 → ＋ 막힘, 바로 시작 가능', i0.plus && i0.begin);
     await p.click('[data-attr="int"][data-d="-1"]');
     const i1 = await p.evaluate(() => ({ left: document.querySelector('#attrLeft').textContent, begin: document.querySelector('#begin').disabled, plus: !document.querySelector('[data-attr="str"][data-d="1"]').disabled }));
@@ -27,7 +27,7 @@ module.exports = async (b) => {
     await p.click('#begin');
     const s0 = await p.evaluate(() => { const st = calcStats(); return { attr: S.attr, talent: S.talent, alch: S.crafts.alchemy.lv, forge: S.crafts.forge.lv, name: S.name, weapon: S.equip.weapon.wtype, atk: st.atk, hp: st.maxHp, mp: st.maxMp, log: S.log.some(l => /무신상/.test(l.text)) }; });
     ok('1 배분 반영: 근력 10 · 체력 3 · 민첩 6 · 지력 5', s0.attr.str === 10 && s0.attr.con === 3 && s0.attr.agi === 6 && s0.attr.int === 5, JSON.stringify(s0.attr));
-    ok('1 주력 기예 단약 → 두 기예 모두 9품(1단계)부터', s0.talent === 'alchemy' && s0.alch === 1 && s0.forge === 1, JSON.stringify(s0));
+    ok('1 주력 기예 연단 → 두 기예 모두 9품(1단계)부터', s0.talent === 'alchemy' && s0.alch === 1 && s0.forge === 1, JSON.stringify(s0));
     ok('1 입문 무공 = 첫 병기 (창) · 첫 기록은 석상 시점', s0.weapon === 'spear' && s0.name === '석상제자' && s0.log, JSON.stringify(s0));
     const st = await p.evaluate(() => {
       const base = () => { const s = calcStats(); return { atk: s.atk, hp: s.maxHp, mp: s.maxMp, def: s.def, bag: s.bag }; };

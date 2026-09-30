@@ -8,6 +8,9 @@ const ART_SRC = {
   beast: id => `assets/art/beasts/${id}.png`,
   shrine: () => 'assets/art/shrine.png',
   meditation: () => 'assets/art/meditation.png',
+  shrineAwake: () => 'assets/art/shrine_awake.png',
+  forgeScene: () => 'assets/art/forge_scene.jpg',
+  cauldron: () => 'assets/art/alchemy_cauldron.png',
 };
 const brokenArt = new Set();
 function artFail(im) { brokenArt.add(im.getAttribute('src')); im.remove(); }
@@ -99,8 +102,8 @@ function beastSvg(eid) {
 }
 const beastArt = (eid, cls = '') => artPic(ART_SRC.beast(eid), beastSvg(eid), 'beast-art ' + cls);
 
-/* ───────── 무신상 (나): 이끼 낀 석상 · 향로와 향연기. 공양하면 눈이 빛난다 ───────── */
-function shrineArt() {
+/* ───────── 무신상 (나): 이끼 낀 석상 · 향로와 향연기. 공양하면 눈이 빛난다. awake: 각성 때 눈을 뜬 모습 ───────── */
+function shrineArt(awake = false) {
   const svg = `<svg class="statue" viewBox="0 0 200 230">
     <defs><radialGradient id="st-halo" cx=".5" cy=".4" r=".5"><stop offset="0" stop-color="#f0cf82" stop-opacity=".35"/><stop offset="1" stop-color="#f0cf82" stop-opacity="0"/></radialGradient></defs>
     <circle class="halo" cx="100" cy="92" r="80" fill="url(#st-halo)"/>
@@ -118,7 +121,7 @@ function shrineArt() {
       <path d="M94 206v-16M100 206v-20M106 206v-16" stroke="#8a4a2a" stroke-width="1.6"/><circle cx="94" cy="190" r="1.4" fill="#ff8a3a"/><circle cx="100" cy="186" r="1.4" fill="#ff8a3a"/><circle cx="106" cy="190" r="1.4" fill="#ff8a3a"/></g>
     <g class="smoke" stroke="#c9ccd2" stroke-width="1.4" fill="none" opacity=".45"><path d="M94 188q-6-10 0-20t0-20"/><path d="M100 184q6-10 0-20t0-20"/><path d="M106 188q-6-10 0-20t0-20"/></g>
   </svg>`;
-  return artPic(ART_SRC.shrine(), svg, 'shrine-art');
+  return artPic(awake ? ART_SRC.shrineAwake() : ART_SRC.shrine(), svg, 'shrine-art' + (awake ? ' awake' : ''));
 }
 
 /* ───────── 장비 칸 아이콘 (24×24 선화). 무기는 병기 종류를 따른다 ───────── */
@@ -216,7 +219,7 @@ function artAfterRender() {
 }
 document.addEventListener('animationend', e => { if (e.animationName === 'inkIn') e.target.classList.remove('ink-in'); });
 
-/* 화로 불길: 단조는 주황 쇠불, 단약은 푸른 단화(丹火) */
+/* 화로 불길: 단조는 주황 쇠불, 연단은 푸른 단화(丹火) */
 function furnaceFire(craft) {
   return `<div class="furnace-fire ${craft}" aria-hidden="true"><svg viewBox="0 0 120 60" preserveAspectRatio="xMidYMax meet">
     <path class="fl f1" d="M40 60q-6-18 8-30q-2 12 6 16q2-14 12-24q-2 16 8 22q4-8 2-16q12 12 6 32z"/>

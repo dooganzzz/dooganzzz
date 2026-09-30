@@ -12,7 +12,7 @@ module.exports = async (b) => {
   await startEquipped(p);
   if (w === 1280) {
     const rc = await p.evaluate(() => RECIPES.filter(r => !CRAFTS[r.craft] || Object.keys(r.in).some(id => !ITEMS[id] || ITEMS[id].kind !== '재료') || !(r.out.startsWith('gear:') ? CRAFT_GEAR[r.out.slice(5)] : ITEMS[r.out])).map(r => r.id));
-    ok('6 조합식의 재료·결과가 모두 존재 (단조·단약만)', rc.length === 0 && (await p.evaluate(() => Object.keys(CRAFTS).join())) === 'forge,alchemy', rc.join(','));
+    ok('6 조합식의 재료·결과가 모두 존재 (단조·연단만)', rc.length === 0 && (await p.evaluate(() => Object.keys(CRAFTS).join())) === 'forge,alchemy', rc.join(','));
     const dup = await p.evaluate(() => { const k = RECIPES.map(r => r.craft + ':' + potKey(r.in)); return k.length - new Set(k).size; });
     ok('6 같은 재료 구성의 조합식이 둘 이상 없음', dup === 0, String(dup));
   }
@@ -34,15 +34,15 @@ module.exports = async (b) => {
     return { win: b.win, got: S.exp - e0, expect: Math.round(expGain(ENEMIES.boar.xp) * EXPEDITION.rewardMult), rec: b.exp };
   });
   ok('2 승리 시 수련치 = 적 수련치 × 보정 × 원정 보상 1/10', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect > 0, JSON.stringify(xp));
-  // 6 화로: [단조] | [단약] 두 탭, 탭마다 그 기예의 조합식에 쓰이는 재료만 보인다
+  // 6 화로: [단조] | [연단] 두 탭, 탭마다 그 기예의 조합식에 쓰이는 재료만 보인다
   await p.evaluate(() => { ITEMS.testMat = { name: '시험재', icon: '❔', kind: '재료' }; Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2, testMat: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
   const f = {};
   f.tabs = await p.$$eval('.furnace-tabs [data-craft]', e => e.map(x => x.textContent).join('|'));
   for (const c of ['forge', 'alchemy']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).sort().join(',')); }
-  ok('6 화로 탭: 단조 | 단약', /단조/.test(f.tabs) && /단약/.test(f.tabs) && f.tabs.split('|').length === 2, f.tabs);
+  ok('6 화로 탭: 단조 | 연단', /단조/.test(f.tabs) && /연단/.test(f.tabs) && f.tabs.split('|').length === 2, f.tabs);
   const fl = f.forge.split(','), al = f.alchemy.split(',');
   ok('6 단조 탭은 단조 재료만', fl.includes('roughOre') && fl.includes('treeSap') && !fl.includes('wildGinseng') && !fl.includes('herb'), JSON.stringify(f));
-  ok('6 단약 탭은 단약 재료만', al.includes('wildGinseng') && al.includes('herb') && al.includes('treeSap') && !al.includes('roughOre'), JSON.stringify(f));
+  ok('6 연단 탭은 연단 재료만', al.includes('wildGinseng') && al.includes('herb') && al.includes('treeSap') && !al.includes('roughOre'), JSON.stringify(f));
   ok('6 조합식에 없는 재료는 두 탭 모두 숨김', !fl.includes('testMat') && !al.includes('testMat'));
   await p.evaluate(() => { delete S.inv.testMat; delete ITEMS.testMat; render(); });
   await p.click('[data-add="herb"]'); await p.click('[data-craft="forge"]');

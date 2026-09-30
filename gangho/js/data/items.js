@@ -32,7 +32,7 @@ const ITEMS = {
   centipedeLeg: { name: '독지네 다리',     icon: '🦗', kind: '재료', craftType: 'alchemy', price: 20, desc: '소택지 독지네의 다리. 독을 다스리는 약이 된다.' },
   mistDew:      { name: '물안개 이슬',     icon: '💦', kind: '재료', craftType: 'alchemy', price: 22, desc: '새벽 호수 물안개에서 모은 이슬.' },
   kingTusk:     { name: '왕의 송곳니', icon: '🦷', kind: '증표', price: 0, desc: '옛 청풍산 두목 외눈 멧돼지왕의 거대한 송곳니. 지난 토벌의 증표.' },
-  // 조합 실패물 (단조·단약 공통)
+  // 조합 실패물 (단조·연단 공통)
   slag:         { name: '검게 탄 찌꺼기', icon: '⚫', kind: '부산물', price: 0, desc: '화로 조합에 실패하면 남는 찌꺼기. 청풍문 › 무신상에 공양하면 무언가로 돌아온다.' },
   // 돌파단 (영단)
   pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '5성 비급을 6성 소성(小成)으로 올릴 때 수련치와 함께 복용한다. (상태 › 무공)' },
@@ -219,10 +219,10 @@ const UNIQUES = [
   { key: 'counter',   val: 6, text: '반격 +6%' },
 ];
 
-/* 화로 기예: 단조(장비) · 단약(영약). 실패하면 재료가 전소되고 검게 탄 찌꺼기 1개 */
+/* 화로 기예: 단조(장비) · 연단(단약). 실패하면 재료가 전소되고 검게 탄 찌꺼기 1개 */
 const CRAFTS = {
   forge:   { name: '단조', hanja: '鍛造', fail: 'slag', desc: '재료를 달구고 두드려 병기·방어구·장신구를 벼린다.' },
-  alchemy: { name: '단약', hanja: '丹藥', fail: 'slag', desc: '약재와 요수의 독낭·수액을 달여 단약을 빚는다.' },
+  alchemy: { name: '연단', hanja: '煉丹', fail: 'slag', desc: '약재와 요수의 독낭·수액을 단로(丹爐)에 달여 단약을 빚는다.' },
 };
 
 /* 단조 전용 중급 장비 9종 (이류급 · 등급 중급 고정). 비밀 조합식은 recipes.js
@@ -270,13 +270,13 @@ const CRAFT_GEAR = {
 };
 
 
-/* 기예 (캐릭터 생성 때 주력 하나): 단조·단약 모두 9품에서 시작하고, 주력 기예에만 고유 효과가 붙는다.
+/* 기예 (캐릭터 생성 때 주력 하나): 단조·연단 모두 9품에서 시작하고, 주력 기예에만 고유 효과가 붙는다.
    rate: 주력 기예 성공률 +%p · slag: 단조 실패 시 찌꺼기 개수 · pill: 단약 섭취 효과 배율 보너스.
    솜씨 품계: 솜씨 단계(lv) 1 = 9품, 올라갈수록 8품 … 1품 (CRAFT_GRADE_TOP 단계 이상은 1품) */
 const CRAFT_GRADE_TOP = 9;
 const TALENTS = {
   forge:   { name: '단조', hanja: '鍛造', sub: '장비 제작 · 제련 특화', desc: '단조 9품에서 시작 · 장비 제작 성공률 +10% · 단조 시 검게 탄 찌꺼기 획득량 2배', craft: 'forge', rate: 10, slag: 2 },
-  alchemy: { name: '단약', hanja: '丹藥', sub: '영약 제조 · 연단 특화', desc: '단약 9품에서 시작 · 단약 제작 성공률 +10% · 단약 섭취 효과 +15%', craft: 'alchemy', rate: 10, pill: 0.15 },
+  alchemy: { name: '연단', hanja: '煉丹', sub: '영약 제조 · 연단 특화', desc: '연단 9품에서 시작 · 연단 성공률 +10% · 단약 섭취 효과 +15%', craft: 'alchemy', rate: 10, pill: 0.15 },
 };
 
 /* 무신상 공양 (가챠): 검게 탄 찌꺼기 cost개를 바칠 때마다 표에서 하나. 기대값은 일부러 낮다 (조합 실패를 노리지 않도록).
