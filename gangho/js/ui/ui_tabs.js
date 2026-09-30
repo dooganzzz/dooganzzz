@@ -41,6 +41,7 @@ function screen() {
 /* 탭 이동. 청풍문은 들어올 때마다 첫 하위 탭(정청)부터, 상태는 마지막 하위 탭을 기억한다 */
 function goTab(tab, sub) {
   ui.tab = tab;
+  Bus.emit('trace', 'tab', `${tab}${sub ? ' › ' + sub : ''}`);
   if (SUB_KEY[tab]) ui[SUB_KEY[tab]] = sub || (tab === 'sect' ? 'hall' : ui[SUB_KEY[tab]]);
   ui.craftResult = null;
 }

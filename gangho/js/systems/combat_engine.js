@@ -19,6 +19,7 @@ let BATTLE_MS = 3000;
 function startBattle(eid) {
   const E = ENEMIES[eid];
   stopBattleTimer();
+  notify.trace('battle', `조우: ${eid} (${E.name}) · 활력 ${Math.round(S.hp)}`);
   RT.battle = { eid, e: { ...E, hpNow: E.hp }, lines: [], over: false, round: 0, st: calcStats(), fx: [], prev: { me: S.hp, foe: E.hp } };
   bLine(`⚔️ ${josa(E.name, '이가')} 모습을 드러냈습니다!`, 'head');
   const [, stext, scls] = sense(eid);
@@ -123,6 +124,7 @@ function enemyTurn(b) {
 }
 
 function winBattle(b) {
+  notify.trace('battle', `승리: ${b.eid} · ${b.round}합`);
   b.over = true; b.win = true;
   const E = ENEMIES[b.eid];
   bLine(`🏆 ${josa(E.name, '을를')} 쓰러뜨렸습니다!`, 'win');
@@ -159,6 +161,7 @@ function winBattle(b) {
 }
 
 function loseBattle(b) {
+  notify.trace('battle', `패배: ${b.eid} · ${b.round}합`);
   b.over = true; b.win = false;
   const lost = Math.floor(S.silver * 0.1);
   S.silver -= lost;

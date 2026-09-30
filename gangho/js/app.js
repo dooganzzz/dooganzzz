@@ -112,6 +112,7 @@ Bus.on('save', save);
 
 function boot() {
   bindInput();
+  gmInit();                                              // 운영자 콘솔 (GM_ENABLED일 때만)
   S = load();
   S = migrate(S);
   if (!S) showIntro();

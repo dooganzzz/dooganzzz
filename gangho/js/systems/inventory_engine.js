@@ -9,15 +9,17 @@ function bagCap() { return calcStats().bag; }
 function give(id, n = 1, quiet = false) {
   if (!S.inv[id] && bagUsed() >= bagCap()) { log(`행낭이 가득 차 ${ITEMS[id].name}${jo(ITEMS[id].name, '을를')} 버렸습니다.`, 'bad'); return false; }
   S.inv[id] = (S.inv[id] || 0) + n;
+  notify.trace('item+', `${id} ×${n} (${ITEMS[id].name}) → ${S.inv[id]}`);
   if (!quiet) log(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} ×${n} 획득`, 'loot');
   return true;
 }
 
-function take(id, n = 1) { S.inv[id] -= n; if (S.inv[id] <= 0) delete S.inv[id]; }
+function take(id, n = 1) { S.inv[id] -= n; notify.trace('item-', `${id} ×${n} (${ITEMS[id].name}) → ${Math.max(0, S.inv[id])}`); if (S.inv[id] <= 0) delete S.inv[id]; }
 
 function giveGear(it, quiet) {
   if (bagUsed() >= bagCap()) { log(`행낭이 가득 차 ${it.name}${jo(it.name, '을를')} 두고 왔습니다.`, 'bad'); return false; }
   S.gear.push(it);
+  notify.trace('item+', `장비 ${it.base || it.shop} [${RARITY[it.rarity].name}] ${it.name} uid=${it.uid}`);
   if (!quiet) log(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득${it.unique ? ` — ${it.unique.text}` : ''}`, 'loot');
   return true;
 }

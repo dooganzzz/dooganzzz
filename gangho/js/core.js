@@ -48,4 +48,5 @@ const notify = {
   toast: text => Bus.emit('toast', text),                      // 짧은 알림
   banner: (title, sub = '', tone = '') => Bus.emit('banner', title, sub, tone),   // 성취 현판
   save: () => Bus.emit('save'),                                // 지금 저장
+  trace: (kind, text) => Bus.emit('trace', kind, text),        // 운영자 행동 추적 (견문록과 별개). kind: battle·item+·item-·warn·sys
 };
