@@ -20,9 +20,9 @@ module.exports = async (b) => {
     // 2. 청풍문 2차 탭
     await p.click('[data-tab="status"]'); await p.click('[data-tab="sect"]');
     const s0 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, top: document.querySelector('.tab.on .ko').textContent, hall: !!document.querySelector('.npc-head') }));
-    ok('2 하위 탭 [ 정청 ][ 화로 ][ 뒷마당 ][ 무신상 ][ 전방 ] (연무장 없음)', s0.subs === '정청,화로,뒷마당,무신상,전방', s0.subs);
+    ok('2 하위 탭 [ 정청 ][ 화로 ][ 뒷마당 ][ 연무장 ][ 무신상 ][ 전방 ]', s0.subs === '정청,화로,뒷마당,연무장,무신상,전방', s0.subs);
     ok('2 기본 진입은 정청', s0.top === '청풍문' && s0.on === '정청' && s0.hall, JSON.stringify(s0));
-    const views = { forge: '.forge', yard: '[data-act="rest"]', shrine: '.altar', shop: '.shop-panel', hall: '[data-fold="hq"]' };
+    const views = { forge: '.forge', yard: '[data-act="rest"]', yeonmu: '.yeonmu', shrine: '.altar', shop: '.shop-panel', hall: '[data-fold="hq"]' };
     for (const [sub, sel] of Object.entries(views)) {
       await p.click(`.subtabs [data-sub="${sub}"]`);
       const r = await p.evaluate(s => ({ view: !!document.querySelector(s), top: document.querySelector('.tab.on').dataset.tab, on: document.querySelector('.subtab.on').dataset.sub, bar: document.querySelectorAll('.subtabs:not(.shop-mode)').length }), sel);

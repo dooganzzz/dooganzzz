@@ -2,7 +2,9 @@
 
 /* ───────── 능력치 ───────── */
 function calcStats() {
-  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0 };
+  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0 };
+  // 3대 기본 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다
+  for (const [a, D] of Object.entries(ATTRS)) { const d = attrOf(a) - ATTR_BASE; for (const [k, v] of Object.entries(D.per)) s[k] += v * d; }
   for (const cat of CAT_ORDER) {
     const id = S.active[cat]; if (!id || !S.manuals[id]) continue;
     for (const [k, v] of Object.entries(manualBonus(id, S.manuals[id].star))) s[k] += v;
@@ -23,7 +25,7 @@ function calcStats() {
     if (b.key === 'train') s.trainBuff += b.val;
   }
   s.atk *= 1 + atkB; s.def *= 1 + defB; s.maxHp *= 1 + s.hpPct / 100; s.maxMp *= 1 + s.mpPct / 100;
-  for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'maxSta']) s[k] = Math.round(s[k]);
+  for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'maxSta', 'bag']) s[k] = Math.round(s[k]);
   s.eva = Math.min(60, Math.round(s.eva * 10) / 10);
   s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
   s.counter = Math.min(60, Math.round(s.counter * 10) / 10);
@@ -56,5 +58,10 @@ function clampVitals() {
   const st = calcStats();
   S.hp = clamp(S.hp, 0, st.maxHp); S.mp = clamp(S.mp, 0, st.maxMp); S.stamina = clamp(S.stamina, 0, st.maxSta);
 }
+
+function attrOf(a) { return (S.attr && S.attr[a]) || ATTR_BASE; }
+const talentOf = () => (S.talent && TALENTS[S.talent]) || {};
+/* 캐릭터 생성 배분이 규칙에 맞는지 (합계·범위) */
+function validAttr(A) { return !!A && Object.keys(ATTRS).every(k => Number.isInteger(A[k]) && A[k] >= ATTR_MIN && A[k] <= ATTR_MAX) && Object.keys(ATTRS).reduce((a, k) => a + A[k], 0) === ATTR_TOTAL; }
 
 function weaponType() { return S.equip.weapon ? S.equip.weapon.wtype : 'fist'; }

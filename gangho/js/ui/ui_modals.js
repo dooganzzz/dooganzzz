@@ -23,6 +23,8 @@ function martialModal(id) {
     <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
     <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 경험치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
     <p class="story">${M.desc}</p>
+    ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja}) — ${ELEMENTS[ELEM_BEATS[M.elem]].hanja} 속성 적에게 피해 +25%, ${ELEMENTS[Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem)].hanja} 속성 적에게는 -25%</p>` : ''}
+    ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}
     <h4>보너스 효과 (장착 시)</h4>${bonus}
     <p class="${m.star >= MAX_STAR ? 'gold' : 'muted'}">${m.star >= MAX_STAR ? '🌟 ' : '대성 시 개방 — '}${DAESUNG_PASSIVE[cat].text}</p>
     ${m.star < 6 ? '<p class="muted">소성(6성)에 이르면 장착 능력치가 30% 오릅니다.</p>' : ''}
@@ -99,30 +101,56 @@ function askReset() {
 }
 
 /* ───────── 시작 화면 ───────── */
+/* 시작 화면: 프롤로그(석상에 빙의한 나) + 제자 만들기(이름 · 3대 스탯 · 입문 무공 · 보조 기예) */
+const PROLOGUE = [
+  '밤새 읽던 무협 소설 《강호견문록》의 마지막 장을 덮고 눈을 감았다. 다시 눈을 떴을 때, 몸이 움직이지 않았다.',
+  '이끼 낀 돌 손, 금이 간 돌 어깨. 나는 소설 속 몰락한 하급 문파 <b>청풍문</b>, 그 마당 한가운데 선 <b>무신상(武神像)</b>이 되어 있었다.',
+  '원작에서 청풍문은 제1장이 끝나기도 전에 멸문한다. 아무도 기억하지 않는 엑스트라 문파다. 그런데 오늘 아침, 산문을 두드린 풋내기 하나가 석상 앞에 무릎을 꿇었을 때 — 내 목소리가 그 아이의 머릿속에 닿았다.',
+  '움직일 수 없는 나 대신, 이 제자가 강호를 걷는다. 나는 원작을 안다. 이 아이는 모른다.',
+];
 function showIntro() {
-  let chosen = 'samjaeGeom';
+  let chosen = 'samjaeGeom', talent = 'gather';
+  const attr = Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';
+  const left = () => ATTR_TOTAL - Object.values(attr).reduce((a, b) => a + b, 0);
+  const eff = k => { const d = attr[k] - ATTR_BASE, P = ATTRS[k].per, sg = v => (v > 0 ? '+' : '') + (Math.round(v * 10) / 10);
+    return d === 0 ? '기본' : Object.entries(P).map(([s, v]) => `${s === 'elem' ? '오행 극' : STAT_NAMES[s] || s} ${sg(v * d)}${s === 'elem' ? '%p' : ''}`).join(' · '); };
   const draw = () => {
     const name = $('#pname') ? $('#pname').value : '이름 없는 제자';
     m.innerHTML = `<div class="sheet intro">
-      <p class="eyebrow">江湖見聞錄</p>
+      <p class="eyebrow">江湖見聞錄 · 序章</p>
       <h1>강호견문록</h1>
-      <p class="story">청풍산 기슭, 무너져 가는 하급 문파 <b>청풍문</b>. 장문인은 낮잠을 자고, 대사형은 장작을 패고, 사매는 약과를 굽는다. 그리고 오늘, 새 제자 한 명이 산문을 두드린다.</p>
-      <label class="field-l" for="pname">이름</label>
+      <div class="prologue">${PROLOGUE.map(p => `<p class="story">${p}</p>`).join('')}</div>
+      <h3 class="intro-h">제자 만들기</h3>
+      <label class="field-l" for="pname">제자의 이름</label>
       <input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off">
-      <p class="field-l">입문 비급</p>
+      <p class="field-l">3대 기본 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
+      <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
+        <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
+        <button class="btn sm ghost" data-attr="${k}" data-d="-1" ${attr[k] <= ATTR_MIN ? 'disabled' : ''} aria-label="${A.name} 내리기">−</button>
+        <b class="attr-val">${attr[k]}</b>
+        <button class="btn sm ghost" data-attr="${k}" data-d="1" ${attr[k] >= ATTR_MAX || left() <= 0 ? 'disabled' : ''} aria-label="${A.name} 올리기">＋</button>
+        <small class="attr-eff">${eff(k)}</small></div>`).join('')}</div>
+      <p class="field-l">입문 무공</p>
       <div class="starters">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}"><b>${M.name}</b><small>[${WEAPON_SHORT[M.weapon]}]</small></button>`; }).join('')}</div>
-      <button class="btn primary big" id="begin">산문에 들어선다</button>
+      <p class="field-l">보조 기예</p>
+      <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><b>${T.name} <small>${T.hanja}</small></b><small>${T.desc}</small></button>`).join('')}</div>
+      <p class="muted">${left() ? `남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.` : '병기 상성: 권장 › 검/도 › 창·암기 › 권장 … 입문 무공이 곧 첫 병기입니다.'}</p>
+      <button class="btn primary big" id="begin" ${left() ? 'disabled' : ''}>제자에게 말을 건다</button>
     </div>`;
   };
   draw();
   m.onclick = e => {
     const s = e.target.closest('[data-starter]');
     if (s) { chosen = s.dataset.starter; draw(); return; }
-    if (e.target.closest('#begin')) {
+    const t = e.target.closest('[data-talent]');
+    if (t) { talent = t.dataset.talent; draw(); return; }
+    const a = e.target.closest('[data-attr]');
+    if (a && !a.disabled) { const k = a.dataset.attr, d = +a.dataset.d; if (attr[k] + d >= ATTR_MIN && attr[k] + d <= ATTR_MAX && (d < 0 || left() > 0)) attr[k] += d; draw(); return; }
+    if (e.target.closest('#begin') && !left()) {
       const name = ($('#pname').value || '').trim().slice(0, 8) || '무명';
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
-      startNewGame(name, chosen);
+      startNewGame(name, chosen, { attr: { ...attr }, talent });
       goTab('sect', 'hall');
       render();
     }

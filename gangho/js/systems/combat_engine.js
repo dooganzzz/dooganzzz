@@ -20,21 +20,49 @@ function combatPowerParts(player = S) {
 }
 function calculateCombatPower(player = S) { return combatPowerParts(player).total; }
 
+/* ───────── 3대 상성 (오행 · 병기) ───────── */
+function myElem() { const id = S.active.gigong; return (id && MANUALS[id] && MANUALS[id].elem) || null; }
+function elemRel(a, b) { if (!a || !b) return 0; return ELEM_BEATS[a] === b ? 1 : ELEM_BEATS[b] === a ? -1 : 0; }
+function weaponRel(a, b) { if (!a || !b) return 0; return (WEAPON_ADV[WEAPON_CLASS[a]] || {})[WEAPON_CLASS[b]] || 0; }
+/* 나와 적 사이의 상성. dealt: 내가 주는 피해 배율 · taken: 내가 받는 피해 배율 · myHit/foeHit: 명중 보정(%p) */
+function affinity(eid, st = calcStats()) {
+  const E = ENEMIES[eid], me = myElem(), wt = weaponType(), A = AFFINITY;
+  const el = elemRel(me, E.elem), wp = weaponRel(wt, E.wtype);
+  const up = A.elem + (st.elem || 0) / 100;                   // 지력: 내가 극할 때 오행술 위력
+  return {
+    el, wp, me, foe: E.elem, wt, fwt: E.wtype || null,
+    dealt: (el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * (wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1),
+    taken: (el > 0 ? 1 - A.elem : el < 0 ? 1 + A.elem : 1) * (wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
+    myHit: wp > 0 ? A.weapHit : 0, foeHit: wp < 0 ? A.weapHit : 0,
+  };
+}
+const NO_AFF = { dealt: 1, taken: 1, myHit: 0, foeHit: 0 };   // 상성이 없는 전투 (직접 꾸린 전투 기록 등)
+/* 상성 한 줄 (관찰 창·심상수련장) */
+function affinityText(a) {
+  const E = x => x ? `${ELEMENTS[x].hanja}` : '無';
+  const elem = a.el > 0 ? `<b class="good">상극 우세</b> (${E(a.me)}${'剋'}${E(a.foe)})` : a.el < 0 ? `<b class="warn">상극 열세</b> (${E(a.foe)}剋${E(a.me)})` : `보정 없음 (${E(a.me)}·${E(a.foe)})`;
+  const wn = w => w ? WEAPON_CLASS_NAME[WEAPON_CLASS[w]] : '맨몸';
+  const weap = !a.fwt ? '호각 (상대는 병기가 없음)' : a.wp > 0 ? `<b class="good">우세</b> (${wn(a.wt)} › ${wn(a.fwt)})` : a.wp < 0 ? `<b class="warn">열세</b> (${wn(a.wt)} ‹ ${wn(a.fwt)})` : `호각 (${wn(a.wt)} = ${wn(a.fwt)})`;
+  return `오행 ${elem} · 병기 ${weap}`;
+}
+
 function sense(eid) {
-  const E = ENEMIES[eid], st = calcStats();
-  const myTurns = E.hp / (dmgBase(st.atk, E.def) * 1.3);
-  const foeTurns = st.maxHp / Math.max(1, dmgBase(E.atk, st.def) * (1 - st.eva / 100));
+  const E = ENEMIES[eid], st = calcStats(), a = affinity(eid, st);
+  const myTurns = E.hp / (dmgBase(st.atk, E.def) * 1.3 * a.dealt);
+  const foeTurns = st.maxHp / Math.max(1, dmgBase(E.atk, st.def) * a.taken * (1 - st.eva / 100));
   const ratio = (foeTurns / myTurns) * (st.spd / E.spd);
   return SENSE_TEXT.find(([t]) => ratio >= t);
 }
 
 /* 한 판을 끝까지 계산한다. 속도가 빠른 쪽이 먼저 치고, 합마다 대사·연출·양쪽 활력을 기록해 두면
-   화면(관찰하기)이 그 기록을 그대로 다시 튼다. opts.bonus: 기연 전투에서 이기면 받는 추가 보상 */
+   화면(관찰하기)이 그 기록을 그대로 다시 튼다. opts.bonus: 기연 전투에서 이기면 받는 추가 보상
+   opts.sim: 심상수련장의 가상 전투 (보상·기록·소모 없음. 금창약은 가진 만큼 가상으로 쓴다) */
 function fight(eid, opts = {}) {
   const E = ENEMIES[eid], st = calcStats();
   const b = { eid, name: E.name, boss: !!E.boss, e: { ...E, hpNow: E.hp }, over: false, win: false, round: 0, st, lines: [], fx: [], bonus: opts.bonus || null,
-    start: { me: { hp: S.hp, mp: S.mp, maxHp: st.maxHp, maxMp: st.maxMp }, foe: { hp: E.hp, maxHp: E.hp } }, rounds: [], exp: 0, silver: 0 };
+    start: { me: { hp: S.hp, mp: S.mp, maxHp: st.maxHp, maxMp: st.maxMp }, foe: { hp: E.hp, maxHp: E.hp } }, rounds: [], exp: 0, silver: 0, sim: !!opts.sim, pots: opts.sim ? count('potionHp') : 0, aff: affinity(eid, st) };
   RT.battle = b;
+  if (!b.sim) { const bs = S.bestiary = S.bestiary || {}; (bs[eid] = bs[eid] || { met: 0, kills: 0 }).met++; }   // 요수 도감
   notify.trace('battle', `조우: ${eid} (${E.name}) · 활력 ${Math.round(S.hp)}`);
   bLine(`⚔️ ${josa(E.name, '이가')} 모습을 드러냈습니다!`, 'head');
   const [, stext, scls] = sense(eid);
@@ -43,6 +71,7 @@ function fight(eid, opts = {}) {
     const quotes = { boarKing: '외눈 멧돼지왕이 콧김을 뿜으며 땅을 긁습니다.', jeokyeom: '적염도: "청풍문? 그 거지 문파에서 아직 사람이 나오나?"', galcheon: '갈천: "물 위에서 나를 이긴 자는 없다. 뭍에서도 마찬가지고."' };
     bLine(quotes[eid], 'npc');
   }
+  bLine(`☯ 상성 — ${affinityText(b.aff)}`, 'aff');
   const mt = MANUALS[S.active.mugong];
   if (!mt) bLine('장착한 무공이 없어 맨손으로 맞섭니다.', 'muted');
   else if (mt.weapon !== weaponType()) bLine(`《${mt.name}》은 ${WEAPON_TYPES[mt.weapon]} 무공입니다. 병기가 맞지 않아 초식을 펼칠 수 없습니다.`, 'muted');
@@ -76,9 +105,9 @@ function battleRound(b) {
 
 /* 활력이 바닥나면 제자가 알아서 금창약을 먹는다 */
 function autoPotion(b) {
-  if (S.hp >= b.st.maxHp * EXPEDITION.potionAt || !has('potionHp')) return;
-  const v = Math.round(b.st.maxHp * ITEMS.potionHp.use.hp);
-  take('potionHp', 1); S.hp = Math.min(b.st.maxHp, S.hp + v);
+  if (S.hp >= b.st.maxHp * EXPEDITION.potionAt || (b.sim ? b.pots <= 0 : !has('potionHp'))) return;
+  const v = Math.round(b.st.maxHp * ITEMS.potionHp.use.hp * (1 + (talentOf().potion || 0)));   // 의술: 금창약 회복 +30%
+  if (b.sim) b.pots--; else take('potionHp', 1); S.hp = Math.min(b.st.maxHp, S.hp + v);
   bLine(`🩹 숨을 고르며 금창약을 삼켰습니다. <span class="heal">활력 +${fmt(v)}</span>`, 'good');
   b.fx.push({ side: 'me', t: `+${fmt(v)}`, k: 'heal' });
 }
@@ -91,11 +120,11 @@ function checkEnd(b) {
 
 function playerHit(b, mult, text) {
   const e = b.e, st = b.st;
-  const hitChance = Math.max(55, 95 - e.eva);
+  const hitChance = Math.max(55, 95 - e.eva) + (b.aff || NO_AFF).myHit;
   const mv = (text.match(/【(.+?)】/) || [])[1];
   if (mv && b.fx) b.fx.push({ side: 'banner', t: mv, k: /반격/.test(mv) ? 'counter' : 'move' });
   if (Math.random() * 100 >= hitChance) { bLine(`${text} — ${josa(e.name, '이가')} 몸을 틀어 피했습니다. 허공을 가릅니다.`, 'miss'); if (b.fx) b.fx.push({ side: 'foe', t: '빗나감', k: 'miss' }); return false; }
-  let dmg = dmgCalc(st.atk, e.def) * mult;
+  let dmg = dmgCalc(st.atk, e.def) * mult * (b.aff || NO_AFF).dealt;
   const crit = Math.random() * 100 < st.crit;
   if (crit) dmg *= 1.6;
   dmg = Math.round(dmg);
@@ -132,11 +161,11 @@ function playerAttack(b) {
 /* 적의 공격: 회피 → 반격(반격 스탯 확률로 흘리고 되받아침) → 피격 */
 function enemyTurn(b) {
   const e = b.e, st = b.st;
-  const hitChance = Math.max(40, 95 - st.eva);
+  const hitChance = Math.max(40, 95 - st.eva) + (b.aff || NO_AFF).foeHit;
   // 1) 회피 성공: 피해 0, 반격 판정 없이 적 턴 종료
   if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'dodge'); if (b.fx) b.fx.push({ side: 'me', t: '회피!', k: 'dodge' }); return; }
   // 2) 회피 실패: 피격 후에만 반격 판정
-  let dmg = dmgCalc(e.atk, st.def);
+  let dmg = Math.max(1, Math.round(dmgCalc(e.atk, st.def) * (b.aff || NO_AFF).taken));
   const crit = Math.random() * 100 < Math.max(0, 8 - st.critRes / 2);
   if (crit) dmg = Math.round(dmg * 1.5);
   S.hp = Math.max(0, S.hp - dmg);
@@ -152,11 +181,13 @@ function winBattle(b) {
   b.over = true; b.win = true;
   const E = ENEMIES[b.eid];
   bLine(`🏆 ${josa(E.name, '을를')} 쓰러뜨렸습니다!`, 'win');
+  if (b.sim) return;                                        // 심상수련장: 보상 없음
+  S.bestiary[b.eid].kills++;
   if (E.xp) { b.exp = expGain(E.xp, b.st); S.exp += b.exp; bLine(`경험치 +${fmt(b.exp)}`, 'loot'); }
   b.silver = rint(...E.silver); S.silver += b.silver;
   bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다
-  for (const [id, p] of E.drops) if (Math.random() < p) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
+  for (const [id, p] of E.drops) if (Math.random() < p + (talentOf().drop || 0)) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
   if (E.gear && Math.random() < E.gear[1]) {
     const it = makeGear(pick(Object.keys(EQUIP_BASES)), E.gear[0], rollDropRarity(!!E.boss), false);
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
@@ -185,4 +216,23 @@ function loseBattle(b) {
   notify.trace('battle', `패배: ${b.eid} · ${b.round}합`);
   b.over = true; b.win = false;
   bLine('💀 무릎이 꺾입니다…', 'bad');
+}
+
+/* ───────── 심상수련장: 만나 본 요수와 기력 소모 없이 겨룬다 ─────────
+   활력·내력은 가득 찬 상태로 시작하고, 끝나면 원래대로 돌린다. 보상·도감·기록에 남지 않는다. */
+function simulate(eid) {
+  if (!(S.bestiary || {})[eid]) { notify.toast('아직 만나 본 적 없는 상대입니다.'); return null; }
+  const keep = { hp: S.hp, mp: S.mp }, st = calcStats();
+  S.hp = st.maxHp; S.mp = st.maxMp;
+  try { return fight(eid, { sim: true }); } finally { S.hp = keep.hp; S.mp = keep.mp; }
+}
+function simulateMany(eid, n = 10) {
+  const out = { eid, n, wins: 0, rounds: 0, hpLeft: 0, draws: 0 };
+  for (let i = 0; i < n; i++) {
+    const b = simulate(eid); if (!b) return null;
+    if (b.win) { out.wins++; out.hpLeft += b.rounds[b.rounds.length - 1].me.hp / b.start.me.maxHp; } else if (b.fled) out.draws++;
+    out.rounds += b.rounds.length;
+  }
+  out.rounds = Math.round(out.rounds / n * 10) / 10; out.hpLeft = out.wins ? Math.round(out.hpLeft / out.wins * 100) : 0;
+  return out;
 }

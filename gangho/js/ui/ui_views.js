@@ -28,6 +28,12 @@ function portrait(who, seal, name) {
   return imgOr(IMG[who], 'npc-portrait', `<div class="npc-portrait fallback ${who}" role="img" aria-label="${name}">${seal}</div>`, name);
 }
 
+/* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
+const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})">${ELEMENTS[e].hanja}</span>` : '';
+const terrainTag = t => t ? `<span class="aff-tag tr" title="지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})">${TERRAINS[t].name}<small>${TERRAINS[t].hanja}</small></span>` : '';
+const manualAffTag = id => elemTag(MANUALS[id].elem) + terrainTag(MANUALS[id].terrain);
+const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_CLASS[w]]}</span>` : '';
+
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 
 /* 상태 탭 맨 위: 종합 전투력과 내역 */
@@ -40,6 +46,7 @@ function cpCard() {
       <span title="공격력 × ${W.atk} + 방어력 × ${W.def}">공격·방어 <b>${fmt(p.gear)}</b></span>
       <span title="장착 무공 4종: 등급 계수 × 성 × ${W.art}">무공 <b>${fmt(p.arts)}</b></span>
     </div>
+    <div class="cp-attr">${Object.entries(ATTRS).map(([k, A]) => `<span title="${A.desc}">${A.name} <b>${attrOf(k)}</b></span>`).join('')}${S.talent ? `<span title="${TALENTS[S.talent].desc}">기예 <b>${TALENTS[S.talent].name}</b></span>` : ''}</div>
   </section>`;
 }
 
@@ -51,7 +58,7 @@ function viewMartial() {
     const M = MANUALS[id], m = S.manuals[id];
     return `<div class="mslot" data-mart="${id}" role="button" tabindex="0">
       <div class="mslot-cat">${label(C.name, C.hanja)}</div>
-      <b class="mslot-name">《${M.name}》</b>${realmTag(m.star)}
+      <b class="mslot-name">《${M.name}》${manualAffTag(id)}</b>${realmTag(m.star)}
       <span class="art-star">${m.star}<small>성</small></span>
       ${m.star < MAX_STAR ? (() => { const why = starUpBlock(id), pill = GATES[m.star]; return `<button class="btn ${why ? '' : 'primary'} sm starup" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `경험치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; })() : '<span class="daesung">大成</span>'}
       <button class="btn ghost sm" data-unequipm="${cat}">장착 해제</button>
@@ -61,7 +68,7 @@ function viewMartial() {
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급');
   const cards = learned.map(id => {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
-    return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》</b>${realmTag(m.star)}<span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
+    return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》${manualAffTag(id)}</b>${realmTag(m.star)}<span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
   }).join('');
   return `<section class="panel">
     ${head('무공', '武功', `<span class="exp-purse" title="탐험에서 적을 쓰러뜨려 모은 경험치">경험치 <b>${fmt(S.exp)}</b></span>`)}
@@ -75,20 +82,45 @@ function viewMartial() {
   </section>`;
 }
 
-/* 무신상 */
+/* 무신상 (조각상 · 나): 검게 탄 찌꺼기 공양 → 무작위 보상 */
 function viewShrine() {
-  const offers = Object.entries(OFFER).map(([id, o]) => `
-    <div class="offer"><span class="offer-icon">${ITEMS[id].icon}</span><b>${ITEMS[id].name}</b><span class="num">${count(id)}개</span><small>봉헌 1회 · ${o.text}</small>
-      <div class="btns"><button class="btn sm" data-offer="${id}" ${has(id) ? '' : 'disabled'}>봉헌</button><button class="btn sm ghost" data-offerall="${id}" ${count(id) < 2 ? 'disabled' : ''}>모두</button></div></div>`).join('');
+  const n = count('slag'), c = GACHA.cost, tot = GACHA.table.reduce((a, e) => a + e.w, 0);
+  const res = ui.gachaResult;
+  const old = S.shrine.total ? `<div class="blessings"><div><small>공격력</small><b>+${S.shrine.atk}</b></div><div><small>최대 내력</small><b>+${S.shrine.mp}</b></div><div><small>회피율</small><b>+${S.shrine.eva}%</b></div><div><small>치명타율</small><b>+${Math.floor(S.shrine.total / 10) * 2}%</b></div></div><p class="muted">예전 봉헌(${S.shrine.total}회)으로 받은 힘은 그대로 남아 있습니다.</p>` : '';
   return `<section class="panel altar">
-    ${head('무신상', '武神像')}
-    <p class="story">이름도 전해지지 않는 무신의 석상. 화로에서 실패하고 남은 부산물을 바치면, 석상은 말없이 힘을 내려줍니다. 열 번 바칠 때마다 눈빛이 한 번씩 밝아집니다.</p>
-    <div class="blessings">
-      <div><small>공격력</small><b>+${S.shrine.atk}</b></div><div><small>최대 내력</small><b>+${S.shrine.mp}</b></div>
-      <div><small>회피율</small><b>+${S.shrine.eva}%</b></div><div><small>치명타율</small><b>+${Math.floor(S.shrine.total / 10) * 2}%</b></div>
-      <div><small>누적 봉헌</small><b>${S.shrine.total}회</b></div>
+    ${head('무신상', '武神像', `<span class="pill">나 · 我</span>`)}
+    <p class="story">청풍문 마당의 이끼 낀 석상. 이 안에 갇힌 것이 바로 당신입니다. 제자가 화로에서 태워 먹은 찌꺼기를 바치면, 당신은 그 탁한 기운을 삼켜 쓸 만한 무언가로 돌려줍니다. 무엇이 나올지는 당신도 모릅니다.</p>
+    <div class="gacha">
+      <div class="gacha-have"><span class="offer-icon">${ITEMS.slag.icon}</span><b>${ITEMS.slag.name}</b><span class="num">${fmt(n)}개</span></div>
+      <div class="btns">
+        <button class="btn primary" data-pray="1" ${n < c ? 'disabled' : ''}>공양 1회 <small>찌꺼기 ${c}개</small></button>
+        <button class="btn" data-pray="${GACHA.multi}" ${n < c * 2 ? 'disabled' : ''}>공양 ${GACHA.multi}회 <small>찌꺼기 ${c * GACHA.multi}개${n < c * GACHA.multi && n >= c * 2 ? ` · 모자라면 ${Math.floor(n / c)}회` : ''}</small></button>
+      </div>
+      <p class="muted">화로에서 조합에 실패하면 (주조·연단·조리 모두) 검게 탄 찌꺼기가 남습니다. 누적 공양 ${fmt(S.shrine.pulls || 0)}회.</p>
     </div>
-    <div class="offers">${offers}</div>
+    ${res && res.length ? `<div class="gacha-res"><h4>돌아온 것</h4><ul>${res.map(g => `<li class="${g.cls}">${g.text}</li>`).join('')}</ul></div>` : ''}
+    <details class="gacha-table"><summary>나올 수 있는 것</summary><ul>${GACHA.table.map(e => `<li><span>${e.name}</span><b>${Math.round(e.w / tot * 100)}%</b></li>`).join('')}</ul><small class="muted">비급은 오행 기공 3종·지형 경공 2종·입문 무공 가운데 아직 없는 것. 장비는 열린 구역의 최고 티어.</small></details>
+    ${old}
+  </section>`;
+}
+
+/* 연무장 › 심상수련장: 만나 본 요수와 기력 소모 없이 가상으로 겨룬다 */
+function viewYeonmu() {
+  const bs = S.bestiary || {}, ids = Object.keys(ENEMIES).filter(e => bs[e]);
+  const sim = ui.sim;
+  const rows = ids.map(e => {
+    const E = ENEMIES[e], a = affinity(e), r = sim && sim.many && sim.many.eid === e ? sim.many : null;
+    return `<li class="sim-row ${E.boss ? 'boss' : ''}">
+      <div class="sim-foe"><b>${E.name}</b>${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small></div>
+      <div class="sim-aff">${affinityText(a)}</div>
+      ${r ? `<div class="sim-stat">${r.n}판 모의: <b class="${r.wins / r.n >= 0.7 ? 'good' : r.wins / r.n >= 0.4 ? '' : 'warn'}">${r.wins}승</b> ${r.n - r.wins - r.draws}패${r.draws ? ` ${r.draws}무` : ''} · 평균 ${r.rounds}합${r.wins ? ` · 이겼을 때 남은 활력 ${r.hpLeft}%` : ''}</div>` : ''}
+      <div class="btns"><button class="btn sm primary" data-sim="${e}">겨루기</button><button class="btn sm ghost" data-simx="${e}">10판 모의</button></div>
+    </li>`;
+  }).join('');
+  return `<section class="panel yeonmu">
+    ${head('심상수련장', '心象修練場')}
+    <p class="story">연무장 한가운데 앉아 눈을 감으면, 석상의 목소리가 제자의 마음속에 싸움 하나를 그려 줍니다. 강호에서 한 번이라도 마주친 상대만 불러낼 수 있습니다. 기력은 들지 않고, 얻는 것도 잃는 것도 없습니다. 지금 차림(무공·병기·장비)과 상성이 그대로 반영됩니다.</p>
+    ${ids.length ? `<ul class="sim-list">${rows}</ul>` : '<p class="story muted">아직 강호에서 마주친 상대가 없습니다. 강호행에서 탐험을 다녀오십시오.</p>'}
   </section>`;
 }
 
@@ -291,5 +323,8 @@ function viewCodex() {
       : `<button class="ctile locked" data-recipe="${r.id}" aria-label="미발견"><span>？</span></button>`).join('');
     return `<article class="codex-col"><h3>${label(CRAFTS[c].name, CRAFTS[c].hanja)} <span class="num muted">${known}/${all.length}</span></h3><div class="ctiles">${tiles}</div></article>`;
   }).join('');
-  return `<section class="panel">${head('도감', '圖鑑')}<p class="muted">조합법은 스스로 찾아내야 합니다. 화로에서 성공한 조합만 이곳에 적힙니다. 해 본 조합은 화로의 연구 노트에 남습니다.</p><div class="codex">${cols}</div></section>`;
+  const bs = S.bestiary || {};
+  const beasts = ZONE_ORDER.map(z => { const Z = ZONES[z], list = [...Z.enemies, Z.boss]; return `<article class="codex-col"><h3>${label(Z.name, Z.hanja)} <span class="num muted">${list.filter(e => bs[e]).length}/${list.length}</span></h3><ul class="beasts">${list.map(e => { const E = ENEMIES[e]; return bs[e] ? `<li><b>${E.name}</b>${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small></li>` : '<li class="unknown">？ <small class="muted">만나 본 적 없음</small></li>'; }).join('')}</ul></article>`; }).join('');
+  return `<section class="panel">${head('요수 도감', '妖獸')}<p class="muted">강호에서 마주친 상대만 적힙니다. 오행과 병기는 한 번 겨뤄 보면 드러납니다. 연무장 › 심상수련장에서 다시 불러낼 수 있습니다.</p><div class="codex">${beasts}</div></section>
+  <section class="panel">${head('도감', '圖鑑')}<p class="muted">조합법은 스스로 찾아내야 합니다. 화로에서 성공한 조합만 이곳에 적힙니다. 해 본 조합은 화로의 연구 노트에 남습니다.</p><div class="codex">${cols}</div></section>`;
 }

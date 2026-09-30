@@ -18,12 +18,12 @@ module.exports = async (b) => {
   const t = await p.evaluate(() => {
     const r = {}, id = S.active.simbeop, m = S.manuals[id];
     r.noTrainFields = !('txp' in m) && !('cxp' in m) && !('activeTrainingSkillId' in S) && typeof toggleTraining === 'undefined';
-    r.noYeonmu = !SECT_SUBS.some(([k]) => k === 'yeonmu');
+    r.noYeonmu = SECT_SUBS.some(([k]) => k === 'yeonmu') && typeof viewYeonmu === 'function' && !('training' in S);   // 연무장은 심상수련장만 (방치 수련 없음)
     r.cost = starCost(id); r.block = starUpBlock(id);
     S.exp = r.cost; r.up = starUp(id); r.star = m.star; r.left = S.exp;
     return r;
   });
-  ok('2 연무장·수련치 제거', t.noTrainFields && t.noYeonmu);
+  ok('2 수련치 제거 · 연무장은 심상수련장만', t.noTrainFields && t.noYeonmu);
   ok('2 경험치 부족하면 막힘 → 채우면 성급 +1, 경험치 차감', /경험치 60 필요/.test(t.block) && t.up && t.star === 2 && t.left === 0, JSON.stringify(t));
   // 3 강호행: 지도 없음, 탐험지 선택
   await p.click('[data-tab="field"]');

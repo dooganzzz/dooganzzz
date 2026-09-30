@@ -81,7 +81,7 @@ function useItem(id) {
   const parts = [];
   if (u.hp) { const v = Math.round(st.maxHp * u.hp); S.hp = Math.min(st.maxHp, S.hp + v); parts.push(`활력 +${v}`); }
   if (u.mp) { const v = Math.round(st.maxMp * u.mp); S.mp = Math.min(st.maxMp, S.mp + v); parts.push(`내력 +${v}`); }
-  if (u.stamina) { S.stamina = Math.min(st.maxSta * 2, S.stamina + u.stamina); parts.push(`다음 탐험 기력 +${u.stamina}`); }
+  if (u.stamina) { const v = Math.round(u.stamina * (1 + (talentOf().food || 0))); S.stamina = Math.min(st.maxSta * 2, S.stamina + v); parts.push(`다음 탐험 기력 +${v}`); }
   if (u.perm) { for (const [k, v] of Object.entries(u.perm)) { S.perm[k] += v; parts.push(`${STAT_NAMES[k]} 영구 +${v}`); } }
   if (u.buff) {
     S.buffs = S.buffs.filter(b => b.key !== u.buff.key);

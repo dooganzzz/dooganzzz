@@ -545,3 +545,51 @@ body {
 .chron-gain dt { color: var(--dim); }
 .chron-gain dd { margin: 0; }
 .chron-gone { display: block; font-family: var(--sans); }
+
+/* ───────── 세계관 개편: 프롤로그 · 3대 스탯 · 상성 표식 · 공양 · 심상수련장 · 요수 도감 ───────── */
+.prologue { display: grid; gap: 8px; padding: 12px 14px; border-left: 2px solid var(--gold); background: var(--sunk); border-radius: 0 var(--radius) var(--radius) 0; }
+.prologue .story { font-family: var(--serif); }
+.intro-h { margin-top: 6px; font-size: 1.05rem; color: var(--gold-2); }
+.attrs { display: grid; gap: 6px; }
+.attr-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 2.2em auto; grid-template-areas: "name minus val plus" "eff eff eff eff"; align-items: center; gap: 2px 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
+.attr-name { grid-area: name; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; }
+.attr-row [data-d="-1"] { grid-area: minus; } .attr-row [data-d="1"] { grid-area: plus; }
+.attr-val { grid-area: val; text-align: center; font-size: 1.2rem; font-variant-numeric: tabular-nums; color: var(--gold-2); }
+.attr-eff { grid-area: eff; color: var(--silver); }
+.talents .starter { flex-direction: column; align-items: flex-start; }
+.talents .starter small { font-weight: 500; }
+.cp-attr { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: .82rem; color: var(--silver); }
+.cp-attr b { color: var(--ink); }
+
+.aff-tag { display: inline-flex; align-items: baseline; gap: 2px; margin-left: 5px; padding: 0 5px; border: 1px solid currentColor; border-radius: 3px; font: 700 .72rem/1.5 var(--sans); vertical-align: middle; color: var(--silver); }
+.aff-tag small { font-family: var(--serif); font-size: .9em; opacity: .8; }
+.aff-tag.el-wood { color: #7cc36b; } .aff-tag.el-fire { color: #e2714f; } .aff-tag.el-earth { color: #caa15a; }
+.aff-tag.el-metal { color: #c9cfd8; } .aff-tag.el-water { color: #6ea4ee; }
+.aff-tag.tr { color: var(--jade); } .aff-tag.wp { color: var(--r3); }
+.aff-line { color: var(--silver); font-size: .9rem; }
+.tr-tag { display: inline-block; min-width: 1.4em; margin-right: 6px; font: 700 .72rem/1.5 var(--serif); text-align: center; color: var(--jade); border: 1px solid var(--line-2); border-radius: 3px; }
+.tr-line { font-size: .82rem; }
+.good { color: var(--r1); }
+.blog .aff, .chron-detail .aff { color: var(--silver); font-size: .9em; }
+
+.gacha { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--sunk); }
+.gacha-have { display: flex; align-items: center; gap: 10px; }
+.gacha-have .num { margin-left: auto; font-size: 1.1rem; color: var(--gold-2); }
+.gacha .btn small { display: block; font-size: .72rem; color: var(--dim); }
+.gacha-res { margin-top: 10px; }
+.gacha-res ul, .gacha-table ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+.gacha-res li { padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 4px; background: var(--raise); }
+.gacha-table { margin-top: 10px; }
+.gacha-table summary { cursor: pointer; color: var(--silver); }
+.gacha-table li { display: flex; justify-content: space-between; padding: 2px 8px; border-bottom: 1px dashed var(--line); }
+
+.sim-list, .beasts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.sim-row { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
+.sim-row.boss { border-color: var(--seal); }
+.sim-foe { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.sim-foe small { margin-left: auto; }
+.sim-aff { font-size: .88rem; color: var(--silver); }
+.sim-stat { font-size: .88rem; }
+.beasts li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.beasts li small { margin-left: auto; }
+.beasts li.unknown { color: var(--dim); }

@@ -1,4 +1,4 @@
-/* [시스템] 화로 기예(주조·연단·조리), 연구 노트, 무신상 봉헌 (DOM 조작 금지) */
+/* [시스템] 화로 기예(주조·연단·조리), 연구 노트, 무신상 공양(가챠) (DOM 조작 금지) */
 
 /* ───────── 기예 ───────── */
 function potKey(pot) { return Object.entries(pot).filter(([, v]) => v > 0).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}*${v}`).join('|'); }
@@ -26,7 +26,7 @@ function doCraft(craft, pot) {
   for (const [id, n] of Object.entries(pot)) take(id, n);
   const recipe = RECIPE_BY_KEY[craft + ':' + potKey(pot)];
   const st = calcStats();
-  const chance = Math.min(98, 78 + lvl.lv * 3 + st.craft);
+  const chance = Math.min(98, 78 + lvl.lv * 3 + st.craft + (talentOf().craft === craft ? talentOf().rate || 0 : 0));
   const ok = recipe && Math.random() * 100 < chance;
   lvl.xp += ok ? 10 : 6;
   while (lvl.xp >= lvl.lv * 30) { lvl.xp -= lvl.lv * 30; lvl.lv++; log(`${C.name} 솜씨가 한 단계 늘었습니다.`, 'good'); }
@@ -70,15 +70,35 @@ const craftNoteFor = (craft, pot) => (S.craftNotes || []).find(n => n.key === cr
 function recipeName(r) { return r.out.startsWith('eq:') ? EQUIP_BASES[r.out.split(':')[1]].names[+r.out.split(':')[2] - 1] : ITEMS[r.out].name; }
 function recipeIcon(r) { return r.out.startsWith('eq:') ? (EQUIP_BASES[r.out.split(':')[1]].slot === 'weapon' ? '🗡️' : '🛡️') : ITEMS[r.out].icon; }
 
-function offer(id, all) {
-  if (!has(id)) return;
-  const n = all ? count(id) : 1;
-  take(id, n);
-  const o = OFFER[id];
-  S.shrine[o.key] = Math.round((S.shrine[o.key] + o.val * n) * 10) / 10;
-  const before = Math.floor(S.shrine.total / 10);
-  S.shrine.total += n;
-  log(`무신상에 ${ITEMS[id].name} ${n}개를 봉헌했습니다. ${o.text}${n > 1 ? ` ×${n}` : ''}`, 'gold');
-  if (Math.floor(S.shrine.total / 10) > before) log('무신상의 눈이 희미하게 빛납니다… 치명타율 +2%', 'gold');
+/* 무신상 공양 (가챠): 검게 탄 찌꺼기 GACHA.cost개마다 한 번. times번 (찌꺼기가 모자라면 되는 만큼) */
+function pray(times = 1) {
+  const n = Math.min(times, Math.floor(count('slag') / GACHA.cost));
+  if (n < 1) { notify.toast(`검게 탄 찌꺼기 ${GACHA.cost}개가 있어야 공양할 수 있습니다.`); return null; }
+  take('slag', n * GACHA.cost);
+  const got = [];
+  for (let i = 0; i < n; i++) got.push(gachaRoll());
+  S.shrine.pulls = (S.shrine.pulls || 0) + n;
+  log(`🗿 무신상에 검게 탄 찌꺼기 ${n * GACHA.cost}개를 공양했습니다. 돌아온 것: ${got.map(g => hlItem(g.text)).join(', ')}`, 'gold');
+  notify.view({ gachaResult: got });
   notify.refresh();
+  return got;
+}
+function gachaRoll() {
+  const T = Object.fromEntries(GACHA.table.map(e => [e.k, e.w]));
+  const k = weighted(T);
+  let e = GACHA.table.find(x => x.k === k);
+  if (e.k === 'book') {
+    const pool = GACHA.books.filter(id => !S.manuals[id] && !has('bk_' + id));
+    if (pool.length) { const id = pick(pool); give('bk_' + id, 1, true); return { k: 'book', text: `📘 ${ITEMS['bk_' + id].name}`, cls: 'r3' }; }
+    e = GACHA.table.find(x => x.k === 'pill');               // 비급을 다 모았으면 영단으로
+  }
+  if (e.k === 'gear') {
+    const tier = Math.max(...ZONE_ORDER.filter(zoneUnlocked).map(z => ZONES[z].tier));
+    const it = makeGear(pick(Object.keys(EQUIP_BASES)), tier, rollDropRarity(false), false);
+    if (giveGear(it, true)) return { k: 'gear', text: `🗡️ [${RARITY[it.rarity].name}] ${it.name}`, cls: 'r' + it.rarity };
+    e = GACHA.table.find(x => x.k === 'supply');             // 행낭이 가득 차면 소모품으로
+  }
+  const [id, a, b] = pick(e.pool), n = rint(a, b);
+  give(id, n, true);
+  return { k: e.k, text: `${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`, cls: e.k === 'pill' ? 'r2' : '' };
 }

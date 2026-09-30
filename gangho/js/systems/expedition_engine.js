@@ -6,6 +6,10 @@
 function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags[u.boss]; }
 
 /* 가중치 표에서 하나 고르기: { key: weight } */
+/* 지형 상성: 장착 경공의 지형과 같으면 기력 소모 -20%, 다르면 +20%, 경공이 없으면 보정 없음 */
+function myTerrain() { const id = S.active.gyeonggong; return (id && MANUALS[id] && MANUALS[id].terrain) || null; }
+function terrainMult(tr) { const t = myTerrain(); if (!t || !tr) return 1; return t === tr ? AFFINITY.terrainMatch : AFFINITY.terrainMiss; }
+
 function weighted(table) {
   let r = Math.random() * Object.values(table).reduce((a, b) => a + b, 0);
   for (const [k, w] of Object.entries(table)) { r -= w; if (r < 0) return k; }
@@ -62,10 +66,10 @@ function openVault(Z) {
   const t = Z.tier;
   if (v.name === '은자 궤') giveSilver(rint(15, 35) * t);
   if (v.name === '약재 궤') {                         // 연단 재료 다량
-    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) give(id, rint(2, 4));
+    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) give(id, rint(2, 4) + (talentOf().vault || 0));
   }
   if (v.name === '철물 궤') {                         // 주조 재료 다량
-    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4));
+    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4) + (talentOf().vault || 0));
   }
   if (v.name === '식재 궤') {                         // 조리 재료
     const pool = [...new Set([...Z.herb.map(r => r[0]), 'rice', 'salt'])].filter(id => ITEMS[id].craftType === 'cooking');
@@ -131,11 +135,15 @@ function runExpedition(at = now()) {
   const before = { silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length };
   const used = new Set();
   let bossSeen = false, guard = 0;
-  const step = (k, fn) => { RT.journal = []; const r = fn() || {}; rec.steps.push({ k, t: r.t, cls: r.cls || '', b: r.b, d: RT.journal }); return r; };
+  let tr = null;                                            // 이번 걸음의 지형
+  const step = (k, fn) => { RT.journal = []; const r = fn() || {}; rec.steps.push({ k, t: r.t, cls: r.cls || '', b: r.b, d: RT.journal, tr }); return r; };
   const COST = { beast: STAMINA_COST.battle, vault: STAMINA_COST.chest, event: STAMINA_COST.battle, trap: 0, gimmick: STAMINA_COST.gimmick };
+  rec.terrain = { match: 0, miss: 0, extra: 0 };
+  const spend = base => { const m = terrainMult(tr), c = base * m; S.stamina -= c; if (m < 1) rec.terrain.match++; else if (m > 1) rec.terrain.miss++; rec.terrain.extra += c - base; };
   try {
     while (S.stamina >= W.minStamina && guard++ < 300) {
       const depth = 1 - S.stamina / budget;
+      tr = Z.terrain ? weighted(Z.terrain) : null;
       if (S.hp < calcStats().maxHp * W.retreatAt && !has('potionHp')) {       // 스스로 물러나기: 벌칙 없이 번 것을 들고 귀환
         step('retreat', () => { log(EXP_TEXT.retreat, 'muted'); return { t: '🩸 상처가 깊어 스스로 발길을 돌렸습니다', cls: 'muted' }; });
         rec.end = 'retreat'; break;
@@ -143,14 +151,14 @@ function runExpedition(at = now()) {
       if (Z.boss && !bossSeen && depth >= W.bossFrom && S.stamina >= STAMINA_COST.boss && Math.random() < W.bossChance) {
         bossSeen = true;
         if (sense(Z.boss)[2] === 'strong') { step('avoid', () => { log(EXP_TEXT.avoid, 'muted'); return { t: `🌫️ ${ENEMIES[Z.boss].name}의 기척 — 너무 무거워 물러났습니다`, cls: 'muted' }; }); continue; }
-        S.stamina -= STAMINA_COST.boss;
+        spend(STAMINA_COST.boss);
         if (step('boss', () => stepBattle(rec, Z.boss)).lost) { rec.end = 'defeat'; break; }
         continue;
       }
       let k = weighted(W.weights);
       if (k === 'event' && used.size) k = 'vault';            // 기연은 탐험 한 번에 한 번
-      if (S.stamina < COST[k]) break;
-      S.stamina -= COST[k];
+      if (S.stamina < COST[k] * terrainMult(tr)) break;
+      spend(COST[k]);
       const r = step(k, () => k === 'beast' ? stepBattle(rec, pickBeast(Z, depth))
         : k === 'vault' ? stepVault(Z) : k === 'event' ? stepEvent(rec, zid, used) : k === 'trap' ? stepTrap() : stepGimmick(Z));
       if (r.lost) { rec.end = 'defeat'; break; }
@@ -168,6 +176,7 @@ function runExpedition(at = now()) {
     S.hp = Math.max(1, Math.round(calcStats().maxHp * 0.1));
   }
   rec.gain = g;
+  rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
   rec.wins = rec.battles.filter(b => b.win).length; rec.losses = rec.battles.filter(b => !b.win && !b.fled).length;
   S.stamina = 0;                                            // 남은 기력은 다음 탐험 전까지 다시 찬다
   S.buffs = [];                                             // 음식·영단 효과는 이번 탐험으로 끝

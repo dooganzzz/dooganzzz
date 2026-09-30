@@ -10,21 +10,27 @@ let S = null;
 const RT = { battle: null, journal: null };
 const LOG_MAX = 400;
 
-function newState(name, mugongId) {
+const DEFAULT_ATTR = () => Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
+
+/* opts.attr: 3대 스탯 배분 {str, con, int} · opts.talent: 보조 기예 (TALENTS) */
+function newState(name, mugongId, opts = {}) {
   const st = {
     v: 8, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, exp: 0,
-    expedition: { zone: null, nextAt: null }, expeditions: [], zoneLog: {}, craftNotes: [],
+    attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), talent: TALENTS[opts.talent] ? opts.talent : null,
+    expedition: { zone: null, nextAt: null }, expeditions: [], zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
     inv: { potionHp: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
-    shrine: { atk: 0, mp: 0, eva: 0, total: 0 },
+    shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
     perm: { maxHp: 0, maxMp: 0 },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 }, cook: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
     buffs: [], missions: [], arin: {}, supplyDay: '', restCd: 0, uid: 1,
     kills: 0, log: [],
   };
+  const T = st.talent && TALENTS[st.talent];
+  if (T && T.craft) st.crafts[T.craft].lv = T.lv;
   st.equip.badge = shopGear('badge1', st);
   return st;
 }
@@ -51,13 +57,15 @@ function log(text, cls = '', t = now(), ref) {
   Bus.emit('log', entry);
 }
 
-/* 새 게임: 시작 화면에서 이름과 입문 비급을 고른 뒤 부른다 */
-function startNewGame(name, mugongId) {
-  S = newState(name, mugongId);
+/* 새 게임: 프롤로그 뒤 제자 설정(이름·3대 스탯·입문 무공·보조 기예)을 마치면 부른다 */
+function startNewGame(name, mugongId, opts = {}) {
+  S = newState(name, mugongId, opts);
   const wt = MANUALS[mugongId].weapon;
   S.equip.weapon = makeGear(wt, 1, 0, false);
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
   ensureMissions();
+  log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
+  if (S.talent) log(`보조 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·포철삭·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
   log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 강호에 나가 부딪혀라."', 'npc');
   log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
@@ -85,6 +93,12 @@ function migrate(st) {
     st.v = 8;
     st.migratedExp = exp;
   }
+  // 세계관 개편: 3대 스탯(기본 배분)·보조 기예 없음·요수 도감(구역 기록에서)·실패 부산물 → 검게 탄 찌꺼기
+  if (!st.attr) st.attr = DEFAULT_ATTR();
+  if (!('talent' in st)) st.talent = null;
+  if (!st.bestiary) { st.bestiary = {}; for (const z of Object.values(st.zoneLog || {})) for (const [e, n] of Object.entries(z.seen || {})) { const b = st.bestiary[e] = st.bestiary[e] || { met: 0, kills: 0 }; b.met += n; } }
+  if (st.inv) for (const id of ['twistedIron', 'burntAsh', 'dregs']) if (st.inv[id]) { st.inv.slag = (st.inv.slag || 0) + st.inv[id]; delete st.inv[id]; }
+  if (st.shrine && st.shrine.pulls === undefined) st.shrine.pulls = 0;
   // 조합 단서는 없어졌다 (연구 노트로 대체). 구역 경험 기록·정각 일정
   delete st.knownMats;
   st.zoneLog = st.zoneLog || {}; st.craftNotes = st.craftNotes || [];

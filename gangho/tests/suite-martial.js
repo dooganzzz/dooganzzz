@@ -30,7 +30,7 @@ module.exports = async (b) => {
   await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
   const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mcard b')].map(e => e.textContent).join(',') }));
   ok('3 상단 4대 슬롯 (빈 상태)', m1.slots === '무공,심법,경공,기공' && m1.empty === 4, m1.slots);
-  ok('3 하단 익힌 무공 카드', m1.cards === '《삼재도법》,《토납법》,《포철삭》,《철포삼》', m1.cards);
+  ok('3 하단 익힌 무공 카드', m1.cards === '《삼재도법》,《토납법》,《포철삭》흙土,《철포삼》金', m1.cards);
   await p.click('.mcard >> text=《삼재도법》');
   const md = await p.evaluate(() => { const sh = document.querySelector('.sheet'); return { title: sh.querySelector('h2').textContent, prog: sh.querySelector('p.num').textContent, desc: sh.querySelector('p.story').textContent, bonus: [...sh.querySelectorAll('.kv span')].map(e => e.textContent).slice(0, 2).join(','), btn: sh.querySelector('[data-equipm]') && sh.querySelector('[data-equipm]').textContent }; });
   ok('4 명칭·등급', md.title.includes('《삼재도법》') && md.title.includes('[삼류 무공]'), md.title);

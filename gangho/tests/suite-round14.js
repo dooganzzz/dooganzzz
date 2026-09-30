@@ -23,7 +23,7 @@ module.exports = async (b) => {
 
     // 2. 청풍문 › 전방
     const subs = await p.$$eval('.subtabs .subtab', els => els.map(e => e.dataset.sub).join(','));
-    ok('2 서브탭 순서: 정청 | 화로 | 뒷마당 | 무신상 | 전방', subs === 'hall,forge,yard,shrine,shop', subs);
+    ok('2 서브탭 순서: 정청 | 화로 | 뒷마당 | 연무장 | 무신상 | 전방', subs === 'hall,forge,yard,yeonmu,shrine,shop', subs);
     await p.click('.subtabs [data-sub="shop"]');
     const shop = await p.evaluate(() => ({ head: document.querySelector('.shop-panel .panel-head .ko').textContent, npc: document.querySelector('.shop-panel .npc-head h3').textContent, mode: document.querySelector('.shop-mode .subtab.on').dataset.shopmode, items: document.querySelectorAll('[data-buy]').length, gear: document.querySelectorAll('[data-buygear]').length, purse: document.querySelector('.shop-panel .purse').textContent }));
     ok('2 청풍전방 왕 가 인터페이스', shop.head === '청풍전방' && /왕 가/.test(shop.npc) && /청풍전방 주인/.test(shop.npc), JSON.stringify(shop));

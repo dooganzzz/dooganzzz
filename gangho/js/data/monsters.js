@@ -1,22 +1,22 @@
 /* [데이터] 요수 · 적 능력치 · 고유 드랍 · 기척 지문 — 순수 정적 데이터 (로직 없음) */
 
-/* 적 */
+/* 적. elem: 고유 오행 · wtype: 쓰는 병기(사람만. 짐승은 병기 상성 없음) */
 const ENEMIES = {
-  rabbit:   { name: '들토끼',     hp: 30,   atk: 5,   def: 0,  spd: 12, eva: 8,  xp: 6,   silver: [1, 3],   drops: [['rabbitMeat', 0.7], ['rabbitHide', 0.6]] },
-  dog:      { name: '들개',       hp: 60,   atk: 9,   def: 2,  spd: 11, eva: 5,  xp: 11,  silver: [2, 5],   drops: [['dogFang', 0.65], ['roughHide', 0.5]] },
-  boar:     { name: '멧돼지',     hp: 140,  atk: 16,  def: 6,  spd: 8,  eva: 2,  xp: 20,  silver: [4, 8],   drops: [['boarMeat', 0.7], ['boarTusk', 0.4], ['boarHide', 0.55]], gear: [1, 0.06] },
-  boarKing: { name: '외눈 멧돼지왕', hp: 600, atk: 32, def: 10, spd: 9,  eva: 3,  xp: 70,  silver: [30, 50], drops: [['kingTusk', 1], ['blackiron', 1], ['emberStone', 0.8]], gear: [1, 1], boss: 'boss1' },
+  rabbit:   { name: '들토끼',     elem: 'wood', hp: 30,   atk: 5,   def: 0,  spd: 12, eva: 8,  xp: 6,   silver: [1, 3],   drops: [['rabbitMeat', 0.7], ['rabbitHide', 0.6]] },
+  dog:      { name: '들개',       elem: 'metal', hp: 60,   atk: 9,   def: 2,  spd: 11, eva: 5,  xp: 11,  silver: [2, 5],   drops: [['dogFang', 0.65], ['roughHide', 0.5]] },
+  boar:     { name: '멧돼지',     elem: 'earth', hp: 140,  atk: 16,  def: 6,  spd: 8,  eva: 2,  xp: 20,  silver: [4, 8],   drops: [['boarMeat', 0.7], ['boarTusk', 0.4], ['boarHide', 0.55]], gear: [1, 0.06] },
+  boarKing: { name: '외눈 멧돼지왕', elem: 'earth', hp: 600, atk: 32, def: 10, spd: 9,  eva: 3,  xp: 70,  silver: [30, 50], drops: [['kingTusk', 1], ['blackiron', 1], ['emberStone', 0.8]], gear: [1, 1], boss: 'boss1' },
 
-  bandit:   { name: '화적 졸개',   hp: 380,  atk: 60,  def: 18, spd: 11, eva: 6,  xp: 38,  silver: [10, 20], drops: [['bandanaSilk', 0.4], ['rice', 0.3], ['salt', 0.3]], gear: [2, 0.05] },
-  axeman:   { name: '화적 도부수', hp: 560,  atk: 72,  def: 26, spd: 9,  eva: 3,  xp: 52,  silver: [15, 28], drops: [['bandanaSilk', 0.5], ['boarTusk', 0.3], ['emberStone', 0.2]], gear: [2, 0.07] },
-  archer:   { name: '화적 궁수',   hp: 340,  atk: 80,  def: 14, spd: 14, eva: 15, xp: 48,  silver: [14, 26], drops: [['bandanaSilk', 0.4], ['dogFang', 0.4], ['wood', 0.5]], gear: [2, 0.06] },
-  jeokyeom: { name: '채주 적염도', hp: 1900, atk: 88,  def: 34, spd: 12, eva: 8,  xp: 220, silver: [150, 220], drops: [['emberStone', 1], ['firegrass', 1], ['lingzhi', 1], ['blackiron', 1]], gear: [2, 1], boss: 'boss2' },
+  bandit:   { name: '화적 졸개',   elem: 'fire', wtype: 'blade', hp: 380,  atk: 60,  def: 18, spd: 11, eva: 6,  xp: 38,  silver: [10, 20], drops: [['bandanaSilk', 0.4], ['rice', 0.3], ['salt', 0.3]], gear: [2, 0.05] },
+  axeman:   { name: '화적 도부수', elem: 'metal', wtype: 'blade', hp: 560,  atk: 72,  def: 26, spd: 9,  eva: 3,  xp: 52,  silver: [15, 28], drops: [['bandanaSilk', 0.5], ['boarTusk', 0.3], ['emberStone', 0.2]], gear: [2, 0.07] },
+  archer:   { name: '화적 궁수',   elem: 'wood', wtype: 'hidden', hp: 340,  atk: 80,  def: 14, spd: 14, eva: 15, xp: 48,  silver: [14, 26], drops: [['bandanaSilk', 0.4], ['dogFang', 0.4], ['wood', 0.5]], gear: [2, 0.06] },
+  jeokyeom: { name: '채주 적염도', elem: 'fire', wtype: 'blade', hp: 1900, atk: 88,  def: 34, spd: 12, eva: 8,  xp: 220, silver: [150, 220], drops: [['emberStone', 1], ['firegrass', 1], ['lingzhi', 1], ['blackiron', 1]], gear: [2, 1], boss: 'boss2' },
 
-  pirate:   { name: '수적',       hp: 1000, atk: 125, def: 50, spd: 12, eva: 6,  xp: 80,  silver: [30, 50], drops: [['fish', 0.5], ['scale', 0.3], ['salt', 0.3]], gear: [3, 0.05] },
-  harpoon:  { name: '수적 작살수', hp: 850,  atk: 145, def: 40, spd: 15, eva: 12, xp: 88,  silver: [32, 55], drops: [['fish', 0.5], ['scale', 0.35], ['wood', 0.4]], gear: [3, 0.06] },
-  hyangju:  { name: '적룡방 향주', hp: 1500, atk: 150, def: 62, spd: 13, eva: 8,  xp: 120, silver: [50, 80], drops: [['scale', 0.6], ['bloodginseng', 0.25], ['coldiron', 0.4]], gear: [3, 0.1] },
-  ronin:    { name: '떠돌이 낭인', hp: 240, atk: 23, def: 9,  spd: 12, eva: 10, xp: 0, silver: [10, 20], drops: [['potionHp', 0.5]] },
-  galcheon: { name: '방주 갈천',   hp: 5200, atk: 165, def: 80, spd: 14, eva: 10, xp: 500, silver: [500, 700], drops: [['scale', 1], ['bloodginseng', 1], ['lotus', 1], ['coldiron', 1]], gear: [3, 1], boss: 'boss3' },
+  pirate:   { name: '수적',       elem: 'water', wtype: 'blade', hp: 1000, atk: 125, def: 50, spd: 12, eva: 6,  xp: 80,  silver: [30, 50], drops: [['fish', 0.5], ['scale', 0.3], ['salt', 0.3]], gear: [3, 0.05] },
+  harpoon:  { name: '수적 작살수', elem: 'metal', wtype: 'spear', hp: 850,  atk: 145, def: 40, spd: 15, eva: 12, xp: 88,  silver: [32, 55], drops: [['fish', 0.5], ['scale', 0.35], ['wood', 0.4]], gear: [3, 0.06] },
+  hyangju:  { name: '적룡방 향주', elem: 'water', wtype: 'hidden', hp: 1500, atk: 150, def: 62, spd: 13, eva: 8,  xp: 120, silver: [50, 80], drops: [['scale', 0.6], ['bloodginseng', 0.25], ['coldiron', 0.4]], gear: [3, 0.1] },
+  ronin:    { name: '떠돌이 낭인', elem: 'metal', wtype: 'sword', hp: 240, atk: 23, def: 9,  spd: 12, eva: 10, xp: 0, silver: [10, 20], drops: [['potionHp', 0.5]] },
+  galcheon: { name: '방주 갈천',   elem: 'water', wtype: 'spear', hp: 5200, atk: 165, def: 80, spd: 14, eva: 10, xp: 500, silver: [500, 700], drops: [['scale', 1], ['bloodginseng', 1], ['lotus', 1], ['coldiron', 1]], gear: [3, 1], boss: 'boss3' },
 };
 
 const HIT_TEXT = [

@@ -18,7 +18,7 @@ const ITEMS = {
   dogFang:      { name: '들개 이빨',  icon: '🦷', kind: '재료', craftType: 'forge', price: 3, desc: '날카로운 송곳니.' },
   boarMeat:     { name: '멧돼지고기', icon: '🥩', kind: '재료', craftType: 'cooking', price: 4, desc: '기름진 멧돼지 고기.' },
   roughHide:    { name: '거친 가죽', icon: '🟫', kind: '재료', craftType: 'forge', price: 4, desc: '들개에게서 벗긴 뻣뻣한 가죽.' },
-  kingTusk:     { name: '왕의 송곳니', icon: '🦷', kind: '증표', price: 0, desc: '외눈 멧돼지왕의 거대한 송곳니. 무신상에 바치면 힘이 된다.' },
+  kingTusk:     { name: '왕의 송곳니', icon: '🦷', kind: '증표', price: 0, desc: '외눈 멧돼지왕의 거대한 송곳니. 청풍산 두목을 쓰러뜨린 증표.' },
   boarHide:     { name: '두꺼운 가죽', icon: '🟤', kind: '재료', craftType: 'forge', price: 5, desc: '두껍고 질긴 가죽.' },
   boarTusk:     { name: '멧돼지 송곳니', icon: '🦴', kind: '재료', craftType: 'forge', price: 6, desc: '휘어진 송곳니. 도(刀)의 코등이로 쓰인다.' },
   bandanaSilk:  { name: '화적 비단',  icon: '🧣', kind: '재료', craftType: 'forge', price: 12, desc: '화적들이 약탈한 붉은 비단.' },
@@ -30,10 +30,8 @@ const ITEMS = {
   chili:        { name: '산초',     icon: '🌶️', kind: '재료', craftType: 'cooking', price: 6, desc: '염화채 바위틈의 매운 열매.' },
   rice:         { name: '쌀',         icon: '🍚', kind: '재료', craftType: 'cooking', price: 3, desc: '아린이 몰래 챙겨둔 쌀.' },
   salt:         { name: '소금',       icon: '🧂', kind: '재료', craftType: 'cooking', price: 3, desc: '간을 맞추는 데 필수.' },
-  // 실패 부산물
-  twistedIron:  { name: '뒤틀린 쇳덩이', icon: '⚙️', kind: '부산물', price: 0, desc: '주조 실패의 흔적. 무신상에 봉헌할 수 있다.' },
-  burntAsh:     { name: '탄 약초재',     icon: '🌫️', kind: '부산물', price: 0, desc: '연단 실패의 흔적. 무신상에 봉헌할 수 있다.' },
-  dregs:        { name: '찌꺼기',        icon: '🫗', kind: '부산물', price: 0, desc: '조리 실패의 흔적. 무신상에 봉헌할 수 있다.' },
+  // 조합 실패물 (주조·연단·조리 공통)
+  slag:         { name: '검게 탄 찌꺼기', icon: '⚫', kind: '부산물', price: 0, desc: '화로 조합에 실패하면 남는 찌꺼기. 청풍문 › 무신상에 공양하면 무언가로 돌아온다.' },
   // 연단
   pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '5성 비급을 6성 소성(小成)으로 올릴 때 경험치와 함께 복용한다. (상태 › 무공)' },
   pillMid:   { name: '청심정기단', icon: '🔵', kind: '영단', price: 150, use: { buff: { key: 'train', val: 0.5, dur: 1800, name: '정기 순환' } }, desc: '복용하면 다음 탐험 동안 경험치 획득 +50%.' },
@@ -63,6 +61,11 @@ const ITEMS = {
   bk_tonap: { name: '《토납법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'tonap' }, desc: '읽고 익히면 토납법(吐納法)을(를) 운용할 수 있다.' },
   bk_pocheolsak: { name: '《포철삭》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'pocheolsak' }, desc: '읽고 익히면 포철삭(抛鐵索)을(를) 운용할 수 있다.' },
   bk_cheolpo: { name: '《철포삼》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cheolpo' }, desc: '읽고 익히면 철포삼(鐵布衫)을(를) 운용할 수 있다.' },
+  bk_yeolhwa: { name: '《열화기공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'yeolhwa' }, desc: '읽고 익히면 열화기공(烈火氣功)을(를) 운용할 수 있다.' },
+  bk_suryu: { name: '《수류기공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'suryu' }, desc: '읽고 익히면 수류기공(水流氣功)을(를) 운용할 수 있다.' },
+  bk_hwangto: { name: '《황토기공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hwangto' }, desc: '읽고 익히면 황토기공(黃土氣功)을(를) 운용할 수 있다.' },
+  bk_chosangbi: { name: '《초상비》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'chosangbi' }, desc: '읽고 익히면 초상비(草上飛)을(를) 운용할 수 있다.' },
+  bk_deungpyeong: { name: '《등평도수》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'deungpyeong' }, desc: '읽고 익히면 등평도수(登萍渡水)을(를) 운용할 수 있다.' },
   bk_cpGwon: { name: '《청풍권》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGwon' }, desc: '읽고 익히면 청풍권(淸風拳)을(를) 운용할 수 있다.' },
   bk_cpGeom: { name: '《청풍검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGeom' }, desc: '읽고 익히면 청풍검(淸風劍)을(를) 운용할 수 있다.' },
   bk_cpDo: { name: '《청풍도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpDo' }, desc: '읽고 익히면 청풍도(淸風刀)을(를) 운용할 수 있다.' },
@@ -145,9 +148,9 @@ const UNIQUES = [
 
 /* 기예 */
 const CRAFTS = {
-  forge:   { name: '주조', hanja: '鑄造', fail: 'twistedIron', desc: '병기와 장비를 벼린다.' },
-  alchemy: { name: '연단', hanja: '煉丹', fail: 'burntAsh',    desc: '돌파단과 영약을 달인다.' },
-  cook:    { name: '조리', hanja: '調理', fail: 'dregs',       desc: '기력을 채우는 음식을 만든다.' },
+  forge:   { name: '주조', hanja: '鑄造', fail: 'slag', desc: '병기와 장비를 벼린다.' },
+  alchemy: { name: '연단', hanja: '煉丹', fail: 'slag', desc: '돌파단과 영약을 달인다.' },
+  cook:    { name: '조리', hanja: '調理', fail: 'slag', desc: '기력을 채우는 음식을 만든다.' },
 };
 
 /* 레시피 (블라인드). in: {itemId: count} */
@@ -208,12 +211,27 @@ const RECIPES = [
 /* 기예 ↔ 재료 분류 */
 const CRAFT_TYPE = { forge: 'forge', alchemy: 'alchemy', cook: 'cooking' };
 
-/* 무신상 봉헌 */
-const OFFER = {
-  twistedIron: { key: 'atk', val: 1, text: '공격력 +1' },
-  burntAsh:    { key: 'mp',  val: 4, text: '최대 내력 +4' },
-  dregs:       { key: 'eva', val: 0.3, text: '회피율 +0.3%' },
-  kingTusk:    { key: 'atk', val: 3, text: '공격력 +3' },
+/* 보조 기예 (캐릭터 생성 때 하나): craft의 솜씨가 lv부터 시작하고 고유 효과가 붙는다 */
+const TALENTS = {
+  gather: { name: '채집', hanja: '採集', desc: '요수의 재료를 떨굴 확률 +15%p · 금고 재료 +1', drop: 0.15, vault: 1 },
+  smelt:  { name: '제련', hanja: '製鍊', desc: '주조 솜씨 3단계로 시작 · 주조 성공률 +5%', craft: 'forge', lv: 3, rate: 5 },
+  medic:  { name: '의술', hanja: '醫術', desc: '연단 솜씨 3단계로 시작 · 금창약 회복량 +30%', craft: 'alchemy', lv: 3, potion: 0.3 },
+  chef:   { name: '조리', hanja: '調理', desc: '조리 솜씨 3단계로 시작 · 음식 기력 +25%', craft: 'cook', lv: 3, food: 0.25 },
+};
+
+/* 무신상 공양 (가챠): 검게 탄 찌꺼기 cost개를 바칠 때마다 표에서 하나. 기대값은 일부러 낮다 (조합 실패를 노리지 않도록).
+   pool: [아이템, 최소, 최대] · gear: 열린 구역의 최고 티어 장비 · book: 아직 없는 공양 비급 */
+const GACHA = {
+  cost: 3, multi: 10,
+  table: [
+    { k: 'herb',   w: 36, name: '약재',   pool: [['herb', 2, 3], ['lingzhi', 1, 2], ['firegrass', 1, 2], ['wildGreens', 2, 3]] },
+    { k: 'supply', w: 32, name: '소모품', pool: [['potionHp', 1, 2], ['potionMp', 1, 1], ['jumeokbap', 1, 2], ['arinSnack', 1, 1]] },
+    { k: 'ore',    w: 16, name: '광석',   pool: [['iron', 2, 3], ['blackiron', 1, 1], ['jadeStone', 1, 1]] },
+    { k: 'gear',   w: 9,  name: '장비' },
+    { k: 'pill',   w: 4,  name: '영단',   pool: [['pillLow', 1, 1], ['clearPill', 1, 1]] },
+    { k: 'book',   w: 3,  name: '비급' },
+  ],
+  books: ['yeolhwa', 'suryu', 'hwangto', 'chosangbi', 'deungpyeong', 'samjaeGwon', 'samjaeGeom', 'samjaeDo', 'samjaeChang', 'samjaePyo'],
 };
 
 /* 화로 한 번에 넣을 수 있는 재료 수 · 연구 노트에 남기는 시도 수 */

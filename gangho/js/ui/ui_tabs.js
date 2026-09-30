@@ -1,7 +1,7 @@
 /* [화면] 탭 전환, 상단 상태줄, 정청 아코디언 접기/펼치기, 전체 다시 그리기 */
 
 /* 화면 상태 (저장하지 않음): 탭·접힘·화로 투입·창·행낭 필터·선택 슬롯 */
-let ui = { fold: { hq: false, missions: false, library: true }, tab: 'sect', sectSub: 'hall', pot: {}, craft: 'alchemy', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all' };
+let ui = { fold: { hq: false, missions: false, library: true }, tab: 'sect', sectSub: 'hall', pot: {}, craft: 'alchemy', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null };
 
 /* 시스템 신호 → 화면 */
 Bus.on('refresh', () => render());
@@ -23,7 +23,7 @@ const TABS = [
   ['codex', '도감', '圖鑑'],
 ];
 /* 2차 탭 (청풍문 시설 · 상태) */
-const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yard', '뒷마당', '後院'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
+const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yard', '뒷마당', '後院'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
 const STATUS_SUBS = [['gear', '무장', '武裝'], ['martial', '무공', '武功']];
 const SUBS = { sect: SECT_SUBS, status: STATUS_SUBS };
 const SUB_KEY = { sect: 'sectSub', status: 'statusSub' };
@@ -40,7 +40,7 @@ function goTab(tab, sub) {
   ui.tab = tab;
   Bus.emit('trace', 'tab', `${tab}${sub ? ' › ' + sub : ''}`);
   if (SUB_KEY[tab]) ui[SUB_KEY[tab]] = sub || (tab === 'sect' ? 'hall' : ui[SUB_KEY[tab]]);
-  ui.craftResult = null;
+  ui.craftResult = null; ui.gachaResult = null;
 }
 function subtabBar(tab) {
   const subs = SUBS[tab], cur = screen(), name = TABS.find(t => t[0] === tab)[1];
@@ -95,7 +95,7 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, forge: viewForge, yard: viewYard, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]();
+  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewForge, yard: viewYard, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]();
   renderLog();
   renderModal();
   typewriteAll();

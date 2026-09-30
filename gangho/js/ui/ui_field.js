@@ -14,6 +14,13 @@ function recSummary(r) {
   return { head: `${r.wins}승 ${r.losses}패 · 은자 ${g.silver >= 0 ? '+' : ''}${fmt(g.silver)} · 경험치 +${fmt(g.exp)}${g.contrib ? ` · 공헌 +${g.contrib}` : ''}`, items, gear: g.gear || [], used: Object.entries(g.used || {}).map(([id, n]) => `${ITEMS[id].name} ×${n}`) };
 }
 
+/* 지형 상성 결산: 경공 지형과 맞은 걸음 · 어긋난 걸음 · 그만큼 더(덜) 쓴 기력 */
+function terrainLine(r) {
+  const T = r.terrain; if (!T || !(T.match + T.miss)) return '';
+  return `지형 일치 ${T.match}걸음 · 불일치 ${T.miss}걸음 (기력 ${T.extra > 0 ? `+${T.extra} 더 씀` : `${-T.extra} 아낌`})`;
+}
+const trTag = tr => tr ? `<span class="tr-tag" title="지형 ${TERRAINS[tr].name}">${TERRAINS[tr].hanja}</span>` : '';
+
 function vbar(cls, cur, prev, max, name, hideNum) {
   const p = v => max ? clamp(v / max * 100, 0, 100) : 0;
   return `<div class="bar thick ${cls}"><span class="bar-ghost" data-to="${p(cur)}" style="width:${p(Math.max(cur, prev))}%"></span><span class="bar-fill" style="width:${p(cur)}%"></span><span class="bar-text"><b>${name}</b>${hideNum ? '' : ` ${fmt(cur)} / ${fmt(max)}`}</span></div>`;
@@ -57,6 +64,7 @@ function prepPanel() {
     ${row(!!S.equip.weapon && wOk, '병기', S.equip.weapon ? `${gearName(S.equip.weapon)}${wOk ? '' : ` <span class="warn">— 《${M.name}》은 ${WEAPON_TYPES[M.weapon]} 무공이라 초식이 나가지 않음</span>`}` : '맨손', go('status', 'gear', '무장'))}
     ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 전투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
     ${row(has('potionHp', 3), '금창약', `${count('potionHp')}개 (활력 35% 아래에서 자동 복용)`, go('sect', 'shop', '전방'))}
+    ${(() => { const e = myElem(), t = myTerrain(); return row(!!(e && t), '상성', `기공 ${e ? elemTag(e) : '<span class="warn">오행 없음</span>'} · 경공 ${t ? terrainTag(t) : '<span class="warn">지형 없음</span>'} · 병기 ${weaponTag(weaponType())}`); })()}
     ${row(true, '준비한 음식', S.buffs.length || extra ? `${S.buffs.map(b => b.name).join(', ')}${extra ? `${S.buffs.length ? ' · ' : ''}기력 +${extra}` : ''}` : '없음 (뒷마당에서 먹을 수 있음)', go('sect', 'yard', '뒷마당'))}
   </ul>`;
 }
@@ -68,7 +76,8 @@ function viewField() {
     return `<details class="exp-rec ${r.end === 'defeat' ? 'defeat' : ''}">
       <summary><time>${recTime(r)}</time><b>${Z.name}</b><span>${sm.head}</span>${r.end === 'defeat' ? '<em class="warn">쓰러져 귀환</em>' : ''}</summary>
       ${sm.items.length || sm.gear.length ? `<p class="exp-loot">${[...sm.items, ...sm.gear].map(t => `<span>${t}</span>`).join('')}</p>` : ''}
-      <ol class="exp-steps">${r.steps.map(s => `<li class="${s.cls}">${s.t}${s.b !== undefined ? ` <button class="watch" data-watch="${r.id}:${s.b}">관찰하기</button>` : ''}</li>`).join('')}</ol>
+      ${terrainLine(r) ? `<p class="muted tr-line">⛰ ${terrainLine(r)}</p>` : ''}
+      <ol class="exp-steps">${r.steps.map(s => `<li class="${s.cls}">${trTag(s.tr)}${s.t}${s.b !== undefined ? ` <button class="watch" data-watch="${r.id}:${s.b}">관찰하기</button>` : ''}</li>`).join('')}</ol>
     </details>`;
   }).join('');
   return `<section class="panel">
@@ -99,6 +108,7 @@ function settleModal(ids) {
     <ol class="settle-list">${recs.map(r => { const sm = recSummary(r); return `<li class="${r.end === 'defeat' ? 'defeat' : ''}">
       <div><time>${recTime(r)}</time> <b>${ZONES[r.zone].name}</b> <span>${sm.head}</span>${r.end === 'defeat' ? ' <em class="warn">쓰러져 귀환</em>' : ''}</div>
       ${sm.items.length || sm.gear.length ? `<small>${[...sm.items, ...sm.gear].join(' · ')}</small>` : ''}
+      ${terrainLine(r) ? `<small class="muted tr-line">⛰ ${terrainLine(r)}</small>` : ''}
       <div class="settle-watch">${r.battles.map((b, i) => `<button class="watch ${b.win ? '' : 'lost'} ${b.boss ? 'boss' : ''}" data-watch="${r.id}:${i}" title="${b.name} — ${b.win ? '승리' : '패배'}">${b.boss ? '👹' : ''}${sealChar(b.name)}</button>`).join('')}</div>
     </li>`; }).join('')}</ol>
     <p class="muted">전투마다 견문록의 [관찰하기]로 다시 볼 수 있습니다. 경험치로 상태 › 무공에서 성급을 올리십시오.</p>
@@ -110,6 +120,7 @@ function settleModal(ids) {
 const RP = { key: null, i: -1, timer: null, speed: 1, playing: true };
 const RP_MS = 900;
 function replayData(key) {
+  if (key === 'sim') return ui.sim && ui.sim.b ? { rec: null, b: ui.sim.b } : null;   // 심상수련장
   const [rid, bi] = key.split(':').map(Number), rec = findExpedition(rid);
   return rec && rec.battles[bi] ? { rec, b: rec.battles[bi] } : null;
 }
@@ -124,11 +135,11 @@ function replayModal(key) {
   const d = replayData(key); if (!d) return '';
   const { rec, b } = d, s = b.start;
   return `<div class="sheet replay-sheet" id="rpBox" data-key="${key}">
-    <p class="eyebrow">觀察 · ${ZONES[rec.zone].name} 탐험 ${recTime(rec)}</p>
+    <p class="eyebrow">${rec ? `觀察 · ${ZONES[rec.zone].name} 탐험 ${recTime(rec)}` : '心象 · 심상수련장 · 보상 없음'}</p>
     <div class="arena">
       <div class="plaque me" id="pl-me"><div class="seal-av">${esc(S.name[0] || '我')}</div><div class="pl-info"><h3>${esc(S.name)}</h3><div id="rpMe">${vbar('hp', s.me.hp, s.me.hp, s.me.maxHp, '활력')}${bar('mp', s.me.mp, s.me.maxMp, '내력')}</div></div></div>
       <div class="vs"><span>對</span><small id="rpRound">준비</small></div>
-      <div class="plaque foe ${b.boss ? 'boss' : ''}" id="pl-foe"><div class="seal-av foe">${sealChar(b.name)}</div><div class="pl-info"><h3>${b.name}</h3><small>${b.boss ? '두목(頭目)' : '요수(妖獸)'}</small><div id="rpFoe">${vbar('hp foe', s.foe.hp, s.foe.hp, s.foe.maxHp, '기세', true)}</div></div></div>
+      <div class="plaque foe ${b.boss ? 'boss' : ''}" id="pl-foe"><div class="seal-av foe">${sealChar(b.name)}</div><div class="pl-info"><h3>${b.name}</h3><small>${b.boss ? '두목(頭目)' : '요수(妖獸)'} ${ENEMIES[b.eid] ? elemTag(ENEMIES[b.eid].elem) + weaponTag(ENEMIES[b.eid].wtype) : ''}</small><div id="rpFoe">${vbar('hp foe', s.foe.hp, s.foe.hp, s.foe.maxHp, '기세', true)}</div></div></div>
       <div class="move-banner" id="moveBanner" aria-hidden="true"></div>
     </div>
     <div class="blog" id="rpLog">${b.intro.map(l => `<p class="${l.cls}">${l.text}</p>`).join('')}</div>
