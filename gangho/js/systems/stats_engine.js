@@ -2,12 +2,15 @@
 
 /* ───────── 능력치 ───────── */
 function calcStats() {
-  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0 };
+  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0 };
   // 3대 기본 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다
   for (const [a, D] of Object.entries(ATTRS)) { const d = attrOf(a) - ATTR_BASE; for (const [k, v] of Object.entries(D.per)) s[k] += v * d; }
+  // 옥대의 기공 위력(qiPct)은 기공 능력치에 곱하므로 먼저 모은다
+  const qi = SLOT_ORDER.reduce((a, slot) => a + ((S.equip[slot] && S.equip[slot].stats.qiPct) || 0), 0);
   for (const cat of CAT_ORDER) {
     const id = S.active[cat]; if (!id || !S.manuals[id]) continue;
-    for (const [k, v] of Object.entries(manualBonus(id, S.manuals[id].star))) s[k] += v;
+    const q = cat === 'gigong' ? 1 + qi / 100 : 1;
+    for (const [k, v] of Object.entries(manualBonus(id, S.manuals[id].star))) s[k] = (s[k] || 0) + v * q;
   }
   for (const slot of SLOT_ORDER) {
     const it = S.equip[slot]; if (!it) continue;
@@ -42,6 +45,7 @@ function manualBonus(id, star) {
   if (M.cat === 'gigong') Object.assign(b, { maxHp: (20 * st + 4 * t) * g, def: (1.5 * st + 0.35 * t) * g, counter: 1.2 * st * g });
   if (st >= 6) for (const k of Object.keys(b)) b[k] *= 1.3;              // 소성: 기본 위력 계수 상향
   if (st >= MAX_STAR) for (const [k, v] of Object.entries(DAESUNG_PASSIVE[M.cat].stats)) b[k] = (b[k] || 0) + v;   // 대성 극의
+  for (const [k, v] of Object.entries(M.extra || {})) b[k] = (b[k] || 0) + v;       // 무공 고유 능력치
   return b;
 }
 

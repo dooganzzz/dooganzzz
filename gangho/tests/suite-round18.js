@@ -90,9 +90,9 @@ module.exports = async (b) => {
       r.retreat = r2.end === 'retreat' && r2.steps[r2.steps.length - 1].k === 'retreat' && !r2.gain.lost;
       // 쓰러지면 번 은자 절반을 잃고 활력 10%
       S.inv.potionHp = 0; delete S.inv.potionHp;
-      const E0 = ENEMIES.rabbit.atk; for (const e of ['rabbit', 'dog', 'boar']) ENEMIES[e].atk *= 60;
+      const E0 = ENEMIES.rabbit.atk; for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk *= 60;
       S.stamina = 100; const r3 = runExpedition(now());
-      for (const e of ['rabbit', 'dog', 'boar']) ENEMIES[e].atk /= 60;
+      for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk /= 60;
       r.defeat = r3.end === 'defeat' && S.hp === Math.max(1, Math.round(calcStats().maxHp * 0.1));
       // 자동 금창약
       S.inv.potionHp = 3; S.hp = 1; const bt = { eid: 'rabbit', e: { ...ENEMIES.rabbit, hpNow: 30 }, lines: [], fx: [], st: calcStats(), over: false }; RT.battle = bt; autoPotion(bt); RT.battle = null;
@@ -110,11 +110,11 @@ module.exports = async (b) => {
     const boss = await p.evaluate(() => {
       const W = EXPEDITION, keep = { from: W.bossFrom, ch: W.bossChance };
       W.bossFrom = 0; W.bossChance = 1;
-      const hpK = ENEMIES.boarKing.hp; ENEMIES.boarKing.hp = 999999;
+      const hpK = ENEMIES.redTiger.hp; ENEMIES.redTiger.hp = 999999;
       S.stamina = 100; const a = runExpedition(now());
-      ENEMIES.boarKing.hp = 1;
+      ENEMIES.redTiger.hp = 1;
       S.stamina = 100; S.inv.potionHp = 9; const k = runExpedition(now());
-      ENEMIES.boarKing.hp = hpK; W.bossFrom = keep.from; W.bossChance = keep.ch;
+      ENEMIES.redTiger.hp = hpK; W.bossFrom = keep.from; W.bossChance = keep.ch;
       return { avoid: a.steps.some(s => s.k === 'avoid') && !a.battles.some(x => x.boss), won: k.battles.some(x => x.boss && x.win), flag: !!S.flags.boss1, open: zoneUnlocked('yeomhwa') };
     });
     ok('7 두목의 기척이 너무 무거우면 제자가 피함', boss.avoid, JSON.stringify(boss));

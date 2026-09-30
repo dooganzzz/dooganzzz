@@ -50,20 +50,21 @@ module.exports = async (b) => {
       r.rel = [elemRel('metal', 'wood'), elemRel('wood', 'metal'), elemRel('earth', 'metal'), elemRel(null, 'wood')].join();
       r.me = myElem();                                  // 철포삼 = 金
       const keepInt = S.attr.int; S.attr.int = 6;         // 지력 기준값에서 비교
-      const A = affinity('rabbit'), B = affinity('bandit'), C = affinity('boar');
-      r.rabbit = [A.el, A.dealt, A.taken]; r.bandit = [B.el, B.foe]; r.boar = C.el;
-      S.attr.int = 10; r.int = affinity('rabbit').dealt; S.attr.int = 6;
+      // 청령목괴 = 木·창, 내 병기 = 창 → 병기는 호각이라 오행만 본다
+      const A = affinity('treant'), B = affinity('bandit'), C = affinity('boar');
+      r.rabbit = [A.el, A.dealt, A.taken, A.wp]; r.bandit = [B.el, B.foe]; r.boar = C.el;
+      S.attr.int = 10; r.int = affinity('treant').dealt; S.attr.int = 6;
       // 같은 난수로 한 대: 상극 우세 vs 상성 없음
       const R = Math.random; Math.random = () => 0.5;
       const mk = eid => ({ eid, e: { ...ENEMIES[eid], hpNow: 1e9 }, lines: [], fx: [], st: calcStats(), over: false, aff: affinity(eid) });
       const hit = bt => { RT.battle = bt; playerHit(bt, 1, '평타'); return 1e9 - bt.e.hpNow; };
-      const x = mk('rabbit'), y = mk('rabbit'); y.aff = NO_AFF; r.ratio = Math.round(hit(x) / hit(y) * 100) / 100;
+      const x = mk('treant'), y = mk('treant'); y.aff = NO_AFF; r.ratio = Math.round(hit(x) / hit(y) * 100) / 100;
       Math.random = R; RT.battle = null; S.attr.int = keepInt;
       return r;
     });
     ok('2 오행 상극: 木剋土 · 火剋金 · 土剋水 · 金剋木 · 水剋火', el.beats.split(',').sort().join() === '木剋土,水剋火,火剋金,土剋水,金剋木'.split(',').sort().join(), el.beats);
     ok('2 극하면 1, 극당하면 -1, 상생·무속성 0', el.rel === '1,-1,0,0', el.rel);
-    ok('2 金 기공 vs 木 들토끼: 주는 피해 ×1.25 · 받는 피해 ×0.75', el.me === 'metal' && el.rabbit[0] === 1 && el.rabbit[1] === 1.25 && el.rabbit[2] === 0.75, JSON.stringify(el));
+    ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×1.25 · 받는 피해 ×0.75', el.me === 'metal' && el.rabbit[0] === 1 && el.rabbit[1] === 1.25 && el.rabbit[2] === 0.75 && el.rabbit[3] === 0, JSON.stringify(el));
     ok('2 金 기공 vs 火 화적: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
     ok('2 지력이 높으면 극할 때 위력 추가', el.int > 1.25, String(el.int));
     ok('2 실제 타격에 반영 (같은 난수 기준 1.25배)', Math.abs(el.ratio - 1.25) < 0.03, String(el.ratio));
@@ -78,7 +79,7 @@ module.exports = async (b) => {
       S.equip.weapon.wtype = 'sword'; const B = affinity('hyangju'); r.swordVsHidden = [B.wp, B.myHit, Math.round(B.dealt / (B.el > 0 ? 1.25 : B.el < 0 ? 0.75 : 1) * 100) / 100];
       S.equip.weapon.wtype = 'fist'; const C = affinity('bandit'); r.fistVsBlade = C.wp;
       S.equip.weapon.wtype = 'hidden'; const D = affinity('bandit'); r.hiddenVsBlade = [D.wp, D.foeHit];
-      const E = affinity('dog'); r.beast = [E.wp, E.fwt];
+      const E = affinity('wildcat'); r.beast = [E.wp, E.fwt];   // 살쾡이 = 권장(발톱), 내 병기 = 암기
       S.equip.weapon.wtype = keep;
       return { m: m.join(), anti, r };
     });
@@ -86,27 +87,32 @@ module.exports = async (b) => {
     ok('3 상성표가 서로 맞물림 (한쪽 우세 = 다른 쪽 열세)', wp.anti);
     ok('3 우세: 공격력 +15% · 명중 +10', wp.r.swordVsHidden[0] === 1 && wp.r.swordVsHidden[1] === 10 && wp.r.swordVsHidden[2] === 1.15, JSON.stringify(wp.r));
     ok('3 열세: 상대 명중 보정 · 호각은 보정 없음', wp.r.hiddenVsBlade[0] === -1 && wp.r.hiddenVsBlade[1] === 10 && wp.r.spearVsHidden[0] === 0 && wp.r.spearVsHidden[1] === 0, JSON.stringify(wp.r));
-    ok('3 짐승은 병기가 없어 호각', wp.r.beast[0] === 0 && wp.r.beast[1] === null, JSON.stringify(wp.r));
+    ok('3 짐승도 병기 계열이 있다 (살쾡이 발톱 = 권장 → 암기 우세)', wp.r.beast[0] === 1 && wp.r.beast[1] === 'fist', JSON.stringify(wp.r));
 
     // 4. 지형 상성 (기력 소모)
     const tr = await p.evaluate(() => {
-      const r = { terr: myTerrain(), zones: ZONE_ORDER.map(z => Object.keys(ZONES[z].terrain).join('/')) };
-      r.mult = ['earth', 'grass', 'water', 'plain', null].map(terrainMult).join();
-      const g = S.active.gyeonggong; S.active.gyeonggong = null; r.none = terrainMult('earth'); S.active.gyeonggong = g;
-      const run = t => { const keep = ZONES.cheongpung.terrain; ZONES.cheongpung.terrain = { [t]: 1 }; S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.potionHp = 20; const rec = runExpedition(now()); ZONES.cheongpung.terrain = keep; return rec; };
+      const r = { terr: myTerrain(), terrains: Object.keys(TERRAINS).join(), zones: ZONE_ORDER.map(z => ZONES[z].terrain.join('/')) };
+      r.mult = ZONE_ORDER.map(terrainMult).join();              // 포철삭(흙): 청풍산 흙·풀·나무 일치, 염화채 흙·평 일치, 적룡방 물·나무 불일치
+      const g = S.active.gyeonggong; S.active.gyeonggong = null; r.none = terrainMult('cheongpung'); S.active.gyeonggong = g;
+      const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.potionHp = 20; return runExpedition(now()); };
       const a = [], m = [];
-      for (let i = 0; i < 4; i++) { a.push(run('earth')); m.push(run('water')); }
+      for (let i = 0; i < 4; i++) a.push(run());
+      S.manuals.dapsu = { star: 1 }; equipManual('dapsu');     // 답수보(물) → 청풍산 불일치
+      r.dapsu = terrainMult('cheongpung');
+      for (let i = 0; i < 4; i++) m.push(run());
+      S.manuals.deungsu = { star: 1 }; equipManual('deungsu'); r.deungsu = terrainMult('cheongpung');   // 등수보(나무) → 복합 지형 중 하나 일치
+      equipManual('pocheolsak');
       const steps = rs => rs.reduce((x, rec) => x + rec.steps.filter(s => s.k !== 'trap' && s.k !== 'retreat' && s.k !== 'avoid').length, 0) / rs.length;
-      r.match = { steps: steps(a), extra: a.every(x => x.terrain.extra < 0), tr: a.every(x => x.steps.every(s => s.tr === 'earth')), cnt: a[0].terrain.match > 0 && a[0].terrain.miss === 0 };
-      r.miss = { steps: steps(m), extra: m.every(x => x.terrain.extra > 0), cnt: m[0].terrain.miss > 0 && m[0].terrain.match === 0 };
+      r.match = { steps: steps(a), extra: a.every(x => x.terrain.extra < 0), rec: a[0].terrain.match === true && a[0].terrain.zone.join() === 'earth,grass,wood' };
+      r.miss = { steps: steps(m), extra: m.every(x => x.terrain.extra > 0), rec: m[0].terrain.match === false };
       return r;
     });
-    ok('4 구역마다 지형 비율 (풀·물·흙·평)', tr.zones.length === 3 && tr.zones.every(z => z.length > 0), tr.zones.join(' | '));
-    ok('4 포철삭(흙): 흙 ×0.8 · 다른 지형 ×1.2 · 경공이 없으면 보정 없음', tr.terr === 'earth' && tr.mult === '0.8,1.2,1.2,1.2,1' && tr.none === 1, tr.mult);
-    ok('4 걸음마다 지형 기록 · 일치/불일치 집계', tr.match.tr && tr.match.cnt && tr.miss.cnt, JSON.stringify(tr));
-    ok('4 지형이 맞으면 기력을 아껴 더 오래 걷는다', tr.match.extra && tr.miss.extra && tr.match.steps > tr.miss.steps, JSON.stringify(tr));
+    ok('4 5대 지형 (풀·물·흙·나무·평) · 청풍산 = 흙/풀/나무 복합', tr.terrains === 'grass,water,earth,wood,plain' && tr.zones[0] === 'earth/grass/wood', JSON.stringify(tr));
+    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 ×0.8, 아니면 ×1.2, 경공 없으면 보정 없음', tr.terr === 'earth' && tr.mult === '0.8,0.8,1.2' && tr.none === 1 && tr.dapsu === 1.2 && tr.deungsu === 0.8, JSON.stringify(tr));
+    ok('4 탐험 기록에 지형 일치 여부 · 기력 증감', tr.match.rec && tr.miss.rec && tr.match.extra && tr.miss.extra, JSON.stringify(tr));
+    ok('4 지형이 맞으면 기력을 아껴 더 오래 걷는다', tr.match.steps > tr.miss.steps, JSON.stringify(tr));
     await p.evaluate(() => { ui.modal = null; goTab('field'); render(); });
-    ok('4 탐험 기록에 지형 표식 · 결산 줄', await p.evaluate(() => document.querySelectorAll('.exp-steps .tr-tag').length > 0 && /지형 일치 \d+걸음/.test(document.querySelector('.tr-line').textContent)));
+    ok('4 탐험 기록 결산 줄 · 구역 카드 지형 표식', await p.evaluate(() => /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 (흙|물|나무) (일치|불일치)/.test(document.querySelector('.tr-line').textContent) && document.querySelectorAll('.zone-terrain .aff-tag.tr').length >= 3));
     ok('4 출정 준비에 상성 줄 (기공 오행 · 경공 지형 · 병기)', await p.evaluate(() => { const li = [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent === '상성'); return !!li && /金/.test(li.textContent) && /흙/.test(li.textContent) && /창/.test(li.textContent); }));
     ok('4 전투 기록 첫머리에 상성 한 줄', await p.evaluate(() => S.expeditions.some(r => r.battles.some(bt => bt.intro.some(l => l.cls === 'aff' && /오행/.test(l.text) && /병기/.test(l.text))))));
 
@@ -161,8 +167,8 @@ module.exports = async (b) => {
 
     // 7. 요수 도감 · 무공 상성 표식
     await p.click('[data-tab="codex"]');
-    const cx = await p.evaluate(() => ({ known: document.querySelectorAll('.beasts li:not(.unknown)').length, unknown: document.querySelectorAll('.beasts li.unknown').length, met: Object.keys(S.bestiary).filter(e => ZONE_ORDER.some(z => [...ZONES[z].enemies, ZONES[z].boss].includes(e))).length, tag: !!document.querySelector('.beasts .aff-tag') }));
-    ok('7 요수 도감: 만난 요수는 오행·병기, 못 만난 요수는 ？', cx.known === cx.met && cx.unknown === 12 - cx.met && cx.tag, JSON.stringify(cx));
+    const cx = await p.evaluate(() => ({ known: document.querySelectorAll('.beasts li:not(.unknown)').length, unknown: document.querySelectorAll('.beasts li.unknown').length, met: Object.keys(S.bestiary).filter(e => ZONE_ORDER.some(z => [...ZONES[z].enemies, ZONES[z].boss].includes(e))).length, total: document.querySelectorAll('.beasts li').length, tag: !!document.querySelector('.beasts .aff-tag') }));
+    ok('7 요수 도감: 만난 요수는 오행·병기, 못 만난 요수는 ？', cx.known === cx.met && cx.unknown === cx.total - cx.met && cx.total === 18 && cx.tag, JSON.stringify(cx));
     await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
     ok('7 무공 칸에 기공 오행 · 경공 지형 표식', await p.evaluate(() => /金/.test(document.querySelector('.mslot .aff-tag.el-metal').textContent) && !!document.querySelector('.mslot .aff-tag.tr')));
     await p.evaluate(() => { ui.modal = 'mart:' + S.active.gigong; renderModal(); });
@@ -190,11 +196,11 @@ module.exports = async (b) => {
     const mig = await p.evaluate(() => {
       const old = JSON.parse(JSON.stringify(S)); delete old.attr; delete old.talent; delete old.bestiary; delete old.shrine.pulls;
       old.inv.twistedIron = 2; old.inv.burntAsh = 1; old.inv.dregs = 3; old.inv.slag = 1;
-      old.zoneLog = { cheongpung: { trips: 1, wins: 3, losses: 0, defeats: 0, retreats: 0, seen: { rabbit: 2, dog: 1 }, bossMet: 0, bossWon: 0 } };
+      old.zoneLog = { cheongpung: { trips: 1, wins: 3, losses: 0, defeats: 0, retreats: 0, seen: { rabbit: 2, wildcat: 1 }, bossMet: 0, bossWon: 0 } };
       const st = migrate(old);
       return { attr: st.attr, talent: st.talent, slag: st.inv.slag, old: ['twistedIron', 'burntAsh', 'dregs'].some(k => k in st.inv), best: st.bestiary, pulls: st.shrine.pulls };
     });
-    ok('9 이전 저장: 스탯 6/6/6 · 기예 없음 · 부산물 → 찌꺼기 · 도감은 구역 기록에서', mig.attr.str === 6 && mig.talent === null && mig.slag === 7 && !mig.old && mig.best.rabbit.met === 2 && mig.best.dog.met === 1 && mig.pulls === 0, JSON.stringify(mig));
+    ok('9 이전 저장: 스탯 6/6/6 · 기예 없음 · 부산물 → 찌꺼기 · 도감은 구역 기록에서', mig.attr.str === 6 && mig.talent === null && mig.slag === 7 && !mig.old && mig.best.rabbit.met === 2 && mig.best.wildcat.met === 1 && mig.pulls === 0, JSON.stringify(mig));
 
     ok('오류/가로스크롤 없음', !errs.length && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(';'));
     await p.close();

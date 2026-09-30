@@ -61,7 +61,8 @@ function log(text, cls = '', t = now(), ref) {
 function startNewGame(name, mugongId, opts = {}) {
   S = newState(name, mugongId, opts);
   const wt = MANUALS[mugongId].weapon;
-  S.equip.weapon = makeGear(wt, 1, 0, false);
+  S.equip.weapon = makeNamedGear(STARTER_GEAR[wt]);
+  S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
   ensureMissions();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
@@ -99,6 +100,16 @@ function migrate(st) {
   if (!st.bestiary) { st.bestiary = {}; for (const z of Object.values(st.zoneLog || {})) for (const [e, n] of Object.entries(z.seen || {})) { const b = st.bestiary[e] = st.bestiary[e] || { met: 0, kills: 0 }; b.met += n; } }
   if (st.inv) for (const id of ['twistedIron', 'burntAsh', 'dregs']) if (st.inv[id]) { st.inv.slag = (st.inv.slag || 0) + st.inv[id]; delete st.inv[id]; }
   if (st.shrine && st.shrine.pulls === undefined) st.shrine.pulls = 0;
+  // 무공 DB 통합: 지난번 공양 비급 5종 → 새 삼류 무공으로 (성급 유지)
+  const REMAP = { yeolhwa: 'byeokhwa', suryu: 'yusu', hwangto: 'huto', deungpyeong: 'dapsu' };
+  for (const [o, n] of Object.entries(REMAP)) {
+    if (st.manuals && st.manuals[o]) { if (!st.manuals[n]) st.manuals[n] = st.manuals[o]; delete st.manuals[o]; }
+    if (st.active) for (const c of Object.keys(st.active)) if (st.active[c] === o) st.active[c] = n;
+    if (st.inv && st.inv['bk_' + o]) { st.inv['bk_' + n] = (st.inv['bk_' + n] || 0) + st.inv['bk_' + o]; delete st.inv['bk_' + o]; }
+  }
+  // 청풍산 요수 교체: 들개·외눈 멧돼지왕은 사라졌다 (도감·임무에서 정리)
+  for (const gone of ['dog', 'boarKing']) { if (st.bestiary) delete st.bestiary[gone]; for (const z of Object.values(st.zoneLog || {})) if (z.seen) delete z.seen[gone]; }
+  if (st.missions) st.missions = st.missions.filter(m => m.type !== 'kill' || ENEMIES[m.target]);
   // 조합 단서는 없어졌다 (연구 노트로 대체). 구역 경험 기록·정각 일정
   delete st.knownMats;
   st.zoneLog = st.zoneLog || {}; st.craftNotes = st.craftNotes || [];

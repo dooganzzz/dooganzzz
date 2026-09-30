@@ -98,3 +98,19 @@
 .seal-av { position: relative; }
 .seal-av::after { content: ''; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none; opacity: 0; background: rgba(255, 255, 255, .75); mix-blend-mode: screen; }
 .plaque.me .seal-av::after { background: rgba(255, 60, 40, .6); mix-blend-mode: normal; }
+
+/* ───────── 3단계 전투 묘사: 초식 선언 → 기세/호흡 → 타격/후폭풍 ───────── */
+.blog .log-stance-title { margin-top: 4px; font-family: var(--serif); font-weight: 900; font-size: 1.02rem; letter-spacing: .04em; color: var(--gold-2); text-shadow: 0 0 10px rgba(216, 178, 94, .35); }
+.blog .log-stance-title.m2 { color: #f6d58f; }
+.blog .log-stance-title.m3 { color: #ffe4a6; font-size: 1.08rem; }
+.blog .log-stance-title.counter { color: var(--jade); text-shadow: none; }
+.blog .log-stance-desc { color: var(--silver); font-style: italic; padding-left: .6em; border-left: 2px solid var(--line-2); }
+.blog .log-stance-desc.foe { color: #d6a79c; border-left-color: rgba(210, 90, 68, .45); }
+.blog .log-stance-desc.qi { color: var(--jade); }
+.blog .log-stance-desc.aff-up { color: var(--r1); font-style: normal; font-weight: 700; }
+.blog .log-stance-result { padding-left: .6em; color: var(--ink); }
+.blog .log-stance-result .dmg { color: var(--seal); font-weight: 900; font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.blog .log-stance-result.crit { color: #ffd24a; font-weight: 900; }
+.blog .log-stance-result.miss, .blog .log-stance-result.dodge { color: var(--dim); }
+.blog .log-stance-result.dodge .dmg, .blog .log-stance-result.miss .dmg { color: var(--dim); }
+.blog .log-stance-result.taken { color: #e59585; }

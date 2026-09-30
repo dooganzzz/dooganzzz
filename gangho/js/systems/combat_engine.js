@@ -32,7 +32,7 @@ function affinity(eid, st = calcStats()) {
   return {
     el, wp, me, foe: E.elem, wt, fwt: E.wtype || null,
     dealt: (el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * (wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1),
-    taken: (el > 0 ? 1 - A.elem : el < 0 ? 1 + A.elem : 1) * (wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
+    taken: (el > 0 ? 1 - A.elem : el < 0 ? 1 + Math.max(0, A.elem - (st.elemRes || 0) / 100) : 1) * (wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
     myHit: wp > 0 ? A.weapHit : 0, foeHit: wp < 0 ? A.weapHit : 0,
   };
 }
@@ -68,10 +68,12 @@ function fight(eid, opts = {}) {
   const [, stext, scls] = sense(eid);
   bLine(stext, 'sense ' + scls);
   if (E.boss) {
-    const quotes = { boarKing: '외눈 멧돼지왕이 콧김을 뿜으며 땅을 긁습니다.', jeokyeom: '적염도: "청풍문? 그 거지 문파에서 아직 사람이 나오나?"', galcheon: '갈천: "물 위에서 나를 이긴 자는 없다. 뭍에서도 마찬가지고."' };
+    const quotes = { redTiger: '붉은 갈기의 호랑이가 낮게 으르렁거리자, 숲 전체가 숨을 죽입니다.', jeokyeom: '적염도: "청풍문? 그 거지 문파에서 아직 사람이 나오나?"', galcheon: '갈천: "물 위에서 나를 이긴 자는 없다. 뭍에서도 마찬가지고."' };
     bLine(quotes[eid], 'npc');
   }
   bLine(`☯ 상성 — ${affinityText(b.aff)}`, 'aff');
+  const Q = MANUALS[S.active.gigong];
+  if (Q && Q.stances) bLine(stanceFill(Q.stances[0].desc, stanceVars(b)), 'log-stance-desc qi');
   const mt = MANUALS[S.active.mugong];
   if (!mt) bLine('장착한 무공이 없어 맨손으로 맞섭니다.', 'muted');
   else if (mt.weapon !== weaponType()) bLine(`《${mt.name}》은 ${WEAPON_TYPES[mt.weapon]} 무공입니다. 병기가 맞지 않아 초식을 펼칠 수 없습니다.`, 'muted');
@@ -118,20 +120,37 @@ function checkEnd(b) {
   else if (S.hp <= 0) loseBattle(b);
 }
 
-function playerHit(b, mult, text) {
-  const e = b.e, st = b.st;
-  const hitChance = Math.max(55, 95 - e.eva) + (b.aff || NO_AFF).myHit;
-  const mv = (text.match(/【(.+?)】/) || [])[1];
-  if (mv && b.fx) b.fx.push({ side: 'banner', t: mv, k: /반격/.test(mv) ? 'counter' : 'move' });
-  if (Math.random() * 100 >= hitChance) { bLine(`${text} — ${josa(e.name, '이가')} 몸을 틀어 피했습니다. 허공을 가릅니다.`, 'miss'); if (b.fx) b.fx.push({ side: 'foe', t: '빗나감', k: 'miss' }); return false; }
-  let dmg = dmgCalc(st.atk, e.def) * mult * (b.aff || NO_AFF).dealt;
+/* ───────── 전투 묘사: 초식 선언 → 기세/호흡 → 타격/후폭풍 (3단계) ─────────
+   지문 템플릿의 {attacker}·{weapon}·{target} 뒤 {이가}·{을를}·{은는}·{과와}는 받침에 맞춰 조사를 붙인다 */
+function stanceFill(t, v) {
+  return t.replace(/\{(attacker|weapon|target)\}(?:\{(이가|을를|은는|과와)\})?/g, (_, k, j) => v[k] + (j ? jo(v[k], j) : ''));
+}
+function stanceVars(b, foe) {
+  const me = S.name || '제자', weapon = S.equip.weapon ? S.equip.weapon.name : '맨주먹';
+  return foe ? { attacker: b.e.name, weapon: '', target: me } : { attacker: me, weapon, target: b.e.name };
+}
+/* 한 번의 타격. o: { title, desc, cls, banner } (문자열이면 지문만) */
+function playerHit(b, mult, o) {
+  if (typeof o === 'string') o = { desc: o };
+  const e = b.e, st = b.st, A = b.aff || NO_AFF, v = stanceVars(b);
+  const hitChance = Math.max(55, 95 - e.eva) + A.myHit;
+  if (o.banner && b.fx) b.fx.push({ side: 'banner', t: o.banner, k: o.cls === 'counter' ? 'counter' : 'move' });
+  if (o.title) bLine(o.title, `log-stance-title ${o.cls || ''}`);
+  bLine(stanceFill(o.desc, v), 'log-stance-desc');
+  if (A.wp > 0 && !b.affSaid) { b.affSaid = true; bLine('[상성 우위] 병기의 이점을 살린 궤적이 적의 빈틈을 파고든다!', 'log-stance-desc aff-up'); }
+  if (Math.random() * 100 >= hitChance) {
+    bLine(`${josa(e.name, '이가')} 몸을 틀어 궤적을 벗어났다. 허공만 가른다. <span class="dmg">(빗나감)</span>`, 'log-stance-result miss');
+    if (b.fx) b.fx.push({ side: 'foe', t: '빗나감', k: 'miss' });
+    return false;
+  }
+  let dmg = dmgCalc(st.atk, e.def) * mult * A.dealt;
   const crit = Math.random() * 100 < st.crit;
   if (crit) dmg *= 1.6;
   dmg = Math.round(dmg);
   e.hpNow = Math.max(0, e.hpNow - dmg);
   if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= e.hp * 0.2 });
   const [, txt, cls] = reaction(dmg, e.hp);
-  bLine(`${text}${crit ? ' <b class="crit">치명!</b>' : ''} ${josa(e.name, '이가')} ${txt}`, cls);
+  bLine(`${crit ? '<b class="crit">회심의 일격!</b> 급소를 정확히 꿰뚫었다! ' : ''}${josa(e.name, '이가')} ${txt} <span class="dmg">(-${fmt(dmg)})</span>`, `log-stance-result ${cls}${crit ? ' crit' : ''}`);
   if (st.lifesteal) S.hp = Math.min(st.maxHp, S.hp + Math.round(dmg * st.lifesteal / 100));
   return true;
 }
@@ -140,6 +159,7 @@ function playerAttack(b) {
   const st = b.st, id = S.active.mugong, M = MANUALS[id], m = S.manuals[id];
   const canCombo = !!M && M.weapon === weaponType();
   let comboDone = false;
+  b.affSaid = false;                                        // 상성 우위 지문은 한 턴에 한 번
   if (canCombo && Math.random() * 100 < 35 + st.combo) {
     const moves = unlockedMoves(m.star), g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
@@ -151,29 +171,36 @@ function playerAttack(b) {
       if (S.mp < cost) { if (i > 0) bLine(`내력이 바닥나 제${i + 1}초식으로 잇지 못했습니다.`, 'muted'); break; }
       S.mp -= cost;
       comboDone = true;
-      const ok = playerHit(b, mults[i], `<b class="move m${i + 1}">【${M.moves[i]}】</b> 제${i + 1}초식!`);
+      const sc = M.stances[i];
+      const ok = playerHit(b, mults[i], { title: `【 ${M.name} - ${sc.name} !! 】`, desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: sc.name });
       if (!ok || b.e.hpNow <= 0) break;
     }
   }
-  if (!comboDone) playerHit(b, 1, '⚔️ 평타(平打).');
+  if (!comboDone) playerHit(b, 1, { desc: '⚔️ 평타(平打) — ' + STANCE_DEFAULT.basic });
 }
 
 /* 적의 공격: 회피 → 반격(반격 스탯 확률로 흘리고 되받아침) → 피격 */
 function enemyTurn(b) {
-  const e = b.e, st = b.st;
-  const hitChance = Math.max(40, 95 - st.eva) + (b.aff || NO_AFF).foeHit;
-  // 1) 회피 성공: 피해 0, 반격 판정 없이 적 턴 종료
-  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'dodge'); if (b.fx) b.fx.push({ side: 'me', t: '회피!', k: 'dodge' }); return; }
+  const e = b.e, st = b.st, A = b.aff || NO_AFF;
+  const hitChance = Math.max(40, 95 - st.eva) + A.foeHit;
+  bLine(`${josa(e.name, '이가')} ${e.atkText || FOE_ATK_TEXT[e.wtype || 'none']}!`, 'log-stance-desc foe');
+  // 1) 회피 성공: 피해 0, 반격 판정 없이 적 턴 종료 (경공 지문)
+  if (Math.random() * 100 >= hitChance) {
+    const G = MANUALS[S.active.gyeonggong], sc = G && G.stances && G.stances[0];
+    bLine(`${sc ? stanceFill(sc.desc, stanceVars(b)) + ' ' : ''}공격을 비스듬히 흘려냈습니다! <span class="dmg">(회피)</span>`, 'log-stance-result dodge');
+    if (b.fx) b.fx.push({ side: 'me', t: '회피!', k: 'dodge' });
+    return;
+  }
   // 2) 회피 실패: 피격 후에만 반격 판정
-  let dmg = Math.max(1, Math.round(dmgCalc(e.atk, st.def) * (b.aff || NO_AFF).taken));
+  let dmg = Math.max(1, Math.round(dmgCalc(e.atk, st.def) * A.taken));
   const crit = Math.random() * 100 < Math.max(0, 8 - st.critRes / 2);
   if (crit) dmg = Math.round(dmg * 1.5);
   S.hp = Math.max(0, S.hp - dmg);
   if (b.fx) b.fx.push({ side: 'me', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= st.maxHp * 0.2 });
   const [, , cls] = reaction(dmg, st.maxHp);
   const feel = { h1: '살짝 스쳤습니다.', h2: '살갗이 찢어집니다.', h3: '뼈가 울립니다!', h4: '입가로 피가 흐릅니다!', h5: '기혈이 뒤집힙니다!' }[cls];
-  bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''} — ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
-  if (S.hp > 0 && Math.random() * 100 < st.counter) playerHit(b, 1.0, '<b class="move counter">【반격(反擊)】</b> 맞은 틈을 파고들어 되받아칩니다.');
+  bLine(`${crit ? '<b class="crit">회심의 일격!</b> ' : ''}${feel} <span class="dmg">(활력 -${fmt(dmg)})</span>`, 'log-stance-result taken');
+  if (S.hp > 0 && Math.random() * 100 < st.counter) playerHit(b, 1.0, { title: '【 반격(反擊) !! 】', desc: '{attacker}{이가} 맞은 틈을 파고들어 되받아친다!', cls: 'counter', banner: '반격(反擊)' });
 }
 
 function winBattle(b) {
@@ -189,7 +216,7 @@ function winBattle(b) {
   // 이 적에게 귀속된 드랍 테이블만 순회한다
   for (const [id, p] of E.drops) if (Math.random() < p + (talentOf().drop || 0)) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
   if (E.gear && Math.random() < E.gear[1]) {
-    const it = makeGear(pick(Object.keys(EQUIP_BASES)), E.gear[0], rollDropRarity(!!E.boss), false);
+    const it = dropGear(E.gear[0], rollDropRarity(!!E.boss));
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
   if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); for (const g of applyFx(b.bonus.fx || {})) bLine(`↳ ${hlItem(g)}`, 'loot'); }
@@ -200,7 +227,7 @@ function winBattle(b) {
     const reward = { boss1: 100, boss2: 200, boss3: 300 }[E.boss];
     S.contrib += reward;
     const msgs = {
-      boss1: '외눈 멧돼지왕이 쓰러지자 청풍산에 고요가 찾아왔습니다. 염화채로 가는 길이 열렸습니다.',
+      boss1: '적염 호랑이가 쓰러지자 청풍산에 고요가 찾아왔습니다. 염화채로 가는 길이 열렸습니다.',
       boss2: '채주 적염도가 무릎을 꿇었습니다. 염화채의 불길이 잦아듭니다. 적룡방으로 가는 길이 열렸습니다.',
       boss3: '방주 갈천이 강물 속으로 가라앉았습니다. 적룡방이 무너졌습니다. 이제 대성만이 남았습니다.',
     };

@@ -99,7 +99,7 @@ function viewShrine() {
       <p class="muted">화로에서 조합에 실패하면 (주조·연단·조리 모두) 검게 탄 찌꺼기가 남습니다. 누적 공양 ${fmt(S.shrine.pulls || 0)}회.</p>
     </div>
     ${res && res.length ? `<div class="gacha-res"><h4>돌아온 것</h4><ul>${res.map(g => `<li class="${g.cls}">${g.text}</li>`).join('')}</ul></div>` : ''}
-    <details class="gacha-table"><summary>나올 수 있는 것</summary><ul>${GACHA.table.map(e => `<li><span>${e.name}</span><b>${Math.round(e.w / tot * 100)}%</b></li>`).join('')}</ul><small class="muted">비급은 오행 기공 3종·지형 경공 2종·입문 무공 가운데 아직 없는 것. 장비는 열린 구역의 최고 티어.</small></details>
+    <details class="gacha-table"><summary>나올 수 있는 것</summary><ul>${GACHA.table.map(e => `<li><span>${e.name}</span><b>${Math.round(e.w / tot * 100)}%</b></li>`).join('')}</ul><small class="muted">비급은 삼류 무공 25종·입문 무공 가운데 아직 없는 것. 장비는 열린 구역의 최고 티어 (청풍산은 하급 장비 37종 중 하나).</small></details>
     ${old}
   </section>`;
 }
@@ -239,8 +239,8 @@ function viewShop() {
   let body;
   if (mode === 'buy') {
     const wares = SHOP_STOCK.map(([id, pr]) => { const I = ITEMS[id]; return `<div class="ware"><span class="icon">${I.icon}</span><div><b>${I.name}</b> <span class="num muted">보유 ${count(id)}</span><small>${I.desc}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buy="${id}">사기</button></div>`; }).join('');
-    const gear = SHOP_GEAR_STOCK.map(([base, t, pr]) => { const B = EQUIP_BASES[base]; const st = Object.entries(B.stats[t - 1]).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
-      return `<div class="ware"><span class="icon">${B.slot === 'weapon' ? '🗡️' : '🛡️'}</span><div><b class="r0">[하품] ${B.names[t - 1]}</b> <span class="num muted">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_SHORT[B.wtype] : ''}</span><small>${st}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buygear="${base}:${t}">사기</button></div>`; }).join('');
+    const gear = SHOP_GEAR_STOCK.map(([base, t, pr]) => { const B = gearSpec(base, t); const st = Object.entries(B.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
+      return `<div class="ware"><span class="icon">${B.slot === 'weapon' ? '🗡️' : '🛡️'}</span><div><b class="r0">[하급] ${B.name}</b> <span class="num muted">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_SHORT[B.wtype] : ''}</span><small>${st}${B.desc ? ` — ${B.desc}` : ''}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buygear="${base}:${t}">사기</button></div>`; }).join('');
     body = `<h4 class="ware-head">소모품 · 재료</h4><div class="wares">${wares}</div><h4 class="ware-head">기본 장비</h4><div class="wares">${gear}</div>`;
   } else {
     const items = Object.keys(S.inv).filter(id => itemSellPrice(id) > 0);

@@ -20,8 +20,8 @@ const EXP_TEXT = {
   defeat: '눈앞이 캄캄해집니다… 지나던 약초꾼이 청풍문까지 업어다 주었습니다.',
 };
 
-/* 요수 출현 가중치: [약한 요수 1, 약한 요수 2, 중형] — 탐험 후반(기력 절반 이상 쓴 뒤)일수록 중형이 잦다 */
-const BEAST_WEIGHT = { shallow: [50, 35, 15], deep: [30, 30, 40] };
+/* 요수 출현 가중치: 적의 rank(1 약함 · 2 중간 · 3 강함)별 — 탐험 후반(기력 절반 이상 쓴 뒤)일수록 강한 요수가 잦다 */
+const BEAST_WEIGHT = { shallow: { 1: 50, 2: 35, 3: 15 }, deep: { 1: 30, 2: 30, 3: 40 } };
 
 /* 금고(金庫): 열면 네 가지 중 하나 */
 const VAULTS = [
@@ -37,13 +37,13 @@ const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.0
 const ZONES = {
   cheongpung: {
     name: '청풍산', hanja: '淸風山', tier: 1,
-    desc: '청풍문 뒷산. 들토끼와 들개가 뛰놀고, 깊은 곳엔 외눈 멧돼지왕이 산다.',
-    enemies: ['rabbit', 'dog', 'boar'], boss: 'boarKing',
+    desc: '청풍문 뒷산. 흙길과 풀숲, 빽빽한 숲이 뒤섞였다. 흑풍채 떨거지들이 숨어들었고, 깊은 곳엔 붉은 호랑이가 산다는 소문이 있다.',
+    enemies: ['rabbit', 'wildcat', 'viper', 'scout', 'slinger', 'boar', 'deserter', 'turtle', 'treant'], boss: 'redTiger',
     herb: [['herb', 1, 2, 1], ['lingzhi', 1, 1, 0.3], ['wildGreens', 1, 2, 0.5], ['water', 1, 1, 0.4]],
     mine: [['iron', 1, 2, 1], ['jadeStone', 1, 1, 0.15], ['wood', 1, 2, 0.6]],
     chest: [['silver', 20, 40], ['potionHp', 2, 3], ['lingzhi', 1, 2], ['iron', 2, 3]],
     gimmick: { name: '쓰러진 고목', stat: 'atk', need: 22, text: '쓰러진 고목을 내공으로 쪼개자 속에 숨겨진 약초 주머니가 드러났습니다!', reward: [['lingzhi', 1, 2], ['iron', 2, 3], ['silver', 30, 50]], fail: '고목이 꿈쩍도 하지 않습니다. (공격력 22 이상 필요)' },
-    terrain: { grass: 40, earth: 30, plain: 20, water: 10 },
+    terrain: ['earth', 'grass', 'wood'],
     unlock: null,
   },
   yeomhwa: {
@@ -54,7 +54,7 @@ const ZONES = {
     mine: [['blackiron', 1, 2, 1], ['emberStone', 1, 1, 0.3], ['jadeStone', 1, 1, 0.25], ['wood', 1, 2, 0.4]],
     chest: [['silver', 80, 140], ['potionMp', 2, 3], ['firegrass', 2, 3], ['blackiron', 2, 3]],
     gimmick: { name: '잠긴 목책 기관', stat: 'spd', need: 17, text: '목책 위로 몸을 날려 화적들의 비밀 창고를 털었습니다!', reward: [['emberStone', 1, 2], ['firegrass', 2, 3], ['silver', 80, 120]], fail: '목책을 넘기엔 몸이 무겁습니다. (속도 17 이상 필요)' },
-    terrain: { earth: 45, plain: 35, grass: 20 },
+    terrain: ['earth', 'plain'],
     unlock: { boss: 'boss1', text: '청풍산 두목을 꺾으면 길이 열린다' },
   },
   jeokryong: {
@@ -65,7 +65,7 @@ const ZONES = {
     mine: [['coldiron', 1, 2, 1], ['jadeStone', 1, 1, 0.3]],
     chest: [['silver', 200, 320], ['clearPill', 1, 2], ['bloodginseng', 1, 1], ['coldiron', 2, 3]],
     gimmick: { name: '수문 기관', stat: 'maxMp', need: 260, text: '내력을 쏟아부어 녹슨 수문을 들어올리자 수적들의 보물이 떠올랐습니다!', reward: [['bloodginseng', 1, 1], ['lotus', 1, 2], ['silver', 150, 220]], fail: '수문이 요지부동입니다. (최대 내력 260 이상 필요)' },
-    terrain: { water: 55, plain: 25, grass: 10, earth: 10 },
+    terrain: ['water', 'wood'],
     unlock: { boss: 'boss2', text: '염화채 채주를 꺾으면 길이 열린다' },
   },
 };

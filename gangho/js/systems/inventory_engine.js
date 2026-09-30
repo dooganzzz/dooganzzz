@@ -36,6 +36,22 @@ function makeGear(base, tier, rarity, crafted) {
   };
 }
 
+/* 하급 장비(GEAR_DB) 한 점. 등급은 하급 고정 */
+function makeNamedGear(id, st = S) {
+  const G = GEAR_DB[id];
+  return { uid: st.uid++, named: id, tier: 1, slot: G.slot, wtype: G.wtype || null, name: G.name, rarity: 0, stats: { ...G.stats }, unique: null, crafted: false };
+}
+/* 드랍·공양·금고의 장비: 1티어 하급은 하급 장비 37종 중에서, 그 밖에는 기본형으로 */
+function dropGear(tier, rarity) {
+  if (tier === 1 && rarity === 0) return makeNamedGear(pick(Object.keys(GEAR_DB)));
+  return makeGear(pick(Object.keys(EQUIP_BASES)), tier, rarity, false);
+}
+/* 전방 진열 한 줄의 사양: 하급 장비 id 또는 기본형 */
+function gearSpec(key, tier = 1) {
+  if (GEAR_DB[key]) { const G = GEAR_DB[key]; return { name: G.name, slot: G.slot, wtype: G.wtype || null, stats: G.stats, desc: G.desc }; }
+  const B = EQUIP_BASES[key]; return { name: B.names[tier - 1], slot: B.slot, wtype: B.wtype || null, stats: B.stats[tier - 1], desc: '' };
+}
+
 function rollDropRarity(boss) {
   const r = Math.random();
   if (boss) return r < 0.05 ? 3 : r < 0.4 ? 2 : 1;
@@ -162,11 +178,11 @@ function buyItem(id) {
 }
 function buyGear(base, tier) {
   const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row) return false;
-  const price = row[2], name = EQUIP_BASES[base].names[tier - 1];
+  const price = row[2], name = gearSpec(base, tier).name;
   if (S.silver < price) { shopPoor(price, name); return false; }
-  if (!giveGear(makeGear(base, tier, 0, false), true)) { notify.refresh(); return false; }
+  if (!giveGear(GEAR_DB[base] ? makeNamedGear(base) : makeGear(base, tier, 0, false), true)) { notify.refresh(); return false; }
   S.silver -= price;
-  log(`🛒 전방에서 [하품] ${hlItem(name)}${jo(name, '을를')} ${hlSilver(price)}에 샀습니다. 행낭에서 착용하십시오.`, 'loot');
+  log(`🛒 전방에서 [하급] ${hlItem(name)}${jo(name, '을를')} ${hlSilver(price)}에 샀습니다. 행낭에서 착용하십시오.`, 'loot');
   notify.refresh();
   return true;
 }

@@ -32,14 +32,14 @@ module.exports = async (b) => {
     // 3. 구매: 은자 차감 + 행낭 반영
     const buy = await p.evaluate(() => { S.silver = 100; const n0 = count('potionHp'); document.querySelector('[data-buy="potionHp"]').click(); return { silver: S.silver, got: count('potionHp') - n0, log: S.log[S.log.length - 1].text }; });
     ok('3 구매: 은자 -15, 금창약 +1', buy.silver === 85 && buy.got === 1 && /전방에서/.test(buy.log), JSON.stringify(buy));
-    const bg = await p.evaluate(() => { S.silver = 100; const g0 = S.gear.length; document.querySelector('[data-buygear="sword:1"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity }; });
-    ok('3 기본 장비 구매 → 행낭 보관 장비', bg.silver === 55 && bg.added === 1 && bg.name === '철검' && bg.rarity === 0, JSON.stringify(bg));
+    const bg = await p.evaluate(() => { S.silver = 100; const g0 = S.gear.length; document.querySelector('[data-buygear="g_straightSword:1"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity, named: it.named }; });
+    ok('3 하급 장비 구매 → 행낭 보관 장비', bg.silver === 55 && bg.added === 1 && bg.name === '직도형 박검' && bg.rarity === 0 && bg.named === 'g_straightSword', JSON.stringify(bg));
 
     // 은자 부족: 구매 차단 + 견문록 오류
-    const poor = await p.evaluate(() => { S.silver = 3; const n0 = count('potionHp'), g0 = S.gear.length; document.querySelector('[data-buy="potionHp"]').click(); const l1 = S.log[S.log.length - 1]; document.querySelector('[data-buygear="armor:1"]').click(); const l2 = S.log[S.log.length - 1];
+    const poor = await p.evaluate(() => { S.silver = 3; const n0 = count('potionHp'), g0 = S.gear.length; document.querySelector('[data-buy="potionHp"]').click(); const l1 = S.log[S.log.length - 1]; document.querySelector('[data-buygear="g_hunterCoat:1"]').click(); const l2 = S.log[S.log.length - 1];
       return { silver: S.silver, got: count('potionHp') - n0, gear: S.gear.length - g0, l1: l1.text, c1: l1.cls, l2: l2.text, dom: document.querySelector('#log p').className, short: document.querySelector('[data-buy="potionHp"]').classList.contains('short') }; });
     ok('3 은자 부족 → 구매 차단 (은자·행낭 그대로)', poor.silver === 3 && poor.got === 0 && poor.gear === 0, JSON.stringify(poor));
-    ok('3 은자 부족 → 견문록 오류 기록', /은자가 부족해 금창약/.test(poor.l1) && poor.c1 === 'bad' && /가죽 호갑/.test(poor.l2) && poor.dom === 'bad', poor.l1);
+    ok('3 은자 부족 → 견문록 오류 기록', /은자가 부족해 금창약/.test(poor.l1) && poor.c1 === 'bad' && /사냥꾼 가죽옷/.test(poor.l2) && poor.dom === 'bad', poor.l1);
     ok('3 모자란 품목은 흐리게 표시', poor.short);
 
     // 행낭이 가득 차면 은자를 받지 않음

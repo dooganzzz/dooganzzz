@@ -13,12 +13,14 @@ const ITEMS = {
   coldiron:     { name: '한철',       icon: '🧊', kind: '재료', craftType: 'forge', price: 35, desc: '적룡방 물밑에서 건진 차가운 쇠.' },
   jadeStone:    { name: '옥돌',       icon: '💠', kind: '재료', craftType: 'forge', price: 15, desc: '광맥 사이에 박힌 푸른 옥.' },
   wood:         { name: '목재',       icon: '🪵', kind: '재료', craftType: 'forge', price: 1, desc: '땔감이자 자루감.' },
-  rabbitMeat:   { name: '토끼고기',   icon: '🍖', kind: '재료', craftType: 'cooking', price: 2, desc: '들토끼에게서 얻은 고기.' },
+  rabbitMeat:   { name: '토끼고기',   icon: '🍖', kind: '재료', craftType: 'cooking', price: 2, desc: '산토끼에게서 얻은 고기.' },
   rabbitHide:   { name: '토끼가죽',   icon: '🟫', kind: '재료', craftType: 'forge', price: 2, desc: '부드럽고 얇은 가죽.' },
-  dogFang:      { name: '들개 이빨',  icon: '🦷', kind: '재료', craftType: 'forge', price: 3, desc: '날카로운 송곳니.' },
+  dogFang:      { name: '짐승 송곳니', icon: '🦷', kind: '재료', craftType: 'forge', price: 3, desc: '살쾡이 같은 들짐승의 날카로운 송곳니.' },
   boarMeat:     { name: '멧돼지고기', icon: '🥩', kind: '재료', craftType: 'cooking', price: 4, desc: '기름진 멧돼지 고기.' },
-  roughHide:    { name: '거친 가죽', icon: '🟫', kind: '재료', craftType: 'forge', price: 4, desc: '들개에게서 벗긴 뻣뻣한 가죽.' },
-  kingTusk:     { name: '왕의 송곳니', icon: '🦷', kind: '증표', price: 0, desc: '외눈 멧돼지왕의 거대한 송곳니. 청풍산 두목을 쓰러뜨린 증표.' },
+  roughHide:    { name: '거친 가죽', icon: '🟫', kind: '재료', craftType: 'forge', price: 4, desc: '들짐승에게서 벗긴 뻣뻣한 가죽.' },
+  viperFang:    { name: '독사 이빨',  icon: '🐍', kind: '재료', craftType: 'alchemy', price: 6, desc: '흑비단독사의 독니. 잘 말리면 약이 된다.' },
+  tigerBone:    { name: '적염 호골',  icon: '🦴', kind: '재료', craftType: 'alchemy', price: 40, desc: '적염 호랑이의 뼈. 달이면 뜨거운 기운이 돈다. 청풍산 두목을 쓰러뜨린 증거.' },
+  kingTusk:     { name: '왕의 송곳니', icon: '🦷', kind: '증표', price: 0, desc: '옛 청풍산 두목 외눈 멧돼지왕의 거대한 송곳니. 지난 토벌의 증표.' },
   boarHide:     { name: '두꺼운 가죽', icon: '🟤', kind: '재료', craftType: 'forge', price: 5, desc: '두껍고 질긴 가죽.' },
   boarTusk:     { name: '멧돼지 송곳니', icon: '🦴', kind: '재료', craftType: 'forge', price: 6, desc: '휘어진 송곳니. 도(刀)의 코등이로 쓰인다.' },
   bandanaSilk:  { name: '화적 비단',  icon: '🧣', kind: '재료', craftType: 'forge', price: 12, desc: '화적들이 약탈한 붉은 비단.' },
@@ -61,11 +63,31 @@ const ITEMS = {
   bk_tonap: { name: '《토납법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'tonap' }, desc: '읽고 익히면 토납법(吐納法)을(를) 운용할 수 있다.' },
   bk_pocheolsak: { name: '《포철삭》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'pocheolsak' }, desc: '읽고 익히면 포철삭(抛鐵索)을(를) 운용할 수 있다.' },
   bk_cheolpo: { name: '《철포삼》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cheolpo' }, desc: '읽고 익히면 철포삼(鐵布衫)을(를) 운용할 수 있다.' },
-  bk_yeolhwa: { name: '《열화기공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'yeolhwa' }, desc: '읽고 익히면 열화기공(烈火氣功)을(를) 운용할 수 있다.' },
-  bk_suryu: { name: '《수류기공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'suryu' }, desc: '읽고 익히면 수류기공(水流氣功)을(를) 운용할 수 있다.' },
-  bk_hwangto: { name: '《황토기공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hwangto' }, desc: '읽고 익히면 황토기공(黃土氣功)을(를) 운용할 수 있다.' },
+  bk_paseok: { name: '《파석권》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'paseok' }, desc: '읽고 익히면 파석권(破石拳)을(를) 운용할 수 있다.' },
+  bk_swaegol: { name: '《쇄골장》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'swaegol' }, desc: '읽고 익히면 쇄골장(碎骨掌)을(를) 운용할 수 있다.' },
+  bk_yeonhwan: { name: '《연환통배권》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'yeonhwan' }, desc: '읽고 익히면 연환통배권(連環通背拳)을(를) 운용할 수 있다.' },
+  bk_cpGeombeop: { name: '《청풍검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGeombeop' }, desc: '읽고 익히면 청풍검법(淸風劍法)을(를) 운용할 수 있다.' },
+  bk_nakyeop: { name: '《낙엽검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'nakyeop' }, desc: '읽고 익히면 낙엽검법(落葉劍法)을(를) 운용할 수 있다.' },
+  bk_chupung: { name: '《추풍검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'chupung' }, desc: '읽고 익히면 추풍검(追風劍)을(를) 운용할 수 있다.' },
+  bk_ohodanmun: { name: '《오호단문도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'ohodanmun' }, desc: '읽고 익히면 오호단문도(五虎斷門刀)을(를) 운용할 수 있다.' },
+  bk_byeokryeok: { name: '《벽력도법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'byeokryeok' }, desc: '읽고 익히면 벽력도법(霹靂刀法)을(를) 운용할 수 있다.' },
+  bk_dansu: { name: '《단수도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'dansu' }, desc: '읽고 익히면 단수도(斷水刀)을(를) 운용할 수 있다.' },
+  bk_yukhap: { name: '《육합창법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'yukhap' }, desc: '읽고 익히면 육합창법(六合槍法)을(를) 운용할 수 있다.' },
+  bk_cheolgi: { name: '《철기창》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cheolgi' }, desc: '읽고 익히면 철기창(鐵騎槍)을(를) 운용할 수 있다.' },
+  bk_pungun: { name: '《풍운점혈창》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'pungun' }, desc: '읽고 익히면 풍운점혈창(風雲點穴槍)을(를) 운용할 수 있다.' },
+  bk_biyeon: { name: '《비연표》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'biyeon' }, desc: '읽고 익히면 비연표(飛燕鏢)을(를) 운용할 수 있다.' },
+  bk_sanhwa: { name: '《산화철질려》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sanhwa' }, desc: '읽고 익히면 산화철질려(散花鐵蒺藜)을(를) 운용할 수 있다.' },
+  bk_tugol: { name: '《투골정》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'tugol' }, desc: '읽고 익히면 투골정(透骨釘)을(를) 운용할 수 있다.' },
   bk_chosangbi: { name: '《초상비》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'chosangbi' }, desc: '읽고 익히면 초상비(草上飛)을(를) 운용할 수 있다.' },
-  bk_deungpyeong: { name: '《등평도수》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'deungpyeong' }, desc: '읽고 익히면 등평도수(登萍渡水)을(를) 운용할 수 있다.' },
+  bk_dapsu: { name: '《답수보》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'dapsu' }, desc: '읽고 익히면 답수보(踏水步)을(를) 운용할 수 있다.' },
+  bk_jihaeng: { name: '《지행보》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'jihaeng' }, desc: '읽고 익히면 지행보(地行步)을(를) 운용할 수 있다.' },
+  bk_deungsu: { name: '《등수보》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'deungsu' }, desc: '읽고 익히면 등수보(登樹步)을(를) 운용할 수 있다.' },
+  bk_mijong: { name: '《미종보》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'mijong' }, desc: '읽고 익히면 미종보(迷蹤步)을(를) 운용할 수 있다.' },
+  bk_mokryeong: { name: '《목령진기》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'mokryeong' }, desc: '읽고 익히면 목령진기(木靈眞氣)을(를) 운용할 수 있다.' },
+  bk_byeokhwa: { name: '《벽화공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'byeokhwa' }, desc: '읽고 익히면 벽화공(碧火功)을(를) 운용할 수 있다.' },
+  bk_huto: { name: '《후토공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'huto' }, desc: '읽고 익히면 후토공(厚土功)을(를) 운용할 수 있다.' },
+  bk_baekgeum: { name: '《백금결》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'baekgeum' }, desc: '읽고 익히면 백금결(白金訣)을(를) 운용할 수 있다.' },
+  bk_yusu: { name: '《유수심법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'yusu' }, desc: '읽고 익히면 유수심법(流水心法)을(를) 운용할 수 있다.' },
   bk_cpGwon: { name: '《청풍권》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGwon' }, desc: '읽고 익히면 청풍권(淸風拳)을(를) 운용할 수 있다.' },
   bk_cpGeom: { name: '《청풍검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGeom' }, desc: '읽고 익히면 청풍검(淸風劍)을(를) 운용할 수 있다.' },
   bk_cpDo: { name: '《청풍도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpDo' }, desc: '읽고 익히면 청풍도(淸風刀)을(를) 운용할 수 있다.' },
@@ -76,13 +98,14 @@ const ITEMS = {
   bk_cpGi: { name: '《청풍기공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGi' }, desc: '읽고 익히면 청풍기공(淸風氣功)을(를) 운용할 수 있다.' },
 };
 
-/* 희귀도 */
+/* 장비 등급: 하급 < 중급 < 상급 < 진품 < 명품 < 극품 (능력치 배율) */
 const RARITY = [
-  { name: '하품', hanja: '下品', mult: 1.0,  cls: 'r0' },
-  { name: '중품', hanja: '中品', mult: 1.2,  cls: 'r1' },
-  { name: '상품', hanja: '上品', mult: 1.45, cls: 'r2' },
-  { name: '진품', hanja: '珍品', mult: 1.75, cls: 'r3' },
-  { name: '극품', hanja: '極品', mult: 2.1,  cls: 'r4' },
+  { name: '하급', hanja: '下級', mult: 1.0,  cls: 'r0' },
+  { name: '중급', hanja: '中級', mult: 1.2,  cls: 'r1' },
+  { name: '상급', hanja: '上級', mult: 1.45, cls: 'r2' },
+  { name: '진품', hanja: '眞品', mult: 1.75, cls: 'r3' },
+  { name: '명품', hanja: '名品', mult: 2.1,  cls: 'r4' },
+  { name: '극품', hanja: '極品', mult: 2.5,  cls: 'r5' },
 ];
 
 /* 장비 슬롯 */
@@ -91,9 +114,9 @@ const SLOTS = {
   armor:  { name: '호갑',   desc: '활력·방어력' },
   helmet: { name: '투구',   desc: '치명 저항' },
   boots:  { name: '신발',   desc: '공격 속도·회피율' },
-  belt:   { name: '요대',   desc: '내력 회복·행낭 확장' },
-  jade:   { name: '옥패',   desc: '최대 내력·내력 소모 감소' },
-  ring:   { name: '가락지', desc: '치명타율·기예 보정' },
+  belt:   { name: '허리띠', desc: '적재량·활력 보정' },
+  jade:   { name: '옥대',   desc: '기공 위력·단전(내력) 보정' },
+  ring:   { name: '가락지', desc: '내력·특수 보정' },
   badge:  { name: '신분패', desc: '경험치 획득' },
   mount:  { name: '탈것',   desc: '최대 기력' },
 };
@@ -103,10 +126,11 @@ const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring'
 const STAT_NAMES = {
   atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피율',
   crit: '치명타율', critRes: '치명 저항', mpRegen: '내력 회복', bag: '행낭 칸', mpCost: '내력 소모 감소',
-  craft: '기예 보정', train: '경험치 획득', maxSta: '최대 기력', counter: '반격',
+  craft: '기예 보정', train: '경험치 획득', maxSta: '최대 기력', counter: '반격', combo: '초식 발동률',
+  staSave: '기력 소모 감소', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성',
 };
 
-const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter']);
+const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter', 'combo', 'staSave', 'breathe', 'qiPct', 'elemRes']);
 
 /* 장비 기본형: slot → names[tier-1], stats[tier-1] */
 const TIER_ORE = { 1: 'iron', 2: 'blackiron', 3: 'coldiron' };
@@ -121,9 +145,62 @@ const EQUIP_BASES = {
   helmet: { slot: 'helmet', names: ['가죽 두건', '흑철 투구', '한철 투구'], stats: [{ critRes: 5, def: 2, counter: 2 }, { critRes: 10, def: 5, counter: 4 }, { critRes: 16, def: 10, counter: 6 }] },
   boots : { slot: 'boots', names: ['짚신', '흑철 징신', '한철 운혜'], stats: [{ spd: 2, eva: 2 }, { spd: 4, eva: 4 }, { spd: 6, eva: 6 }] },
   belt  : { slot: 'belt', names: ['가죽 요대', '흑철 요대', '한철 요대'], stats: [{ mpRegen: 1, bag: 5 }, { mpRegen: 2, bag: 10 }, { mpRegen: 4, bag: 15 }] },
-  jade  : { slot: 'jade', names: ['청옥패', '흑옥패', '한옥패'], stats: [{ maxMp: 15, mpCost: 3 }, { maxMp: 40, mpCost: 6 }, { maxMp: 90, mpCost: 10 }] },
+  jade  : { slot: 'jade', names: ['청옥대', '흑옥대', '한옥대'], stats: [{ maxMp: 15, mpCost: 3 }, { maxMp: 40, mpCost: 6 }, { maxMp: 90, mpCost: 10 }] },
   ring  : { slot: 'ring', names: ['철 가락지', '흑철 가락지', '한철 가락지'], stats: [{ crit: 3, craft: 3 }, { crit: 6, craft: 6 }, { crit: 10, craft: 10 }] },
 };
+
+/* 하급 장비 37종 (이름 있는 장비, 등급 하급 고정). 청풍산 드랍 · 무신상 공양 · 금고 · 전방에서 나온다.
+   staSave: 탐험 기력 소모 -% · breathe: 승리 후 숨 고르기 활력 +%p · qiPct: 장착 기공 능력치 +% · elemRes: 오행 극당할 때 받는 피해 -%p */
+const GEAR_DB = {
+  // 권장
+  g_bandage:   { slot: 'weapon', wtype: 'fist',   name: '무명 붕대',       stats: { atk: 4, spd: 1 },          desc: '주먹에 칭칭 감은 무명천. 손등 까지는 것만 막아 준다.' },
+  g_hideTosu:  { slot: 'weapon', wtype: 'fist',   name: '거친 가죽 토수',   stats: { atk: 6, def: 1 },          desc: '팔뚝까지 덮는 거친 가죽 토시.' },
+  g_studFist:  { slot: 'weapon', wtype: 'fist',   name: '무쇠 징 권갑',     stats: { atk: 8 },                  desc: '손마디마다 무쇠 징을 박은 권갑. 투박하지만 아프다.' },
+  g_woodFist:  { slot: 'weapon', wtype: 'fist',   name: '목인갑',           stats: { atk: 6, counter: 2 },      desc: '목인장 수련용으로 나무를 덧댄 권갑. 받아치기 좋다.' },
+  g_copperGlove:{ slot: 'weapon', wtype: 'fist',  name: '동선 장갑',        stats: { atk: 7, crit: 1 },         desc: '구리실을 촘촘히 엮은 장갑.' },
+  // 검
+  g_rustySword:{ slot: 'weapon', wtype: 'sword',  name: '녹슨 연습검',      stats: { atk: 5 },                  desc: '청풍문 연무장 구석에 굴러다니던 연습검.' },
+  g_dullSword: { slot: 'weapon', wtype: 'sword',  name: '날 무딘 철검',     stats: { atk: 7 },                  desc: '날이 무뎌 베기보다 두드리기에 가깝다.' },
+  g_bronzeRapier:{ slot: 'weapon', wtype: 'sword', name: '청동 세검',       stats: { atk: 7, crit: 2 },         desc: '가늘고 가벼운 청동 검. 찌르기에 좋다.' },
+  g_mapleSword:{ slot: 'weapon', wtype: 'sword',  name: '단풍목 목검',      stats: { atk: 5, eva: 2 },          desc: '단풍나무를 깎은 목검. 가벼워 몸놀림이 산다.' },
+  g_straightSword:{ slot: 'weapon', wtype: 'sword', name: '직도형 박검',    stats: { atk: 9, crit: 1 },         desc: '곧고 얇은 외날 검.' },
+  // 도
+  g_chippedBlade:{ slot: 'weapon', wtype: 'blade', name: '이가 빠진 마도',  stats: { atk: 7 },                  desc: '말 탄 병사가 쓰던 도. 날 곳곳이 이가 빠졌다.' },
+  g_ironSaber: { slot: 'weapon', wtype: 'blade',  name: '무쇠 낭도',        stats: { atk: 9 },                  desc: '무쇠를 두드려 만든 두툼한 낭도.' },
+  g_blackSaber:{ slot: 'weapon', wtype: 'blade',  name: '흑철 박도',        stats: { atk: 11 },                 desc: '흑철을 섞어 무겁고 단단한 박도.' },
+  g_axeBlade:  { slot: 'weapon', wtype: 'blade',  name: '벌목용 벌채도',    stats: { atk: 10, crit: 1 },        desc: '나무 베던 벌채도. 한 번 박히면 깊다.' },
+  g_shortBlade:{ slot: 'weapon', wtype: 'blade',  name: '두정 단도',        stats: { atk: 8, spd: 1 },          desc: '짧고 날렵한 단도. 칼끝이 둥글다.' },
+  // 창
+  g_bambooSpear:{ slot: 'weapon', wtype: 'spear', name: '대나무 죽창',      stats: { atk: 6, spd: 1 },          desc: '대나무 끝을 비스듬히 깎은 죽창.' },
+  g_flailSpear:{ slot: 'weapon', wtype: 'spear',  name: '녹슨 편곤창',      stats: { atk: 8 },                  desc: '자루 끝에 쇠사슬이 달린 녹슨 창.' },
+  g_waxSpear:  { slot: 'weapon', wtype: 'spear',  name: '백랍목 장창',      stats: { atk: 8, spd: 1, eva: 1 },  desc: '잘 휘는 백랍목 자루의 장창.' },
+  g_needleSpear:{ slot: 'weapon', wtype: 'spear', name: '철침 단창',        stats: { atk: 9, crit: 1 },         desc: '바늘처럼 가는 쇠촉을 단 짧은 창.' },
+  g_trident:   { slot: 'weapon', wtype: 'spear',  name: '사냥용 삼지창',    stats: { atk: 10 },                 desc: '멧돼지 사냥에 쓰던 세 갈래 창.' },
+  // 암기
+  g_dullStar:  { slot: 'weapon', wtype: 'hidden', name: '무딘 철표창',      stats: { atk: 5, eva: 1 },          desc: '끝이 무딘 쇠 표창 몇 자루.' },
+  g_pebbles:   { slot: 'weapon', wtype: 'hidden', name: '자갈 주머니',      stats: { atk: 4, eva: 2 },          desc: '냇가에서 골라 담은 동글동글한 자갈.' },
+  g_rustyKnife:{ slot: 'weapon', wtype: 'hidden', name: '녹슨 비도',        stats: { atk: 6, eva: 1 },          desc: '던지는 칼. 녹이 슬어 날이 무디다.' },
+  g_caltrops:  { slot: 'weapon', wtype: 'hidden', name: '조잡한 철질려',    stats: { atk: 6, crit: 1 },         desc: '대충 벼린 쇠마름쇠 한 줌.' },
+  g_woodNeedle:{ slot: 'weapon', wtype: 'hidden', name: '목제 비연침',      stats: { atk: 5, eva: 3 },          desc: '나무를 깎아 만든 가벼운 침.' },
+  // 방어구
+  g_hempRobe:  { slot: 'armor', name: '해진 삼베 도포',      stats: { maxHp: 15, def: 1 },            desc: '기본 의복. 겨우 살갗을 가린다.' },
+  g_hunterCoat:{ slot: 'armor', name: '질긴 사냥꾼 가죽옷',  stats: { maxHp: 35, def: 4 },            desc: '짐승 가죽을 겹쳐 지은 겉옷. 물리 공격에 강하다.' },
+  g_cpRobe:    { slot: 'armor', name: '청풍문 규격 도포',    stats: { maxHp: 30, def: 3, maxMp: 8 },  desc: '청풍문 수련생의 기본 도포. 단전을 편하게 한다.' },
+  // 가락지
+  g_ironRing:  { slot: 'ring', name: '무쇠 가락지',  stats: { atk: 2 },      desc: '단단하게 두드려 만든 쇠반지.' },
+  g_hornRing:  { slot: 'ring', name: '흑각 가락지',  stats: { staSave: 2 },  desc: '흑우 뿔을 깎아 만든 반지. 발걸음이 가볍다.' },
+  g_bronzeRing:{ slot: 'ring', name: '청동 가락지',  stats: { maxMp: 8 },    desc: '조잡한 구리 반지. 내력이 조금 더 고인다.' },
+  // 허리띠
+  g_hempBelt:  { slot: 'belt', name: '거친 삼베 허리띠',   stats: { bag: 4 },          desc: '매듭으로 묶는 기본 허리띠.' },
+  g_leatherBelt:{ slot: 'belt', name: '무두질한 가죽 요대', stats: { def: 3, bag: 6 },  desc: '질긴 소가죽 끈.' },
+  g_silkBelt:  { slot: 'belt', name: '흑사 편직 요대',     stats: { breathe: 2 },      desc: '검은 비단실을 꼬아 만든 요대. 숨이 빨리 돌아온다.' },
+  // 옥대
+  g_dullJade:  { slot: 'jade', name: '탁한 청옥대',   stats: { qiPct: 3 },   desc: '빛이 바랜 청옥 조각을 박은 띠. 기공이 조금 더 잘 돈다.' },
+  g_whiteJade: { slot: 'jade', name: '투박한 백옥대', stats: { maxMp: 15 },  desc: '조각이 거친 백옥 장식 띠.' },
+  g_cloudJade: { slot: 'jade', name: '운문 연옥대',   stats: { elemRes: 5 }, desc: '구름 무늬가 새겨진 연옥 띠. 상극의 기운을 조금 누그러뜨린다.' },
+};
+/* 입문 무공(병기)별 첫 무기 · 첫 옷 */
+const STARTER_GEAR = { fist: 'g_hideTosu', sword: 'g_dullSword', blade: 'g_ironSaber', spear: 'g_flailSpear', hidden: 'g_rustyKnife', armor: 'g_hempRobe' };
 
 /* 신분패·탈것 (구매) */
 const SHOP_GEAR = [
@@ -185,9 +262,9 @@ const RECIPES = [
   { id: 'f_spear_1', craft: 'forge', in: { iron: 1, wood: 2 }, out: 'eq:spear:1', hint: '조운: "창은 쇠 하나로 날을 만들고 목재 둘로 긴 자루를 잇지."' },
   { id: 'f_spear_2', craft: 'forge', in: { blackiron: 1, wood: 2 }, out: 'eq:spear:2', hint: '조운: "창은 쇠 하나로 날을 만들고 목재 둘로 긴 자루를 잇지." (쇠를 흑철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
   { id: 'f_spear_3', craft: 'forge', in: { coldiron: 1, wood: 2 }, out: 'eq:spear:3', hint: '조운: "창은 쇠 하나로 날을 만들고 목재 둘로 긴 자루를 잇지." (쇠를 한철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
-  { id: 'f_hidden_1', craft: 'forge', in: { iron: 1, dogFang: 2 }, out: 'eq:hidden:1', hint: '조운: "비표는 쇠 하나에 들개 이빨 두 개를 갈아 촉을 세운다."' },
-  { id: 'f_hidden_2', craft: 'forge', in: { blackiron: 1, dogFang: 2 }, out: 'eq:hidden:2', hint: '조운: "비표는 쇠 하나에 들개 이빨 두 개를 갈아 촉을 세운다." (쇠를 흑철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
-  { id: 'f_hidden_3', craft: 'forge', in: { coldiron: 1, dogFang: 2 }, out: 'eq:hidden:3', hint: '조운: "비표는 쇠 하나에 들개 이빨 두 개를 갈아 촉을 세운다." (쇠를 한철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
+  { id: 'f_hidden_1', craft: 'forge', in: { iron: 1, dogFang: 2 }, out: 'eq:hidden:1', hint: '조운: "비표는 쇠 하나에 짐승 송곳니 두 개를 갈아 촉을 세운다."' },
+  { id: 'f_hidden_2', craft: 'forge', in: { blackiron: 1, dogFang: 2 }, out: 'eq:hidden:2', hint: '조운: "비표는 쇠 하나에 짐승 송곳니 두 개를 갈아 촉을 세운다." (쇠를 흑철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
+  { id: 'f_hidden_3', craft: 'forge', in: { coldiron: 1, dogFang: 2 }, out: 'eq:hidden:3', hint: '조운: "비표는 쇠 하나에 짐승 송곳니 두 개를 갈아 촉을 세운다." (쇠를 한철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
   { id: 'f_armor_1', craft: 'forge', in: { iron: 2, boarHide: 1, rabbitHide: 1 }, out: 'eq:armor:1', hint: '조운: "호갑은 쇠 둘, 두꺼운 가죽 하나, 토끼가죽 하나."' },
   { id: 'f_armor_2', craft: 'forge', in: { blackiron: 2, boarHide: 1, rabbitHide: 1 }, out: 'eq:armor:2', hint: '조운: "호갑은 쇠 둘, 두꺼운 가죽 하나, 토끼가죽 하나." (쇠를 흑철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
   { id: 'f_armor_3', craft: 'forge', in: { coldiron: 2, boarHide: 1, rabbitHide: 1 }, out: 'eq:armor:3', hint: '조운: "호갑은 쇠 둘, 두꺼운 가죽 하나, 토끼가죽 하나." (쇠를 한철(으)로 바꾸면 더 좋은 물건이 나온다.)' },
@@ -231,7 +308,8 @@ const GACHA = {
     { k: 'pill',   w: 4,  name: '영단',   pool: [['pillLow', 1, 1], ['clearPill', 1, 1]] },
     { k: 'book',   w: 3,  name: '비급' },
   ],
-  books: ['yeolhwa', 'suryu', 'hwangto', 'chosangbi', 'deungpyeong', 'samjaeGwon', 'samjaeGeom', 'samjaeDo', 'samjaeChang', 'samjaePyo'],
+  books: ['paseok', 'swaegol', 'yeonhwan', 'cpGeombeop', 'nakyeop', 'chupung', 'ohodanmun', 'byeokryeok', 'dansu', 'yukhap', 'cheolgi', 'pungun', 'biyeon', 'sanhwa', 'tugol',
+          'chosangbi', 'dapsu', 'jihaeng', 'deungsu', 'mijong', 'mokryeong', 'byeokhwa', 'huto', 'baekgeum', 'yusu', 'samjaeGwon', 'samjaeGeom', 'samjaeDo', 'samjaeChang', 'samjaePyo'],
 };
 
 /* 화로 한 번에 넣을 수 있는 재료 수 · 연구 노트에 남기는 시도 수 */

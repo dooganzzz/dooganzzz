@@ -24,13 +24,13 @@ module.exports = async (b) => {
       // 회피 0 + 반격 100%
       const noDodge = run(-1000, 100);
       return {
-        dodges: allDodge.filter(t => t[0].includes('비스듬히 흘려냈습니다')).length,
-        dodgeTexts: allDodge.filter(t => t[0].includes('비스듬히 흘려냈습니다')).every(t => t.length === 1),
-        dodgeNoCounter: allDodge.filter(t => t[0].includes('비스듬히 흘려냈습니다')).every(t => !t.some(x => x.includes('반격'))),
-        hitThenCounter: noDodge.every(t => t.length >= 2 && t[0].includes('활력 -') && t[1].includes('반격(反擊)')),
+        dodges: allDodge.filter(t => t.some(x => x.includes('비스듬히 흘려냈습니다'))).length,
+        dodgeTexts: allDodge.filter(t => t.some(x => x.includes('비스듬히 흘려냈습니다'))).every(t => t.length === 2),   // 적의 공격 지문 + 회피 결과
+        dodgeNoCounter: allDodge.filter(t => t.some(x => x.includes('비스듬히 흘려냈습니다'))).every(t => !t.some(x => x.includes('반격'))),
+        hitThenCounter: noDodge.every(t => t.length >= 3 && t[1].includes('활력 -') && t[2].includes('반격(反擊)')),
       };
     });
-    ok('1 회피 성공: "비스듬히 흘려냈습니다" 한 줄만', cb.dodges > 5 && cb.dodgeTexts, `회피 ${cb.dodges}회 / 40턴`);
+    ok('1 회피 성공: 적의 공격 지문 + "비스듬히 흘려냈습니다" 결과만', cb.dodges > 5 && cb.dodgeTexts, `회피 ${cb.dodges}회 / 40턴`);
     ok('1 회피 성공 시 반격 판정 없음', cb.dodgeNoCounter);
     ok('1 반격은 피격 뒤에만 발동', cb.hitThenCounter);
 
@@ -63,7 +63,7 @@ module.exports = async (b) => {
     });
     ok('3 다섯 종류 무작위 (비급/장비 궤가 가장 드묾)', Object.keys(vault.kinds).length === 5 && vault.kinds['비급/장비 궤'] < vault.kinds['은자 궤'], JSON.stringify(vault.kinds));
     ok('3 은자 궤 15~35냥 · 약재 궤 연단 · 철물 궤 주조 · 식재 궤 조리 재료만', vault.silverOk && vault.alchemyOnly && vault.forgeOnly && vault.cookOnly);
-    ok('3 비급/장비 궤에서 미습득 하품 비급', vault.bookSeen);
+    ok('3 비급/장비 궤에서 미습득 삼류 비급', vault.bookSeen);
 
     // 4. 견문록 역순
     const lg = await p.evaluate(() => {

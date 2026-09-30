@@ -19,10 +19,11 @@ const SHOP_STOCK = [
   ['potionHp', 15], ['potionMp', 20], ['jumeokbap', 12], ['rice', 4], ['salt', 4], ['water', 2],
   ['wildGreens', 4], ['herb', 6], ['wood', 3], ['iron', 8], ['rabbitHide', 5], ['boarHide', 9],
 ];
-/* 전방 진열: [장비 기본형, 티어, 은자] — 하품 기본 장비 */
+/* 전방 진열: [하급 장비 id(GEAR_DB) 또는 기본형(EQUIP_BASES), 티어, 은자] */
 const SHOP_GEAR_STOCK = [
-  ['fist', 1, 40], ['sword', 1, 45], ['blade', 1, 45], ['spear', 1, 45], ['hidden', 1, 40],
-  ['armor', 1, 50], ['helmet', 1, 35], ['boots', 1, 30],
+  ['g_studFist', 1, 40], ['g_straightSword', 1, 45], ['g_blackSaber', 1, 50], ['g_trident', 1, 45], ['g_caltrops', 1, 40],
+  ['g_hunterCoat', 1, 55], ['g_cpRobe', 1, 60], ['helmet', 1, 35], ['boots', 1, 30],
+  ['g_ironRing', 1, 40], ['g_hempBelt', 1, 20], ['g_leatherBelt', 1, 45], ['g_whiteJade', 1, 50],
 ];
 /* 장비 되팔기: 티어별 기본값 × 희귀도 배율 × (1 + 강화 × 0.15) */
 const GEAR_SELL = { tier: [8, 25, 60], enh: 0.15 };
@@ -31,7 +32,7 @@ const GEAR_SELL = { tier: [8, 25, 60], enh: 0.15 };
 const ARIN_TALK = [
   '사형, 조운 사형이 또 장작 패다 도끼 자루 부러뜨렸대요. 헤헤.',
   '장문인 할아버지 오늘도 낮잠이에요. 코 고는 소리가 연무장까지 들려요!',
-  '청풍산 들토끼는 귀엽지만… 고기는 맛있어요.',
+  '청풍산 산토끼는 귀엽지만… 고기는 맛있어요.',
   '저도 언젠가 낙양 구경 가 보고 싶어요. 사형이 먼저 가면 얘기해 줘요!',
   '무신상 앞에 쇳덩이 놓고 절하는 사형 봤어요. 진짜 효과 있어요?',
   '화로 쓸 때 불 조심해요! 지난번에 조운 사형 눈썹 탔었어요.',

@@ -94,7 +94,7 @@ function gachaRoll() {
   }
   if (e.k === 'gear') {
     const tier = Math.max(...ZONE_ORDER.filter(zoneUnlocked).map(z => ZONES[z].tier));
-    const it = makeGear(pick(Object.keys(EQUIP_BASES)), tier, rollDropRarity(false), false);
+    const it = dropGear(tier, rollDropRarity(false));
     if (giveGear(it, true)) return { k: 'gear', text: `🗡️ [${RARITY[it.rarity].name}] ${it.name}`, cls: 'r' + it.rarity };
     e = GACHA.table.find(x => x.k === 'supply');             // 행낭이 가득 차면 소모품으로
   }

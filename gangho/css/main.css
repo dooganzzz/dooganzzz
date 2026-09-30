@@ -17,7 +17,7 @@
   --seal: #d25a44;
   --jade: #5fb09b;
   --hp: #c9523f; --mp: #4f7fc9; --sta: #86a84a;
-  --r0: #9aa0a9; --r1: #6cc38a; --r2: #6ea4ee; --r3: #bb8ce4; --r4: #f0a452;
+  --r0: #9aa0a9; --r1: #6cc38a; --r2: #6ea4ee; --r3: #bb8ce4; --r4: #f0a452; --r5: #ff6b8a;
   --sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --serif: 'Noto Serif KR', 'Batang', 'AppleMyungjo', serif;
   --radius: 6px;
@@ -116,6 +116,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .r2 { color: var(--r2); }
 .r3 { color: var(--r3); }
 .r4 { color: var(--r4); }
+.r5 { color: var(--r5); }
 .art { text-align: left; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; background: var(--raise); cursor: pointer; min-width: 0; transition: border-color .15s; }
 .art-star { font-size: 1.7rem; font-weight: 900; color: var(--gold); line-height: 1; font-variant-numeric: tabular-nums; }
 .art-star small { font-size: .8rem; font-weight: 400; color: var(--dim); margin-left: 2px; }
@@ -593,3 +594,4 @@ body {
 .beasts li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
 .beasts li small { margin-left: auto; }
 .beasts li.unknown { color: var(--dim); }
+.zone-terrain { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; font-size: .82rem; color: var(--dim); }

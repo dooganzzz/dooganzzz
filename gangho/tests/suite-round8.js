@@ -50,16 +50,16 @@ module.exports = async (b) => {
     // 3. 몬스터별 드랍
     const drops = await p.evaluate(() => {
       const seen = {};
-      for (const eid of ['rabbit', 'dog', 'boar', 'boarKing']) {
+      for (const eid of ['rabbit', 'wildcat', 'viper', 'boar', 'redTiger']) {
         seen[eid] = new Set();
         for (let i = 0; i < 25; i++) { const before = { ...S.inv }; S.hp = 1e9; fightSync(eid); for (const k of Object.keys(S.inv)) if ((S.inv[k] || 0) > (before[k] || 0)) seen[eid].add(k); }
         seen[eid] = [...seen[eid]].filter(k => ITEMS[k].kind !== '비급').sort();
       }
       return seen;
     });
-    const allowed = { rabbit: ['rabbitHide', 'rabbitMeat'], dog: ['dogFang', 'roughHide'], boar: ['boarHide', 'boarMeat', 'boarTusk'], boarKing: ['blackiron', 'emberStone', 'kingTusk'] };
+    const allowed = { rabbit: ['rabbitHide', 'rabbitMeat'], wildcat: ['dogFang', 'roughHide'], viper: ['viperFang', 'herb'], boar: ['boarHide', 'boarMeat', 'boarTusk'], redTiger: ['blackiron', 'emberStone', 'tigerBone'] };
     for (const [eid, got] of Object.entries(drops)) ok(`3 ${eid} 드랍은 고유 테이블만`, got.every(k => allowed[eid].includes(k)) && got.length > 0, got.join(','));
-    ok('3 들개는 토끼 재료를 떨구지 않음', !drops.dog.some(k => /rabbit/.test(k)));
+    ok('3 살쾡이는 토끼 재료를 떨구지 않음', !drops.wildcat.some(k => /rabbit/.test(k)));
 
     // 5. 탐험 조우: 요수 가중치(후반일수록 중형), 금고 다섯 종류, 함정
     const enc = await p.evaluate(() => {
@@ -69,10 +69,11 @@ module.exports = async (b) => {
       for (let i = 0; i < 400; i++) kinds.add(openVault(Z).name);
       const st = calcStats(); S.hp = st.maxHp; S.stamina = 50;
       const tr = stepTrap();
-      return { pool: Z.enemies, early, late, kinds: [...kinds].sort(), trap: { hp: st.maxHp - S.hp, sta: 50 - S.stamina, t: tr.t } };
+      const strong = c => Object.entries(c).filter(([e]) => ENEMIES[e].rank === 3).reduce((a, [, n]) => a + n, 0);
+      return { pool: Z.enemies, early, late, s0: strong(early), s1: strong(late), kinds: [...kinds].sort(), trap: { hp: st.maxHp - S.hp, sta: 50 - S.stamina, t: tr.t } };
     });
-    ok('5 요수는 지역 풀(3종)에서 가중치로', Object.keys(enc.early).length === 3 && Object.keys(enc.early).every(e => enc.pool.includes(e)), JSON.stringify(enc.early));
-    ok('5 탐험 후반일수록 중형(멧돼지)이 잦음', enc.late.boar > enc.early.boar * 1.8, `초반 ${enc.early.boar} · 후반 ${enc.late.boar}`);
+    ok('5 요수는 지역 풀(청풍산 9종)에서 가중치로', Object.keys(enc.early).length === 9 && Object.keys(enc.early).every(e => enc.pool.includes(e)), JSON.stringify(enc.early));
+    ok('5 탐험 후반일수록 강한 요수(rank 3)가 잦음', enc.s1 > enc.s0 * 1.8, `초반 ${enc.s0} · 후반 ${enc.s1}`);
     ok('5 금고 다섯 종류가 무작위로', enc.kinds.length === 5, enc.kinds.join(','));
     ok('6 함정: 활력·기력 감소', enc.trap.hp > 0 && enc.trap.sta === 5 && /덫/.test(enc.trap.t), JSON.stringify(enc.trap));
 

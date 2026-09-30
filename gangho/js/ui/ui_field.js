@@ -14,18 +14,18 @@ function recSummary(r) {
   return { head: `${r.wins}승 ${r.losses}패 · 은자 ${g.silver >= 0 ? '+' : ''}${fmt(g.silver)} · 경험치 +${fmt(g.exp)}${g.contrib ? ` · 공헌 +${g.contrib}` : ''}`, items, gear: g.gear || [], used: Object.entries(g.used || {}).map(([id, n]) => `${ITEMS[id].name} ×${n}`) };
 }
 
-/* 지형 상성 결산: 경공 지형과 맞은 걸음 · 어긋난 걸음 · 그만큼 더(덜) 쓴 기력 */
+/* 지형 상성 결산: 구역 지형과 경공 지형이 맞았는지, 그만큼 덜(더) 쓴 기력 */
+const zoneTerrainText = zid => (ZONES[zid].terrain || []).map(t => `${TERRAINS[t].name}(${TERRAINS[t].hanja})`).join('·');
 function terrainLine(r) {
-  const T = r.terrain; if (!T || !(T.match + T.miss)) return '';
-  return `지형 일치 ${T.match}걸음 · 불일치 ${T.miss}걸음 (기력 ${T.extra > 0 ? `+${T.extra} 더 씀` : `${-T.extra} 아낌`})`;
+  const T = r.terrain; if (!T || typeof T.match === 'number' || T.match === null) return '';   // 예전 기록 · 경공 없음
+  return `지형 ${zoneTerrainText(r.zone)} · 경공 ${TERRAINS[T.mine].name} ${T.match ? '일치' : '불일치'} (기력 ${T.extra > 0 ? `+${Math.round(T.extra * 10) / 10} 더 씀` : `${Math.round(-T.extra * 10) / 10} 아낌`})`;
 }
-const trTag = tr => tr ? `<span class="tr-tag" title="지형 ${TERRAINS[tr].name}">${TERRAINS[tr].hanja}</span>` : '';
 
 function vbar(cls, cur, prev, max, name, hideNum) {
   const p = v => max ? clamp(v / max * 100, 0, 100) : 0;
   return `<div class="bar thick ${cls}"><span class="bar-ghost" data-to="${p(cur)}" style="width:${p(Math.max(cur, prev))}%"></span><span class="bar-fill" style="width:${p(cur)}%"></span><span class="bar-text"><b>${name}</b>${hideNum ? '' : ` ${fmt(cur)} / ${fmt(max)}`}</span></div>`;
 }
-const sealChar = name => name.replace(/^(채주|방주|적룡방|화적|수적|외눈)\s*/, '').trim()[0] || name[0];
+const sealChar = name => name.replace(/^(채주|방주|적룡방|화적|수적|외눈|흑풍채|청풍산|적염|사나운|흑비단|바위 등껍질|청령)\s*/, '').trim()[0] || name[0];
 
 /* ───────── 강호행 탭 ───────── */
 const clockHM = t => { const d = new Date(t); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
@@ -44,6 +44,7 @@ function zoneCard(zid) {
   return `<div class="zone ${open ? '' : 'locked'} ${here ? 'here' : ''}">
     <div class="zone-top"><h3>${label(Z.name, Z.hanja)}</h3>${here ? '<span class="pill here-pill">현재 탐험지</span>' : ''}</div>
     <p class="story">${Z.desc}</p>
+    <p class="zone-terrain">지형 ${(Z.terrain || []).map(terrainTag).join('')}</p>
     ${open ? exp : '<small class="muted">🔒 앞 구역의 두목을 쓰러뜨리면 길이 열립니다.</small>'}
     <div>${!open || here ? '' : `<button class="btn ${X.zone ? '' : 'primary'} sm" data-dest="${zid}">${X.zone ? '탐험지로 정하기' : '이곳으로 첫 탐험 떠나기'}</button>`}</div>
   </div>`;
@@ -64,7 +65,9 @@ function prepPanel() {
     ${row(!!S.equip.weapon && wOk, '병기', S.equip.weapon ? `${gearName(S.equip.weapon)}${wOk ? '' : ` <span class="warn">— 《${M.name}》은 ${WEAPON_TYPES[M.weapon]} 무공이라 초식이 나가지 않음</span>`}` : '맨손', go('status', 'gear', '무장'))}
     ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 전투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
     ${row(has('potionHp', 3), '금창약', `${count('potionHp')}개 (활력 35% 아래에서 자동 복용)`, go('sect', 'shop', '전방'))}
-    ${(() => { const e = myElem(), t = myTerrain(); return row(!!(e && t), '상성', `기공 ${e ? elemTag(e) : '<span class="warn">오행 없음</span>'} · 경공 ${t ? terrainTag(t) : '<span class="warn">지형 없음</span>'} · 병기 ${weaponTag(weaponType())}`); })()}
+    ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1;
+      const tz = X.zone ? ` — ${ZONES[X.zone].name} ${zoneTerrainText(X.zone)} ${m < 1 ? '<b class="good">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn">불일치 · 기력 +20%</span>' : ''}` : '';
+      return row(!!(e && t) && m <= 1, '상성', `기공 ${e ? elemTag(e) : '<span class="warn">오행 없음</span>'} · 경공 ${t ? terrainTag(t) : '<span class="warn">지형 없음</span>'}${tz} · 병기 ${weaponTag(weaponType())}`, go('status', 'martial', '무공')); })()}
     ${row(true, '준비한 음식', S.buffs.length || extra ? `${S.buffs.map(b => b.name).join(', ')}${extra ? `${S.buffs.length ? ' · ' : ''}기력 +${extra}` : ''}` : '없음 (뒷마당에서 먹을 수 있음)', go('sect', 'yard', '뒷마당'))}
   </ul>`;
 }
@@ -77,7 +80,7 @@ function viewField() {
       <summary><time>${recTime(r)}</time><b>${Z.name}</b><span>${sm.head}</span>${r.end === 'defeat' ? '<em class="warn">쓰러져 귀환</em>' : ''}</summary>
       ${sm.items.length || sm.gear.length ? `<p class="exp-loot">${[...sm.items, ...sm.gear].map(t => `<span>${t}</span>`).join('')}</p>` : ''}
       ${terrainLine(r) ? `<p class="muted tr-line">⛰ ${terrainLine(r)}</p>` : ''}
-      <ol class="exp-steps">${r.steps.map(s => `<li class="${s.cls}">${trTag(s.tr)}${s.t}${s.b !== undefined ? ` <button class="watch" data-watch="${r.id}:${s.b}">관찰하기</button>` : ''}</li>`).join('')}</ol>
+      <ol class="exp-steps">${r.steps.map(s => `<li class="${s.cls}">${s.t}${s.b !== undefined ? ` <button class="watch" data-watch="${r.id}:${s.b}">관찰하기</button>` : ''}</li>`).join('')}</ol>
     </details>`;
   }).join('');
   return `<section class="panel">
