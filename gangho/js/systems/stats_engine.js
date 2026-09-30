@@ -1,0 +1,61 @@
+/* [시스템] 능력치 계산: 장비·비급·무신상·버프를 합산한다 (DOM 조작 금지) */
+
+/* ───────── 능력치 ───────── */
+function calcStats() {
+  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0 };
+  for (const cat of CAT_ORDER) {
+    const id = S.active[cat]; if (!id || !S.manuals[id]) continue;
+    for (const [k, v] of Object.entries(manualBonus(id, S.manuals[id].star))) s[k] += v;
+  }
+  for (const slot of SLOT_ORDER) {
+    const it = S.equip[slot]; if (!it) continue;
+    for (const [k, v] of Object.entries(gearStats(it))) s[k] = (s[k] || 0) + v;
+    if (it.unique) s[it.unique.key] = (s[it.unique.key] || 0) + it.unique.val;
+  }
+  s.atk += S.shrine.atk; s.maxMp += S.shrine.mp; s.eva += S.shrine.eva; s.crit += Math.floor(S.shrine.total / 10) * 2;
+  s.maxHp += S.perm.maxHp; s.maxMp += S.perm.maxMp;
+  s.eva += s.evaFlat;
+  let atkB = s.atkPct / 100, defB = 0;
+  s.trainBuff = 0;
+  for (const b of S.buffs) {
+    if (b.key === 'atk') atkB += b.val;
+    if (b.key === 'def') defB += b.val;
+    if (b.key === 'train') s.trainBuff += b.val;
+  }
+  s.atk *= 1 + atkB; s.def *= 1 + defB; s.maxHp *= 1 + s.hpPct / 100; s.maxMp *= 1 + s.mpPct / 100;
+  for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'maxSta']) s[k] = Math.round(s[k]);
+  s.eva = Math.min(60, Math.round(s.eva * 10) / 10);
+  s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
+  s.counter = Math.min(60, Math.round(s.counter * 10) / 10);
+  s.mpRegen = Math.round(s.mpRegen * 10) / 10;
+  return s;
+}
+
+/* 비급 하나가 장착 시 주는 능력치 (성급 기준) */
+function manualBonus(id, star) {
+  const M = MANUALS[id], g = GRADES[M.grade].mult, st = star, t = tri(st), b = {};
+  if (M.cat === 'mugong') b.atk = (4 * st + 0.9 * t) * g;
+  if (M.cat === 'simbeop') Object.assign(b, { maxMp: (12 * st + 1.5 * t) * g, atk: st * g, maxHp: 5 * st * g, mpRegen: 0.25 * st * g });
+  if (M.cat === 'gyeonggong') Object.assign(b, { spd: 0.8 * st * g, eva: 0.6 * st * g, crit: 0.3 * st * g, counter: 0.5 * st * g });
+  if (M.cat === 'gigong') Object.assign(b, { maxHp: (20 * st + 4 * t) * g, def: (1.5 * st + 0.35 * t) * g, counter: 1.2 * st * g });
+  if (st >= 6) for (const k of Object.keys(b)) b[k] *= 1.3;              // 소성: 기본 위력 계수 상향
+  if (st >= MAX_STAR) for (const [k, v] of Object.entries(DAESUNG_PASSIVE[M.cat].stats)) b[k] = (b[k] || 0) + v;   // 대성 극의
+  return b;
+}
+
+function trainBonus(st) { st = st || calcStats(); return 1 + st.train / 100 + st.trainBuff; }
+
+function gearStats(it) {
+  const mult = 1 + 0.1 * (it.enh || 0), out = {};
+  for (const [k, v] of Object.entries(it.stats)) out[k] = PCT_STATS.has(k) ? Math.round(v * mult * 10) / 10 : Math.round(v * mult);
+  return out;
+}
+
+function realmOf(star) { return [...REALMS].reverse().find(r => star >= r.min); }
+
+function clampVitals() {
+  const st = calcStats();
+  S.hp = clamp(S.hp, 0, st.maxHp); S.mp = clamp(S.mp, 0, st.maxMp); S.stamina = clamp(S.stamina, 0, st.maxSta);
+}
+
+function weaponType() { return S.equip.weapon ? S.equip.weapon.wtype : 'fist'; }

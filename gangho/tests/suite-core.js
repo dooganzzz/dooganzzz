@@ -65,10 +65,10 @@ module.exports = async (b) => {
     r.sense = SENSE_TEXT.some(([, t]) => document.querySelector('.blog').textContent.includes(t));
     r.cmds = document.querySelectorAll('[data-bact], [data-act="auto"]').length;
     r.phase = !!document.querySelector('.phase-bar');
-    S.hp = 99999; ui.battle.e.hpNow = 1e9;
+    S.hp = 99999; RT.battle.e.hpNow = 1e9;
     for (let i = 0; i < 60; i++) battleRound();
-    r.counter = ui.battle.lines.some(l => l.text.includes('반격(反擊)'));
-    ui.battle.over = true; closeBattle();
+    r.counter = RT.battle.lines.some(l => l.text.includes('반격(反擊)'));
+    RT.battle.over = true; closeBattle();
     return r;
   });
   ok('4 적 수치 비노출', bt.noStats); ok('4 육감 지문', bt.sense);
@@ -84,7 +84,7 @@ module.exports = async (b) => {
   await p.evaluate(() => { S.silver = 100; render(); });
   await p.click('[data-tab="yard"]');
   ok('7 아린 힌트 버튼 제거됨', !(await p.$('[data-act="hint"]')));
-  await p.evaluate(() => { S.inv.herb = 2; ui.tab = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_hp'); i++) { S.inv.herb = 2; ui.pot = { herb: 2 }; doCraft(); } });   // 성공률 상한 98%라 한 번에 실패할 수 있음
+  await p.evaluate(() => { S.inv.herb = 2; ui.tab = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_hp'); i++) { S.inv.herb = 2; ui.pot = { herb: 2 }; doCraft(ui.craft, ui.pot); } });   // 성공률 상한 98%라 한 번에 실패할 수 있음
   await p.click('[data-tab="codex"]');
   ok('6 안내문 없음', !(await p.$('.codex ~ .lede, .panel .lede')) && !(await p.content()).includes('아직 아무것도 모릅니다'));
   await p.click('.ctile.locked'); const toast = await p.$$eval('.toast', e => e[e.length - 1].textContent);
@@ -93,7 +93,7 @@ module.exports = async (b) => {
   const modalBtn = await p.$eval('.sheet [data-fill]', e => e.textContent.trim());
   ok('6 조합법 모달 + 화로로 가기', modalBtn === '[ 화로로 가기 ]' && !!(await p.$('.mats-list li')), modalBtn);
   await p.click('.sheet [data-fill]');
-  ok('6 화로 이동·재료 투입', await p.evaluate(() => ui.tab === 'forge' && potTotal() > 0));
+  ok('6 화로 이동·재료 투입', await p.evaluate(() => ui.tab === 'forge' && potTotal(ui.pot) > 0));
   ok('9 성공률 % 비노출', !(await p.$eval('#main', e => /\d+%/.test(e.textContent))));
   ok('9 화로 10칸', (await p.$$('.pot-slots .slot')).length === 10);
   // 7 portraits + quest

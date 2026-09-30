@@ -18,7 +18,7 @@ module.exports = async (b) => {
   // 빈 슬롯 상태: 연무장·전투
   await p.click('[data-tab="yeonmu"]');
   ok('3 미장착이면 연무장 수련 불가', (await p.$$('[data-train]')).length === 0 && (await p.$$('.empty-art')).length === 4);
-  const bare = await p.evaluate(() => { S.hp = 9999; enterZone('cheongpung'); const r = fightSync('rabbit').win; ui.battle.over = true; closeBattle(); leaveZone(); return r; });
+  const bare = await p.evaluate(() => { S.hp = 9999; enterZone('cheongpung'); const r = fightSync('rabbit').win; RT.battle.over = true; closeBattle(); leaveZone(); return r; });
   ok('무공 없이도 맨손 전투 가능', bare === true);
   // 행낭에서 익히기
   await p.click('[data-tab="bag"]'); await p.click('[data-filter="비급"]');

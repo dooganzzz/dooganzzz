@@ -45,19 +45,19 @@ module.exports = async (b) => {
     // 2. 3초 자동 공방
     const timing = await p.evaluate(async () => {
       enterZone('cheongpung'); S.hp = 99999;
-      const t0 = performance.now(); startBattle('boar'); ui.battle.e.hpNow = 1e9;
+      const t0 = performance.now(); startBattle('boar'); RT.battle.e.hpNow = 1e9;
       const cmds = document.querySelectorAll('[data-bact], [data-act="auto"]').length;
       const rounds = [];
-      await new Promise(res => { const iv = setInterval(() => { rounds.push([ui.battle.round, Math.round(performance.now() - t0)]); if (performance.now() - t0 > 7000) { clearInterval(iv); res(); } }, 250); });
+      await new Promise(res => { const iv = setInterval(() => { rounds.push([RT.battle.round, Math.round(performance.now() - t0)]); if (performance.now() - t0 > 7000) { clearInterval(iv); res(); } }, 250); });
       const first = rounds.find(([r]) => r >= 1), second = rounds.find(([r]) => r >= 2);
       const logged = S.log.slice(-8).some(l => /평타|초식|공격/.test(l.text));
-      ui.battle.over = true; ui.battle.win = true; closeBattle();
+      RT.battle.over = true; RT.battle.win = true; closeBattle();
       return { cmds, first: first && first[1], second: second && second[1], logged };
     });
     ok('2 선택지 버튼 없음', timing.cmds === 0);
     ok('2 3초마다 한 합씩 진행', timing.first >= 2800 && timing.first <= 3500 && timing.second >= 5800 && timing.second <= 6500, `1합 ${timing.first}ms · 2합 ${timing.second}ms`);
     ok('2 공방이 견문록에 기록', timing.logged);
-    const end = await p.evaluate(() => { S.hp = 99999; const bt = fightSync('rabbit'); const r = { over: bt.over, win: bt.win, timer: ui.btimer }; closeBattle(); return r; });
+    const end = await p.evaluate(() => { S.hp = 99999; const bt = fightSync('rabbit'); const r = { over: bt.over, win: bt.win, timer: RT.btimer }; closeBattle(); return r; });
     ok('2 승리 시 인터벌 정리', end.over && end.win && !end.timer);
 
     // 3. 몬스터별 드랍
@@ -87,8 +87,8 @@ module.exports = async (b) => {
       for (let i = 0; i < 200; i++) { const e = pickBeast(); picked[e] = (picked[e] || 0) + 1; }
       move(tx - sx, ty - sy);
       interact();   // 대치 패널의 [ 결투 시작 ]
-      const started = !!ui.battle; stopBattleTimer(); const enemy = ui.battle && ui.battle.eid;
-      ui.battle.over = true; ui.battle.win = true; closeBattle();
+      const started = !!RT.battle; stopBattleTimer(); const enemy = RT.battle && RT.battle.eid;
+      RT.battle.over = true; RT.battle.win = true; closeBattle();
       // 금고
       S.zone.layout = S.zone.layout.map((row, y) => y === ty ? row.slice(0, tx) + 'C' + row.slice(tx + 1) : row); delete S.zone.done[`${tx},${ty}`];
       const kinds = new Set();

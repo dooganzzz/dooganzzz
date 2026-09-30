@@ -28,7 +28,7 @@ module.exports = async (b) => {
     const logic = await p.evaluate(() => {
       const r0 = Math.random, out = {};
       startBattle('boar'); stopBattleTimer();
-      const bt = ui.battle; bt.fx = [];
+      const bt = RT.battle; bt.fx = [];
       Math.random = () => 0.999; enemyTurn(bt); out.dodge = bt.fx[0];
       bt.fx = []; Math.random = () => 0.5; S.hp = 9999; bt.st.critRes = 99; enemyTurn(bt); out.me = bt.fx.find(f => f.side === 'me');
       bt.fx = []; Math.random = () => 0; playerHit(bt, 1, '평타'); out.foe = bt.fx.find(f => f.side === 'foe');
@@ -40,7 +40,7 @@ module.exports = async (b) => {
     ok('1 치명타는 강타(big)', logic.foe && logic.foe.k === 'crit' && logic.foe.big === true, JSON.stringify(logic.foe));
 
     const vis = await p.evaluate(async () => {
-      ui.battle.fx = [{ side: 'foe', t: '-12', k: 'hit' }]; renderBattle();
+      RT.battle.fx = [{ side: 'foe', t: '-12', k: 'hit' }]; renderBattle();
       await new Promise(r => setTimeout(r, 30));
       const foe = document.getElementById('pl-foe'), hit = foe.querySelector('.fx-num.hit');
       const o = {
@@ -48,7 +48,7 @@ module.exports = async (b) => {
         flash: foe.classList.contains('flash-hit'), overlay: getComputedStyle(foe.querySelector('.seal-av'), '::after').animationName,
         overlayDur: getComputedStyle(foe.querySelector('.seal-av'), '::after').animationDuration, shakeOnHit: foe.classList.contains('shake'),
       };
-      ui.battle.fx = [{ side: 'foe', t: '-40', k: 'crit', big: true }, { side: 'me', t: '회피!', k: 'dodge' }]; renderBattle();
+      RT.battle.fx = [{ side: 'foe', t: '-40', k: 'crit', big: true }, { side: 'me', t: '회피!', k: 'dodge' }]; renderBattle();
       await new Promise(r => setTimeout(r, 30));
       const foe2 = document.getElementById('pl-foe'), crit = foe2.querySelector('.fx-num.crit'), dg = document.querySelector('#pl-me .fx-num.dodge');
       const cs = getComputedStyle(crit);
@@ -66,7 +66,7 @@ module.exports = async (b) => {
     ok('1 치명타 숫자 1.5배·굵은 금색·떨림', Math.abs(vis.critSize / vis.hitSize - 1.5) < 0.05 && vis.critWeight === '900' && /rgb\(255, 210, 74\)/.test(vis.critColor) && vis.critAnim === 'fxCrit', JSON.stringify([vis.critSize, vis.hitSize, vis.critColor, vis.critWeight, vis.critAnim]));
     ok('1 치명·강타 → 0.15초 shake', vis.shake && vis.shakeAnim === 'shake' && vis.shakeDur === '0.15s', `${vis.shakeAnim} ${vis.shakeDur}`);
     ok('1 회피는 청록색으로 솟구침·흔들림 없음', /rgb\(110, 231, 216\)/.test(vis.dodgeColor) && vis.dodgeAnim === 'fxRise' && !vis.meShake, `${vis.dodgeColor} ${vis.dodgeAnim}`);
-    await p.evaluate(() => { stopBattleTimer(); ui.battle = null; });
+    await p.evaluate(() => { stopBattleTimer(); RT.battle = null; });
 
     // 2. 연무장
     await p.evaluate(() => { ui.tab = 'yeonmu'; render(); });

@@ -1,11 +1,16 @@
 /* 모든 검사 묶음을 차례로 실행한다. 실패가 하나라도 있으면 종료 코드 1. */
 'use strict';
-const { playwright, result } = require('./lib');
+const { playwright, result, ok } = require('./lib');
 const SUITES = ['suite-core', 'suite-map-craft', 'suite-martial', 'suite-round7', 'suite-round8', 'suite-round9', 'suite-round10', 'suite-round11'];
 
 (async () => {
-  const browser = await playwright.chromium.launch();
   const only = process.argv[2];
+  if (!only || 'layers'.includes(only)) {
+    console.log('\n##### 계층 규칙 (data · systems · ui) #####');
+    const bad = require('./check-layers')();
+    ok('데이터는 로직 없음 · 시스템은 DOM/화면 무관 · 스크립트 순서', bad.length === 0, bad.slice(0, 5).join(' / '));
+  }
+  const browser = await playwright.chromium.launch();
   for (const name of SUITES) {
     if (only && !name.includes(only)) continue;
     console.log(`\n##### ${name} #####`);

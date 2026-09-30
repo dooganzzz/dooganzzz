@@ -30,8 +30,8 @@ async function newPage(browser, w, h) {
   await p.addInitScript(() => {
     window.fightSync = (eid, maxRounds = 300) => {
       startBattle(eid); stopBattleTimer();
-      let n = 0; while (!ui.battle.over && n++ < maxRounds) battleRound();
-      return ui.battle;
+      let n = 0; while (!RT.battle.over && n++ < maxRounds) battleRound();
+      return RT.battle;
     };
   });
   return p;

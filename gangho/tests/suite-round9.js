@@ -14,7 +14,7 @@ module.exports = async (b) => {
     const cb = await p.evaluate(() => {
       const run = (eva, counter) => {
         startBattle('boar'); stopBattleTimer();
-        const b = ui.battle; S.hp = 1e9; b.e.hpNow = 1e9;
+        const b = RT.battle; S.hp = 1e9; b.e.hpNow = 1e9;
         const lines = [];
         for (let i = 0; i < 40; i++) { b.st = calcStats(); b.st.eva = eva; b.st.counter = counter; b.st.spd = 1; const n = b.lines.length; enemyTurn(b); lines.push(b.lines.slice(n).map(l => l.text)); }
         b.over = true; b.win = true; closeBattle();
@@ -43,12 +43,12 @@ module.exports = async (b) => {
       const st0 = S.stamina;
       move(tx - sx, ty - sy);
       const panel = document.querySelector('.standoff');
-      const r = { noBattle: !ui.battle, noCost: S.stamina === st0, panel: !!panel, btn: panel && panel.querySelector('[data-act="interact"]').textContent.trim(), sense: panel && panel.querySelector('.sense').className, text: panel && panel.querySelector('.sense').textContent };
+      const r = { noBattle: !RT.battle, noCost: S.stamina === st0, panel: !!panel, btn: panel && panel.querySelector('[data-act="interact"]').textContent.trim(), sense: panel && panel.querySelector('.sense').className, text: panel && panel.querySelector('.sense').textContent };
       // 다시 그려도 같은 요수
       const foe1 = S.zone.foes[`${tx},${ty}`]; render(); r.stable = S.zone.foes[`${tx},${ty}`] === foe1;
       document.querySelector('.standoff [data-act="interact"]').click();
-      r.started = !!ui.battle && ui.battle.eid === foe1; r.cost = st0 - S.stamina;
-      stopBattleTimer(); ui.battle.over = true; ui.battle.win = true; closeBattle();
+      r.started = !!RT.battle && RT.battle.eid === foe1; r.cost = st0 - S.stamina;
+      stopBattleTimer(); RT.battle.over = true; RT.battle.win = true; closeBattle();
       // 세 단계 지문
       const st = calcStats();
       r.tiers = SENSE_TEXT.map(t => t[2]).join(',');

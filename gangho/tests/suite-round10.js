@@ -78,9 +78,9 @@ module.exports = async (b) => {
     const fight = await p.evaluate(() => {
       const sil0 = S.silver;
       document.querySelector('.ev-opt[data-evchoice="0"]').click();
-      const r = { battle: !!ui.battle, eid: ui.battle && ui.battle.eid, bonus: !!(ui.battle && ui.battle.bonus), modal: ui.modal };
-      stopBattleTimer(); S.hp = 1e9; ui.battle.e.hpNow = 1; battleRound();
-      r.win = ui.battle.win; r.bonusLine = ui.battle.lines.some(l => l.text.includes('술값')); r.silverGain = S.silver - sil0;
+      const r = { battle: !!RT.battle, eid: RT.battle && RT.battle.eid, bonus: !!(RT.battle && RT.battle.bonus), modal: ui.modal };
+      stopBattleTimer(); S.hp = 1e9; RT.battle.e.hpNow = 1; let n = 0; while (!RT.battle.over && n++ < 50) battleRound();   // 빗나갈 수 있으니 끝날 때까지
+      r.win = RT.battle.win; r.bonusLine = RT.battle.lines.some(l => l.text.includes('술값')); r.silverGain = S.silver - sil0;
       closeBattle();
       return r;
     });

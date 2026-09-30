@@ -13,7 +13,7 @@ module.exports = async (b) => {
     // 2. 재료 단서
     const clue = await p.evaluate(() => {
       S.crafts.cook.lv = 99; ui.tab = 'forge'; ui.craft = 'cook';
-      for (let i = 0; i < 20 && !S.codex.includes('c_rabbit'); i++) { Object.assign(S.inv, { rabbitMeat: 1, salt: 1 }); ui.pot = { rabbitMeat: 1, salt: 1 }; doCraft(); }   // 성공률 상한 98%
+      for (let i = 0; i < 20 && !S.codex.includes('c_rabbit'); i++) { Object.assign(S.inv, { rabbitMeat: 1, salt: 1 }); ui.pot = { rabbitMeat: 1, salt: 1 }; doCraft(ui.craft, ui.pot); }   // 성공률 상한 98%
       ui.tab = 'codex'; render();
       const clues = [...document.querySelectorAll('.ctile.clue')].map(e => e.dataset.recipe);
       const saltUses = RECIPES.filter(r => r.in.salt && r.id !== 'c_rabbit').map(r => r.id);

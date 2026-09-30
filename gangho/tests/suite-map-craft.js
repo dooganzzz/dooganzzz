@@ -74,7 +74,7 @@ module.exports = async (b) => {
   ok('6 연단 재료만', f.alchemy.split(',').every(id => ITEMS_CT[id] === 'alchemy'), f.alchemy);
   ok('6 조리 재료만', f.cook.split(',').every(id => ITEMS_CT[id] === 'cooking'), f.cook);
   await p.click('[data-craft="cook"]'); await p.click('[data-add="salt"]'); await p.click('[data-craft="forge"]');
-  ok('6 탭 전환 시 슬롯 초기화', await p.evaluate(() => potTotal() === 0));
+  ok('6 탭 전환 시 슬롯 초기화', await p.evaluate(() => potTotal(ui.pot) === 0));
   // 4
   await p.evaluate(() => { toggleTraining('gigong'); ui.tab = 'yeonmu'; render(); });
   const sh = await p.evaluate(() => { const a = document.querySelectorAll('.progress-fill.training-active'); return { n: a.length, anim: a[0] && getComputedStyle(a[0]).animationName, inTraining: a[0] && !!a[0].closest('.art.training') }; });

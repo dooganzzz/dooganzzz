@@ -7,7 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;600;700;900&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/combat.css">
+<link rel="stylesheet" href="css/effects.css">
 </head>
 <body>
 <div class="app">
@@ -27,7 +29,27 @@
 </div>
 <div id="modal" class="modal" hidden></div>
 <div id="toasts" class="toasts"></div>
-<script src="js/data.js"></script>
-<script src="js/game.js"></script>
+<!-- 읽는 순서: 공용 도구 → 데이터(SSOT) → 시스템(규칙) → 화면 → 초기화 -->
+<script src="js/core.js"></script>
+<script src="js/data/martial_arts.js"></script>
+<script src="js/data/items.js"></script>
+<script src="js/data/monsters.js"></script>
+<script src="js/data/maps.js"></script>
+<script src="js/data/sect.js"></script>
+<script src="js/systems/stats_engine.js"></script>
+<script src="js/systems/training_engine.js"></script>
+<script src="js/systems/inventory_engine.js"></script>
+<script src="js/systems/craft_engine.js"></script>
+<script src="js/systems/explore_engine.js"></script>
+<script src="js/systems/combat_engine.js"></script>
+<script src="js/systems/sect_engine.js"></script>
+<script src="js/ui/ui_tabs.js"></script>
+<script src="js/ui/ui_logger.js"></script>
+<script src="js/ui/ui_feedback.js"></script>
+<script src="js/ui/ui_views.js"></script>
+<script src="js/ui/ui_field.js"></script>
+<script src="js/ui/ui_modals.js"></script>
+<script src="js/ui/ui_input.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
