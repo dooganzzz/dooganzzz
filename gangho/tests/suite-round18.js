@@ -123,15 +123,15 @@ module.exports = async (b) => {
     await p.click('[data-dest="yeomhwa"]');
     ok('7 탐험지 바꾸기 (일정은 그대로)', await p.evaluate(() => S.expedition.zone === 'yeomhwa' && !/^settle:/.test(ui.modal || '') && nextExpeditionIn() > 0));
 
-    // 8. 성장: 헤더 경험치 · 상태 › 무공 성급 올리기
+    // 8. 성장: 헤더 수련치 · 상태 › 무공 성급 올리기
     const g = await p.evaluate(() => { S.exp = 12345; render(); const el = document.querySelector('#status .status-chip.exp'); const r = { badge: el.querySelector('.chip-badge').textContent, value: el.querySelector('#header-exp').textContent, title: el.title }; S.exp = 1234567; render(); r.big = document.querySelector('#header-exp').textContent; r.bigTitle = document.querySelector('#status .status-chip.exp').title; S.exp = 12345; render(); return r; });
-    ok('8 헤더에 경험치 ([경험] 한글 뱃지 · 10만 이상은 만 단위)', g.badge === '경험' && g.value === '12,345' && g.big === '123.5만' && /1,234,567/.test(g.bigTitle), JSON.stringify(g));
+    ok('8 헤더에 수련치 ([수련치] 한글 뱃지 · 10만 이상은 만 단위)', g.badge === '수련치' && g.value === '12,345' && g.big === '123.5만' && /1,234,567/.test(g.bigTitle), JSON.stringify(g));
     await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
     const m0 = await p.evaluate(() => ({ purse: document.querySelector('.exp-purse b').textContent, btn: document.querySelectorAll('.mslot [data-starup]:not([disabled])').length }));
     await p.click('.mslot [data-starup]:not([disabled])'); await p.click('[data-act="confirmok"]');
-    ok('8 상태 › 무공: 경험치 표시 · [▲ 성급] → 올라가고 경험치 줄어듦', m0.purse === '12,345' && m0.btn === 4 && await p.evaluate(() => S.exp < 12345 && Object.values(S.manuals).some(m => m.star >= 2)), JSON.stringify(m0));
+    ok('8 상태 › 무공: 수련치 표시 · [▲ 성급] → 올라가고 수련치 줄어듦', m0.purse === '12,345' && m0.btn === 4 && await p.evaluate(() => S.exp < 12345 && Object.values(S.manuals).some(m => m.star >= 2)), JSON.stringify(m0));
     await p.click('.mcard[data-mart]');
-    const md = await p.evaluate(() => ({ btn: !!document.querySelector('.sheet [data-starup]'), kv: document.querySelector('.sheet').textContent.includes('필요 경험치') }));
+    const md = await p.evaluate(() => ({ btn: !!document.querySelector('.sheet [data-starup]'), kv: document.querySelector('.sheet').textContent.includes('필요 수련치') }));
     ok('8 무공 상세 창에도 성급 올리기', md.btn && md.kv, JSON.stringify(md));
     await p.evaluate(() => { ui.modal = null; render(); });
 
@@ -156,7 +156,7 @@ module.exports = async (b) => {
         exp: st.exp, expect: Math.round(0.5 * STAR_EXP[2] * g('tonap')) + Math.round(STAR_EXP[4] * g('cheolpo')), exped: st.expedition && st.expedition.zone === null && Array.isArray(st.expeditions), buffs: st.buffs.length };
     });
     ok('10 저장 이전 v7→v8: 지도·연무장·수련치 제거', mig.v === 8 && mig.noZone && mig.noXp && mig.exped && mig.buffs === 0, JSON.stringify(mig));
-    ok('10 쌓아 둔 진행 비율만큼 경험치로 돌려받음', mig.exp >= mig.expect, JSON.stringify(mig));
+    ok('10 쌓아 둔 진행 비율만큼 수련치로 돌려받음', mig.exp >= mig.expect, JSON.stringify(mig));
 
     ok('오류/가로스크롤 없음', errs.length === 0 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(' | '));
     await p.close();

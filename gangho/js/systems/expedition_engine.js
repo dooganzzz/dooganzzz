@@ -50,7 +50,7 @@ function applyFx(fx) {
   if (fx.hpPct) { const d = Math.round(st.maxHp * fx.hpPct); S.hp = clamp(S.hp + d, 1, st.maxHp); out.push(`활력 ${d > 0 ? '+' : ''}${d}`); }
   if (fx.stamina < 0) S.stamina = Math.max(0, S.stamina + fx.stamina);   // 기력은 숨겨진 능력치: 깎이기만 하고 회복되지 않는다
   if (fx.contrib) { S.contrib += fx.contrib; out.push(`문파 공헌도 +${fx.contrib}`); }
-  if (fx.exp) { const v = expGain(fx.exp, st); S.exp += v; out.push(`경험치 +${v}`); }
+  if (fx.exp) { const v = expGain(fx.exp, st); S.exp += v; out.push(`수련치 +${v}`); }
   if (fx.buff) { S.buffs = S.buffs.filter(b => b.key !== fx.buff.key); S.buffs.push({ key: fx.buff.key, val: fx.buff.val, name: fx.buff.name }); out.push(`${fx.buff.name} (이번 탐험 동안)`); }
   for (const [k, v] of Object.entries(fx.perm || {})) { S.perm[k] += v; out.push(`${STAT_NAMES[k]} 영구 +${v}`); }
   if (fx.book) { const books = STARTERS.filter(id => !S.manuals[id] && !has('bk_' + id)); if (books.length) { const b = pick(books); give('bk_' + b, 1, true); out.push(`📘 《${MANUALS[b].name}》 비급`); } }
@@ -69,10 +69,10 @@ function openVault(Z) {
   const R = EXPEDITION.rewardMult;
   if (v.name === '은자 궤') giveSilver(Math.max(1, Math.round(rint(15, 35) * t * R)));
   if (v.name === '약재 궤') {                         // 연단 재료 다량
-    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) if (Math.random() < EXPEDITION.dropMult * 5) give(id, 1);   // 1개씩, 드물게
+    for (const [id, , , p = 1] of Z.herb.filter(r => ITEMS[r[0]].craftType === 'alchemy')) if (Math.random() < p * EXPEDITION.dropMult * 5) give(id, 1);   // 1개씩, 드물게 (표의 확률 × 0.5)
   }
   if (v.name === '철물 궤') {                         // 주조 재료 다량
-    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) if (Math.random() < EXPEDITION.dropMult * 5) give(id, 1);
+    for (const [id, , , p = 1] of Z.mine.filter(r => ITEMS[r[0]].craftType === 'forge')) if (Math.random() < p * EXPEDITION.dropMult * 5) give(id, 1);
   }
   if (v.name === '비급/장비 궤') {                    // 희귀: 아직 익히지 않은 삼류 비급(공양 비급 목록), 없으면 장비
     const books = GACHA.books.filter(id => !S.manuals[id] && !has('bk_' + id));
@@ -210,7 +210,7 @@ function runExpedition(at = now()) {
   S.expeditions.push(rec);
   while (S.expeditions.length > W.keep) S.expeditions.shift();   // 오래된 기록부터 지운다
   writeExpeditionLog(rec);
-  notify.trace('sys', `탐험 ${zid}: ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${g.silver} · 경험치 ${g.exp}${rec.defeats ? ` · 쓰러짐 ${rec.defeats}` : ''}`);
+  notify.trace('sys', `탐험 ${zid}: ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${g.silver} · 수련치 ${g.exp}${rec.defeats ? ` · 쓰러짐 ${rec.defeats}` : ''}`);
   return rec;
 }
 
@@ -223,7 +223,7 @@ function writeExpeditionLog(rec) {
     log(`${s.t}${watch}`, `exp-step ${s.cls}`, rec.at, { r: rec.id, s: rec.steps.indexOf(s) });
   }
   const items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
-  log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 경험치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.defeats ? ` · <b class="warn">쓰러짐 ${rec.defeats}번</b>` : ''}${rec.villages ? ` · 마을 치료 ${rec.villages}번` : ''}`, 'exp-head', rec.at, { r: rec.id });
+  log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 수련치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.defeats ? ` · <b class="warn">쓰러짐 ${rec.defeats}번</b>` : ''}${rec.villages ? ` · 마을 치료 ${rec.villages}번` : ''}`, 'exp-head', rec.at, { r: rec.id });
 }
 
 /* ───────── 일정: 매시 정각, 최대 8번까지 쌓임 ───────── */

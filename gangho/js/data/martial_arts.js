@@ -49,8 +49,8 @@ const MAX_STAR = 12;
 
 const STARTERS = ['samjaeGwon', 'samjaeGeom', 'samjaeDo', 'samjaeChang', 'samjaePyo'];
 const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창', hidden: '암기' };
-/* 성급을 올리는 데 드는 경험치: STAR_EXP[s - 1] = s성 → s+1성 (삼류 기준, 등급 계수를 곱한다).
-   5→6성(소성), 11→12성(대성)은 GATES의 돌파단도 함께 든다. 경험치는 탐험에서 적을 쓰러뜨려 얻는다. */
+/* 성급을 올리는 데 드는 수련치: STAR_EXP[s - 1] = s성 → s+1성 (삼류 기준, 등급 계수를 곱한다).
+   5→6성(소성), 11→12성(대성)은 GATES의 돌파단도 함께 든다. 수련치는 탐험에서 적을 쓰러뜨려 얻는다. */
 const STAR_EXP = [60, 90, 130, 180, 260, 340, 430, 540, 660, 800, 1200];
 
 /* 종합 전투력 가중치: 최대 활력·내력, 공격력·방어력(장비·무공·무신상·버프 합계),

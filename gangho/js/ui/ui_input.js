@@ -83,8 +83,8 @@ function askStarUp(id) {
   const back = () => { if (ui.modal && ui.modal.startsWith('mart:')) renderModal(); };
   if (starUpBlock(id)) { starUp(id); return back(); }
   const M = MANUALS[id], m = S.manuals[id], pill = GATES[m.star];
-  requestActionConfirm({ title: '성급 올리기', description: `《${M.name}》을(를) ${m.star}성에서 ${m.star + 1}성으로 올립니다. 쓴 경험치는 돌려받을 수 없습니다.`,
-    details: [`경험치 -${fmt(starCost(id))}`, ...(pill ? [`${ITEMS[pill].name} -1`] : [])], confirmText: '성급 올리기', onConfirm: () => { starUp(id); back(); } });
+  requestActionConfirm({ title: '성급 올리기', description: `《${M.name}》을(를) ${m.star}성에서 ${m.star + 1}성으로 올립니다. 쓴 수련치는 돌려받을 수 없습니다.`,
+    details: [`수련치 -${fmt(starCost(id))}`, ...(pill ? [`${ITEMS[pill].name} -1`] : [])], confirmText: '성급 올리기', onConfirm: () => { starUp(id); back(); } });
 }
 function askBuy(id) {
   const row = SHOP_STOCK.find(r => r[0] === id); if (!row || S.silver < row[1]) return buyItem(id);

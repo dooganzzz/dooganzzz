@@ -73,7 +73,7 @@ function renderHeader() {
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
       <div class="currency-chips user-status-bar">
         <div class="status-chip combat combat-power" title="종합 전투력 ${fmt(cp)}"><span class="chip-badge badge-combat">전투력</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
-        <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 경험치 · 상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
+        <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 수련 · 상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
         <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥"><span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
         <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}"><span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
       </div>

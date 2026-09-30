@@ -30,7 +30,7 @@ function chronDetail(e) {
     return `<details class="chron-more" ${ui.chronOpen === rec.id ? 'open' : ''}><summary>결산 보기</summary><dl class="chron-gain">
       <dt>전투</dt><dd>${rec.wins}승 ${rec.losses}패 (걸음 ${rec.steps.length}${rec.defeats ? ` · 쓰러짐 ${rec.defeats}` : ''}${rec.villages ? ` · 마을 치료 ${rec.villages}` : ''})</dd>
       <dt>은자</dt><dd>${g.silver >= 0 ? '+' : ''}${fmt(g.silver)}</dd>
-      <dt>경험치</dt><dd>+${fmt(g.exp)}</dd>
+      <dt>수련치</dt><dd>+${fmt(g.exp)}</dd>
       <dt>얻은 것</dt><dd>${part(g.items, '—')}${(g.gear || []).length ? ` · ${g.gear.join(' · ')}` : ''}</dd>
       <dt>쓴 것</dt><dd>${part(g.used, '—')}</dd>
     </dl></details>`;

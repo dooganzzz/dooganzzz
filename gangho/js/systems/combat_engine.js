@@ -279,7 +279,7 @@ function winBattle(b) {
   if (b.sim) return;                                        // 심상수련장: 보상 없음
   S.bestiary[b.eid].kills++;
   const R = EXPEDITION.rewardMult;                           // 원정 보상 배율 (1/10)
-  if (E.xp) { b.exp = Math.round(expGain(E.xp, b.st) * R); S.exp += b.exp; if (b.exp) bLine(`경험치 +${fmt(b.exp)}`, 'loot'); }
+  if (E.xp) { b.exp = Math.round(expGain(E.xp, b.st) * R); S.exp += b.exp; if (b.exp) bLine(`수련치 +${fmt(b.exp)}`, 'loot'); }
   b.silver = Math.round(rint(...E.silver) * R); S.silver += b.silver;
   if (b.silver) bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다

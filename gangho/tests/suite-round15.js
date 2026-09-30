@@ -95,7 +95,7 @@ module.exports = async (b) => {
       ui.modal = null; render(); gmRender();
       return r;
     });
-    ok('5 [경험치 +1,000]', tn.exp === 1000, JSON.stringify(tn));
+    ok('5 [수련치 +1,000]', tn.exp === 1000, JSON.stringify(tn));
     ok('5 [탐험 즉시 1회] → 탐험 기록 + 결산 창', tn.expedite, JSON.stringify(tn));
     ok('5 [1시간 경과] → 예약된 탐험 1번 결산', tn.hour === 1, JSON.stringify(tn));
     ok('5 [10시간 경과] → 8번만 결산 (2번은 지나감) · 기록은 최근 8번만', tn.hours8 && tn.kept === 8, JSON.stringify(tn));

@@ -1,7 +1,7 @@
 /* [데이터] 강호 3대 사냥터 — 순수 정적 데이터 (로직 없음)
    tier: 장비 드랍 티어 · cp: 권장 전투력 [최소, 최대] (화면에는 보이지 않는다. 요수 수치 설계·기척 판정의 기준)
    terrain: 지형 속성 (장착 경공이 이 중 하나라도 맞으면 기력 소모 -20%) · enemies: 일반 요수 · boss: 두목
-   mats: 이 사냥터의 핵심 드랍 재료 6종 (요수별 확률은 drops.js) · herb/mine: 금고(약재 궤·철물 궤)에서 나오는 재료
+   mats: 이 사냥터의 핵심 드랍 재료 (6종 이상) (요수별 확률은 drops.js) · herb/mine: 금고(약재 궤·철물 궤)에서 나오는 재료
    chest · gimmick: 탐험 중 조우 보상 · unlock: 열리는 조건 */
 
 const ZONES = {
@@ -10,9 +10,9 @@ const ZONES = {
     desc: '청풍문 주변을 둘러싼 산림. 흙길과 풀숲, 빽빽한 숲이 뒤섞였다. 짐승과 흑풍채 잔당, 하급 요수가 서식하고, 깊은 곳엔 붉은 호랑이가 산다는 소문이 있다.',
     terrain: ['earth', 'grass', 'wood'],
     enemies: ['rabbit', 'wildcat', 'viper', 'scout', 'slinger', 'boar', 'deserter', 'turtle', 'treant'], boss: 'redTiger',
-    mats: ['wildGinseng', 'blackwood', 'boarMolar', 'wildcatHide', 'treeSap', 'roughOre'],
+    mats: ['wildGinseng', 'blackwood', 'boarMolar', 'wildcatHide', 'treeSap', 'roughOre', 'viperScale', 'viperSac', 'blackIngot'],   // 독사 비늘·독낭, 드문 흑철괴(3재료 단조)
     herb: [['wildGinseng', 1, 2, 1], ['treeSap', 1, 1, 0.5], ['herb', 1, 2, 0.8], ['lingzhi', 1, 1, 0.3]],
-    mine: [['roughOre', 1, 2, 1], ['blackwood', 1, 2, 0.6]],
+    mine: [['roughOre', 1, 2, 1], ['blackwood', 1, 2, 0.6], ['blackIngot', 1, 1, 0.2]],   // 정련된 흑철괴: 청풍산에서도 드물게 (3재료 단조용)
     chest: [['silver', 20, 40], ['saenghyeol', 1, 2], ['lingzhi', 1, 2], ['roughOre', 2, 3]],
     gimmick: { name: '쓰러진 고목', stat: 'atk', need: 22, text: '쓰러진 고목을 내공으로 쪼개자 속에 숨겨진 약초 주머니가 드러났습니다!', reward: [['lingzhi', 1, 2], ['blackwood', 2, 3], ['silver', 30, 50]], fail: '고목이 꿈쩍도 하지 않습니다. (공격력 22 이상 필요)' },
     unlock: null,

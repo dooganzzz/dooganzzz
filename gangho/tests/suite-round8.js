@@ -1,4 +1,4 @@
-/* 소성·대성 2대 경계(경험치 + 돌파단), 몬스터별 드랍, 탐험 조우(요수 가중치·금고 다섯 종·함정) */
+/* 소성·대성 2대 경계(수련치 + 돌파단), 몬스터별 드랍, 탐험 조우(요수 가중치·금고 다섯 종·함정) */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -10,7 +10,7 @@ module.exports = async (b) => {
     await p.goto(GAME_URL);
     await startEquipped(p);
 
-    // 1. 2대 경계: 1~5성은 경험치만, 5→6성은 소성 돌파단, 11→12성은 대성 돌파단
+    // 1. 2대 경계: 1~5성은 수련치만, 5→6성은 소성 돌파단, 11→12성은 대성 돌파단
     const realm = await p.evaluate(() => {
       const r = {};
       r.gates = Object.keys(GATES).join(',');
@@ -35,9 +35,9 @@ module.exports = async (b) => {
     });
     ok('1 경계는 5성(소성)·11성(대성) 두 곳뿐', realm.gates === '5,11', realm.gates);
     ok('1 경계 이름 1·5성 입문, 6·11성 소성, 12성 대성', realm.names === '입문,입문,소성,소성,대성', realm.names);
-    ok('1 1~4성은 경험치만으로 → 5성', realm.at5 === 5);
+    ok('1 1~4성은 수련치만으로 → 5성', realm.at5 === 5);
     ok('1 5→6성에는 소성 돌파단 필요 (없으면 막힘)', realm.block5 === '소성 돌파단 필요' && !realm.try5 && realm.still5 === 5, realm.block5);
-    ok('1 소성 돌파 → 6성 소성, 돌파단 소모, 경험치 차감, 위력 상향', realm.up6 && realm.after.star === 6 && realm.after.realm === '소성' && realm.after.pill === 0 && realm.after.spent === realm.after.cost && realm.after.atkUp > 0, JSON.stringify(realm.after));
+    ok('1 소성 돌파 → 6성 소성, 돌파단 소모, 수련치 차감, 위력 상향', realm.up6 && realm.after.star === 6 && realm.after.realm === '소성' && realm.after.pill === 0 && realm.after.spent === realm.after.cost && realm.after.atkUp > 0, JSON.stringify(realm.after));
     ok('1 11→12성에는 대성 돌파단', realm.at11 === 11 && realm.block11 === '대성 돌파단 필요' && realm.at12 === 12 && realm.max === '대성', JSON.stringify([realm.at11, realm.block11, realm.at12]));
     ok('1 대성 극의 패시브', realm.passiveHp > 0, realm.passiveText);
     await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'martial'; render(); });
@@ -52,7 +52,7 @@ module.exports = async (b) => {
       const seen = {};
       for (const eid of ['rabbit', 'wildcat', 'viper', 'boar', 'redTiger']) {
         seen[eid] = new Set();
-        for (let i = 0; i < 25; i++) { const before = { ...S.inv }; S.hp = 1e9; fightSync(eid); for (const k of Object.keys(S.inv)) if ((S.inv[k] || 0) > (before[k] || 0)) seen[eid].add(k); }
+        for (let i = 0; i < 150; i++) { const before = { ...S.inv }; S.hp = 1e9; fightSync(eid); for (const k of Object.keys(S.inv)) if ((S.inv[k] || 0) > (before[k] || 0)) seen[eid].add(k); }   // 드랍 확률 1/10이라 표본을 넉넉히
         seen[eid] = [...seen[eid]].filter(k => ITEMS[k].kind !== '비급').sort();
       }
       return seen;

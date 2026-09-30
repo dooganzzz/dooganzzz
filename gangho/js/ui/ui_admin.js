@@ -73,7 +73,7 @@ function gmRenderLive() {
     return `<tr><td>${CATS[c].name}</td><td><code>${id || '—'}</code></td><td>${id ? MANUALS[id].name : ''}</td><td>${m ? m.star + '성' : ''}</td><td>${m ? (m.star >= MAX_STAR ? '대성' : `다음 ${fmt(starCost(id))}${GATES[m.star] ? ' + ' + GATES[m.star] : ''}${starUpBlock(id) ? '' : ' ✔'}`) : ''}</td></tr>`; }).join('');
   const X = S.expedition, left = nextExpeditionIn();
   const inv = Object.entries(S.inv).map(([id, n]) => `<span class="gm-chip"><code>${id}</code> ×${n}</span>`).join('') || '<span class="gm-muted">비어 있음</span>';
-  box.innerHTML = `<div class="gm-kv">${row('전투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('경험치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('다음 출발', left === null ? '—' : `${Math.floor(left / 60000)}분 ${Math.floor(left / 1000) % 60}초`)}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
+  box.innerHTML = `<div class="gm-kv">${row('전투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('수련치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('다음 출발', left === null ? '—' : `${Math.floor(left / 60000)}분 ${Math.floor(left / 1000) % 60}초`)}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
     <table class="gm-table"><thead><tr><th>분류</th><th>ID</th><th>무공</th><th>성</th><th>다음 성급</th></tr></thead><tbody>${arts}</tbody></table>
     <div class="gm-chips">${inv}</div>
     ${S.gear.length ? `<div class="gm-chips">${S.gear.map(g => `<span class="gm-chip">uid ${g.uid} · ${g.name}${g.enh ? ' +' + g.enh : ''}</span>`).join('')}</div>` : ''}`;
@@ -134,7 +134,7 @@ function gmViewCheat() {
   const zone = S && S.expedition.zone;
   return `<div class="gm-cheats">
     <button class="gm-btn big" data-gm="silver" ${S ? '' : 'disabled'}>[은자 +1,000냥]</button>
-    <button class="gm-btn big" data-gm="exp" ${S ? '' : 'disabled'}>[경험치 +1,000]</button>
+    <button class="gm-btn big" data-gm="exp" ${S ? '' : 'disabled'}>[수련치 +1,000]</button>
     <button class="gm-btn big" data-gm="heal" ${S ? '' : 'disabled'}>[활력/내력 100% 회복]</button>
     <button class="gm-btn big" data-gm="stamina" ${S ? '' : 'disabled'}>[기력 가득]</button>
     <button class="gm-btn big" data-gm="expedite" ${S ? '' : 'disabled'}>[탐험 즉시 1회]</button>
@@ -178,12 +178,12 @@ const GM_CMDS = {
     if (what === 'silver') { S.silver += 1000; gmTrace('gm', `은자 +1000 → ${S.silver}`); }
     if (what === 'heal') { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; gmTrace('gm', `활력·내력 회복 → ${st.maxHp} / ${st.maxMp}`); }
     if (what === 'stamina') { S.stamina = calcStats().maxSta; gmTrace('gm', `기력 → ${S.stamina}`); }
-    if (what === 'exp') { S.exp += 1000; gmTrace('gm', `경험치 +1000 → ${S.exp}`); }
+    if (what === 'exp') { S.exp += 1000; gmTrace('gm', `수련치 +1000 → ${S.exp}`); }
     if (what === 'expedite') {                               // 일정과 상관없이 지금 한 번 다녀오게 한다 (기력은 가득 채워서)
       if (!S.expedition.zone) { S.expedition.zone = 'cheongpung'; S.expedition.nextAt = now() + EXPEDITION.interval; }
       S.stamina = Math.max(S.stamina, calcStats().maxSta);
       const r = runExpedition(now());
-      gmTrace('gm', `탐험 즉시: ${r.zone} ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver} · 경험치 ${r.gain.exp}`);
+      gmTrace('gm', `탐험 즉시: ${r.zone} ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver} · 수련치 ${r.gain.exp}`);
       notify.view({ modal: 'settle:' + r.id });
     }
     if (what === 'hour' || what === 'hours8') {               // 예약 시각을 앞당겨 실제 결산 경로(settleExpeditions)를 그대로 탄다

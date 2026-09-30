@@ -34,7 +34,7 @@ module.exports = async (b) => {
   await p.click('.mcard >> text=《삼재도법》');
   const md = await p.evaluate(() => { const sh = document.querySelector('.sheet'); return { title: sh.querySelector('h2').textContent, prog: sh.querySelector('p.num').textContent, desc: sh.querySelector('p.story').textContent, bonus: [...sh.querySelectorAll('.kv span')].map(e => e.textContent).slice(0, 2).join(','), btn: sh.querySelector('[data-equipm]') && sh.querySelector('[data-equipm]').textContent }; });
   ok('4 명칭·등급', md.title.includes('《삼재도법》') && md.title.includes('[삼류 무공]'), md.title);
-  ok('4 성급·다음 성까지 경험치', /^현재 1성 \/ 다음 성까지 경험치 60 \(보유 \d+\)$/.test(md.prog), md.prog);
+  ok('4 성급·다음 성까지 수련치', /^현재 1성 \/ 다음 성까지 수련치 60 \(보유 \d+\)$/.test(md.prog), md.prog);
   ok('4 설명문', md.desc.length > 20, md.desc.slice(0, 30) + '…');
   ok('4 보너스 효과', md.bonus.startsWith('공격력'), md.bonus);
   ok('4 미장착 → [ 장착하기 ]', md.btn === '[ 장착하기 ]');
@@ -46,11 +46,11 @@ module.exports = async (b) => {
   await p.click('[data-act="closemodal"]');
   for (const id of ['tonap', 'pocheolsak', 'cheolpo']) { await p.click(`.mcard[data-mart="${id}"]`); await p.click('[data-equipm]'); await p.click('[data-act="closemodal"]'); }
   ok('3 네 슬롯 모두 장착', (await p.$$('.mslot.empty')).length === 0);
-  // 장착 슬롯의 [▲ 성급] 단추: 경험치가 모자라면 비활성, 채우면 올라감
-  ok('3 장착 슬롯에 성급 올리기 단추 (경험치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="tonap"]'); return !!b && b.disabled; }));
+  // 장착 슬롯의 [▲ 성급] 단추: 수련치가 모자라면 비활성, 채우면 올라감
+  ok('3 장착 슬롯에 성급 올리기 단추 (수련치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="tonap"]'); return !!b && b.disabled; }));
   await p.evaluate(() => { S.exp = 500; render(); });
   await p.click('.mslot [data-starup="tonap"]'); await p.click('[data-act="confirmok"]');
-  ok('3 [▲ 성급] 누르면 2성 · 경험치 차감', await p.evaluate(() => S.manuals.tonap.star === 2 && S.exp === 500 - Math.round(60 * GRADES[MANUALS.tonap.grade].mult)));
+  ok('3 [▲ 성급] 누르면 2성 · 수련치 차감', await p.evaluate(() => S.manuals.tonap.star === 2 && S.exp === 500 - Math.round(60 * GRADES[MANUALS.tonap.grade].mult)));
   await p.click('.mslot [data-unequipm="simbeop"]');
   const u = await p.evaluate(() => ({ slot: S.active.simbeop, keep: !!S.manuals.tonap }));
   ok('3 장착 해제 → 빈 슬롯, 습득은 유지', u.slot === null && u.keep, JSON.stringify(u));

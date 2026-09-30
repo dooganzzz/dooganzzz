@@ -99,7 +99,7 @@ module.exports = async (b) => {
     ok('4 맞는 조합이 운으로 실패하면 “불길이 크게 일렁임” (틀린 조합은 그냥 실패)', near.near && near.wrong && !near.codex, JSON.stringify(near));
     await p.evaluate(() => { ui.tab = 'codex'; ui.codexTab = 'alchemy'; render(); });
     ok('4 도감에 단서 칸 없음', await p.evaluate(() => !document.querySelector('.ctile.clue, .hidden-mat') && document.querySelectorAll('.recipe-row:not(.unknown)').length >= 1));
-    ok('4 사건 보상의 단서 → 경험치', await p.evaluate(() => !JSON.stringify(EVENTS).includes('clue')));
+    ok('4 사건 보상의 단서 → 수련치', await p.evaluate(() => !JSON.stringify(EVENTS).includes('clue')));
 
     // 5. 견문록 1차 탭
     await p.click('[data-tab="chronicle"]');
@@ -120,7 +120,7 @@ module.exports = async (b) => {
     await p.click('[data-chron="exp"]');
     await p.click('.chron-more summary');
     const dt = await p.evaluate(() => { const d = document.querySelector('.chron-more[open]'); return d && d.textContent; });
-    ok('5 [결산 보기]/[자세히] 펼치기', !!dt && /(은자|경험치|요수|전투|승)/.test(dt), (dt || '').slice(0, 80));
+    ok('5 [결산 보기]/[자세히] 펼치기', !!dt && /(은자|수련치|요수|전투|승)/.test(dt), (dt || '').slice(0, 80));
     const gone = await p.evaluate(() => { S.expeditions = []; render(); return document.querySelectorAll('.chron-gone').length; });
     ok('5 지워진 탐험은 “상세 기록은 지워졌습니다”', gone > 0, String(gone));
     ok('5 옆 견문록은 없음 (견문록 탭 하나로)', await p.evaluate(() => !document.querySelector('#log') && document.querySelectorAll('.chron .chron-row').length > 0));

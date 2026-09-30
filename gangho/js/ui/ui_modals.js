@@ -15,13 +15,13 @@ function martialModal(id) {
   if (m.star < MAX_STAR) {
     const cost = starCost(id), why = starUpBlock(id);
     gateInfo = `<h4>${m.star}성 → ${m.star + 1}성</h4>
-      <div class="kv"><span>필요 경험치</span><b class="${S.exp >= cost ? 'gold' : ''}">${fmt(S.exp)} / ${fmt(cost)}</b></div>
+      <div class="kv"><span>필요 수련치</span><b class="${S.exp >= cost ? 'gold' : ''}">${fmt(S.exp)} / ${fmt(cost)}</b></div>
       ${pill ? `<div class="kv"><span>${GATE_NAME[m.star]}</span><b class="${has(pill) ? 'gold' : 'warn'}">${ITEMS[pill].name} ${has(pill) ? '보유' : '없음'}</b></div>` : ''}
-      <div><button class="btn primary" data-starup="${id}" ${why ? 'disabled' : ''}>▲ 성급 올리기${why ? ` <small>(${why})</small>` : ` <small>경험치 ${fmt(cost)}${pill ? ` + ${ITEMS[pill].name}` : ''}</small>`}</button></div>`;
+      <div><button class="btn primary" data-starup="${id}" ${why ? 'disabled' : ''}>▲ 성급 올리기${why ? ` <small>(${why})</small>` : ` <small>수련치 ${fmt(cost)}${pill ? ` + ${ITEMS[pill].name}` : ''}</small>`}</button></div>`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
   return `<div class="sheet">
     <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
-    <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 경험치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
+    <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 수련치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
     <p class="story">${M.desc}</p>
     ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja}) — ${ELEMENTS[ELEM_BEATS[M.elem]].hanja} 속성 적에게 피해 +25%, ${ELEMENTS[Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem)].hanja} 속성 적에게는 -25%</p>` : ''}
     ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}

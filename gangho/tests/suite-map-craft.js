@@ -1,4 +1,4 @@
-/* 화로 조합식·탭, 구역 해금, 전투 경험치, 초기화 */
+/* 화로 조합식·탭, 구역 해금, 전투 수련치, 초기화 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -28,12 +28,12 @@ module.exports = async (b) => {
   await p.evaluate(() => { S.flags.boss1 = true; render(); });
   ok('5 청풍산 두목 처치 후 염화채 열림', (await p.$$eval('.zone:not(.locked) h3 .ko', e => e.map(x => x.textContent).join(','))) === '청풍산,염화채');
   await p.evaluate(() => { S.flags.boss1 = false; render(); });
-  // 2 전투 승리 → 경험치 (적의 xp × 경험치 획득 보정)
+  // 2 전투 승리 → 수련치 (적의 xp × 수련치 획득 보정)
   const xp = await p.evaluate(() => {
     const e0 = S.exp; S.hp = 99999; const b = fightSync('boar');
-    return { win: b.win, got: S.exp - e0, expect: expGain(ENEMIES.boar.xp), rec: b.exp };
+    return { win: b.win, got: S.exp - e0, expect: Math.round(expGain(ENEMIES.boar.xp) * EXPEDITION.rewardMult), rec: b.exp };
   });
-  ok('2 승리 시 경험치 = 적 경험치 × 보정', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect >= await p.evaluate(() => ENEMIES.boar.xp), JSON.stringify(xp));
+  ok('2 승리 시 수련치 = 적 수련치 × 보정 × 원정 보상 1/10', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect > 0, JSON.stringify(xp));
   // 6 화로: [단조] | [단약] 두 탭, 탭마다 그 기예의 조합식에 쓰이는 재료만 보인다
   await p.evaluate(() => { ITEMS.testMat = { name: '시험재', icon: '❔', kind: '재료' }; Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2, testMat: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
   const f = {};

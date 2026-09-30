@@ -52,7 +52,7 @@ module.exports = async (b) => {
         const inv0 = { ...S.inv }, sil0 = S.silver;
         const v = openVault(Z).name; kinds[v] = (kinds[v] || 0) + 1;
         const gained = Object.keys(S.inv).filter(k => (S.inv[k] || 0) > (inv0[k] || 0));
-        if (v === '은자 궤' && !(S.silver - sil0 >= 15 && S.silver - sil0 <= 35)) silverOk = false;
+        if (v === '은자 궤' && !(S.silver - sil0 >= 2 && S.silver - sil0 <= 4)) silverOk = false;   // 15~35냥 × 원정 보상 1/10
         if (v === '약재 궤' && gained.some(k => ITEMS[k].craftType !== 'alchemy')) alchemyOnly = false;
         if (v === '철물 궤' && gained.some(k => ITEMS[k].craftType !== 'forge')) forgeOnly = false;
         if (v === '비급/장비 궤' && gained.some(k => ITEMS[k].kind === '비급')) bookSeen = true;
@@ -61,7 +61,7 @@ module.exports = async (b) => {
       return { kinds, silverOk, alchemyOnly, forgeOnly, cookOnly, bookSeen };
     });
     ok('3 네 종류 무작위 (비급/장비 궤가 가장 드묾)', Object.keys(vault.kinds).length === 4 && vault.kinds['비급/장비 궤'] < vault.kinds['은자 궤'], JSON.stringify(vault.kinds));
-    ok('3 은자 궤 15~35냥 · 약재 궤 단약 · 철물 궤 단조 재료만', vault.silverOk && vault.alchemyOnly && vault.forgeOnly);
+    ok('3 은자 궤 2~4냥(1/10) · 약재 궤 단약 · 철물 궤 단조 재료만', vault.silverOk && vault.alchemyOnly && vault.forgeOnly);
     ok('3 비급/장비 궤에서 미습득 삼류 비급', vault.bookSeen);
 
     // 4. 견문록 역순

@@ -82,7 +82,7 @@ const OLD_ITEM_PRICE = {
 };
 
 /* 예전 저장을 지금 규칙에 맞게 옮긴다.
-   v8: 지도·연무장·비급별 수련/실전 경험치가 사라졌다. 쌓아 둔 진행 비율만큼 경험치 주머니(S.exp)로 돌려준다. */
+   v8: 지도·연무장·비급별 수련/실전 수련치가 사라졌다. 쌓아 둔 진행 비율만큼 수련치 주머니(S.exp)로 돌려준다. */
 function migrate(st) {
   if (!st) return null;
   if ((st.v || 0) < 8) {
@@ -145,6 +145,8 @@ function migrate(st) {
   // 문파 임무는 토벌만 · 비급/무신상 영구 보너스
   if (st.missions) st.missions = st.missions.filter(m => m.type === 'kill');
   st.questRefreshCount = st.questRefreshCount || 0; if (st.lastQuestResetDate === undefined) st.lastQuestResetDate = '';
+  // 장경각 장비 이름 정리 (단조 장비와 이름이 겹치지 않게)
+  for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && it.shop && LIBRARY_GEAR[it.shop]) it.name = LIBRARY_GEAR[it.shop].name;
   // 장비 위계 재조정: 하급 장비 37종·단조 장비는 지금 데이터 수치로 맞춘다 (강화 단계는 유지)
   for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) {
     if (!it || !it.named) continue;
@@ -205,7 +207,7 @@ function boot() {
   else {
     if (S.migratedRefund) { log(`📜 화로가 단조·단약으로 바뀌며 쓰임을 잃은 옛 재료와 음식을 전방에 넘기고 ${hlSilver(S.migratedRefund)}을 받았습니다.`, 'gold'); delete S.migratedRefund; }
     if (S.migratedExp !== undefined) {
-      log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 한 시간마다 강호로 나가 경험을 쌓습니다. 그동안의 수련은 경험치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
+      log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 한 시간마다 강호로 나가 경험을 쌓습니다. 그동안의 수련은 수련치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
       delete S.migratedExp;
     }
     ensureMissions(); checkDailyMidnightReset();

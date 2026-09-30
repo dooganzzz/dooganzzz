@@ -14,7 +14,7 @@ module.exports = async (b) => {
   const tabs = await p.$$eval('.tab .ko', els => els.map(e => e.textContent).join(','));
   ok('1 탭 순서', tabs === '청풍문,상태,행낭,강호행,견문록,도감', tabs);
   ok('1 첫 화면=청풍문 › 정청', await p.$eval('.tab.on .ko', e => e.textContent) === '청풍문' && await p.$eval('.subtab.on .ko', e => e.textContent) === '정청');
-  // 2 성장: 연무장·비급별 수련치 없음, 경험치로 성급 올리기
+  // 2 성장: 연무장·비급별 수련치 없음, 수련치로 성급 올리기
   const t = await p.evaluate(() => {
     const r = {}, id = S.active.simbeop, m = S.manuals[id];
     r.noTrainFields = !('txp' in m) && !('cxp' in m) && !('activeTrainingSkillId' in S) && typeof toggleTraining === 'undefined';
@@ -24,7 +24,7 @@ module.exports = async (b) => {
     return r;
   });
   ok('2 수련치 제거 · 연무장은 심상수련장만', t.noTrainFields && t.noYeonmu);
-  ok('2 경험치 부족하면 막힘 → 채우면 성급 +1, 경험치 차감', /경험치 60 필요/.test(t.block) && t.up && t.star === 2 && t.left === 0, JSON.stringify(t));
+  ok('2 수련치 부족하면 막힘 → 채우면 성급 +1, 수련치 차감', /수련치 60 필요/.test(t.block) && t.up && t.star === 2 && t.left === 0, JSON.stringify(t));
   // 3 강호행: 지도 없음, 탐험지 선택
   await p.click('[data-tab="field"]');
   const zones = await p.$$eval('.zone h3', els => els.map(e => e.textContent).join(' | '));

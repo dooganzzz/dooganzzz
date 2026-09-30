@@ -35,8 +35,8 @@ const ITEMS = {
   // 조합 실패물 (단조·단약 공통)
   slag:         { name: '검게 탄 찌꺼기', icon: '⚫', kind: '부산물', price: 0, desc: '화로 조합에 실패하면 남는 찌꺼기. 청풍문 › 무신상에 공양하면 무언가로 돌아온다.' },
   // 돌파단 (영단)
-  pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '5성 비급을 6성 소성(小成)으로 올릴 때 경험치와 함께 복용한다. (상태 › 무공)' },
-  pillHigh:  { name: '대성 돌파단', icon: '🟣', kind: '영단', price: 500, desc: '11성 비급을 12성 대성(大成)으로 올릴 때 경험치와 함께 복용한다. (상태 › 무공)' },
+  pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '5성 비급을 6성 소성(小成)으로 올릴 때 수련치와 함께 복용한다. (상태 › 무공)' },
+  pillHigh:  { name: '대성 돌파단', icon: '🟣', kind: '영단', price: 500, desc: '11성 비급을 12성 대성(大成)으로 올릴 때 수련치와 함께 복용한다. (상태 › 무공)' },
   // 8품(八品) 단약: 회복은 즉시, 증강은 다음 원정 동안 (탐험 중 위급하면 생혈고·소환단은 제자가 알아서 먹는다)
   potionMp:   { name: '소환단', hanja: '小還丹', icon: '💧', kind: '단약', grade: '8품', price: 20, use: { mp: 0.4 }, desc: '급격히 손상된 내력을 즉시 40% 회복시키는 기본 영약.' },
   saenghyeol: { name: '생혈고', hanja: '生血膏', icon: '🩸', kind: '단약', grade: '8품', price: 24, use: { hp: 0.5 }, desc: '깊은 상처를 아물게 하여 활력을 즉시 50% 회복시키는 고약. 탐험 중 활력이 바닥나면 제자가 알아서 바른다.' },
@@ -82,8 +82,8 @@ const ITEMS = {
   bk_yusu: { name: '《유수심법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'yusu' }, desc: '읽고 익히면 유수심법(流水心法)을(를) 운용할 수 있다.' },
   bk_cpGwon: { name: '《청풍유운권》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGwon' }, desc: '읽고 익히면 청풍유운권(淸風流雲拳)을(를) 운용할 수 있다.' },
   bk_cpGeom: { name: '《청풍유수검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGeom' }, desc: '읽고 익히면 청풍유수검(淸風流水劍)을(를) 운용할 수 있다.' },
-  bk_cpDo: { name: '《청풍벽력도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpDo' }, desc: '읽고 익히면 청풍벽력도(淸風霹靂刀)을(를) 운용할 수 있다.' },
-  bk_cpChang: { name: '《청풍선풍창》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpChang' }, desc: '읽고 익히면 청풍선풍창(淸風旋風槍)을(를) 운용할 수 있다.' },
+  bk_cpDo: { name: '《청풍벽력도법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpDo' }, desc: '읽고 익히면 청풍벽력도법(淸風霹靂刀法)을(를) 운용할 수 있다.' },
+  bk_cpChang: { name: '《청풍선풍창법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpChang' }, desc: '읽고 익히면 청풍선풍창법(淸風旋風槍法)을(를) 운용할 수 있다.' },
   bk_cpPyo: { name: '《청풍추영표》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpPyo' }, desc: '읽고 익히면 청풍추영표(淸風追影鏢)을(를) 운용할 수 있다.' },
   bk_cpSim: { name: '《청풍심법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpSim' }, desc: '읽고 익히면 청풍심법(淸風心法)을(를) 운용할 수 있다.' },
   bk_cpGyeong: { name: '《청풍경공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'cpGyeong' }, desc: '읽고 익히면 청풍경공(淸風輕功)을(를) 운용할 수 있다.' },
@@ -109,7 +109,7 @@ const SLOTS = {
   belt:   { name: '허리띠', desc: '적재량·활력 보정' },
   jade:   { name: '옥대',   desc: '기공 위력·단전(내력) 보정' },
   ring:   { name: '가락지', desc: '내력·특수 보정' },
-  badge:  { name: '신분패', desc: '경험치 획득' },
+  badge:  { name: '신분패', desc: '수련치 획득' },
   mount:  { name: '탈것',   desc: '최대 기력' },
 };
 
@@ -118,7 +118,7 @@ const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring'
 const STAT_NAMES = {
   atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피율',
   crit: '치명타율', critRes: '치명 저항', mpRegen: '내력 회복', bag: '행낭 칸', mpCost: '내력 소모 감소',
-  craft: '기예 보정', train: '경험치 획득', maxSta: '최대 기력', counter: '반격', combo: '초식 발동률',
+  craft: '기예 보정', train: '수련치 획득', maxSta: '최대 기력', counter: '반격', combo: '초식 발동률',
   staSave: '기력 소모 감소', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성', bleed: '출혈 확률', pierce: '관통력', acc: '명중',
   shock: '충격 확률', first: '선공', mpRegenPct: '내력 회복률', armorPen: '방어 무시', elem: '오행 위력',
   str: '근력', con: '체력', agi: '민첩', int: '지력',
@@ -198,8 +198,8 @@ const STARTER_GEAR = { fist: 'g_hideTosu', sword: 'g_dullSword', blade: 'g_ironS
 /* 신분패·탈것 (구매) */
 const SHOP_GEAR = [
   { id: 'badge1', slot: 'badge', name: '청풍문 제자패',     rarity: 0, stats: { train: 10 } },
-  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 5 }, cost: 120, desc: '신분패 · 경험치 획득 +5%' },
-  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 10 }, cost: 350, desc: '신분패 · 경험치 획득 +10%' },
+  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 5 }, cost: 120, desc: '신분패 · 수련치 획득 +5%' },
+  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 10 }, cost: 350, desc: '신분패 · 수련치 획득 +10%' },
   { id: 'mount1', slot: 'mount', name: '늙은 나귀', rarity: 0, stats: { maxSta: 30 },  boss: 'boss1' },
   { id: 'mount2', slot: 'mount', name: '조랑말',   rarity: 1, stats: { maxSta: 70 },  boss: 'boss2' },
   { id: 'mount3', slot: 'mount', name: '청총마',   rarity: 3, stats: { maxSta: 120 }, boss: 'boss3' },
@@ -224,16 +224,16 @@ const CRAFTS = {
 
 /* 단조 전용 중급 장비 9종 (이류급 · 등급 중급 고정). 비밀 조합식은 recipes.js
    bleed: 적중 시 출혈 확률(%) · pierce: 관통력(적 방어 무시) · acc: 명중 보정(%p) */
-/* 장경각 이류(二流) 장비: 문파 공헌도로 교환. 중급(녹색)·2티어. str/con/agi/int는 4대 스탯에 더해진다
+/* 장경각 이류(二流) 장비: 문파 공헌도로 교환. 이름은 '청풍문 ~'(문파 하사품)으로 단조 장비와 구분한다. 중급(녹색)·2티어. str/con/agi/int는 4대 스탯에 더해진다
    shock 충격(적이 한 합 움직이지 못함) · first 선공 보정 · bleed 적에게 출혈 · staSave 원정 기력 소모 감소 */
 const LIBRARY_GEAR = {
-  lg_fist:   { slot: 'weapon', wtype: 'fist',   name: '청풍권갑',   hanja: '淸風拳匣',   stats: { atk: 18, def: 6, shock: 5 },       cost: 280, desc: '바람결처럼 가벼운 권갑. 제대로 박히면 적의 몸이 굳는다 (충격).' },
-  lg_sword:  { slot: 'weapon', wtype: 'sword',  name: '청풍비검',   hanja: '淸風飛劍',   stats: { atk: 22, crit: 3, agi: 1 },        cost: 300, desc: '날아가듯 가벼운 청풍문의 검. 쥔 손이 절로 빨라진다.' },
-  lg_blade:  { slot: 'weapon', wtype: 'blade',  name: '청풍환도',   hanja: '淸風環刀',   stats: { atk: 25, pierce: 4, str: 1 },      cost: 300, desc: '고리가 달린 묵직한 도. 갑옷 틈을 파고든다.' },
-  lg_spear:  { slot: 'weapon', wtype: 'spear',  name: '청풍장창',   hanja: '淸風長槍',   stats: { atk: 26, counter: 4, con: 1 },     cost: 320, desc: '긴 자루로 거리를 지배하는 창. 되받아치기에 좋다.' },
-  lg_hidden: { slot: 'weapon', wtype: 'hidden', name: '청풍유엽표', hanja: '淸風柳葉鏢', stats: { atk: 20, first: 8, bleed: 6 },     cost: 280, desc: '버들잎 모양의 비표. 먼저 날아가 상처를 벌린다 (선공 · 출혈).' },
-  lg_armor:  { slot: 'armor',                   name: '청풍도포',   hanja: '淸風道袍',   stats: { maxHp: 60, def: 12, staSave: 3 },  cost: 250, desc: '청풍문 내문 제자의 도포. 몸이 가벼워 원정 기력을 아낀다.' },
-  lg_jade:   { slot: 'jade',                    name: '청풍보옥대', hanja: '淸風寶玉帶', stats: { maxHp: 40, maxMp: 30, bag: 10 },   cost: 220, desc: '푸른 옥을 박은 허리 옥대. 단전이 넉넉해지고 짐도 더 진다.' },
+  lg_fist:   { slot: 'weapon', wtype: 'fist',   name: '청풍문 호권갑', hanja: '淸風門護拳匣',   stats: { atk: 18, def: 6, shock: 5 },       cost: 280, desc: '바람결처럼 가벼운 권갑. 제대로 박히면 적의 몸이 굳는다 (충격).' },
+  lg_sword:  { slot: 'weapon', wtype: 'sword',  name: '청풍문 패검', hanja: '淸風門佩劍',   stats: { atk: 22, crit: 3, agi: 1 },        cost: 300, desc: '날아가듯 가벼운 청풍문의 검. 쥔 손이 절로 빨라진다.' },
+  lg_blade:  { slot: 'weapon', wtype: 'blade',  name: '청풍문 환도', hanja: '淸風門環刀',   stats: { atk: 25, pierce: 4, str: 1 },      cost: 300, desc: '고리가 달린 묵직한 도. 갑옷 틈을 파고든다.' },
+  lg_spear:  { slot: 'weapon', wtype: 'spear',  name: '청풍문 장창', hanja: '淸風門長槍',   stats: { atk: 26, counter: 4, con: 1 },     cost: 320, desc: '긴 자루로 거리를 지배하는 창. 되받아치기에 좋다.' },
+  lg_hidden: { slot: 'weapon', wtype: 'hidden', name: '청풍문 비표', hanja: '淸風門飛鏢', stats: { atk: 20, first: 8, bleed: 6 },     cost: 280, desc: '버들잎 모양의 비표. 먼저 날아가 상처를 벌린다 (선공 · 출혈).' },
+  lg_armor:  { slot: 'armor',                   name: '청풍문 내문 도포', hanja: '淸風門內門道袍',   stats: { maxHp: 60, def: 12, staSave: 3 },  cost: 250, desc: '청풍문 내문 제자의 도포. 몸이 가벼워 원정 기력을 아낀다.' },
+  lg_jade:   { slot: 'jade',                    name: '청풍문 옥대', hanja: '淸風門玉帶', stats: { maxHp: 40, maxMp: 30, bag: 10 },   cost: 220, desc: '푸른 옥을 박은 허리 옥대. 단전이 넉넉해지고 짐도 더 진다.' },
 };
 
 /* 단조 장비: 재료 수로 위계를 나눈다 (필드 드랍템 < 2재료 조합템 < 3재료 조합템)

@@ -156,7 +156,7 @@ module.exports = async (b) => {
       const foe = Object.keys(S.bestiary)[0], bt = simulate(foe), many = simulateMany(foe, 10);
       return { same: snap() === before, sim: bt.sim, over: bt.over, unknown: simulate('byeokhaeryong'), many };
     });
-    ok('6 가상 전투: 기력·경험치·은자·행낭·도감·견문록 모두 그대로', sim.same && sim.sim && sim.over, JSON.stringify(sim));
+    ok('6 가상 전투: 기력·수련치·은자·행낭·도감·견문록 모두 그대로', sim.same && sim.sim && sim.over, JSON.stringify(sim));
     ok('6 만나 본 적 없는 상대는 불러낼 수 없음', sim.unknown === null);
     ok('6 10판 모의: 승·패·평균 합', sim.many.n === 10 && sim.many.wins + sim.many.draws <= 10 && sim.many.rounds > 0, JSON.stringify(sim.many));
     await p.click('.sim-row [data-simx]');

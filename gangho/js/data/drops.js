@@ -10,10 +10,10 @@ const DROPS = {
   scout:    [['roughOre', 0.5], ['blackwood', 0.3]],
   slinger:  [['roughOre', 0.6], ['wildGinseng', 0.2]],
   boar:     [['boarMolar', 0.7], ['wildcatHide', 0.2]],
-  deserter: [['roughOre', 0.5], ['blackwood', 0.4]],
+  deserter: [['roughOre', 0.5], ['blackwood', 0.4], ['blackIngot', 0.3]],
   turtle:   [['roughOre', 0.5], ['treeSap', 0.3]],
   treant:   [['blackwood', 0.8], ['treeSap', 0.6]],
-  redTiger: [['wildcatHide', 1], ['boarMolar', 1], ['blackwood', 1], ['lingzhi', 1]],
+  redTiger: [['wildcatHide', 1], ['boarMolar', 1], ['blackwood', 1], ['lingzhi', 1], ['blackIngot', 1]],
 
   // 염화채: 적염석 · 화염 전갈 독낭 · 늑대 힘줄 · 염화 대도 파편 · 적토 점토 · 정련된 흑철괴
   fireViper:  [['scorpionSac', 0.5], ['redStone', 0.3]],
