@@ -46,7 +46,7 @@ function applyFx(fx) {
   if (fx.silver) { S.silver = Math.max(0, S.silver + fx.silver); out.push(`${fx.silver > 0 ? '+' : ''}은자 ${fx.silver}냥`); }
   for (const [id, n] of Object.entries(fx.items || {})) if (give(id, n, true)) out.push(`${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`);
   if (fx.hpPct) { const d = Math.round(st.maxHp * fx.hpPct); S.hp = clamp(S.hp + d, 1, st.maxHp); out.push(`활력 ${d > 0 ? '+' : ''}${d}`); }
-  if (fx.stamina) { S.stamina = Math.max(0, S.stamina + fx.stamina); out.push(`기력 ${fx.stamina > 0 ? '+' : ''}${fx.stamina}`); }
+  if (fx.stamina < 0) S.stamina = Math.max(0, S.stamina + fx.stamina);   // 기력은 숨겨진 능력치: 깎이기만 하고 회복되지 않는다
   if (fx.contrib) { S.contrib += fx.contrib; out.push(`문파 공헌도 +${fx.contrib}`); }
   if (fx.exp) { const v = expGain(fx.exp, st); S.exp += v; out.push(`경험치 +${v}`); }
   if (fx.buff) { S.buffs = S.buffs.filter(b => b.key !== fx.buff.key); S.buffs.push({ key: fx.buff.key, val: fx.buff.val, name: fx.buff.name }); out.push(`${fx.buff.name} (이번 탐험 동안)`); }
@@ -71,10 +71,6 @@ function openVault(Z) {
   if (v.name === '철물 궤') {                         // 주조 재료 다량
     for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4) + (talentOf().vault || 0));
   }
-  if (v.name === '식재 궤') {                         // 조리 재료
-    const pool = [...new Set([...Z.herb.map(r => r[0]), 'rice', 'salt'])].filter(id => ITEMS[id].craftType === 'cooking');
-    for (const id of pool) give(id, rint(1, 3));
-  }
   if (v.name === '비급/장비 궤') {                    // 희귀: 아직 익히지 않은 삼류 비급(공양 비급 목록), 없으면 장비
     const books = GACHA.books.filter(id => !S.manuals[id] && !has('bk_' + id));
     if (books.length && Math.random() < 0.6) give('bk_' + pick(books), 1);
@@ -98,7 +94,7 @@ function stepVault(Z) {
 function stepTrap() {
   const st = calcStats(), hpLoss = Math.max(1, Math.round(st.maxHp * TRAP.hpPct));
   S.hp = Math.max(1, S.hp - hpLoss); S.stamina = Math.max(0, S.stamina - TRAP.stamina);
-  log(`🪤 ${TRAP.text} 활력 -${hpLoss}, 기력 -${TRAP.stamina}`, 'bad');
+  log(`🪤 ${TRAP.text} 활력 -${hpLoss}`, 'bad');
   return { t: `🪤 ${TRAP.text} (활력 -${hpLoss})`, cls: 'bad' };
 }
 function stepGimmick(Z) {
@@ -144,7 +140,7 @@ function runExpedition(at = now()) {
   try {
     while (S.stamina >= W.minStamina && guard++ < 300) {
       const depth = 1 - S.stamina / budget;
-      if (S.hp < calcStats().maxHp * W.retreatAt && !has('potionHp')) {       // 스스로 물러나기: 벌칙 없이 번 것을 들고 귀환
+      if (S.hp < calcStats().maxHp * W.retreatAt && !has('saenghyeol')) {       // 스스로 물러나기: 벌칙 없이 번 것을 들고 귀환
         step('retreat', () => { log(EXP_TEXT.retreat, 'muted'); return { t: '🩸 상처가 깊어 스스로 발길을 돌렸습니다', cls: 'muted' }; });
         rec.end = 'retreat'; break;
       }
@@ -179,7 +175,7 @@ function runExpedition(at = now()) {
   rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
   rec.wins = rec.battles.filter(b => b.win).length; rec.losses = rec.battles.filter(b => !b.win && !b.fled).length;
   S.stamina = 0;                                            // 남은 기력은 다음 탐험 전까지 다시 찬다
-  S.buffs = [];                                             // 음식·영단 효과는 이번 탐험으로 끝
+  S.buffs = [];                                             // 증강 단약 효과는 이번 탐험으로 끝
   // 구역에서 겪은 것 (정답 대신 경험만 남는다)
   const zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
   zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = at;
@@ -217,7 +213,7 @@ function settleExpeditions(t = now()) {
   if (skipped) log(`⌛ 자리를 오래 비워 탐험 ${skipped}번이 그냥 지나갔습니다. (최대 ${W.maxQueue}번까지만 쌓입니다)`, 'muted', at);
   const recs = [];
   for (let i = 0; i < n; i++, at += W.interval) {
-    S.stamina = Math.max(S.stamina, calcStats().maxSta);    // 한 시간이면 기력이 다시 찬다 (음식으로 더 채운 만큼은 그대로)
+    S.stamina = calcStats().maxSta;                        // 정각마다 기력이 다시 가득 찬다 (숨겨진 능력치)
     recs.push(runExpedition(at));
   }
   X.nextAt = nextTopOfHour(t);                              // 다음 탐험은 지금 이후 첫 정각

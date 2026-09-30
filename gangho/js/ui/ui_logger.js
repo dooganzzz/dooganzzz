@@ -49,7 +49,7 @@ function chronDetail(e) {
   if (e.ref.s === undefined) {
     const g = rec.gain, part = (o, f) => Object.entries(o || {}).map(([id, n]) => `${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`).join(' · ') || f;
     return `<details class="chron-more"><summary>결산 보기</summary><dl class="chron-gain">
-      <dt>전투</dt><dd>${rec.wins}승 ${rec.losses}패 (걸음 ${rec.steps.length} · 기력 ${Math.round(rec.budget)})</dd>
+      <dt>전투</dt><dd>${rec.wins}승 ${rec.losses}패 (걸음 ${rec.steps.length})</dd>
       <dt>은자</dt><dd>${g.silver >= 0 ? '+' : ''}${fmt(g.silver)}${g.lost ? ` (쓰러져 ${g.lost} 잃음)` : ''}</dd>
       <dt>경험치</dt><dd>+${fmt(g.exp)}</dd>
       <dt>얻은 것</dt><dd>${part(g.items, '—')}${(g.gear || []).length ? ` · ${g.gear.join(' · ')}` : ''}</dd>

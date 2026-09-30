@@ -20,6 +20,7 @@ function onClick(e) {
   if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); render(); return; }
   if (d.dest) return setDestination(d.dest);
   if (d.chron) { ui.chronFilter = d.chron; return render(); }
+  if (d.codextab) { ui.codexTab = d.codextab; return render(); }
   if (d.watch) return openReplay(d.watch);
   if (d.rp) return replayControl(d.rp, d.x);
   if (d.starup) { starUp(d.starup); if (ui.modal && ui.modal.startsWith('mart:')) renderModal(); return; }
@@ -40,7 +41,7 @@ function onClick(e) {
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
-  if (d.add) { if (ITEMS[d.add].craftType !== CRAFT_TYPE[ui.craft]) return; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
+  if (d.add) { if (ITEMS[d.add].kind !== '재료') return; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
   if (d.rem) { ui.pot[d.rem]--; if (ui.pot[d.rem] <= 0) delete ui.pot[d.rem]; return render(); }
   if (d.mission) return completeMission(+d.mission);
   if (d.buymanual) return buyManual(d.buymanual);
@@ -54,7 +55,7 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     craft: () => doCraft(ui.craft, ui.pot), clearpot: () => { ui.pot = {}; render(); },
-    rest, snack: arinSnack, talk: arinTalk, masterhint: masterHint, jounguide: jounGuide, supply: jounSupply, reroll: rerollMissions,
+    rest, talk: arinTalk, masterhint: masterHint, jounguide: jounGuide, supply: jounSupply, reroll: rerollMissions,
     hasan: doHasan, closemodal: () => { replayStop(); ui.modal = null; render(); },
     reset: askReset,
     doreset: doReset,

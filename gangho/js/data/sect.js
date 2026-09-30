@@ -2,8 +2,8 @@
 
 /* 조운의 오늘의 보급품: [아이템, 최소, 최대] 중 2~3가지 */
 const SUPPLY = [
-  ['potionHp', 1, 3], ['potionMp', 1, 2], ['rice', 2, 4], ['salt', 2, 4], ['herb', 2, 4],
-  ['wood', 3, 5], ['water', 2, 3], ['wildGreens', 2, 3], ['iron', 2, 3], ['rabbitHide', 2, 3], ['boarHide', 1, 2], ['lingzhi', 1, 1], ['jumeokbap', 1, 2],
+  ['saenghyeol', 1, 1], ['potionMp', 1, 2], ['herb', 2, 4], ['wildGinseng', 2, 3],
+  ['blackwood', 2, 3], ['roughOre', 2, 3], ['wildcatHide', 1, 2], ['lingzhi', 1, 1],
 ];
 
 /* 청풍전방(淸風廛房): 청풍문 전속 객주 */
@@ -14,10 +14,10 @@ const MERCHANT = {
   sellLines: ['"흠, 값은 제대로 쳐 드렸소."', '"이 정도면 후하게 쳐 드린 거요."', '"또 캐 오시오. 사 드리리다."'],
   poor: '"은자가 모자라구려. 외상은 안 되오."',
 };
-/* 전방 진열: [아이템, 은자] — 소모품·재료 */
+/* 전방 진열: [아이템, 은자] — 단약·재료 */
 const SHOP_STOCK = [
-  ['potionHp', 15], ['potionMp', 20], ['jumeokbap', 12], ['rice', 4], ['salt', 4], ['water', 2],
-  ['wildGreens', 4], ['herb', 6], ['wood', 3], ['iron', 8], ['rabbitHide', 5], ['boarHide', 9],
+  ['saenghyeol', 30], ['potionMp', 20], ['herb', 6], ['wildGinseng', 6],
+  ['blackwood', 6], ['roughOre', 5], ['wildcatHide', 8],
 ];
 /* 전방 진열: [하급 장비 id(GEAR_DB) 또는 기본형(EQUIP_BASES), 티어, 은자] */
 const SHOP_GEAR_STOCK = [
@@ -38,5 +38,3 @@ const ARIN_TALK = [
   '화로 쓸 때 불 조심해요! 지난번에 조운 사형 눈썹 탔었어요.',
 ];
 
-/* 평상 휴식 후 기력 회복 대기 (초) */
-const REST_CD = 300;

@@ -20,13 +20,13 @@ function newState(name, mugongId, opts = {}) {
     attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), talent: TALENTS[opts.talent] ? opts.talent : null,
     expedition: { zone: null, nextAt: null }, expeditions: [], zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
-    inv: { potionHp: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
+    inv: { saenghyeol: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
     perm: { maxHp: 0, maxMp: 0 },
-    crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 }, cook: { lv: 1, xp: 0 } },
+    crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
-    buffs: [], missions: [], arin: {}, supplyDay: '', restCd: 0, uid: 1,
+    buffs: [], missions: [], arin: {}, supplyDay: '', uid: 1,
     kills: 0, log: [],
   };
   const T = st.talent && TALENTS[st.talent];
@@ -73,6 +73,15 @@ function startNewGame(name, mugongId, opts = {}) {
   log('아린: "새 사형이다! 비급부터 익혀요. 상태 탭의 무공에 있어요!"', 'npc');
 }
 
+/* 사라진 아이템의 옛 가격 (저장 이전 때 은자로 돌려준다) */
+const OLD_ITEM_PRICE = {
+  rice: 3, salt: 3, water: 1, wildGreens: 2, chili: 6, fish: 8, rabbitMeat: 2, boarMeat: 4,
+  jumeokbap: 5, rabbitRoast: 6, boarSuyuk: 20, lingzhiBap: 25, fireStew: 40, fishRoast: 18, fishCongee: 50, arinSnack: 0,
+  iron: 3, blackiron: 12, coldiron: 35, jadeStone: 15, wood: 1, rabbitHide: 2, dogFang: 3, roughHide: 4, boarHide: 5, boarTusk: 6,
+  bandanaSilk: 12, emberStone: 15, scale: 30, viperFang: 6, tigerBone: 40, pillMid: 150, fireElixir: 80, bloodPill: 120,
+  twistedIron: 0, burntAsh: 0, dregs: 0,
+};
+
 /* 예전 저장을 지금 규칙에 맞게 옮긴다.
    v8: 지도·연무장·비급별 수련/실전 경험치가 사라졌다. 쌓아 둔 진행 비율만큼 경험치 주머니(S.exp)로 돌려준다. */
 function migrate(st) {
@@ -110,6 +119,28 @@ function migrate(st) {
   // 청풍산 요수 교체: 들개·외눈 멧돼지왕은 사라졌다 (도감·임무에서 정리)
   for (const gone of ['dog', 'boarKing']) { if (st.bestiary) delete st.bestiary[gone]; for (const z of Object.values(st.zoneLog || {})) if (z.seen) delete z.seen[gone]; }
   if (st.missions) st.missions = st.missions.filter(m => m.type !== 'kill' || ENEMIES[m.target]);
+  // 3대 사냥터 개편: 적룡방 → 수룡방, 염화채·수룡방 요수 교체 (사라진 요수는 도감·임무에서 정리)
+  const zmap = z => z === 'jeokryong' ? 'suryong' : z;
+  if (st.expedition) st.expedition.zone = st.expedition.zone && zmap(st.expedition.zone);
+  if (st.zoneLog && st.zoneLog.jeokryong) { st.zoneLog.suryong = st.zoneLog.jeokryong; delete st.zoneLog.jeokryong; }
+  for (const r of st.expeditions || []) r.zone = zmap(r.zone);
+  for (const m of st.missions || []) m.zone = zmap(m.zone);
+  if (st.bestiary) for (const e of Object.keys(st.bestiary)) if (!ENEMIES[e]) delete st.bestiary[e];
+  for (const z of Object.values(st.zoneLog || {})) for (const e of Object.keys(z.seen || {})) if (!ENEMIES[e]) delete z.seen[e];
+  if (st.missions) st.missions = st.missions.filter(m => (m.type !== 'kill' || ENEMIES[m.target]) && (m.type !== 'deliver' || ITEMS[m.target]));
+  // 화로 개편(단조·단약): 조리·음식·기력 아이템과 옛 제작 재료는 사라졌다. 금창약은 생혈고로, 나머지는 전방 값만큼 은자로 돌려준다
+  if (st.inv) {
+    if (st.inv.potionHp) { st.inv.saenghyeol = (st.inv.saenghyeol || 0) + st.inv.potionHp; delete st.inv.potionHp; }
+    let refund = 0;
+    for (const id of Object.keys(st.inv)) if (!ITEMS[id]) { refund += (OLD_ITEM_PRICE[id] || 0) * st.inv[id]; delete st.inv[id]; }
+    if (refund) { st.silver = (st.silver || 0) + refund; st.migratedRefund = refund; }
+  }
+  if (st.crafts) delete st.crafts.cook;
+  if (st.talent === 'chef') st.talent = null;
+  delete st.restCd;
+  if (st.codex) st.codex = st.codex.filter(id => RECIPES.some(r => r.id === id));
+  const outOk = o => !o || (o.startsWith('gear:') ? !!CRAFT_GEAR[o.slice(5)] : !!ITEMS[o]);
+  if (st.craftNotes) st.craftNotes = st.craftNotes.filter(n => CRAFTS[n.craft] && Object.keys(n.mats).every(id => ITEMS[id]) && outOk(n.out));
   // 조합 단서는 없어졌다 (연구 노트로 대체). 구역 경험 기록·정각 일정
   delete st.knownMats;
   st.zoneLog = st.zoneLog || {}; st.craftNotes = st.craftNotes || [];
@@ -155,6 +186,7 @@ function boot() {
   S = migrate(S);
   if (!S) showIntro();
   else {
+    if (S.migratedRefund) { log(`📜 화로가 단조·단약으로 바뀌며 쓰임을 잃은 옛 재료와 음식을 전방에 넘기고 ${hlSilver(S.migratedRefund)}을 받았습니다.`, 'gold'); delete S.migratedRefund; }
     if (S.migratedExp !== undefined) {
       log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 한 시간마다 강호로 나가 경험을 쌓습니다. 그동안의 수련은 경험치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
       delete S.migratedExp;

@@ -1,4 +1,4 @@
-/* [시스템] 화로 기예(주조·연단·조리), 연구 노트, 무신상 공양(가챠) (DOM 조작 금지) */
+/* [시스템] 화로 제작 엔진: 단조(장비) · 단약(영약) 이원화, 비밀 조합식(성공 시 도감 등재), 연구 노트, 무신상 공양(가챠) (DOM 조작 금지) */
 
 /* ───────── 기예 ───────── */
 function potKey(pot) { return Object.entries(pot).filter(([, v]) => v > 0).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}*${v}`).join('|'); }
@@ -12,7 +12,6 @@ function fireText(craft) {
   const t = {
     forge: ['풀무질이 서툴러 불길이 들쭉날쭉합니다.', '쇳물이 제법 붉게 달아오릅니다.', '불꽃이 하얗게 달아 망치 소리가 맑습니다.', '쇠가 먼저 제 모양을 알려 줍니다.'],
     alchemy: ['약탕 아래 불이 이리저리 흔들립니다.', '약향이 고르게 피어오릅니다.', '푸른 불꽃이 안정적으로 넘실댑니다.', '단로의 불이 손끝처럼 말을 듣습니다.'],
-    cook: ['장작이 덜 말라 연기만 자욱합니다.', '솥이 보글보글 제법 소리를 냅니다.', '불 조절이 능숙해져 냄새부터 다릅니다.', '아린이 침을 흘리며 기웃거립니다.'],
   }[craft];
   return t[lv >= 8 ? 3 : lv >= 5 ? 2 : lv >= 2 ? 1 : 0];
 }
@@ -34,18 +33,15 @@ function doCraft(craft, pot) {
   if (ok) {
     const first = !S.codex.includes(recipe.id);
     if (first) S.codex.push(recipe.id);
-    if (recipe.out.startsWith('eq:')) {
-      const [, base, tier] = recipe.out.split(':');
-      const r = Math.random() * 100;
-      const rar = r < 2 + st.craft / 3 ? 4 : r < 14 + st.craft + lvl.lv * 2 ? 3 : 2;
-      const it = makeGear(base, +tier, rar, true);
-      if (!giveGear(it, true)) S.gear.push(it);
-      result = { ok: true, first, text: `[${RARITY[rar].name}] ${it.name}`, sub: it.unique.text, cls: 'r' + rar };
+    if (recipe.out.startsWith('gear:')) {                   // 단조: 중급 장비 (등급 고정)
+      const it = makeNamedGear(recipe.out.slice(5));
+      if (!giveGear(it, true)) S.gear.push(it);                // 행낭이 가득 차도 만든 장비는 잃지 않는다
+      result = { ok: true, first, text: `[${RARITY[it.rarity].name}] ${it.name}`, sub: CRAFT_GEAR[it.named].desc, cls: 'r' + it.rarity };
     } else {
       give(recipe.out, 1, true);
       result = { ok: true, first, text: `${ITEMS[recipe.out].icon} ${ITEMS[recipe.out].name}`, sub: ITEMS[recipe.out].desc };
     }
-    log(`${C.name} 성공: ${hlItem(result.text)}${first ? ' — 도감에 새로 기록!' : ''}`, 'good');
+    log(`${C.name} 성공: ${hlItem(result.text)}${first ? ` — 도감 › ${C.name} 비법에 새로 기록!` : ''}`, 'good');
   } else {
     const fail = C.fail;
     S.inv[fail] = (S.inv[fail] || 0) + 1;
@@ -67,8 +63,10 @@ function noteCraft(craft, pot, recipe, ok) {
   if (S.craftNotes.length > CRAFT_NOTE_MAX) S.craftNotes.splice(0, S.craftNotes.length - CRAFT_NOTE_MAX);
 }
 const craftNoteFor = (craft, pot) => (S.craftNotes || []).find(n => n.key === craft + ':' + potKey(pot));
-function recipeName(r) { return r.out.startsWith('eq:') ? EQUIP_BASES[r.out.split(':')[1]].names[+r.out.split(':')[2] - 1] : ITEMS[r.out].name; }
-function recipeIcon(r) { return r.out.startsWith('eq:') ? (EQUIP_BASES[r.out.split(':')[1]].slot === 'weapon' ? '🗡️' : '🛡️') : ITEMS[r.out].icon; }
+/* 조합식 결과물 이름·아이콘 (장비는 'gear:id') */
+const recipeGear = r => r.out.startsWith('gear:') ? CRAFT_GEAR[r.out.slice(5)] : null;
+function recipeName(r) { const G = recipeGear(r); return G ? G.name : ITEMS[r.out].name; }
+function recipeIcon(r) { const G = recipeGear(r); return G ? ({ weapon: '🗡️', armor: '🛡️', ring: '💍', belt: '🎗️', jade: '🟩' }[G.slot] || '🛡️') : ITEMS[r.out].icon; }
 
 /* 무신상 공양 (가챠): 검게 탄 찌꺼기 GACHA.cost개마다 한 번. times번 (찌꺼기가 모자라면 되는 만큼) */
 function pray(times = 1) {

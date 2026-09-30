@@ -35,21 +35,20 @@ function martialModal(id) {
 
 
 function openRecipe(rid) {
-  const r = RECIPES.find(x => x.id === rid);
-  if (!S.codex.includes(rid)) { toast('아직 발견하지 못한 비전입니다. 화로에서 직접 찾아내십시오.'); return; }
+  if (!S.codex.includes(rid)) { toast('아직 발견하지 못한 비법입니다. 화로에서 직접 찾아내십시오.'); return; }
   ui.modal = 'recipe:' + rid; renderModal();
 }
 
 function recipeModal(rid) {
   const r = RECIPES.find(x => x.id === rid), C = CRAFTS[r.craft];
   let body;
-  if (r.out.startsWith('eq:')) {
-    const [, base, tier] = r.out.split(':'), B = EQUIP_BASES[base];
-    const stats = Object.entries(B.stats[+tier - 1]).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) ? Math.round(v * RARITY[2].mult * 10) / 10 + '%' : Math.round(v * RARITY[2].mult)}</b></div>`).join('');
-    body = `<p class="story">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_TYPES[B.wtype] : ''}. 제작하면 상품 이상으로 나오고, 고유 옵션이 하나 붙습니다.</p><h4>능력치 (상품 기준)</h4>${stats}`;
+  const G = recipeGear(r);
+  if (G) {
+    const stats = Object.entries(G.stats).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${v}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
+    body = `<p class="story">${G.desc}</p><div class="kv"><span>분류</span><b>${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_TYPES[G.wtype] : ''} · [${RARITY[1].name}]</b></div><h4>능력치</h4>${stats}`;
   } else {
     const I = ITEMS[r.out];
-    body = `<p class="story">${I.desc}</p><div class="kv"><span>분류</span><b>${I.kind}</b></div><div class="kv"><span>보유</span><b>${count(r.out)}개</b></div>`;
+    body = `<p class="story">${I.desc}</p><div class="kv"><span>분류</span><b>${I.kind}${I.grade ? ' · ' + I.grade : ''}</b></div><div class="kv"><span>보유</span><b>${count(r.out)}개</b></div>`;
   }
   const mats = Object.entries(r.in).map(([id, n]) => `<li><span>${ITEMS[id].icon} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('');
   return `<div class="sheet">
@@ -83,7 +82,7 @@ function renderModal() {
       if (RP.playing) RP.timer = setTimeout(replayStep, 500);
     }
   }
-  if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 산토끼를 쫓던 손이 이제 적룡방 방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
+  if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 산토끼를 쫓던 손이 이제 수룡방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
   wireImages();
   if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>${RESET_MSG}</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;
 }

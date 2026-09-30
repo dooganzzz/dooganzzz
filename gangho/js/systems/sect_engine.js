@@ -7,7 +7,7 @@ function genMission() {
     const eid = pick(Z.enemies), E = ENEMIES[eid], n = rint(3, 6);
     return { type: 'kill', target: eid, n, prog: 0, contrib: Math.round(E.xp * n * 0.4 + 10), silver: Math.round(E.xp * n * 0.3), zone: zid };
   }
-  const id = pick([...Z.herb, ...Z.mine].map(r => r[0]).filter(x => x !== 'wood')), n = rint(2, 5);
+  const id = pick(Z.mats), n = rint(2, 5);
   return { type: 'deliver', target: id, n, prog: 0, contrib: Math.round(ITEMS[id].price * n + 10), silver: Math.round(ITEMS[id].price * n), zone: zid };
 }
 
@@ -38,14 +38,6 @@ function jounSupply() {
   notify.refresh();
 }
 
-function arinSnack() {
-  if (S.arin.snack === today()) return;
-  S.arin.snack = today();
-  give('arinSnack', 1, true);
-  log(`아린: "${pick(['사형! 이거 몰래 구운 거예요. 조운 사형한텐 비밀!', '오늘 약과는 꿀을 두 배로 넣었어요!', '헤헤, 수련 힘들죠? 이거 먹어요!'])}" — 🍪 ${hlItem('아린표 약과')}를 받았습니다.`, 'npc');
-  notify.refresh();
-}
-
 function addHint(r) {
   log(`🔖 ${r.hint}`, 'hint');
   if (!S.codex.includes(r.id)) { S.codex.push(r.id); log(`📖 도감에 「${recipeName(r)}」 조합법이 기록되었습니다.`, 'gold'); }
@@ -56,10 +48,7 @@ function arinTalk() { log(`아린: "${pick(ARIN_TALK)}"`, 'npc'); }
 function rest() {
   const st = calcStats();
   S.hp = st.maxHp; S.mp = st.maxMp;
-  if (S.restCd <= now()) {
-    S.stamina = st.maxSta; S.restCd = now() + REST_CD * 1000;
-    log('평상에 드러누워 한숨 푹 잤습니다. 활력·내력·기력이 모두 찼습니다.', 'good');
-  } else log('평상에서 숨을 골랐습니다. 활력·내력이 찼습니다. 기력은 조금 더 쉬어야 돌아옵니다.', 'good');
+  log('평상에 드러누워 숨을 골랐습니다. 활력·내력이 찼습니다.', 'good');
   notify.refresh();
 }
 
@@ -73,14 +62,14 @@ function jounGuide() {
     [emptySlot, '익힌 무공은 상태 › 무공에서 장착해야 몸에 붙는다. 빈 자리가 있다.'],
     [!(S.expedition && S.expedition.zone), '아직 탐험지를 안 정했구나. 강호행에서 갈 곳을 정해 두면 한 시간마다 알아서 다녀온다.'],
     [Object.keys(S.manuals).some(id => !starUpBlock(id)), '경험치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
-    [!has('potionHp', 3), '금창약이 떨어져 간다. 탐험 중에 위급하면 그걸 먹으니, 전방에서 넉넉히 사 둬라.'],
+    [!has('saenghyeol', 3), '생혈고가 떨어져 간다. 탐험 중에 위급하면 그걸 바르니, 화로에서 달이든 전방에서 사든 넉넉히 챙겨라.'],
     [ready, `문파 임무 ${ready}건은 바로 완료할 수 있다. 정청 문파 임무에서 공헌도를 받아 가라.`],
     [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].end === 'defeat', '지난 탐험에서 쓰러졌다지? 탐험지를 낮추든지, 무공과 장비를 더 올려라.'],
     [S.gear.length >= 3, '행낭에 안 쓰는 장비가 쌓였다. 청풍전방 왕 가에게 가면 은자로 바꿔 준다.'],
     [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],
   ];
   const hit = tips.find(([c]) => c);
-  log(`조운: "${hit ? hit[1] : pick(['필요한 물건은 청풍전방 왕 가에게 사라. 난 장작이나 팬다.', '강호행 들어가기 전에 금창약은 꼭 챙겨라.', '두목은 무작정 덤빌 상대가 아니다. 기척부터 살펴라.'])}"`, 'npc');
+  log(`조운: "${hit ? hit[1] : pick(['필요한 물건은 청풍전방 왕 가에게 사라. 난 장작이나 팬다.', '강호행 들어가기 전에 생혈고는 꼭 챙겨라.', '두목은 무작정 덤빌 상대가 아니다. 기척부터 살펴라.'])}"`, 'npc');
   notify.refresh();
 }
 function masterHint() {
@@ -138,9 +127,9 @@ const QUESTS = [
   ['조운 대사형에게 오늘의 보급품 받기', () => !!S.flags.supplied, '정청의 조운에게 보급품을 받으십시오.'],
   ['화로에서 소성 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 6, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],
   ['청풍산 두목 적염 호랑이 토벌', () => !!S.flags.boss1, '탐험 후반에 두목과 마주칩니다. 기척이 너무 무거우면 제자가 알아서 피하니, 더 강해진 뒤 다시 보내십시오.'],
-  ['염화채 채주 적염도 토벌', () => !!S.flags.boss2, '탐험지를 염화채로 바꾸십시오. 화적패의 소굴 깊은 곳에 채주가 있습니다.'],
+  ['염화채주 적패천 토벌', () => !!S.flags.boss2, '탐험지를 염화채로 바꾸십시오. 산적 연합의 소굴 깊은 곳에 채주가 있습니다.'],
   ['무공 6성 — 소성(小成) 돌파', () => bestMugongStar() >= 6, '5성 무공을 경험치와 소성 돌파단으로 올리십시오.'],
-  ['적룡방 방주 갈천 토벌', () => !!S.flags.boss3, '탐험지를 적룡방으로 바꾸십시오.'],
+  ['수룡방주 벽해룡 토벌', () => !!S.flags.boss3, '탐험지를 수룡방으로 바꾸십시오.'],
   ['무공 12성 — 대성(大成) 돌파', () => bestMugongStar() >= 12, '11성 무공을 경험치와 대성 돌파단으로 올리십시오.'],
   ['장문인에게 하산령 받기', () => !!S.flags.hasan, '장문인을 찾아가십시오.'],
 ];

@@ -96,7 +96,7 @@ function viewShrine() {
         <button class="btn primary" data-pray="1" ${n < c ? 'disabled' : ''}>공양 1회 <small>찌꺼기 ${c}개</small></button>
         <button class="btn" data-pray="${GACHA.multi}" ${n < c * 2 ? 'disabled' : ''}>공양 ${GACHA.multi}회 <small>찌꺼기 ${c * GACHA.multi}개${n < c * GACHA.multi && n >= c * 2 ? ` · 모자라면 ${Math.floor(n / c)}회` : ''}</small></button>
       </div>
-      <p class="muted">화로에서 조합에 실패하면 (주조·연단·조리 모두) 검게 탄 찌꺼기가 남습니다. 누적 공양 ${fmt(S.shrine.pulls || 0)}회.</p>
+      <p class="muted">화로에서 조합에 실패하면 (단조·단약 모두) 검게 탄 찌꺼기가 남습니다. 누적 공양 ${fmt(S.shrine.pulls || 0)}회.</p>
     </div>
     ${res && res.length ? `<div class="gacha-res"><h4>돌아온 것</h4><ul>${res.map(g => `<li class="${g.cls}">${g.text}</li>`).join('')}</ul></div>` : ''}
     <details class="gacha-table"><summary>나올 수 있는 것</summary><ul>${GACHA.table.map(e => `<li><span>${e.name}</span><b>${Math.round(e.w / tot * 100)}%</b></li>`).join('')}</ul><small class="muted">비급은 삼류 무공 25종·입문 무공 가운데 아직 없는 것. 장비는 열린 구역의 최고 티어 (청풍산은 하급 장비 37종 중 하나).</small></details>
@@ -124,56 +124,27 @@ function viewYeonmu() {
   </section>`;
 }
 
-/* 화로 */
-function viewForge() {
-  const C = CRAFTS[ui.craft];
-  const ctype = CRAFT_TYPE[ui.craft];
-  const mats = Object.keys(S.inv).filter(id => ITEMS[id].craftType === ctype).sort((a, b) => ITEMS[a].name.localeCompare(ITEMS[b].name));
-  const flat = Object.entries(ui.pot).filter(([, n]) => n > 0).flatMap(([id, n]) => Array(n).fill(id));
-  const res = ui.craftResult;
-  return `<section class="panel">
-    ${head('화로', '火爐')}
-    <div class="crafts">${Object.entries(CRAFTS).map(([k, c]) => `<button class="craft-pick ${ui.craft === k ? 'on' : ''}" data-craft="${k}">${label(c.name, `(${c.hanja})`)}</button>`).join('')}</div>
-    <div class="forge">
-      <div class="pot">
-        <p class="story flame">${fireText(ui.craft)}</p>
-        <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${ITEMS[flat[i]].icon}<small>${ITEMS[flat[i]].name}</small></button>` : '<div class="slot"></div>').join('')}</div>
-        <div class="btns"><button class="btn primary" data-act="craft" ${flat.length ? '' : 'disabled'}>${C.name}</button><button class="btn ghost" data-act="clearpot" ${flat.length ? '' : 'disabled'}>비우기</button></div>
-        ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">📓 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
-        ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${res.text}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
-      </div>
-      <div class="mats">
-        <h4>${C.name} 재료</h4>
-        <div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''}>${ITEMS[id].icon} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>
-      </div>
-    </div>
-  </section>
-  ${researchNotes(ui.craft)}`;
-}
-
 /* 뒷마당 */
 function viewYard() {
-  const foods = Object.keys(S.inv).filter(id => ITEMS[id].use && ITEMS[id].kind !== '비급');
-  const restReady = S.restCd <= now();
+  const pills = Object.keys(S.inv).filter(id => ITEMS[id].use && ITEMS[id].kind === '단약');
   return `<section class="panel">
     ${head('뒷마당', '後院')}
     <div class="row">
       <div class="card">
         <h3>평상에 누워 휴식</h3>
-        <p class="story">${restReady ? '햇볕이 좋습니다. 한숨 자고 나면 활력·내력·기력이 모두 돌아올 것 같습니다.' : `아직 눈이 말똥말똥합니다. 활력·내력은 채울 수 있지만, 기력은 ${Math.ceil((S.restCd - now()) / 60000)}분쯤 더 지나야 돌아옵니다.`}</p>
+        <p class="story">햇볕이 좋습니다. 한숨 돌리면 활력·내력이 돌아옵니다.</p>
         <div><button class="btn primary" data-act="rest">휴식</button></div>
       </div>
       <div class="card">
-        <h3>음식·영약 먹기</h3>
-        <div class="chips">${foods.map(id => `<button class="chip" data-use="${id}" title="${esc(ITEMS[id].desc)}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>
-        ${S.buffs.length ? `<div class="chips">${S.buffs.map(b => `<span class="pill">${b.name} ${Math.ceil((b.until - now()) / 60000)}분</span>`).join('')}</div>` : ''}
+        <h3>단약 먹기</h3>
+        ${pills.length ? `<div class="chips">${pills.map(id => `<button class="chip" data-use="${id}" title="${esc(ITEMS[id].desc)}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${count(id)}</b></button>`).join('')}</div>` : '<p class="muted">가진 단약이 없습니다. 화로 › 단약에서 빚어 보십시오.</p>'}
+        ${S.buffs.length ? `<div class="chips">${S.buffs.map(b => `<span class="pill">${b.name} · 다음 원정</span>`).join('')}</div>` : ''}
       </div>
     </div>
   </section>
   <section class="panel npc">
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
     <div class="btns">
-      <button class="btn" data-act="snack" ${S.arin.snack === today() ? 'disabled' : ''}>🍪 ${S.arin.snack === today() ? '약과는 내일 또' : '일일 약과 받기'}</button>
       <button class="btn" data-act="talk">💬 이야기 나누기</button>
     </div>
   </section>`;
@@ -294,7 +265,7 @@ function viewGear() {
 
 /* 행낭: 보관 장비 · 소지품 */
 function viewBag() {
-  const kinds = ['all', '비급', '재료', '영약', '영단', '음식', '부산물', '증표'];
+  const kinds = ['all', '비급', '재료', '단약', '영단', '부산물', '증표'];
   const items = Object.keys(S.inv).filter(id => ui.bagFilter === 'all' || ITEMS[id].kind === ui.bagFilter);
   return `<section class="panel">
     ${head('행낭', '行囊', `<span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
@@ -304,27 +275,3 @@ function viewBag() {
   </section>`;
 }
 
-/* 도감 */
-/* 화로 연구 노트: 이 기예로 해 본 조합(최근 순). 성공/실패와 '조합은 맞았던 것 같은' 실패만 알려 준다 */
-function researchNotes(craft) {
-  const notes = (S.craftNotes || []).filter(n => n.craft === craft).slice().reverse();
-  const row = n => `<li class="${n.ok ? 'ok' : n.near ? 'near' : 'fail'}"><span class="note-mats">${Object.entries(n.mats).map(([id, k]) => `${ITEMS[id].icon}${ITEMS[id].name}${k > 1 ? `×${k}` : ''}`).join(' + ')}</span><b>${n.ok ? `성공 → ${recipeName({ out: n.out })}` : n.near ? '실패 · 불길이 크게 일렁임' : '실패'}</b></li>`;
-  return `<section class="panel">${head('연구 노트', '硏究', `<span class="num muted">${notes.length}건</span>`)}
-    ${notes.length ? `<ol class="notes">${notes.map(row).join('')}</ol>` : '<p class="story muted">아직 해 본 조합이 없습니다. 재료를 넣고 불을 지펴 보십시오. 해 본 조합과 결과가 여기에 남습니다.</p>'}
-  </section>`;
-}
-
-function viewCodex() {
-  const cols = Object.keys(CRAFTS).map(c => {
-    const all = RECIPES.filter(r => r.craft === c);
-    const known = all.filter(r => S.codex.includes(r.id)).length;
-    const tiles = all.map(r => S.codex.includes(r.id)
-      ? `<button class="ctile known" data-recipe="${r.id}"><span>${recipeIcon(r)}</span><b>${recipeName(r)}</b></button>`
-      : `<button class="ctile locked" data-recipe="${r.id}" aria-label="미발견"><span>？</span></button>`).join('');
-    return `<article class="codex-col"><h3>${label(CRAFTS[c].name, CRAFTS[c].hanja)} <span class="num muted">${known}/${all.length}</span></h3><div class="ctiles">${tiles}</div></article>`;
-  }).join('');
-  const bs = S.bestiary || {};
-  const beasts = ZONE_ORDER.map(z => { const Z = ZONES[z], list = [...Z.enemies, Z.boss]; return `<article class="codex-col"><h3>${label(Z.name, Z.hanja)} <span class="num muted">${list.filter(e => bs[e]).length}/${list.length}</span></h3><ul class="beasts">${list.map(e => { const E = ENEMIES[e]; return bs[e] ? `<li><b>${E.name}</b>${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small></li>` : '<li class="unknown">？ <small class="muted">만나 본 적 없음</small></li>'; }).join('')}</ul></article>`; }).join('');
-  return `<section class="panel">${head('요수 도감', '妖獸')}<p class="muted">강호에서 마주친 상대만 적힙니다. 오행과 병기는 한 번 겨뤄 보면 드러납니다. 연무장 › 심상수련장에서 다시 불러낼 수 있습니다.</p><div class="codex">${beasts}</div></section>
-  <section class="panel">${head('도감', '圖鑑')}<p class="muted">조합법은 스스로 찾아내야 합니다. 화로에서 성공한 조합만 이곳에 적힙니다. 해 본 조합은 화로의 연구 노트에 남습니다.</p><div class="codex">${cols}</div></section>`;
-}

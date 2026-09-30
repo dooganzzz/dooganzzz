@@ -25,7 +25,7 @@ function vbar(cls, cur, prev, max, name, hideNum) {
   const p = v => max ? clamp(v / max * 100, 0, 100) : 0;
   return `<div class="bar thick ${cls}"><span class="bar-ghost" data-to="${p(cur)}" style="width:${p(Math.max(cur, prev))}%"></span><span class="bar-fill" style="width:${p(cur)}%"></span><span class="bar-text"><b>${name}</b>${hideNum ? '' : ` ${fmt(cur)} / ${fmt(max)}`}</span></div>`;
 }
-const sealChar = name => name.replace(/^(채주|방주|적룡방|화적|수적|외눈|흑풍채|청풍산|적염|사나운|흑비단|바위 등껍질|청령)\s*/, '').trim()[0] || name[0];
+const sealChar = name => name.replace(/^(염화채주|수룡방주|염화채|수룡방|흑풍채|청풍산|적염|사나운|흑비단|바위 등껍질|청령|화염|적토|단애|열화|수로|뻘밭|소택지)\s*/, '').trim()[0] || name[0];
 
 /* ───────── 강호행 탭 ───────── */
 const clockHM = t => { const d = new Date(t); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
@@ -50,11 +50,10 @@ function zoneCard(zid) {
   </div>`;
 }
 
-/* 출정 준비: 정각 전에 갖춰 둘 것들 (탐험지·무공·병기·장비·금창약·음식) */
+/* 출정 준비: 정각 전에 갖춰 둘 것들 (탐험지·무공·병기·장비·생혈고·상성·단약) */
 function prepPanel() {
   const X = S.expedition, st = calcStats(), mu = S.active.mugong, M = mu && MANUALS[mu];
   const worn = SLOT_ORDER.filter(k => S.equip[k]).length;
-  const extra = Math.max(0, Math.round(S.stamina - st.maxSta));
   const row = (ok, label, value, link) => `<li class="${ok ? 'ok' : 'warn'}"><span class="prep-mark">${ok ? '✔' : '！'}</span><span class="prep-k">${label}</span><span class="prep-v">${value}</span>${link || ''}</li>`;
   const go = (tab, sub, text) => `<button class="btn ghost sm" data-tab="${tab}"${sub ? ` data-sub="${sub}"` : ''}>${text}</button>`;
   const arts = CAT_ORDER.map(c => S.active[c] ? `${CATS[c].name} 《${MANUALS[S.active[c]].name}》 ${S.manuals[S.active[c]].star}성` : `<span class="warn">${CATS[c].name} 비어 있음</span>`).join(' · ');
@@ -64,11 +63,11 @@ function prepPanel() {
     ${row(CAT_ORDER.every(c => S.active[c]), '무공', arts, go('status', 'martial', '무공'))}
     ${row(!!S.equip.weapon && wOk, '병기', S.equip.weapon ? `${gearName(S.equip.weapon)}${wOk ? '' : ` <span class="warn">— 《${M.name}》은 ${WEAPON_TYPES[M.weapon]} 무공이라 초식이 나가지 않음</span>`}` : '맨손', go('status', 'gear', '무장'))}
     ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 전투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
-    ${row(has('potionHp', 3), '금창약', `${count('potionHp')}개 (활력 35% 아래에서 자동 복용)`, go('sect', 'shop', '전방'))}
+    ${row(has('saenghyeol', 3), '생혈고', `${count('saenghyeol')}개 (활력 35% 아래에서 자동 사용) · 소환단 ${count('potionMp')}개`, go('sect', 'forge', '화로'))}
     ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1;
       const tz = X.zone ? ` — ${ZONES[X.zone].name} ${zoneTerrainText(X.zone)} ${m < 1 ? '<b class="good">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn">불일치 · 기력 +20%</span>' : ''}` : '';
       return row(!!(e && t) && m <= 1, '상성', `기공 ${e ? elemTag(e) : '<span class="warn">오행 없음</span>'} · 경공 ${t ? terrainTag(t) : '<span class="warn">지형 없음</span>'}${tz} · 병기 ${weaponTag(weaponType())}`, go('status', 'martial', '무공')); })()}
-    ${row(true, '준비한 음식', S.buffs.length || extra ? `${S.buffs.map(b => b.name).join(', ')}${extra ? `${S.buffs.length ? ' · ' : ''}기력 +${extra}` : ''}` : '없음 (뒷마당에서 먹을 수 있음)', go('sect', 'yard', '뒷마당'))}
+    ${row(true, '준비한 단약', S.buffs.length ? S.buffs.map(b => b.name).join(', ') : '없음 (골계단·통맥환·해독산·청심단은 다음 원정 동안 효과)', go('sect', 'yard', '뒷마당'))}
   </ul>`;
 }
 
@@ -87,11 +86,11 @@ function viewField() {
     ${head('강호행', '江湖行', `<span class="pill">${cur ? `⛰️ ${cur.name}` : '탐험지 미정'}</span>`)}
     <div class="exp-status">
       <div class="exp-next"><small>다음 출발 ${X.nextAt ? `<b class="clock">${clockHM(X.nextAt)}</b>` : ''}</small><b data-countdown>${countdownText()}</b></div>
-      <div class="exp-sta">${bar('sta', Math.min(S.stamina, st.maxSta), st.maxSta, '기력')}<small class="muted">매시 정각, 제자가 이 준비 그대로 떠납니다. 그 전에 갖춰 두십시오.</small></div>
+      <div class="exp-sta"><small class="muted">매시 정각, 제자가 이 준비 그대로 떠납니다. 그 전에 갖춰 두십시오.</small></div>
     </div>
     <h4 class="prep-head">출정 준비</h4>
     ${prepPanel()}
-    <p class="story">${cur ? `매시 정각마다 제자가 ${josa(cur.name, '으로')} 나가 기력이 다할 때까지 싸우고 줍고 돌아옵니다. 자리를 비워도 최대 ${EXPEDITION.maxQueue}번까지 쌓였다가 돌아오면 한꺼번에 결산됩니다.` : '탐험지를 고르면 제자가 첫 탐험을 곧바로 떠납니다. 그 뒤로는 매시 정각에 스스로 나갑니다.'}</p>
+    <p class="story">${cur ? `매시 정각마다 제자가 ${josa(cur.name, '으로')} 나가 지칠 때까지 싸우고 줍고 돌아옵니다. 자리를 비워도 최대 ${EXPEDITION.maxQueue}번까지 쌓였다가 돌아오면 한꺼번에 결산됩니다.` : '탐험지를 고르면 제자가 첫 탐험을 곧바로 떠납니다. 그 뒤로는 매시 정각에 스스로 나갑니다.'}</p>
   </section>
   <section class="panel">${head('탐험지', '行先')}<p class="muted">어느 곳이 얼마나 위험한지는 알려 주지 않습니다. 다녀오며 몸으로 익히십시오.</p><div class="zones">${ZONE_ORDER.map(zoneCard).join('')}</div></section>
   <section class="panel">${head('탐험 기록', '見聞', `<span class="num muted">최근 ${S.expeditions.length} / ${EXPEDITION.keep}번</span>`)}

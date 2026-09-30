@@ -1,7 +1,7 @@
 /* [화면] 탭 전환, 상단 상태줄, 정청 아코디언 접기/펼치기, 전체 다시 그리기 */
 
 /* 화면 상태 (저장하지 않음): 탭·접힘·화로 투입·창·행낭 필터·선택 슬롯 */
-let ui = { fold: { hq: false, missions: false, library: true }, tab: 'sect', sectSub: 'hall', pot: {}, craft: 'alchemy', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null };
+let ui = { fold: { hq: false, missions: false, library: true }, tab: 'sect', sectSub: 'hall', pot: {}, craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null };
 
 /* 시스템 신호 → 화면 */
 Bus.on('refresh', () => render());
@@ -65,7 +65,7 @@ function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S);
   $('#status').innerHTML = `
     <div class="who"><span class="name">${esc(S.name)}</span><span class="sect">청풍문 제자 · ${S.expedition.zone ? `⛰️ ${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <b>${countdownText()}</b>` : '탐험지 미정'}</span></div>
-    <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}${bar('sta', Math.min(S.stamina, st.maxSta), st.maxSta, '기력')}</div>
+    <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
     <div class="purse"><span class="cp" title="종합 전투력"><i class="coin cpi">戰</i>${fmt(cp)}${cpDeltaHtml(cp)}</span><span class="xp" title="경험치 (상태 › 무공에서 성급 올리기)"><i class="coin c3">經</i>${fmt(S.exp)}</span><span title="은자"><i class="coin">銀</i>${fmt(S.silver)}</span><span title="문파 공헌도"><i class="coin c2">功</i>${fmt(S.contrib)}</span></div>`;
 }
 
@@ -95,7 +95,7 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewForge, yard: viewYard, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]();
+  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, yard: viewYard, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]();
   renderLog();
   renderModal();
   typewriteAll();

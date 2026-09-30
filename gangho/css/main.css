@@ -595,3 +595,17 @@ body {
 .beasts li small { margin-left: auto; }
 .beasts li.unknown { color: var(--dim); }
 .zone-terrain { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; font-size: .82rem; color: var(--dim); }
+
+/* ───────── 화로(단조·단약) · 도감 탭 ───────── */
+.furnace-tabs, .codex-tabs { margin: 4px 0 10px; }
+.furnace-desc { margin-bottom: 8px; }
+.linkish { background: none; border: 0; padding: 0; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+.linkish:hover b, .linkish:focus-visible b { color: var(--gold-2); text-decoration: underline; }
+.beasts .trait { flex-basis: 100%; font-style: normal; font-size: .8rem; color: var(--silver); }
+.recipes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.recipe-row { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr; gap: 2px 12px; align-items: baseline; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
+.recipe-row .r-eff { grid-column: 2; }
+.recipe-row.unknown { color: var(--dim); background: var(--sunk); }
+.recipe-row.unknown .r-out { font-weight: 900; letter-spacing: .2em; }
+@media (max-width: 560px) { .recipe-row { grid-template-columns: 1fr; } .recipe-row .r-eff { grid-column: 1; } }
+.blog .log-stance-result.dot { color: #9fd18a; font-size: .9em; }

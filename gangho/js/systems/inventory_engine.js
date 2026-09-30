@@ -36,10 +36,10 @@ function makeGear(base, tier, rarity, crafted) {
   };
 }
 
-/* 하급 장비(GEAR_DB) 한 점. 등급은 하급 고정 */
+/* 이름 있는 장비 한 점: 하급 장비(GEAR_DB, 하급 고정) 또는 단조 장비(CRAFT_GEAR, 중급 고정) */
 function makeNamedGear(id, st = S) {
-  const G = GEAR_DB[id];
-  return { uid: st.uid++, named: id, tier: 1, slot: G.slot, wtype: G.wtype || null, name: G.name, rarity: 0, stats: { ...G.stats }, unique: null, crafted: false };
+  const crafted = !!CRAFT_GEAR[id], G = crafted ? CRAFT_GEAR[id] : GEAR_DB[id];
+  return { uid: st.uid++, named: id, tier: crafted ? 2 : 1, slot: G.slot, wtype: G.wtype || null, name: G.name, rarity: crafted ? 1 : 0, stats: { ...G.stats }, unique: null, crafted };
 }
 /* 드랍·공양·금고의 장비: 1티어 하급은 하급 장비 37종 중에서, 그 밖에는 기본형으로 */
 function dropGear(tier, rarity) {
@@ -87,7 +87,7 @@ function discardGear(uid) {
   S.gear.splice(i, 1); notify.refresh();
 }
 
-/* 소모품 사용. 음식의 기력과 음식·영단 효과는 '다음 탐험'에 쓰인다 (기력은 최대치의 두 배까지 쌓인다) */
+/* 소모품 사용. 회복 단약은 즉시, 증강 단약은 '다음 탐험' 동안 (기력은 숨겨진 능력치라 어떤 아이템으로도 회복되지 않는다) */
 function useItem(id) {
   const I = ITEMS[id]; if (!I.use || !has(id)) return;
   const u = I.use;
@@ -97,7 +97,6 @@ function useItem(id) {
   const parts = [];
   if (u.hp) { const v = Math.round(st.maxHp * u.hp); S.hp = Math.min(st.maxHp, S.hp + v); parts.push(`활력 +${v}`); }
   if (u.mp) { const v = Math.round(st.maxMp * u.mp); S.mp = Math.min(st.maxMp, S.mp + v); parts.push(`내력 +${v}`); }
-  if (u.stamina) { const v = Math.round(u.stamina * (1 + (talentOf().food || 0))); S.stamina = Math.min(st.maxSta * 2, S.stamina + v); parts.push(`다음 탐험 기력 +${v}`); }
   if (u.perm) { for (const [k, v] of Object.entries(u.perm)) { S.perm[k] += v; parts.push(`${STAT_NAMES[k]} 영구 +${v}`); } }
   if (u.buff) {
     S.buffs = S.buffs.filter(b => b.key !== u.buff.key);
@@ -205,7 +204,3 @@ function sellGear(uid) {
 
 function giveSilver(n) { S.silver += n; log(`${hlSilver(n)} 획득`, 'loot'); }
 
-function spend(cost) {
-  if (S.stamina < cost) { notify.toast('기력이 부족합니다. 음식을 먹거나 뒷마당에서 쉬십시오.'); return false; }
-  S.stamina -= cost; return true;
-}
