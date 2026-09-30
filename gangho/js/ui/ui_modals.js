@@ -34,7 +34,7 @@ function martialModal(id) {
 
 function openRecipe(rid) {
   const r = RECIPES.find(x => x.id === rid);
-  if (!S.codex.includes(rid) && !isClue(r)) { toast('아직 발견하지 못한 비전입니다.'); return; }
+  if (!S.codex.includes(rid)) { toast('아직 발견하지 못한 비전입니다. 화로에서 직접 찾아내십시오.'); return; }
   ui.modal = 'recipe:' + rid; renderModal();
 }
 
@@ -49,23 +49,19 @@ function recipeModal(rid) {
     const I = ITEMS[r.out];
     body = `<p class="story">${I.desc}</p><div class="kv"><span>분류</span><b>${I.kind}</b></div><div class="kv"><span>보유</span><b>${count(r.out)}개</b></div>`;
   }
-  const full = S.codex.includes(r.id);
-  const knownIn = Object.entries(r.in).filter(([id]) => full || (S.knownMats || {})[id]);
-  const hidden = Object.keys(r.in).length - knownIn.length;
-  const mats = knownIn.map(([id, n]) => `<li><span>${ITEMS[id].icon} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('')
-    + (hidden ? `<li class="hidden-mat"><span>？ 아직 모르는 재료 ${hidden}가지</span><b class="muted">강호의 소문을 모아 보십시오</b></li>` : '');
+  const mats = Object.entries(r.in).map(([id, n]) => `<li><span>${ITEMS[id].icon} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('');
   return `<div class="sheet">
     <div class="sheet-head"><div><small class="muted">${C.name} ${C.hanja}</small><h2>${recipeIcon(r)} ${recipeName(r)}</h2></div></div>
     ${body}
-    <h4>${full ? '필요 재료' : '재료 단서'}</h4><ul class="mats-list">${mats}</ul>
+    <h4>필요 재료</h4><ul class="mats-list">${mats}</ul>
     <div class="btns"><button class="btn primary" data-fill="${r.id}">[ 화로로 가기 ]</button><button class="btn ghost" data-act="closemodal">닫기</button></div>
   </div>`;
 }
 
 function fillPot(rid) {
   const r = RECIPES.find(x => x.id === rid);
-  const full = S.codex.includes(r.id);
-  ui.craft = r.craft; ui.pot = Object.fromEntries(Object.entries(r.in).filter(([id]) => full || (S.knownMats || {})[id])); goTab('sect', 'forge'); ui.modal = null; render();
+  if (!S.codex.includes(r.id)) return;
+  ui.craft = r.craft; ui.pot = { ...r.in }; goTab('sect', 'forge'); ui.modal = null; render();
 }
 
 function renderModal() {

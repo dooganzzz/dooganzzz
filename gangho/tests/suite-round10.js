@@ -13,7 +13,7 @@ module.exports = async (b) => {
     if (w === 1280) {
       const lint = await p.evaluate(() => {
         const bad = [];
-        const FX = new Set(['silver', 'items', 'hpPct', 'stamina', 'contrib', 'exp', 'buff', 'perm', 'clue', 'book', 'gear']);
+        const FX = new Set(['silver', 'items', 'hpPct', 'stamina', 'contrib', 'exp', 'buff', 'perm', 'book', 'gear']);
         for (const ev of EVENTS) {
           if (!(ev.zones === 'all' || ev.zones.every(z => ZONES[z]))) bad.push(ev.id + ':zone');
           if (ev.choices.length < 2) bad.push(ev.id + ':choices');

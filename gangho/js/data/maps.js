@@ -1,6 +1,6 @@
 /* [데이터] 탐험 규칙 · 조우 가중치 · 금고 보상 풀 · 사건(기연) 표 — 순수 정적 데이터 (로직 없음) */
 
-/* 자동 탐험: 한 시간에 한 번, 제자가 고른 구역으로 나가 기력을 모두 쓸 때까지 조우를 겪는다.
+/* 자동 탐험: 매시 정각(현지 시각)마다, 제자가 고른 구역으로 나가 기력을 모두 쓸 때까지 조우를 겪는다.
    interval: 탐험 간격(ms) · maxQueue: 자리를 비운 동안 쌓이는 최대 횟수 · keep: 보관하는 탐험 기록 수
    weights: 한 걸음마다 무엇을 만날지 · bossFrom: 기력을 이만큼 쓴 뒤부터 두목이 나올 수 있음
    potionAt: 활력이 이 비율 아래면 금창약을 먹음 · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율
@@ -73,7 +73,7 @@ const STAMINA_COST = { battle: 4, herb: 3, mine: 3, chest: 3, gimmick: 5, boss: 
 /* ───────── 사냥터 사건 (기연 奇緣) ─────────
    zones: 나오는 지역 ('all'이면 어디서나). 선택지 req는 조건(부족하면 고를 수 없음),
    take: true면 조건으로 건 아이템·은자를 소모. out은 가중치(w)로 하나를 고른다.
-   fx 효과: silver, items, hpPct, stamina, contrib, exp, buff, perm, clue, book, gear:[tier, rarity]
+   fx 효과: silver, items, hpPct, stamina, contrib, exp, buff, perm, book, gear:[tier, rarity]
    자동 탐험에서는 제자가 조건을 채운 선택지 중 하나를 스스로 고른다
    fight: 적 id → 전투, bonus: 이기면 추가로 받는 fx */
 const EVENTS = [
@@ -81,7 +81,7 @@ const EVENTS = [
     text: '비탈 아래에서 신음 소리가 들립니다. 바구니를 쏟은 약초꾼이 발목을 부여잡고 있습니다. "젊은이… 약이 있으면 좀…"',
     choices: [
       { label: '금창약을 건넨다', req: { item: ['potionHp', 1] }, take: true, out: [
-        { w: 1, text: '약초꾼이 고개를 숙이며 바구니 속 귀한 것을 내어 줍니다. "영지는 이 산 북쪽 고목 밑에서 난다오."', fx: { items: { lingzhi: 2, herb: 3 }, clue: 1 } }] },
+        { w: 1, text: '약초꾼이 고개를 숙이며 바구니 속 귀한 것을 내어 줍니다. "영지는 이 산 북쪽 고목 밑에서 난다오."', fx: { items: { lingzhi: 2, herb: 3 }, exp: 40 } }] },
       { label: '업고 산 아래까지 데려다준다', req: { stamina: 12 }, out: [
         { w: 1, text: '땀이 비 오듯 흐르지만 약초꾼의 집 앞까지 무사히 내려왔습니다. 마을 사람들이 청풍문 제자를 칭찬합니다.', fx: { stamina: -12, contrib: 15, silver: 15 } }] },
       { label: '못 본 척 지나친다', out: [{ w: 1, text: '등 뒤로 신음 소리가 멀어집니다. 마음 한구석이 무겁습니다.', fx: {} }] },
@@ -89,9 +89,9 @@ const EVENTS = [
   { id: 'ronin', zones: ['cheongpung', 'yeomhwa'], title: '떠돌이 낭인',
     text: '삿갓을 깊게 눌러쓴 낭인이 길 한가운데 앉아 술병을 기울입니다. "청풍문 도복이군. 한 수 겨뤄 보겠나? 지면 술값은 네가 내라."',
     choices: [
-      { label: '검을 뽑는다', out: [{ w: 1, text: '낭인이 술병을 내려놓고 천천히 일어섭니다.', fight: 'ronin', bonus: { text: '"허, 제법이군." 낭인이 술값이라며 은자 주머니를 던져 줍니다.', fx: { silver: 40, clue: 1 } } }] },
+      { label: '검을 뽑는다', out: [{ w: 1, text: '낭인이 술병을 내려놓고 천천히 일어섭니다.', fight: 'ronin', bonus: { text: '"허, 제법이군." 낭인이 술값이라며 은자 주머니를 던져 줍니다.', fx: { silver: 40, exp: 40 } } }] },
       { label: '술값을 대신 치르고 이야기를 듣는다', req: { silver: 15 }, take: true, out: [
-        { w: 1, text: '낭인이 강호를 떠돌며 본 것들을 늘어놓습니다. 듣다 보니 수련의 요령이 머리에 스며듭니다.', fx: { buff: { key: 'train', val: 0.3, dur: 1800, name: '낭인의 이야기' }, clue: 1 } }] },
+        { w: 1, text: '낭인이 강호를 떠돌며 본 것들을 늘어놓습니다. 듣다 보니 수련의 요령이 머리에 스며듭니다.', fx: { buff: { key: 'train', val: 0.3, dur: 1800, name: '낭인의 이야기' }, exp: 40 } }] },
       { label: '정중히 사양한다', out: [{ w: 1, text: '"분수를 아는 것도 재주지." 낭인이 껄껄 웃으며 길을 비켜 줍니다.', fx: {} }] },
     ] },
   { id: 'stele', zones: ['cheongpung'], title: '이끼 낀 비석',

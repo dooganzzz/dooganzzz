@@ -19,6 +19,7 @@ function onClick(e) {
   const d = t.dataset;
   if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); render(); return; }
   if (d.dest) return setDestination(d.dest);
+  if (d.chron) { ui.chronFilter = d.chron; return render(); }
   if (d.watch) return openReplay(d.watch);
   if (d.rp) return replayControl(d.rp, d.x);
   if (d.starup) { starUp(d.starup); if (ui.modal && ui.modal.startsWith('mart:')) renderModal(); return; }

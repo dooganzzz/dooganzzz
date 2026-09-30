@@ -14,7 +14,7 @@ function newState(name, mugongId) {
   const st = {
     v: 8, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, exp: 0,
-    expedition: { zone: null, nextAt: null }, expeditions: [],
+    expedition: { zone: null, nextAt: null }, expeditions: [], zoneLog: {}, craftNotes: [],
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
     inv: { potionHp: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
@@ -42,9 +42,10 @@ function load() {
 
 /* 견문록 기록은 상태에 남기고, 화면에는 신호로 알린다.
    탐험을 계산하는 동안(RT.journal)에는 견문록 대신 그 걸음의 상세 기록으로 모은다. t: 기록 시각(탐험 시각) */
-function log(text, cls = '', t = now()) {
+function log(text, cls = '', t = now(), ref) {
   if (RT.journal) { RT.journal.push({ text, cls }); return; }
   const entry = { t, text, cls };
+  if (ref) entry.ref = ref;                                // 탐험 걸음과 이어 둔다 (견문록 탭에서 상세 보기)
   S.log.push(entry);
   if (S.log.length > LOG_MAX) S.log.splice(0, S.log.length - LOG_MAX);
   Bus.emit('log', entry);
@@ -84,6 +85,10 @@ function migrate(st) {
     st.v = 8;
     st.migratedExp = exp;
   }
+  // 조합 단서는 없어졌다 (연구 노트로 대체). 구역 경험 기록·정각 일정
+  delete st.knownMats;
+  st.zoneLog = st.zoneLog || {}; st.craftNotes = st.craftNotes || [];
+  if (st.expedition && st.expedition.nextAt && new Date(st.expedition.nextAt).getMinutes() + new Date(st.expedition.nextAt).getSeconds() !== 0 && st.expedition.nextAt > Date.now()) st.expedition.nextAt = nextTopOfHour(Date.now());
   return st;
 }
 

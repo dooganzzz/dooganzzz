@@ -12,7 +12,7 @@ module.exports = async (b) => {
   await startEquipped(p);
   // 1
   const tabs = await p.$$eval('.tab .ko', els => els.map(e => e.textContent).join(','));
-  ok('1 탭 순서', tabs === '청풍문,상태,행낭,강호행,도감', tabs);
+  ok('1 탭 순서', tabs === '청풍문,상태,행낭,강호행,견문록,도감', tabs);
   ok('1 첫 화면=청풍문 › 정청', await p.$eval('.tab.on .ko', e => e.textContent) === '청풍문' && await p.$eval('.subtab.on .ko', e => e.textContent) === '정청');
   // 2 성장: 연무장·비급별 수련치 없음, 경험치로 성급 올리기
   const t = await p.evaluate(() => {

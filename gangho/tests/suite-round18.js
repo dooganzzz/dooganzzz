@@ -16,9 +16,9 @@ module.exports = async (b) => {
     ok('1 지도 없음 · 구역 카드 3개 · 처음엔 청풍산만 고를 수 있음', !f0.map && f0.zones === 3 && f0.open.join() === 'cheongpung', JSON.stringify(f0));
     ok('1 탐험지 미정 표시', f0.cd === '탐험지 미정' && /탐험지 미정/.test(f0.header));
     await p.click('[data-dest="cheongpung"]');
-    const f1 = await p.evaluate(() => { const r = S.expeditions[0]; return { recs: S.expeditions.length, modal: ui.modal, settle: !!document.querySelector('.settle-sheet'), zone: S.expedition.zone, next: nextExpeditionIn(), stamina: S.stamina, steps: r.steps.length, battles: r.battles.length, kinds: [...new Set(r.steps.map(s => s.k))] }; });
+    const f1 = await p.evaluate(() => { const r = S.expeditions[0]; return { recs: S.expeditions.length, modal: ui.modal, settle: !!document.querySelector('.settle-sheet'), zone: S.expedition.zone, next: nextExpeditionIn(), at: (d => d.getMinutes() * 60 + d.getSeconds())(new Date(S.expedition.nextAt)), stamina: S.stamina, steps: r.steps.length, battles: r.battles.length, kinds: [...new Set(r.steps.map(s => s.k))] }; });
     ok('1 처음 고르면 첫 탐험이 곧바로 → 결산 창', f1.recs === 1 && f1.settle && /^settle:/.test(f1.modal), JSON.stringify(f1));
-    ok('1 다음 출발은 한 시간 뒤 · 기력은 모두 소모', f1.next > 3590000 && f1.next <= 3600000 && f1.stamina === 0, JSON.stringify(f1));
+    ok('1 다음 출발은 다음 정각 · 기력은 모두 소모', f1.next > 0 && f1.next <= 3600000 && f1.at === 0 && f1.stamina === 0, JSON.stringify(f1));
     ok('1 한 번의 탐험에 여러 조우 (전투 포함)', f1.steps >= 10 && f1.battles >= 5 && f1.kinds.includes('beast'), JSON.stringify(f1));
     await p.click('.settle-sheet [data-act="closemodal"]');
 

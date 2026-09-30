@@ -11,7 +11,7 @@ module.exports = async (b) => {
   await p.goto(GAME_URL);
   await p.click('[data-starter="samjaeDo"]'); await p.click('#begin');
   const tabs = await p.$$eval('.tab .ko', e => e.map(x => x.textContent).join(','));
-  ok('1 1차 탭 5개 순서', tabs === '청풍문,상태,행낭,강호행,도감', tabs);
+  ok('1 1차 탭 6개 순서', tabs === '청풍문,상태,행낭,강호행,견문록,도감', tabs);
   const st0 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, active: Object.values(S.active).filter(Boolean).length, books: Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').sort().join(',') }));
   ok('2 시작 시 장착·습득 없음', st0.learned === 0 && st0.active === 0);
   ok('2 비급 4권 지급', st0.books === 'bk_cheolpo,bk_pocheolsak,bk_samjaeDo,bk_tonap', st0.books);

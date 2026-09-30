@@ -1,4 +1,4 @@
-/* 재료 단서, 전방 구매, 장비 강화 */
+/* 조합 단서 폐지, 전방 구매, 장비 강화 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -10,23 +10,21 @@ module.exports = async (b) => {
     await p.goto(GAME_URL);
     await startEquipped(p);
 
-    // 2. 재료 단서
+    // 2. 단서 없음: 성공해도 다른 조합식의 재료를 알려 주지 않는다
     const clue = await p.evaluate(() => {
       S.crafts.cook.lv = 99; ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'cook';
       for (let i = 0; i < 20 && !S.codex.includes('c_rabbit'); i++) { Object.assign(S.inv, { rabbitMeat: 1, salt: 1 }); ui.pot = { rabbitMeat: 1, salt: 1 }; doCraft(ui.craft, ui.pot); }   // 성공률 상한 98%
       ui.tab = 'codex'; render();
-      const clues = [...document.querySelectorAll('.ctile.clue')].map(e => e.dataset.recipe);
-      const saltUses = RECIPES.filter(r => r.in.salt && r.id !== 'c_rabbit').map(r => r.id);
-      return { known: Object.keys(S.knownMats || {}).sort().join(','), clues, saltUses, crafted: S.codex.includes('c_rabbit') };
+      return { known: 'knownMats' in S, clues: document.querySelectorAll('.ctile.clue, .hidden-mat').length, crafted: S.codex.includes('c_rabbit'), note: (S.craftNotes || []).some(n => n.ok && n.out === RECIPES.find(r => r.id === 'c_rabbit').out) };
     });
-    ok('2 조합 성공 → 쓴 재료가 단서로 등록', clue.crafted && clue.known === 'rabbitMeat,salt', clue.known);
-    ok('2 소금이 들어가는 조합식이 모두 단서로 표시', clue.saltUses.every(id => clue.clues.includes(id)), `${clue.clues.length}칸`);
-    await p.click('.ctile.clue');
+    ok('2 조합 성공 → 도감 등록 · 연구 노트에 성공 기록', clue.crafted && clue.note, JSON.stringify(clue));
+    ok('2 재료 단서는 더 이상 없음', !clue.known && clue.clues === 0, JSON.stringify(clue));
+    await p.click('.ctile.known');
     const cm = await p.evaluate(() => ({ title: document.querySelector('.sheet h2').textContent, hidden: !!document.querySelector('.hidden-mat'), mats: [...document.querySelectorAll('.mats-list li span')].map(e => e.textContent).join(' | ') }));
-    ok('2 단서 창: 완성품 + 아는 재료 + 가려진 재료', cm.hidden && /소금/.test(cm.mats), `${cm.title} — ${cm.mats}`);
+    ok('2 발견한 조합식 창: 재료 전부 공개', !cm.hidden && /소금/.test(cm.mats), `${cm.title} — ${cm.mats}`);
     await p.click('[data-act="closemodal"]');
     await p.click('.ctile.locked');
-    ok('2 단서 없는 칸은 미발견 안내', (await p.$$eval('.toast', e => e[e.length - 1].textContent)).includes('아직 발견하지 못한 비전'));
+    ok('2 미발견 칸은 안내만', (await p.$$eval('.toast', e => e[e.length - 1].textContent)).includes('아직 발견하지 못한 비전'));
 
     // 4. 전방 구매, 장비 강화
     const shop = await p.evaluate(() => { S.silver = 1000; const n0 = count('potionHp'); buyItem('potionHp'); return { spent: 1000 - S.silver, got: count('potionHp') - n0 }; });

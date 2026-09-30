@@ -1,4 +1,5 @@
-/* [시스템] 자동 탐험: 한 시간에 한 번, 제자가 목적지로 나가 기력을 다 쓸 때까지 조우를 겪는다 (DOM 조작 금지)
+/* [시스템] 자동 탐험: 매시 정각, 제자가 목적지로 나가 기력을 다 쓸 때까지 조우를 겪는다 (DOM 조작 금지)
+   유저는 정각 전에 탐험지·무공·장비·소모품을 갖춰 둔다. 구역의 적정 전투력은 알려 주지 않는다 — 다녀온 경험(S.zoneLog)만 쌓인다.
    유저는 목적지만 고른다. 자리를 비운 동안의 탐험은 최대 EXPEDITION.maxQueue번까지 한꺼번에 결산하고,
    기록은 최근 EXPEDITION.keep번만 남긴다 (오래된 것부터 지움). 전투는 합마다 기록해 견문록 [관찰하기]로 다시 본다. */
 
@@ -46,11 +47,6 @@ function applyFx(fx) {
   if (fx.exp) { const v = expGain(fx.exp, st); S.exp += v; out.push(`경험치 +${v}`); }
   if (fx.buff) { S.buffs = S.buffs.filter(b => b.key !== fx.buff.key); S.buffs.push({ key: fx.buff.key, val: fx.buff.val, name: fx.buff.name }); out.push(`${fx.buff.name} (이번 탐험 동안)`); }
   for (const [k, v] of Object.entries(fx.perm || {})) { S.perm[k] += v; out.push(`${STAT_NAMES[k]} 영구 +${v}`); }
-  if (fx.clue) {
-    S.knownMats = S.knownMats || {};
-    const unknown = [...new Set(RECIPES.flatMap(r => Object.keys(r.in)))].filter(m => !S.knownMats[m]);
-    if (unknown.length) { const m = pick(unknown); revealMaterials({ in: { [m]: 1 } }); out.push(`재료 단서: ${ITEMS[m].name}`); }
-  }
   if (fx.book) { const books = STARTERS.filter(id => !S.manuals[id] && !has('bk_' + id)); if (books.length) { const b = pick(books); give('bk_' + b, 1, true); out.push(`📘 《${MANUALS[b].name}》 비급`); } }
   if (fx.gear) { const it = makeGear(pick(Object.keys(EQUIP_BASES)), fx.gear[0], fx.gear[1], false); if (giveGear(it, true)) out.push(`🗡️ [${RARITY[it.rarity].name}] ${it.name}`); }
   if (out.length) log(`↳ ${out.map(hlItem).join(', ')}`, 'loot');
@@ -175,6 +171,12 @@ function runExpedition(at = now()) {
   rec.wins = rec.battles.filter(b => b.win).length; rec.losses = rec.battles.filter(b => !b.win && !b.fled).length;
   S.stamina = 0;                                            // 남은 기력은 다음 탐험 전까지 다시 찬다
   S.buffs = [];                                             // 음식·영단 효과는 이번 탐험으로 끝
+  // 구역에서 겪은 것 (정답 대신 경험만 남는다)
+  const zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
+  zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = at;
+  if (rec.end === 'defeat') zl.defeats++; if (rec.end === 'retreat') zl.retreats++;
+  for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }
+  if (rec.steps.some(st => st.k === 'avoid')) zl.bossMet++;
   S.expeditions.push(rec);
   while (S.expeditions.length > W.keep) S.expeditions.shift();   // 오래된 기록부터 지운다
   writeExpeditionLog(rec);
@@ -188,13 +190,15 @@ function writeExpeditionLog(rec) {
   const Z = ZONES[rec.zone], g = rec.gain;
   for (const s of rec.steps) {
     const watch = s.b !== undefined ? ` <button class="watch" data-watch="${rec.id}:${s.b}">관찰하기</button>` : '';
-    log(`${s.t}${watch}`, `exp-step ${s.cls}`, rec.at);
+    log(`${s.t}${watch}`, `exp-step ${s.cls}`, rec.at, { r: rec.id, s: rec.steps.indexOf(s) });
   }
   const items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
-  log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 경험치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.end === 'defeat' ? ` · <b class="warn">쓰러져 귀환 (은자 -${g.lost})</b>` : rec.end === 'retreat' ? ' · 일찍 귀환' : ''}`, 'exp-head', rec.at);
+  log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 경험치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.end === 'defeat' ? ` · <b class="warn">쓰러져 귀환 (은자 -${g.lost})</b>` : rec.end === 'retreat' ? ' · 일찍 귀환' : ''}`, 'exp-head', rec.at, { r: rec.id });
 }
 
-/* ───────── 일정: 한 시간마다, 최대 8번까지 쌓임 ───────── */
+/* ───────── 일정: 매시 정각, 최대 8번까지 쌓임 ───────── */
+/* t 이후 처음 오는 정각 (현지 시각) */
+function nextTopOfHour(t = now()) { const d = new Date(t); d.setMinutes(0, 0, 0); let h = d.getTime(); while (h <= t) h += EXPEDITION.interval; return h; }
 function settleExpeditions(t = now()) {
   const X = S.expedition, W = EXPEDITION;
   if (!X || !X.zone || !X.nextAt || t < X.nextAt) return [];
@@ -207,14 +211,14 @@ function settleExpeditions(t = now()) {
     S.stamina = Math.max(S.stamina, calcStats().maxSta);    // 한 시간이면 기력이 다시 찬다 (음식으로 더 채운 만큼은 그대로)
     recs.push(runExpedition(at));
   }
-  X.nextAt = at;
+  X.nextAt = nextTopOfHour(t);                              // 다음 탐험은 지금 이후 첫 정각
   notify.refresh(); notify.save();
   return recs;
 }
 const nextExpeditionIn = (t = now()) => S.expedition && S.expedition.nextAt ? Math.max(0, S.expedition.nextAt - t) : null;
 const findExpedition = id => S.expeditions.find(r => r.id === id);
 
-/* 목적지 정하기. 처음 정하면 첫 탐험은 곧바로 떠난다 */
+/* 목적지 정하기. 캐릭터의 첫 탐험만 곧바로 떠나고(길 익히기), 그 뒤로는 매시 정각에 떠난다 */
 function setDestination(zid) {
   if (!ZONES[zid] || !zoneUnlocked(zid)) return [];
   const X = S.expedition, first = !X.nextAt;
@@ -222,7 +226,12 @@ function setDestination(zid) {
   X.zone = zid;
   log(`🧭 탐험지를 ${josa(ZONES[zid].name, '으로')} 정했습니다.${first ? ' 제자가 곧바로 길을 떠납니다.' : ''}`, 'place');
   let recs = [];
-  if (first) { X.nextAt = now(); recs = settleExpeditions(); if (recs.length) notify.view({ modal: 'settle:' + recs.map(r => r.id).join(',') }); }
+  if (first) {
+    S.stamina = Math.max(S.stamina, calcStats().maxSta);
+    recs = [runExpedition(now())];
+    X.nextAt = nextTopOfHour();
+    notify.view({ modal: 'settle:' + recs[0].id });
+  }
   notify.refresh();
   return recs;
 }

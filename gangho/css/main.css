@@ -404,7 +404,7 @@ body {
 }
 /* 좁은 화면: 1차 탭 5개를 한 줄 격자로 모두 보이게 (가로 스크롤 없음). 한자는 한글 아래 작게 */
 @media (max-width: 640px) {
-  .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; overflow: visible; padding-block: 4px 8px; }
+  .tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; overflow: visible; padding-block: 4px 8px; }
   .tab { flex-direction: column; align-items: center; gap: 1px; padding: 7px 2px 8px; font-size: .95rem; min-width: 0; }
   .tab .hj { margin-left: 0; font-size: .6em; letter-spacing: .12em; }
 }
@@ -500,3 +500,48 @@ body {
   .replay-sheet .blog { height: 180px; }
   .rp-prog { margin-left: 0; }
 }
+
+/* 강호행: 출정 준비 · 구역 경험 기록 */
+.exp-next .clock { color: var(--silver); font-family: var(--sans); font-size: .85rem; margin-left: 4px; }
+.prep-head { margin-top: 4px; color: var(--silver); }
+.prep { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.prep li { display: grid; grid-template-columns: 22px 72px minmax(0, 1fr) auto; gap: 6px 8px; align-items: center; padding: 7px 10px; border-radius: 6px; background: rgba(28, 34, 44, .5); border: 1px solid rgba(212, 175, 55, .1); }
+.prep li.warn { border-color: rgba(210, 90, 68, .4); }
+.prep-mark { font-weight: 900; text-align: center; color: #7fe0a0; }
+.prep li.warn .prep-mark { color: #ff8e7a; }
+.prep-k { color: var(--dim); font-size: .85rem; }
+.prep-v { font-size: .9rem; min-width: 0; }
+.zone-log { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .88rem; color: var(--silver); }
+.zone-log b { color: var(--ink); font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .prep li { grid-template-columns: 18px minmax(0, 1fr) auto; }
+  .prep-k { grid-column: 2; }
+  .prep-v { grid-column: 2 / -1; }
+  .prep li > .btn { grid-row: 1; grid-column: 3; }
+}
+/* 화로: 연구 노트 */
+.note-warn { font-size: .88rem; color: #ffd27a; }
+.note-warn.ok { color: #7fe0a0; }
+.notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 360px; overflow: auto; }
+.notes li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 6px 10px; border-radius: 6px; background: rgba(28, 34, 44, .5); border-left: 3px solid var(--line-2); font-size: .88rem; }
+.notes li.ok { border-left-color: #7fe0a0; }
+.notes li.near { border-left-color: #ffd27a; }
+.notes li.fail b { color: var(--dim); font-weight: 500; }
+.notes li.near b { color: #ffd27a; }
+.notes li.ok b { color: #7fe0a0; }
+/* 견문록 탭 */
+.chronicle .chron-filters { margin-bottom: 4px; }
+.chron { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.chron-day { position: sticky; top: 0; z-index: 1; padding: 8px 0 4px; font-weight: 800; color: var(--gold); background: rgba(18, 22, 29, .95); border-bottom: 1px solid rgba(212, 175, 55, .2); }
+.chron-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; padding: 7px 4px; border-bottom: 1px solid rgba(255, 255, 255, .04); font-family: var(--serif); line-height: 1.6; }
+.chron-row time { color: var(--dim); font-family: var(--sans); font-size: .8rem; font-variant-numeric: tabular-nums; padding-top: 2px; }
+.chron-row.exp-head { background: rgba(212, 175, 55, .05); }
+.chron-row.exp-head .chron-text { font-weight: 700; }
+.chron-row.bad .chron-text, .chron-row.exp-step.bad .chron-text { color: #ff9a86; }
+.chron-row.npc .chron-text { color: #cfe0ff; }
+.chron-more summary { cursor: pointer; font-family: var(--sans); font-size: .78rem; color: var(--dim); }
+.chron-detail { margin: 4px 0 2px; padding: 6px 10px; border-left: 2px solid rgba(212, 175, 55, .3); font-size: .9rem; color: var(--silver); display: flex; flex-direction: column; gap: 2px; }
+.chron-gain { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 2px 10px; margin: 4px 0; font-family: var(--sans); font-size: .85rem; }
+.chron-gain dt { color: var(--dim); }
+.chron-gain dd { margin: 0; }
+.chron-gone { display: block; font-family: var(--sans); }

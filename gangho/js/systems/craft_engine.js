@@ -1,4 +1,4 @@
-/* [시스템] 화로 기예(주조·연단·조리), 도감 단서, 무신상 봉헌 (DOM 조작 금지) */
+/* [시스템] 화로 기예(주조·연단·조리), 연구 노트, 무신상 봉헌 (DOM 조작 금지) */
 
 /* ───────── 기예 ───────── */
 function potKey(pot) { return Object.entries(pot).filter(([, v]) => v > 0).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}*${v}`).join('|'); }
@@ -34,7 +34,6 @@ function doCraft(craft, pot) {
   if (ok) {
     const first = !S.codex.includes(recipe.id);
     if (first) S.codex.push(recipe.id);
-    revealMaterials(recipe);
     if (recipe.out.startsWith('eq:')) {
       const [, base, tier] = recipe.out.split(':');
       const r = Math.random() * 100;
@@ -53,24 +52,21 @@ function doCraft(craft, pot) {
     result = { ok: false, text: `${ITEMS[fail].icon} ${ITEMS[fail].name}`, sub: recipe ? '불길이 한순간 크게 일렁였습니다. 조합은 맞았던 것 같습니다…' : '재료들이 서로 어울리지 못하고 엉겨 붙었습니다.' };
     log(`${C.name} 실패… ${ITEMS[fail].name}${jo(ITEMS[fail].name, '이가')} 남았습니다.`, 'bad');
   }
+  noteCraft(craft, pot, recipe, ok);
   notify.view({ craftResult: result, pot: {} });
   notify.refresh();
   return result;
 }
 
-/* 재료 단서: 조합에 성공하면 그 조합에 쓴 재료마다 '이 재료가 들어가는 다른 조합식'이 도감에 드러난다.
-   완성품 이름과 이미 아는 재료만 보이고, 나머지 재료는 가려진다. (유저끼리 정보를 나누며 채워 가는 구조) */
-function revealMaterials(recipe) {
-  S.knownMats = S.knownMats || {};
-  for (const mat of Object.keys(recipe.in)) {
-    if (S.knownMats[mat]) continue;
-    S.knownMats[mat] = 1;
-    const uses = RECIPES.filter(r => r.in[mat] && !S.codex.includes(r.id));
-    if (uses.length) log(`🔍 ${hlItem(ITEMS[mat].name)}${jo(ITEMS[mat].name, '이가')} 쓰이는 조합식 ${uses.length}개가 도감에 단서로 드러났습니다.`, 'hint');
-  }
+/* 연구 노트: 해 본 조합(기예 + 재료 구성)과 결과를 남긴다. 답을 알려 주지 않고, 내가 해 본 것만 기억해 준다 */
+function noteCraft(craft, pot, recipe, ok) {
+  S.craftNotes = S.craftNotes || [];
+  const key = craft + ':' + potKey(pot);
+  S.craftNotes = S.craftNotes.filter(n => n.key !== key);
+  S.craftNotes.push({ key, craft, mats: { ...pot }, ok, near: !ok && !!recipe, out: ok ? recipe.out : null, t: now() });
+  if (S.craftNotes.length > CRAFT_NOTE_MAX) S.craftNotes.splice(0, S.craftNotes.length - CRAFT_NOTE_MAX);
 }
-
-const isClue = r => !S.codex.includes(r.id) && Object.keys(r.in).some(m => (S.knownMats || {})[m]);
+const craftNoteFor = (craft, pot) => (S.craftNotes || []).find(n => n.key === craft + ':' + potKey(pot));
 function recipeName(r) { return r.out.startsWith('eq:') ? EQUIP_BASES[r.out.split(':')[1]].names[+r.out.split(':')[2] - 1] : ITEMS[r.out].name; }
 function recipeIcon(r) { return r.out.startsWith('eq:') ? (EQUIP_BASES[r.out.split(':')[1]].slot === 'weapon' ? '🗡️' : '🛡️') : ITEMS[r.out].icon; }
 

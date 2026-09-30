@@ -107,6 +107,7 @@ function viewForge() {
         <p class="story flame">${fireText(ui.craft)}</p>
         <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${ITEMS[flat[i]].icon}<small>${ITEMS[flat[i]].name}</small></button>` : '<div class="slot"></div>').join('')}</div>
         <div class="btns"><button class="btn primary" data-act="craft" ${flat.length ? '' : 'disabled'}>${C.name}</button><button class="btn ghost" data-act="clearpot" ${flat.length ? '' : 'disabled'}>비우기</button></div>
+        ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">📓 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
         ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${res.text}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
       </div>
       <div class="mats">
@@ -114,7 +115,8 @@ function viewForge() {
         <div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''}>${ITEMS[id].icon} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>
       </div>
     </div>
-  </section>`;
+  </section>
+  ${researchNotes(ui.craft)}`;
 }
 
 /* 뒷마당 */
@@ -271,17 +273,23 @@ function viewBag() {
 }
 
 /* 도감 */
+/* 화로 연구 노트: 이 기예로 해 본 조합(최근 순). 성공/실패와 '조합은 맞았던 것 같은' 실패만 알려 준다 */
+function researchNotes(craft) {
+  const notes = (S.craftNotes || []).filter(n => n.craft === craft).slice().reverse();
+  const row = n => `<li class="${n.ok ? 'ok' : n.near ? 'near' : 'fail'}"><span class="note-mats">${Object.entries(n.mats).map(([id, k]) => `${ITEMS[id].icon}${ITEMS[id].name}${k > 1 ? `×${k}` : ''}`).join(' + ')}</span><b>${n.ok ? `성공 → ${recipeName({ out: n.out })}` : n.near ? '실패 · 불길이 크게 일렁임' : '실패'}</b></li>`;
+  return `<section class="panel">${head('연구 노트', '硏究', `<span class="num muted">${notes.length}건</span>`)}
+    ${notes.length ? `<ol class="notes">${notes.map(row).join('')}</ol>` : '<p class="story muted">아직 해 본 조합이 없습니다. 재료를 넣고 불을 지펴 보십시오. 해 본 조합과 결과가 여기에 남습니다.</p>'}
+  </section>`;
+}
+
 function viewCodex() {
   const cols = Object.keys(CRAFTS).map(c => {
     const all = RECIPES.filter(r => r.craft === c);
     const known = all.filter(r => S.codex.includes(r.id)).length;
-    const clues = all.filter(isClue).length;
     const tiles = all.map(r => S.codex.includes(r.id)
       ? `<button class="ctile known" data-recipe="${r.id}"><span>${recipeIcon(r)}</span><b>${recipeName(r)}</b></button>`
-      : isClue(r)
-        ? `<button class="ctile clue" data-recipe="${r.id}"><span>${recipeIcon(r)}</span><b>${recipeName(r)}</b><small>${Object.keys(r.in).map(m => S.knownMats[m] ? ITEMS[m].icon : '？').join(' ')}</small></button>`
-        : `<button class="ctile locked" data-recipe="${r.id}" aria-label="미발견"><span>？</span></button>`).join('');
-    return `<article class="codex-col"><h3>${label(CRAFTS[c].name, CRAFTS[c].hanja)} <span class="num muted">${known}/${all.length}${clues ? ` · 단서 ${clues}` : ''}</span></h3><div class="ctiles">${tiles}</div></article>`;
+      : `<button class="ctile locked" data-recipe="${r.id}" aria-label="미발견"><span>？</span></button>`).join('');
+    return `<article class="codex-col"><h3>${label(CRAFTS[c].name, CRAFTS[c].hanja)} <span class="num muted">${known}/${all.length}</span></h3><div class="ctiles">${tiles}</div></article>`;
   }).join('');
-  return `<section class="panel">${head('도감', '圖鑑')}<div class="codex">${cols}</div></section>`;
+  return `<section class="panel">${head('도감', '圖鑑')}<p class="muted">조합법은 스스로 찾아내야 합니다. 화로에서 성공한 조합만 이곳에 적힙니다. 해 본 조합은 화로의 연구 노트에 남습니다.</p><div class="codex">${cols}</div></section>`;
 }
