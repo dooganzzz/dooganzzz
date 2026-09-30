@@ -13,19 +13,36 @@ Bus.on('tick', () => {
 let lastLiveSig = '';
 function liveSig(t = now()) { return S ? S.expeditions.map(r => r.pend ? `${shownSteps(r, t)}${liveDone(r, t) ? 'd' : ''}${r.claimed ? 'c' : ''}${r.battles.filter(b => b.seen).length}` : '').join(',') + liveSpeed() : ''; }
 const LIVE_SPEED_NAME = { 2: '2배속', 3: '3배속', 4: '4배속', 0: '일괄확인' };
-/* 걷기: 달리기 두 칸을 천천히 번갈아 (다 돌아오면 숨쉬기) */
-let liveStepI = 0;
-setInterval(() => {
-  const h = document.getElementById('liveHero'); if (!h) return;
-  const rest = h.closest('.rest');
-  h.dataset.f = rest ? BREATH[liveStepI++ % BREATH.length] : (liveStepI++ % 2 ? 2 : 1);
-}, 340);
+/* 걷기: 병기별 8컷 걸음(닿기 · 내려앉기 · 지나가기 · 솟기 × 좌우). 산길은 발걸음 폭에 맞춰 흘러 발이 미끄러지지 않는다.
+   다 돌아오면 멈춰 서서 숨쉬기 (대기 시트) */
+const WALK_FRAMES = 8, WALK_MS = 125;                  // 한 걸음 주기 1초
+let liveAnim = { f: 0, last: 0, acc: 0, x: 0, raf: 0, breath: 0 };
+function liveLoop(ts) {
+  liveAnim.raf = requestAnimationFrame(liveLoop);
+  const sc = document.getElementById('liveScene'); if (!sc) { cancelAnimationFrame(liveAnim.raf); liveAnim.raf = 0; return; }
+  const dt = liveAnim.last ? Math.min(100, ts - liveAnim.last) : 16; liveAnim.last = ts;
+  const walker = sc.querySelector('.live-walker'), hero = document.getElementById('liveHero'), strip = sc.querySelector('.live-strip');
+  if (sc.classList.contains('rest') || reduceMotion()) {                      // 쉬는 중: 대기 시트로 가슴만 들썩
+    liveAnim.acc += dt; if (liveAnim.acc > 260) { liveAnim.acc = 0; if (hero) hero.dataset.f = BREATH[liveAnim.breath++ % BREATH.length]; }
+    return;
+  }
+  liveAnim.acc += dt;
+  while (liveAnim.acc >= WALK_MS) { liveAnim.acc -= WALK_MS; liveAnim.f = (liveAnim.f + 1) % WALK_FRAMES; if (walker) walker.querySelector('.walk-spr').style.backgroundPositionX = (liveAnim.f * 100 / (WALK_FRAMES - 1)) + '%'; }
+  // 산길: 한 걸음 주기에 키의 0.7배만큼 (그림 한 장 폭마다 되감는다)
+  if (strip && walker) {
+    const img = strip.firstElementChild, h = walker.offsetHeight || 120, wImg = img && img.offsetWidth;
+    liveAnim.x += dt * (h * 0.7) / (WALK_MS * WALK_FRAMES);
+    if (wImg) { liveAnim.x %= wImg; strip.style.transform = `translate3d(${-liveAnim.x.toFixed(1)}px,0,0)`; }
+  }
+}
 function liveScene(r) {
   const zid = (r && r.zone) || S.expedition.zone || 'cheongpung', w = weaponType();
-  const img = `<img src="assets/art/travel/${zid}.jpg" alt="">`;
+  const img = () => `<img src="assets/art/travel/${zid}.jpg" alt="">`;   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
+  if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
   return `<div class="live-scene ${liveDone(r) ? 'rest' : ''}" id="liveScene">
-    <div class="live-strip">${img}${img}${img}</div>
-    <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="1"><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
+    <div class="live-strip" data-anim>${img()}${img()}${img()}</div>
+    <div class="sp-fighter live-walker" id="liveWalker_${w}"><i class="sp-shadow"></i><div class="walk-spr" data-anim style="background-image:url('assets/art/sprites/walk_${w}.webp')"></div></div>
+    <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0"><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
     <span class="live-where">${ZONES[zid].name}</span>
   </div>`;
 }

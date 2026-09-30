@@ -453,13 +453,9 @@
 .live-wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; align-items: start; }
 @media (max-width: 760px) { .live-wrap { grid-template-columns: 1fr; } }
 .live-scene { width: 100%; position: relative; overflow: hidden; border-radius: 8px; aspect-ratio: 16 / 8; min-height: 180px; background: #d8cfbb; box-shadow: inset 0 0 30px rgba(0, 0, 0, .35); }
-.live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; animation: liveScroll 48s linear infinite; }
+.live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; will-change: transform; }
 .live-strip img { height: 100%; width: auto; flex: none; display: block; }
-@keyframes liveScroll { from { transform: translateX(0); } to { transform: translateX(-33.333%); } }
-.live-scene.rest .live-strip { animation-play-state: paused; }
 .live-hero.sp-hero { left: 22%; bottom: 7%; width: 44%; transition: none; }
-.live-scene:not(.rest) .live-hero { animation: liveBob .68s ease-in-out infinite; }
-@keyframes liveBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5%); } }
 .live-where { position: absolute; right: 8px; top: 6px; z-index: 3; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .live-speed { flex-wrap: wrap; }
@@ -488,3 +484,9 @@
 @keyframes sheetIn { from { opacity: 0; transform: translateY(6px) scale(.985); } to { opacity: 1; transform: none; } }
 /* 탭 버튼 · 하위 탭 전환은 색만 부드럽게 */
 .tab, .subtab { transition: color .15s, background-color .15s, border-color .15s; }
+
+/* 걷는 제자 (8컷 걸음 시트, 칸 400×380) · 쉬면 대기 시트로 바뀐다 */
+.live-walker { left: 30%; bottom: 7%; width: 26%; aspect-ratio: 400 / 380; transition: none; }
+.walk-spr { width: 100%; height: 100%; background: 0 0 / 800% 100% no-repeat; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
+.live-walker .sp-shadow { width: 42%; }
+.live-scene.rest .live-walker, .live-scene:not(.rest) .live-hero { display: none; }
