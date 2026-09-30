@@ -4,7 +4,7 @@
 
 | 경로 | 쓰는 곳 | 권장 크기 |
 | --- | --- | --- |
-| `images/character_default.png` | 무장(武裝) 가운데 제자 일러스트 카드 | 3:4 세로형 (현재 600×800 수묵화, 한지 배경 그대로) |
+| `images/character_default.png` | 무장(武裝) 가운데 제자 일러스트 카드 | 3:4 세로형, 투명 배경 (현재 600×800 수묵담채 · 남색 도포 · 붉은 요대) |
 | `character_silhouette.png` | (예비) 예전 무장 중앙 인형 | 세로형, 투명 배경 (지금 화면에서는 쓰지 않음) |
 | `portraits/npc_nobyeoksong.png` | 정청 · 노벽송 (장문인) | 정사각 144×144 이상 |
 | `portraits/npc_joun.png` | 정청 · 조운 (대사형) | 정사각 144×144 이상 |
