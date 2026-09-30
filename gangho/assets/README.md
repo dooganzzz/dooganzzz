@@ -33,9 +33,10 @@
 
 | 경로 | 쓰는 곳 | 권장 크기 |
 | --- | --- | --- |
-| `art/zones/cheongpung.jpg` · `yeomhwa.jpg` · `suryong.jpg` | 강호행 탐험지 카드 머리 · 관찰 창 배경 | 가로형 1200×420 (카드에서는 위아래가 잘림) |
+| `art/zones/cheongpung.jpg` · `yeomhwa.jpg` · `suryong.jpg` | 강호행 탐험지 카드 머리 · 관찰 창 배경 (세 곳 모두 들어 있음) | 가로형 1200×420 (카드에서는 위아래가 잘림) |
 | `art/beasts/<요수 id>.png` | 도감 · 심상수련장 · 관찰 창 인장 (31종 모두 들어 있음) | 정사각 320×320, 투명 배경, 가운데 정렬 |
-| `art/shrine.png` | 청풍문 › 무신상 | 세로형 360×414 |
+| `art/shrine.png` | 청풍문 › 무신상 (옥좌에 앉은 이끼 낀 석상 · 향로) | 세로형 540×720, 투명 배경 |
+| `art/meditation.png` | 상태 › 무공 가운데 운기조식 (가부좌 · 단전의 금빛 기운) | 정사각 400×400, 투명 배경 |
 
 요수 id는 `js/data/monsters.js`의 키입니다 (예: `wildcat`, `redTiger`, `byeokhaeryong`).
 

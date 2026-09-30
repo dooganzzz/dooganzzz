@@ -7,6 +7,7 @@ const ART_SRC = {
   zone: id => `assets/art/zones/${id}.jpg`,
   beast: id => `assets/art/beasts/${id}.png`,
   shrine: () => 'assets/art/shrine.png',
+  meditation: () => 'assets/art/meditation.png',
 };
 const brokenArt = new Set();
 function artFail(im) { brokenArt.add(im.getAttribute('src')); im.remove(); }
@@ -167,10 +168,14 @@ function itemIco(id, cls = '') {
   return icoWrap([[ITEM_ART(id)]], I.icon, cls);
 }
 const gearArtId = g => g.slot === 'weapon' ? 'w_' + (g.wtype || 'sword') : 's_' + (g.slot === 'ring2' ? 'ring' : g.slot);
-const gearIco = (g, cls = '') => icoWrap([[ITEM_ART(gearArtId(g))]], '', cls);
+/* 장비 그림 둘레에 등급 빛 (하급은 빛 없음 · 중급 초록 … 극품 빨강) */
+const gearIco = (g, cls = '', r = g.rarity || 0) => icoWrap([[ITEM_ART(gearArtId(g))]], '', `gear-ico gr${r} ${cls}`);
 
 /* ───────── 운기조식: 가부좌를 틀고 단전에 기운을 모으는 무림인 (상태 › 무공 가운데) ───────── */
 function meditationArt() {
+  return artPic(ART_SRC.meditation(), meditationSvg(), 'meditation-art');
+}
+function meditationSvg() {
   return `<svg class="meditation-svg" viewBox="0 0 80 80" role="img" aria-label="가부좌 운기조식">
     <g fill="#d8c59a" opacity=".9">
       <circle cx="40" cy="17" r="7"/><path d="M36 11q4-6 8 0l-1-4q-3-2-6 0z" opacity=".8"/>
