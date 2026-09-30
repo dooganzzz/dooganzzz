@@ -37,7 +37,7 @@ function codexMartial() {
     const got = Object.keys(MANUALS).filter(id => MANUALS[id].cat === cat && S.manuals[id]);
     if (!got.length) return '';
     const rows = got.map(id => { const M = MANUALS[id], m = S.manuals[id];
-      return `<li><button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.passiveBonus ? `<small class="passive">각인 ${bonusText(M.passiveBonus)}</small>` : ''}${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
+      return `<li>${manualIco(id, 'mini')}<button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.passiveBonus ? `<small class="passive">각인 ${bonusText(M.passiveBonus)}</small>` : ''}${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
     return `<article class="codex-col"><h3>${label(CATS[cat].name, CATS[cat].hanja)}</h3><ul class="beasts">${rows}</ul></article>`;
   }).join('');
   const P = manualPassive(), sum = bonusText({ ...P.attr, ...P.stats });
@@ -52,7 +52,7 @@ function codexRecipes(craft) {
     const eff = G ? Object.entries(G.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ') : I.desc;
     const grade = G ? `[${G.rank || RARITY[G.rarity || 1].name}]` : I.grade ? `[${I.grade}]` : '';
     return `<li class="recipe-row"><button class="r-out linkish" data-recipe="${r.id}">${recipeIcon(r)} <b>${recipeName(r)}</b> <small class="muted">${grade}</small></button>
-      <span class="r-in">${Object.entries(r.in).map(([id, n]) => `${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`).join(' + ')}</span><small class="muted r-eff">${eff}</small></li>`;
+      <span class="r-in">${Object.entries(r.in).map(([id, n]) => `${itemIco(id, 'sm')} ${ITEMS[id].name} ×${n}`).join(' + ')}</span><small class="muted r-eff">${eff}</small></li>`;
   }).join('');
   return `<p class="muted">화로를 통해 스스로 깨우친 제조 비법만 기록됩니다.</p>${rows ? `<ul class="recipes">${rows}</ul>` : CODEX_EMPTY}`;
 }

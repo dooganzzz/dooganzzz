@@ -50,7 +50,7 @@ function recipeModal(rid) {
     const I = ITEMS[r.out];
     body = `<p class="story">${I.desc}</p><div class="kv"><span>분류</span><b>${I.kind}${I.grade ? ' · ' + I.grade : ''}</b></div><div class="kv"><span>보유</span><b>${count(r.out)}개</b></div>`;
   }
-  const mats = Object.entries(r.in).map(([id, n]) => `<li><span>${ITEMS[id].icon} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('');
+  const mats = Object.entries(r.in).map(([id, n]) => `<li><span>${itemIco(id, 'sm')} ${ITEMS[id].name} × ${n}</span><b class="${count(id) >= n ? '' : 'warn'}">보유 ${count(id)}</b></li>`).join('');
   return `<div class="sheet">
     <div class="sheet-head"><div><small class="muted">${C.name} ${C.hanja}</small><h2>${recipeIcon(r)} ${recipeName(r)}</h2></div></div>
     ${body}
@@ -69,7 +69,7 @@ function fillPot(rid) {
 function equipModal(slot) {
   const cur = S.equip[slot], list = S.gear.filter(g => g.slot === slotAccepts(slot));
   const mw = S.active.mugong && MANUALS[S.active.mugong].weapon;
-  const card = (it, btns) => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(gearName(it), RARITY[it.rarity].name)}${it.wtype ? `<small class="muted item-category">${WEAPON_SHORT[it.wtype]}</small>` : ''}
+  const card = (it, btns) => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(gearName(it), RARITY[it.rarity].name, gearIco(it, 'card'))}${it.wtype ? `<small class="muted item-category">${WEAPON_SHORT[it.wtype]}</small>` : ''}
     <small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}${slot === 'weapon' && mw && it.wtype !== mw ? `<small class="warn">장착 무공은 ${WEAPON_TYPES[mw]} 무공이라 초식이 나가지 않습니다</small>` : ''}
     <div class="btns">${btns}</div></div>`;
   const curHtml = cur ? card(cur, `<button class="btn sm" data-enhance="${slot}" ${(cur.enh || 0) >= ENH_MAX || S.silver < enhCost(cur) ? 'disabled' : ''}>🔨 ${(cur.enh || 0) >= ENH_MAX ? '강화 완료' : `강화 +${(cur.enh || 0) + 1} · ${hlSilver(enhCost(cur))} · ${enhChance(cur)}%`}</button><button class="btn ghost sm" data-unequip="${slot}">해제</button>`) : '<p class="muted">비어 있습니다.</p>';

@@ -152,7 +152,7 @@ small { font-size: .82rem; }
 /* 강적 도감: 실루엣은 왼쪽에 세우고 이름·특성이 그 오른쪽에 흐른다 */
 .beasts li { align-items: center; }
 .beasts li .beast-art.mini { align-self: center; }
-.beasts li:has(.beast-art) { display: grid; grid-template-columns: auto auto auto auto 1fr; grid-auto-flow: row; column-gap: 8px; row-gap: 2px; align-items: center; }
+.beasts li:has(.beast-art) { display: grid; grid-template-columns: auto auto auto auto auto 1fr; grid-auto-flow: row; column-gap: 8px; row-gap: 2px; align-items: center; justify-items: start; }
 .beasts li:has(.beast-art) > .beast-art { grid-row: span 2; }
-.beasts li:has(.beast-art) > small { grid-column: 5; justify-self: end; }
+.beasts li:has(.beast-art) > small { grid-column: 6; grid-row: 1; justify-self: end; }
 .beasts li:has(.beast-art) > em.trait, .beasts li:has(.beast-art) > .passive { grid-column: 2 / -1; }

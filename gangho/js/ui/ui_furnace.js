@@ -21,14 +21,14 @@ function viewFurnace() {
       <div class="pot">
         ${furnaceFire(ui.craft)}
         <p class="story flame">${fireText(ui.craft)}</p>
-        <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${ITEMS[flat[i]].icon}<small>${ITEMS[flat[i]].name}</small></button>` : '<div class="slot"></div>').join('')}</div>
+        <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${itemIco(flat[i])}<small>${ITEMS[flat[i]].name}</small></button>` : '<div class="slot"></div>').join('')}</div>
         <div class="btns"><button class="btn primary" data-act="craft" ${flat.length ? '' : 'disabled'}>${C.name}</button><button class="btn ghost" data-act="clearpot" ${flat.length ? '' : 'disabled'}>비우기</button></div>
         ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">📓 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
         ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${res.text}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
       </div>
       <div class="mats">
         <h4>재료</h4>
-        ${mats.length ? `<div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${ITEMS[id].icon} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : `<p class="muted">${C.name}에 쓸 재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>`}
+        ${mats.length ? `<div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : `<p class="muted">${C.name}에 쓸 재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>`}
       </div>
     </div>
   </section>

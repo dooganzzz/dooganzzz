@@ -124,3 +124,41 @@
   .scene *, .statue *, .furnace-fire *, .portrait-img, .incense i::after, .replay-sheet.won .arena-bg::after, .settle-sheet { animation: none !important; }
 }
 .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
+
+/* ───────── 그림 파일이 뜨면 SVG 자리 그림은 감춘다 (투명 배경 그림이 겹쳐 보이지 않게) ───────── */
+.art-frame.loaded > svg { visibility: hidden; }
+.beast-art > img { object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55)); }
+.beast-art.loaded { border-radius: 0; }
+/* 도감: 요수를 그림으로 크게 */
+.codex .beasts .beast-art.mini { width: 64px; height: 64px; border-radius: 6px; }
+.codex .beasts .beast-art.mini.loaded { background: radial-gradient(circle at 50% 60%, rgba(255, 255, 255, .06), transparent 70%); }
+@media (min-width: 1024px) { .codex .beasts .beast-art.mini { width: 78px; height: 78px; } }
+.sim-foe .beast-art.mini { width: 40px; height: 40px; }
+
+/* ───────── 아이템 그림 ───────── */
+.item-ico { position: relative; display: inline-block; flex: none; width: 34px; height: 34px; vertical-align: middle; line-height: 1; }
+.item-ico > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)); }
+.item-ico.fb { display: inline-grid; place-items: center; font-size: 1.3rem; }
+.item-ico.sm { width: 22px; height: 22px; margin-right: 2px; }
+.item-ico.sm.fb { font-size: 1rem; }
+.item-ico.mini { width: 30px; height: 30px; margin-right: 6px; }
+.item-ico.card { width: 40px; height: 40px; margin-right: 8px; }
+/* 비급: 등급별 표지 위, 표지 가운데 이름표 자리에 분류 문양 */
+/* 문양은 표지 한가운데에 크게. 삼류·이류는 먹빛(이류는 상아빛 테), 일류는 금빛으로 */
+.item-ico.book > .emb { inset: 20% 26% 24%; width: 48%; height: 56%; filter: drop-shadow(0 0 1px rgba(255, 255, 255, .7)); }
+.item-ico.book.g2 > .emb { filter: drop-shadow(0 0 1px rgba(255, 240, 210, .95)) drop-shadow(0 0 2px rgba(255, 240, 210, .6)); }
+.item-ico.book.g1 > .emb { filter: invert(1) sepia(1) saturate(3) brightness(1.05) drop-shadow(0 0 2px rgba(0, 0, 0, .95)) drop-shadow(0 0 3px rgba(240, 207, 130, .6)); }
+.item .icon .item-ico.book, .ware .icon .item-ico.book { width: 46px; height: 46px; }
+.item-ico.book.mini { width: 40px; height: 40px; }
+.item .icon, .ware .icon { display: grid; place-items: center; }
+.item, .ware { grid-template-columns: 44px minmax(0, 1fr) auto; }
+.ware { grid-template-columns: 44px minmax(0, 1fr) auto auto; }
+.item .icon .item-ico, .ware .icon .item-ico { width: 42px; height: 42px; }
+.offer-icon .item-ico { width: 46px; height: 46px; }
+.slot .item-ico { width: 58%; height: 58%; }
+.item-card-header { display: flex; align-items: center; gap: 0; }
+.item-card-header .item-name { flex: 1; min-width: 0; }
+/* 무장 칸: 착용한 장비는 그림으로 */
+.equip-slot-card .item-ico.slot-ico { width: 38px; height: 38px; }
+@media (min-width: 1024px) { .equip-slot-card .item-ico.slot-ico { width: 44px; height: 44px; } }
+.chip .item-ico.sm { margin: -4px 2px -4px -4px; }

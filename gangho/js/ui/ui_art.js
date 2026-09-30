@@ -11,7 +11,7 @@ const ART_SRC = {
 const brokenArt = new Set();
 function artFail(im) { brokenArt.add(im.getAttribute('src')); im.remove(); }
 function artPic(src, svg, cls = '') {
-  const img = brokenArt.has(src) ? '' : `<img src="${src}" alt="" loading="lazy" onerror="artFail(this)">`;
+  const img = brokenArt.has(src) ? '' : `<img src="${src}" alt="" loading="lazy" onload="this.parentNode.classList.add('loaded')" onerror="artFail(this)">`;
   return `<span class="art-frame ${cls}" aria-hidden="true">${svg}${img}</span>`;
 }
 
@@ -138,10 +138,36 @@ const SLOT_ICON = {
   'w-fist': 'M6 11V7a2 2 0 0 1 4 0v4M10 10V6a2 2 0 0 1 4 0v4M14 10V7a2 2 0 0 1 4 0v6c0 4-3 7-7 7s-5-3-5-6v-3',
 };
 function slotIcon(slot) {
+  if (S.equip[slot]) return gearIco(S.equip[slot], 'slot-ico');
   const w = slot === 'weapon' && S.equip.weapon ? 'w-' + (S.equip.weapon.wtype || 'sword') : null;
   const d = SLOT_ICON[w] || SLOT_ICON[slot] || SLOT_ICON['w-sword'];
   return `<svg class="slot-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
+
+/* ───────── 아이템 그림 (assets/art/items): 수묵담채 · 투명 배경. 파일이 없으면 이모지로 ─────────
+   장비는 부위(무기는 병기 종류)마다 한 장. 비급은 등급별 표지 위에 분류 문양을 얹는다
+   (무공은 병기 문양 · 심법 · 경공 두 발 · 기공 가부좌와 보호막) */
+const ITEM_ART = id => `assets/art/items/${id}.png`;
+const BOOK_COVER = { '삼류': 'book_g3', '이류': 'book_g2', '일류': 'book_g1' };
+function icoFail(im) { brokenArt.add(im.getAttribute('src')); const s = im.closest('.item-ico'); if (s) { s.classList.add('fb'); s.textContent = s.dataset.fb || ''; } }
+const icoImg = (src, cls = '') => `<img class="${cls}" src="${src}" alt="" loading="lazy" onerror="icoFail(this)">`;
+function icoWrap(srcs, fb, cls) {
+  if (srcs.some(x => brokenArt.has(x[0]))) return `<span class="item-ico fb ${cls}" aria-hidden="true">${fb}</span>`;
+  return `<span class="item-ico ${cls}" data-fb="${esc(fb)}" aria-hidden="true">${srcs.map(([src, c]) => icoImg(src, c)).join('')}</span>`;
+}
+function manualIco(mid, cls = '') {
+  const M = MANUALS[mid]; if (!M) return '📘';
+  const emb = M.cat === 'mugong' ? (M.weapon || 'fist') : M.cat;
+  const cover = BOOK_COVER[M.grade] || 'book_g3';
+  return icoWrap([[ITEM_ART(cover), 'cover'], [ITEM_ART('emb_' + emb), 'emb']], '📘', `book ${cover.slice(5)} ${cls}`);
+}
+function itemIco(id, cls = '') {
+  const I = ITEMS[id]; if (!I) return '';
+  if (I.use && I.use.learn) return manualIco(I.use.learn, cls);
+  return icoWrap([[ITEM_ART(id)]], I.icon, cls);
+}
+const gearArtId = g => g.slot === 'weapon' ? 'w_' + (g.wtype || 'sword') : 's_' + (g.slot === 'ring2' ? 'ring' : g.slot);
+const gearIco = (g, cls = '') => icoWrap([[ITEM_ART(gearArtId(g))]], '', cls);
 
 /* ───────── 운기조식: 가부좌를 틀고 단전에 기운을 모으는 무림인 (상태 › 무공 가운데) ───────── */
 function meditationArt() {
