@@ -14,7 +14,7 @@ function spriteStage(zid, eid) {
 /* 무대 되돌리기 (처음부터) */
 function spriteReset() {
   const h = $('#spHero'), f = $('#spFoe'); if (!h || !f) return;
-  h.className = 'sp-fighter sp-hero idle'; h.dataset.f = 0; f.className = f.className.replace(/\b(ko|lunge|hit)\b/g, '').trim() + ' idle';
+  h.className = 'sp-fighter sp-hero idle'; spFrame(h, 'idle'); f.className = f.className.replace(/\b(ko|lunge|hit)\b/g, '').trim() + ' idle';
 }
 const spWait = ms => new Promise(r => setTimeout(r, ms));
 const spFlash = el => { el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); };
@@ -30,19 +30,42 @@ function spSlash(gold) {
   s.innerHTML = [0, 1, 2].map(i => `<path style="animation-delay:${i * 80}ms,${i * 80}ms" d="M${18 + i * 14} ${104 - i * 10}Q${96 + i * 6} ${8 + i * 12} ${186 - i * 8} ${26 + i * 16}"/>`).join('');
   st.appendChild(s); setTimeout(() => s.remove(), 1100);
 }
+/* 제자 스프라이트시트 칸: 0 대기 · 1~2 달리기 · 3 찌르기 · 4~6 가로베기(준비·베기·마무리) · 7 피격 · 8 회피 */
+const SPF = { idle: 0, run1: 1, run2: 2, thrust: 3, slashA: 4, slashB: 5, slashC: 6, hurt: 7, dodge: 8 };
+function spFrame(h, k) { h.dataset.f = SPF[k]; }
+function spStreak(kind) {
+  const st = $('#spStage'); if (!st) return;
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('viewBox', '0 0 200 120'); s.setAttribute('class', `sp-streak ${kind}`);
+  s.innerHTML = kind === 'thrust'
+    ? '<path d="M8 60H192"/><path class="tip" d="M150 52L196 60 150 68"/>'
+    : '<path d="M10 78Q100 30 192 62"/><path class="thin" style="animation-delay:60ms,60ms" d="M20 90Q104 46 186 76"/>';
+  st.appendChild(s); setTimeout(() => s.remove(), 900);
+}
+/* 달려가서: 평타는 힘껏 찌르기, 초식은 삼재검법 가로베기(준비 → 베기 → 마무리) */
 async function spHeroAttack(f, stance, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
-  h.classList.remove('idle'); h.classList.add('lunge'); await spWait(gap * .25); h.dataset.f = 1; spSlash(stance);
-  await spWait(gap * .1);
-  if (f.k === 'miss') spNum('빗나감', 'foe', 'miss'); else { spFlash(e); spNum(f.t, 'foe', f.k === 'crit' ? 'crit' : ''); }
-  await spWait(gap * .35); h.dataset.f = 0; h.classList.remove('lunge'); await spWait(gap * .2); h.classList.add('idle');
+  const k = Math.min(1, gap / 1000), w = ms => spWait(ms * k);
+  h.classList.remove('idle'); h.classList.add('dash');
+  let n = 0; const legs = setInterval(() => spFrame(h, n++ % 2 ? 'run2' : 'run1'), 110 * k);
+  spFrame(h, 'run1'); await w(430); clearInterval(legs);
+  const land = () => { if (f.k === 'miss') spNum('빗나감', 'foe', 'miss'); else { spFlash(e); spNum(f.t, 'foe', f.k === 'crit' ? 'crit' : ''); } };
+  if (stance) {
+    spFrame(h, 'slashA'); await w(150);
+    spFrame(h, 'slashB'); spStreak('slash'); land(); await w(170);
+    spFrame(h, 'slashC'); await w(230);
+  } else {
+    spFrame(h, 'thrust'); spStreak('thrust'); land(); await w(320);
+  }
+  h.classList.remove('dash'); h.classList.add('retreat'); spFrame(h, 'idle'); await w(300);
+  h.classList.remove('retreat'); h.classList.add('idle');
 }
 async function spFoeAttack(f, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
   e.classList.remove('idle'); e.classList.add('lunge'); await spWait(gap * .25);
-  if (f.k === 'dodge') { h.dataset.f = 3; h.classList.add('back'); spNum('회피!', 'me', 'miss'); }
-  else { h.dataset.f = 2; spFlash(h); spNum(f.t, 'me', 'me'); }
-  await spWait(gap * .4); e.classList.remove('lunge'); h.classList.remove('back'); h.dataset.f = 0; await spWait(gap * .2); e.classList.add('idle');
+  if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); }
+  else { spFrame(h, 'hurt'); spFlash(h); spNum(f.t, 'me', 'me'); }
+  await spWait(gap * .4); e.classList.remove('lunge'); h.classList.remove('back'); spFrame(h, 'idle'); await spWait(gap * .2); e.classList.add('idle');
 }
 /* 한 합 재생: 기록된 연출(fx) 순서대로 공격을 나눠 움직인다 */
 async function spritePlayRound(r, last, win, ms) {
