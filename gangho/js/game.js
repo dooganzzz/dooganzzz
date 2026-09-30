@@ -518,7 +518,7 @@ function move(dx, dy) {
   const nx = S.zone.x + dx, ny = S.zone.y + dy, zid = S.zone.id;
   if (!passable(zid, nx, ny)) return;
   const c = tileAt(zid, nx, ny);
-  S.zone.x = nx; S.zone.y = ny;
+  S.zone.x = nx; S.zone.y = ny; ui.stepTo = `${nx},${ny}`;
   reveal(zid, nx, ny);
   if (c === 'T') return springTrap();
   if (c === 'E') return openEvent(`${nx},${ny}`);
@@ -655,14 +655,14 @@ function applyFx(fx) {
 function eventModal(key) {
   const ev = eventAt(key), res = (S.zone.evResult || {})[key];
   const body = res
-    ? `<div class="ev-result"><p class="ev-choice">▸ ${res.choice}</p><p class="story">${res.text}</p>
+    ? `<div class="ev-result"><p class="ev-choice">▸ ${res.choice}</p><p class="story" data-tw="ev">${res.text}</p>
         ${res.gains.length ? `<ul class="ev-gains">${res.gains.map(g => `<li class="${/(^|\s)-\d/.test(g) ? 'neg' : ''}">${g}</li>`).join('')}</ul>` : '<p class="muted">얻은 것도 잃은 것도 없습니다.</p>'}</div>
        <div class="btns"><button class="btn primary" data-act="closemodal">계속</button></div>`
     : `<div class="ev-choices">${ev.choices.map((c, i) => { const why = reqFail(c.req); return `<button class="ev-opt" data-evkey="${key}" data-evchoice="${i}" ${why ? 'disabled' : ''}><b>${c.label}</b>${c.req ? `<small class="${why ? 'warn' : 'muted'}">${why || reqLabel(c.req)}${c.take ? ' · 소모' : ''}</small>` : ''}</button>`; }).join('')}</div>`;
   return `<div class="sheet event-sheet">
     <p class="eyebrow">奇緣 · 기연</p>
     <h2>${ev.title}</h2>
-    <p class="story ev-text">${ev.text}</p>
+    <p class="story ev-text" data-tw="ev">${ev.text}</p>
     ${body}
   </div>`;
 }
@@ -794,7 +794,7 @@ function playerHit(b, mult, text) {
   if (crit) dmg *= 1.6;
   dmg = Math.round(dmg);
   e.hpNow = Math.max(0, e.hpNow - dmg);
-  if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit' });
+  if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= e.hp * 0.2 });
   const [, txt, cls] = reaction(dmg, e.hp);
   bLine(`${text}${crit ? ' <b class="crit">치명!</b>' : ''} ${josa(e.name, '이가')} ${txt}`, cls);
   if (st.lifesteal) S.hp = Math.min(st.maxHp, S.hp + Math.round(dmg * st.lifesteal / 100));
@@ -826,13 +826,13 @@ function enemyTurn(b) {
   const e = b.e, st = b.st;
   const hitChance = Math.max(40, 95 - st.eva);
   // 1) 회피 성공: 피해 0, 반격 판정 없이 적 턴 종료
-  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'dodge'); if (b.fx) b.fx.push({ side: 'me', t: '회피', k: 'miss' }); return; }
+  if (Math.random() * 100 >= hitChance) { bLine(`${e.name}의 공격을 비스듬히 흘려냈습니다!`, 'dodge'); if (b.fx) b.fx.push({ side: 'me', t: '회피!', k: 'dodge' }); return; }
   // 2) 회피 실패: 피격 후에만 반격 판정
   let dmg = dmgCalc(e.atk, st.def);
   const crit = Math.random() * 100 < Math.max(0, 8 - st.critRes / 2);
   if (crit) dmg = Math.round(dmg * 1.5);
   S.hp = Math.max(0, S.hp - dmg);
-  if (b.fx) b.fx.push({ side: 'me', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit' });
+  if (b.fx) b.fx.push({ side: 'me', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= st.maxHp * 0.2 });
   const [, , cls] = reaction(dmg, st.maxHp);
   const feel = { h1: '살짝 스쳤습니다.', h2: '살갗이 찢어집니다.', h3: '뼈가 울립니다!', h4: '입가로 피가 흐릅니다!', h5: '기혈이 뒤집힙니다!' }[cls];
   bLine(`${e.name}의 공격${crit ? ' <b class="crit">치명!</b>' : ''} — ${feel} <span class="dmg">활력 -${fmt(dmg)}</span>`, 'taken');
@@ -1206,6 +1206,8 @@ function render() {
   }
   renderLog();
   renderModal();
+  typewriteAll();
+  stepFx();
   wireImages();
   drawMapLinks();
   centerMap();
@@ -1231,6 +1233,13 @@ function drawMapLinks() {
     }
   }
   svg.innerHTML = out;
+}
+/* 이동 직후 도착 칸이 살짝 튀어 오른다 */
+function stepFx() {
+  if (!ui.stepTo) return;
+  const el = document.querySelector(`.map-scroll .cell.here[data-xy="${ui.stepTo}"]`);
+  ui.stepTo = null;
+  if (el) { el.classList.add('step'); setTimeout(() => el.classList.remove('step'), 260); }
 }
 function centerMap() {
   const box = $('#mapScroll'), here = box && box.querySelector('.cell.here');
@@ -1273,6 +1282,7 @@ function viewYeonmu() {
     const on = tid === id;
     const left = on ? (need(m.star) - m.txp) / trainRate(id) : 0;
     return `<div class="art ${on ? 'training' : ''}" data-manual="${cat}" role="button" tabindex="0">
+      ${on ? `<span class="qi-rise" aria-hidden="true">${'<i></i>'.repeat(9)}</span>` : ''}
       <div class="art-top"><span class="art-cat">${label(C.name, C.hanja)}</span><span class="art-star">${m.star}<small>성</small></span></div>
       <div class="art-name">《${M.name}》 ${realmTag(m.star)}${m.gate ? ' <span class="pill warn">관문</span>' : ''}</div>
       ${xpRows(id)}
@@ -1415,7 +1425,7 @@ function viewYard() {
     </div>
   </section>
   <section class="panel npc">
-    <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
+    <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 오늘은 뭐 해요?"</p></div></div>
     <div class="btns">
       <button class="btn" data-act="snack" ${S.arin.snack === today() ? 'disabled' : ''}>🍪 ${S.arin.snack === today() ? '약과는 내일 또' : '일일 약과 받기'}</button>
       <button class="btn" data-act="talk">💬 이야기 나누기</button>
@@ -1431,12 +1441,12 @@ function viewHall() {
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();
   const hq = `
-    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn ghost sm" data-act="masterhint">말 걸기</button></div>
+    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn ghost sm" data-act="masterhint">말 걸기</button></div>
     <div class="quest">
       ${q ? `<small class="muted">지금 할 일 · ${qi + 1}/${QUESTS.length}</small><b>${q[0]}</b><p class="story">${q[2]}</p>` : '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'}
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
-    <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 필요한 건 챙겨놨다."</p></div>
+    <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 필요한 건 챙겨놨다."</p></div>
       <button class="btn ${supplied ? 'ghost' : 'primary'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 받기 ]'}</button></div>
     <div class="store"><h4>조운의 창고 <small>은자로 삽니다</small></h4><div class="chips">${JOUN_SHOP.map(([id, pr]) => `<button class="chip" data-store="${id}" ${S.silver < pr ? 'disabled' : ''}>${ITEMS[id].icon} ${ITEMS[id].name} <b>${pr}냥</b></button>`).join('')}</div></div>`;
   const missions = `
@@ -1575,9 +1585,39 @@ function playFx(fx) {
     // 피해 숫자는 인장 쪽 위에 띄워 이름과 겹치지 않게 한다
     n.style[f.side === 'me' ? 'left' : 'right'] = (4 + Math.random() * 14) + 'px'; n.style.animationDelay = (i * 120) + 'ms';
     pl.appendChild(n); setTimeout(() => n.remove(), 1600 + i * 120);
-    if (f.k !== 'miss' && !reduce) { pl.classList.remove('hit'); void pl.offsetWidth; pl.classList.add('hit'); }
+    if (f.k === 'miss' || f.k === 'dodge' || reduce) return;
+    // 적중: 0.1초 섬광 / 치명·강타: 0.15초 잔떨림
+    setTimeout(() => {
+      if (!pl.isConnected) return;
+      pl.classList.remove('flash-hit'); void pl.offsetWidth; pl.classList.add('flash-hit');
+      if (f.big) { pl.classList.remove('shake'); void pl.offsetWidth; pl.classList.add('shake'); }
+    }, i * 120);
   });
 }
+
+/* 타자기 연출: 인물의 첫 대사와 기연 문구를 한 글자씩. 누르면 곧바로 전부 보인다 */
+const typedOnce = new Set(), typing = new Set();
+function typewriteAll() {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  for (const el of document.querySelectorAll('[data-tw]')) {
+    const full = el.textContent, key = el.dataset.tw + '|' + full;
+    const live = [...typing].find(j => j.key === key);
+    if (live) { live.el = el; el.textContent = full.slice(0, live.i); el.classList.add('typing'); continue; }   // 다시 그려져도 이어 친다
+    if (typedOnce.has(key)) continue;
+    typedOnce.add(key);
+    if (reduce || el.children.length || !full.trim()) continue;
+    el.textContent = ''; el.classList.add('typing');
+    const job = { el, full, key, i: 0, t0: performance.now() };
+    job.done = () => { clearInterval(job.t); typing.delete(job); job.el.textContent = full; job.el.classList.remove('typing'); };
+    job.t = setInterval(() => {
+      if (!job.el.isConnected) { clearInterval(job.t); typing.delete(job); return; }
+      job.i += 1; job.el.textContent = full.slice(0, job.i);
+      if (job.i >= full.length) job.done();
+    }, 28);
+    typing.add(job);
+  }
+}
+function skipTyping(at = Infinity) { for (const job of [...typing]) if (job.t0 < at) job.done(); }   // 이 클릭으로 막 시작된 연출은 남긴다
 
 /* 무장 · 행낭 */
 function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · '); }
@@ -1773,6 +1813,7 @@ function showIntro() {
 
 /* ───────── 이벤트 ───────── */
 function onClick(e) {
+  if (typing.size) skipTyping(e.timeStamp);       // 아무 곳이나 누르면 타자 연출을 건너뛴다
   const t = e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-fold]');
   if (!t || t.disabled) return;
   if (t.dataset.act === 'reset') return askReset();
