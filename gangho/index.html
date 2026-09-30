@@ -12,16 +12,19 @@
 <link rel="stylesheet" href="css/character.css">
 <link rel="stylesheet" href="css/effects.css">
 <link rel="stylesheet" href="css/art.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap">
 <link rel="stylesheet" href="css/polish.css">
 <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 <div class="app">
   <header class="top main-header">
-    <!-- 좌측: 캐릭터 정보(1행) · 활력/내력 게이지와 전투력·수련치·은자·공헌(2행) — renderHeader()가 채운다 -->
+    <!-- 위: 수묵 배너(제자 대 염화채주) 위에 제목 -->
+    <div class="header-hero" aria-hidden="true"><img class="hero-art" src="assets/art/banner.jpg" alt="" onerror="this.remove()"></div>
+    <div class="brand header-right header-banner"><span class="seal brand-symbol">江湖</span><div class="brand-text"><h1 class="brand-title">강호견문록</h1><small class="brand-sub">江湖見聞錄 · 제1장 청풍문 편</small></div></div>
+    <!-- 아래: 캐릭터 정보 · 활력 위 내력 아래 게이지 · 옆에 전투력·수련치·은자·공헌 — renderHeader()가 채운다 -->
     <div id="status" class="status header-left"></div>
-    <!-- 우측: 메인 타이틀 배너 -->
-    <div class="brand header-right header-banner"><span class="seal brand-symbol">江湖</span><div class="brand-text"><h1 class="brand-title">강호견문록</h1><small class="brand-sub">제1장 · 청풍문 편</small></div></div>
   </header>
   <nav id="tabs" class="tabs" aria-label="장소"></nav>
   <div class="body">

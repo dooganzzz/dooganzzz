@@ -214,10 +214,28 @@ function artAfterRender() {
   if (scr !== lastScreen) { if (lastScreen !== null && !reduceMotion()) replay(main, 'ink-in'); lastScreen = scr; }
   const fx = ui.fxOnce; ui.fxOnce = null;
   if (!fx || reduceMotion()) return;
-  if (fx === 'craft-ok' || fx === 'craft-fail') replay($('.furnace .pot'), fx === 'craft-ok' ? 'burst-ok' : 'burst-fail');
+  if (fx === 'craft-ok' || fx === 'craft-fail') { replay($('.furnace .pot'), fx === 'craft-ok' ? 'burst-ok' : 'burst-fail'); craftFx(fx === 'craft-ok'); }
   if (fx === 'gacha') replay($('.altar'), 'blessing');
 }
 document.addEventListener('animationend', e => { if (e.animationName === 'inkIn') e.target.classList.remove('ink-in'); });
+
+/* 화로 결과 연출: 단조 성공은 모루에서 불똥이 사방으로 튀고, 연단 성공은 단로 뚜껑에서 금빛 김이 솟는다.
+   실패는 검은 연기가 피어오르고 무대가 흔들린다 (2.6초 뒤 걷힘) */
+function craftFx(ok) {
+  const stage = $('.furnace-stage'); if (!stage) return;
+  const forge = stage.classList.contains('forge');
+  const n = ok ? (forge ? 28 : 16) : 9, rnd = (a, b) => a + Math.random() * (b - a);
+  const bits = Array.from({ length: n }, () => forge && ok
+    ? `<i style="--a:${rnd(-170, -10).toFixed(0)}deg;--d:${rnd(60, 190).toFixed(0)}px;--t:${rnd(.6, 1.2).toFixed(2)}s;--dl:${rnd(0, .25).toFixed(2)}s"></i>`
+    : `<i style="--dx:${rnd(-60, 60).toFixed(0)}px;--h:${rnd(90, 190).toFixed(0)}px;--t:${rnd(1.2, 2.1).toFixed(2)}s;--dl:${rnd(0, .5).toFixed(2)}s;--s:${rnd(.7, 1.5).toFixed(2)}"></i>`).join('');
+  const fx = document.createElement('div');
+  fx.className = `craft-fx ${forge ? 'forge' : 'alchemy'} ${ok ? 'ok' : 'fail'}`;
+  fx.setAttribute('aria-hidden', 'true');
+  fx.innerHTML = `<b class="fx-flash"></b>${bits}`;
+  stage.appendChild(fx);
+  if (!ok) replay(stage, 'fx-shake');
+  setTimeout(() => fx.remove(), 2600);
+}
 
 /* 화로 불길: 단조는 주황 쇠불, 연단은 푸른 단화(丹火) */
 function furnaceFire(craft) {

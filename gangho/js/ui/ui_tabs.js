@@ -68,21 +68,23 @@ const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S);
   $('#status').innerHTML = `
-    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `⛰️ ${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <strong class="highlight-timer">${countdownText()}</strong>` : '탐험지 미정'}</span></div>
+    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <strong class="highlight-timer">${countdownText()}</strong>` : '탐험지 미정'}</span></div>
     <div class="status-indicator-row">
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
       <div class="currency-chips user-status-bar">
-        <div class="status-chip combat combat-power" title="종합 전투력 ${fmt(cp)}"><span class="chip-badge badge-combat">전투력</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
-        <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 수련 · 상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
-        <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥"><span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
-        <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}"><span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
+        <div class="status-chip combat combat-power" title="종합 전투력 ${fmt(cp)}">${uiIco('h_cp')}<span class="chip-badge badge-combat">전투력</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
+        <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 수련 · 상태 › 무공에서 성급 올리기)">${uiIco('h_xp')}<span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
+        <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}<span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
+        <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}">${uiIco('h_contrib')}<span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
       </div>
     </div>`;
 }
-/* 헤더 게이지: [활력] 뱃지 + 막대(수치는 막대 안) */
+/* 수묵 아이콘 (assets/art/ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
+const uiIco = (id, cls = '') => `<i class="ui-ico ${cls}" style="background-image:url('assets/art/ui/${id}.png')" aria-hidden="true"></i>`;
+/* 헤더 게이지: [아이콘·활력] 뱃지 + 막대(수치는 막대 안). 활력 위 · 내력 아래로 쌓는다 */
 function gauge(cls, cur, max, name) {
   const p = max ? clamp(cur / max * 100, 0, 100) : 0;
-  return `<div class="stat-gauge ${cls}-gauge"><span class="gauge-badge">${name}</span><div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:${p}%"></div><span class="gauge-text">${fmt(cur)} / ${fmt(max)}</span></div></div>`;
+  return `<div class="stat-gauge ${cls}-gauge">${uiIco('h_' + cls)}<span class="gauge-badge">${name}</span><div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:${p}%"></div><span class="gauge-text">${fmt(cur)} / ${fmt(max)}</span></div></div>`;
 }
 
 function renderTabs() {

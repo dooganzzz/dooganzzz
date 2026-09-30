@@ -30,7 +30,7 @@ function viewFurnace() {
           <div class="btns plaque-btns"><button class="btn plaque primary" data-act="craft" ${flat.length ? '' : 'disabled'}>${ui.craft === 'forge' ? '불 지펴 두드리기' : '단로에 불 넣기'}</button><button class="btn plaque" data-act="clearpot" ${flat.length ? '' : 'disabled'}>비우기</button></div>
         </div>
         ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">📓 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
-        ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${res.text}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
+        ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${chronDecor(res.text)}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
       </div>
       <div class="mats">
         <h4>재료</h4>
