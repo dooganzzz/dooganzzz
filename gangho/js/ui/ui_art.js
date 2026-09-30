@@ -14,9 +14,13 @@ const ART_SRC = {
 };
 const brokenArt = new Set();
 function artFail(im) { brokenArt.add(im.getAttribute('src')); im.remove(); }
+/* 한 번 뜬 그림은 기억해 두고, 다시 그릴 때 곧바로 'loaded'로 내보낸다 (자리 그림 → 그림으로 깜빡이지 않게) */
+const artLoaded = new Set();
+function artLoad(im) { artLoaded.add(im.getAttribute('src')); if (im.parentNode) im.parentNode.classList.add('loaded'); }
 function artPic(src, svg, cls = '') {
-  const img = brokenArt.has(src) ? '' : `<img src="${src}" alt="" loading="lazy" onload="this.parentNode.classList.add('loaded')" onerror="artFail(this)">`;
-  return `<span class="art-frame ${cls}" aria-hidden="true">${svg}${img}</span>`;
+  const done = artLoaded.has(src);
+  const img = brokenArt.has(src) ? '' : `<img src="${src}" alt="" ${done ? 'decoding="sync"' : 'loading="lazy"'} onload="artLoad(this)" onerror="artFail(this)">`;
+  return `<span class="art-frame ${cls}${done ? ' loaded' : ''}" aria-hidden="true">${svg}${img}</span>`;
 }
 
 /* ───────── 사냥터 풍경 (400×140, 먹빛 수묵) ───────── */
@@ -211,13 +215,14 @@ function artAfterRender() {
   document.documentElement.classList.toggle('calm', calmOn());
   const cb = $('[data-act="calm"]'); if (cb) cb.textContent = `움직임 줄이기: ${calmOn() ? '켬' : '끔'}`;
   const scr = screen(), main = $('#main');
-  if (scr !== lastScreen) { if (lastScreen !== null && !reduceMotion()) replay(main, 'ink-in'); lastScreen = scr; }
+  if (scr !== lastScreen) { lastScreen = scr; if (main) main.scrollTop = 0; }   // 화면 전환은 번짐 연출 없이 곧바로 (서서히 나타나기는 게임 시작 때 한 번뿐)
   const fx = ui.fxOnce; ui.fxOnce = null;
   if (!fx || reduceMotion()) return;
   if (fx === 'craft-ok' || fx === 'craft-fail') { replay($('.furnace .pot'), fx === 'craft-ok' ? 'burst-ok' : 'burst-fail'); craftFx(fx === 'craft-ok'); }
   if (fx === 'gacha') replay($('.altar'), 'blessing');
 }
-document.addEventListener('animationend', e => { if (e.animationName === 'inkIn') e.target.classList.remove('ink-in'); });
+/* 시작 연출(app-reveal)은 본문이 다 나타나면 떼어 낸다: 다시 그려도 되풀이되지 않게 */
+document.addEventListener('animationend', e => { if (e.animationName === 'inkReveal' && e.target.classList && e.target.classList.contains('main')) { const app = e.target.closest('.app'); if (app) app.classList.remove('app-reveal'); } });
 
 /* 화로 결과 연출: 단조 성공은 모루에서 불똥이 사방으로 튀고, 연단 성공은 단로 뚜껑에서 금빛 김이 솟는다.
    실패는 검은 연기가 피어오르고 무대가 흔들린다 (2.6초 뒤 걷힘) */

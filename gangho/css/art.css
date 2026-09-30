@@ -482,3 +482,9 @@
 .loot-grid li:nth-child(2) { animation-delay: .06s; } .loot-grid li:nth-child(3) { animation-delay: .12s; } .loot-grid li:nth-child(4) { animation-delay: .18s; } .loot-grid li:nth-child(n+5) { animation-delay: .24s; }
 .loot-grid li b { flex: 1; font-size: 13px; } .loot-grid li span { font-variant-numeric: tabular-nums; }
 @keyframes lootIn { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+
+/* 창 열림: 짧게 떠오르기 (깜빡임 없이) */
+.modal:not([hidden]) > .sheet { animation: sheetIn .2s ease-out; }
+@keyframes sheetIn { from { opacity: 0; transform: translateY(6px) scale(.985); } to { opacity: 1; transform: none; } }
+/* 탭 버튼 · 하위 탭 전환은 색만 부드럽게 */
+.tab, .subtab { transition: color .15s, background-color .15s, border-color .15s; }

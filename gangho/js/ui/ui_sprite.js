@@ -8,6 +8,30 @@ const SPRITE_SRC = {
   foe: (e, atk) => `assets/art/sprites/foe_${e}${atk ? '_atk' : ''}.${e === 'viper' ? 'png' : 'webp'}`,
   fx: n => `assets/art/fx/${n}.webp`,
 };
+/* 그림 미리 풀기: 한 번 푼 그림은 기억해 두어 다음엔 곧바로 (Image 객체를 붙들어 브라우저가 풀어 둔 그림을 버리지 않게) */
+const IMG_CACHE = new Map();
+function preloadImgs(urls) {
+  return Promise.all(urls.map(u => {
+    if (IMG_CACHE.has(u)) return IMG_CACHE.get(u).p;
+    const im = new Image(); im.decoding = 'async'; im.src = u;
+    const e = { im, ok: false }; e.p = (im.decode ? im.decode() : new Promise(r => { im.onload = im.onerror = r; })).then(() => { e.ok = true; }, () => { e.ok = true; });
+    IMG_CACHE.set(u, e); return e.p;
+  }));
+}
+const imgsReady = urls => urls.every(u => IMG_CACHE.has(u) && IMG_CACHE.get(u).ok);
+function spriteUrls(zid, eid) { return [SPRITE_SRC.stage(zid), SPRITE_SRC.hero(weaponType()), SPRITE_SRC.foe(eid), SPRITE_SRC.foe(eid, 1), ART_SRC.beast(eid), 'assets/portraits/hero.png']; }
+/* 쉬는 틈에 지금 탐험지의 무대 · 요수 · 제자 · 산길 그림을 미리 풀어 둔다 */
+function prewarmSprites() {
+  if (typeof S === 'undefined' || !S || !S.expedition) return;
+  const z = S.expedition.zone || 'cheongpung', Z = ZONES[z];
+  const urls = [SPRITE_SRC.stage(z), SPRITE_SRC.hero(weaponType()), `assets/art/travel/${z}.jpg`, 'assets/portraits/hero.png', SPRITE_SRC.fx('hit'), SPRITE_SRC.fx('crit')];
+  for (const e of [...Z.enemies, Z.boss].filter(Boolean)) urls.push(SPRITE_SRC.foe(e), SPRITE_SRC.foe(e, 1));
+  const id = S.active.mugong; if (id && MANUALS[id].weapon) urls.push(SPRITE_SRC.fx(id + '_1'), SPRITE_SRC.fx(id + '_2'));
+  preloadImgs(urls);
+}
+setTimeout(() => (window.requestIdleCallback || setTimeout)(prewarmSprites), 2500);
+setInterval(() => (window.requestIdleCallback || setTimeout)(prewarmSprites), 60000);
+
 /* 요수 숨쉬기 칸 수 (흑비단독사는 똬리를 늘였다 줄이는 8칸, 나머지는 6칸) */
 const FOE_SHEET = { viper: 8 };
 /* 무대 위 요수 크기 (기본 1 = 무대 폭 18%): 작은 짐승은 작게, 두목은 크게 */

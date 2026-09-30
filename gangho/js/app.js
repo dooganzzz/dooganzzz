@@ -34,7 +34,11 @@ function newState(name, mugongId, opts = {}) {
   return st;
 }
 
+/* 자주 바뀌는 화면에서는 저장을 모아서 (0.6초 뒤 한 번) */
+let saveT = null;
+function saveSoon() { clearTimeout(saveT); saveT = setTimeout(save, 600); }
 function save() {
+  clearTimeout(saveT);
   if (!S) return;
   S.lastTick = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가 환경 */ }

@@ -4,10 +4,55 @@
 let ui = { fold: { hq: true, missions: true, library: true },   // 아코디언은 모두 접힌 채로 시작 (true = 접힘)
   tab: 'sect', sectSub: 'hall', pot: {}, craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null, libTab: 'equipment', skillTab: 'attack' };
 
-/* 시스템 신호 → 화면 */
-Bus.on('refresh', () => render());
+/* 시스템 신호 → 화면. 한 동작에서 신호가 여러 번 와도 한 번만 다시 그린다 (그리기 전에 모아 처리) */
+let renderQueued = false;
+Bus.on('refresh', () => { if (renderQueued) return; renderQueued = true; queueMicrotask(() => { renderQueued = false; render(); }); });
 Bus.on('view', patch => Object.assign(ui, patch));
 Bus.on('tick', () => renderHeader());
+
+/* ───────── 바뀐 곳만 고쳐 그리기 (morph) ─────────
+   innerHTML로 통째로 갈아 끼우면 그림이 다시 뜨고(깜빡임) 애니메이션·스크롤이 처음으로 돌아간다.
+   새 HTML을 한 번 해석해 지금 DOM과 견주고, 달라진 속성·글자·노드만 바꾼다. id나 data-key가 같은 노드는 자리를 옮겨 재사용한다 */
+const MORPH_KEEP = new Set(['data-wired']);            // 그린 뒤 스크립트가 붙이는 속성은 지우지 않는다
+const morphKey = n => n.nodeType === 1 ? (n.id || n.getAttribute('data-key') || null) : null;
+function morphAttrs(a, b) {
+  for (const { name } of [...a.attributes]) if (!b.hasAttribute(name) && !MORPH_KEEP.has(name) && !(name === 'open' && a.tagName === 'DETAILS')) a.removeAttribute(name);
+  for (const { name, value } of b.attributes) if (a.getAttribute(name) !== value) a.setAttribute(name, value);
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && document.activeElement !== a) {
+    if (a.type === 'checkbox' || a.type === 'radio') a.checked = b.checked; else if (a.value !== b.value) a.value = b.value;
+  }
+}
+function morphNode(a, b) {
+  if (a.nodeType !== b.nodeType || a.nodeName !== b.nodeName) { a.replaceWith(b); return; }
+  if (a.nodeType !== 1) { if (a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; return; }
+  if (a.isEqualNode(b)) return;
+  morphAttrs(a, b);
+  if (a.tagName !== 'TEXTAREA') morphChildren(a, b);
+}
+function morphChildren(a, b) {
+  const keyed = new Map();
+  for (const c of a.childNodes) { const k = morphKey(c); if (k) keyed.set(k, c); }
+  let cur = a.firstChild;
+  for (const nc of [...b.childNodes]) {
+    const k = morphKey(nc);
+    if (k && keyed.has(k)) {
+      const old = keyed.get(k); keyed.delete(k);
+      if (old === cur) cur = cur.nextSibling; else a.insertBefore(old, cur);
+      morphNode(old, nc); continue;
+    }
+    if (cur && !morphKey(cur)) { const next = cur.nextSibling; morphNode(cur, nc); cur = next; continue; }
+    a.insertBefore(nc, cur);
+  }
+  while (cur) { const next = cur.nextSibling; cur.remove(); cur = next; }
+}
+const morphTpl = document.createElement('template');
+function setHTML(el, html) {
+  if (!el) return;
+  if (!el.firstChild) { el.innerHTML = html; return; }
+  morphTpl.innerHTML = html;
+  morphChildren(el, morphTpl.content);
+  morphTpl.innerHTML = '';
+}
 
 /* DOM 선택 도우미 */
 const $ = sel => document.querySelector(sel);
@@ -67,7 +112,7 @@ const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
   return a >= 1e8 ? `${+(n / 1e8).toFixed(1)}억` : a >= 1e5 ? `${+(n / 1e4).toFixed(1)}만` : fmt(n); };
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S);
-  $('#status').innerHTML = `
+  setHTML($('#status'), `
     <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <strong class="highlight-timer">${countdownText()}</strong>` : '탐험지 미정'}</span></div>
     <div class="status-indicator-row">
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
@@ -77,7 +122,7 @@ function renderHeader() {
         <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}<span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
         <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}">${uiIco('h_contrib')}<span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
       </div>
-    </div>`;
+    </div>`);
 }
 /* 수묵 아이콘 (assets/art/ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
 const uiIco = (id, cls = '') => `<i class="ui-ico ${cls}" style="background-image:url('assets/art/ui/${id}.png')" aria-hidden="true"></i>`;
@@ -88,7 +133,7 @@ function gauge(cls, cur, max, name) {
 }
 
 function renderTabs() {
-  $('#tabs').innerHTML = TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}</button>`).join('');
+  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}</button>`).join(''));
 }
 
 /* 접기/펼치기 구역: 헤더를 누르면 본문에 .collapsed가 토글된다 (다시 그리지 않아 전환이 부드럽다) */
@@ -113,10 +158,10 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]();
+  setHTML(main, bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]());
   renderModal();
   typewriteAll();
   wireImages();
   artAfterRender();
-  save();
+  saveSoon();
 }

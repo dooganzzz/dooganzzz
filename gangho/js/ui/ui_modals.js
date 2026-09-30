@@ -131,42 +131,42 @@ function renderModal() {
   const m = $('#modal');
   if (!ui.modal) { if (!m.dataset.intro) m.hidden = true; return; }
   m.hidden = false;
-  if (ui.modal.startsWith('manual:')) m.innerHTML = S.active[ui.modal.slice(7)] ? manualModal(ui.modal.slice(7)) : (ui.modal = null, '');
-  if (ui.modal && ui.modal.startsWith('mart:')) m.innerHTML = martialModal(ui.modal.slice(5));
+  if (ui.modal.startsWith('manual:')) setHTML(m, S.active[ui.modal.slice(7)] ? manualModal(ui.modal.slice(7)) : (ui.modal = null, ''));
+  if (ui.modal && ui.modal.startsWith('mart:')) setHTML(m, martialModal(ui.modal.slice(5)));
   if (!ui.modal) { m.hidden = true; return; }
-  if (ui.modal === 'confirm') m.innerHTML = confirmModal();
-  if (ui.modal.startsWith('equip:')) m.innerHTML = equipModal(ui.modal.slice(6));
-  if (ui.modal.startsWith('artslot:')) m.innerHTML = artSlotModal(ui.modal.slice(8));
-  if (ui.modal.startsWith('recipe:')) m.innerHTML = recipeModal(ui.modal.slice(7));
-  if (ui.modal.startsWith('settle:')) { const h = settleModal(ui.modal.slice(7).split(',').map(Number)); if (!h) { ui.modal = null; m.hidden = true; return; } m.innerHTML = h; }
-  if (ui.modal === 'loot') { const h = lootModal(); if (!h) { ui.modal = null; m.hidden = true; return; } m.innerHTML = h; }
+  if (ui.modal === 'confirm') setHTML(m, confirmModal());
+  if (ui.modal.startsWith('equip:')) setHTML(m, equipModal(ui.modal.slice(6)));
+  if (ui.modal.startsWith('artslot:')) setHTML(m, artSlotModal(ui.modal.slice(8)));
+  if (ui.modal.startsWith('recipe:')) setHTML(m, recipeModal(ui.modal.slice(7)));
+  if (ui.modal.startsWith('settle:')) { const h = settleModal(ui.modal.slice(7).split(',').map(Number)); if (!h) { ui.modal = null; m.hidden = true; return; } setHTML(m, h); }
+  if (ui.modal === 'loot') { const h = lootModal(); if (!h) { ui.modal = null; m.hidden = true; return; } setHTML(m, h); }
   if (ui.modal.startsWith('replay:')) {
     const key = ui.modal.slice(7), box = $('#rpBox');
     if (!box || box.dataset.key !== key) {                   // 다른 이유로 다시 그려져도 재생 중인 관찰 창은 그대로 둔다
       const h = replayModal(key); if (!h) { ui.modal = null; m.hidden = true; return; }
-      m.innerHTML = h;
+      m.innerHTML = h;                                         // 관찰 창은 늘 새로 (무대·재생 상태를 처음부터)
       if (RP.playing) RP.timer = setTimeout(replayStep, 500);
     }
   }
   if (ui.modal === 'npc' && ui.npcTalk) {
     const W = { master: ['노벽송', '장문인', '松'], joun: ['조운', '대사형', '雲'], arin: ['아린', '사매', '璘'] }[ui.npcTalk.who] || ['', '', ''];
     const line = l => { const said = l.text.startsWith(W[0] + ':'); return `<p class="npc-line ${said ? 'said' : 'narr'} ${l.cls || ''}">${chronDecor(said ? l.text.slice(W[0].length + 1).trim() : l.text)}</p>`; };
-    m.innerHTML = `<div class="sheet npc-sheet" role="dialog" aria-modal="true" aria-label="${W[0]}와의 대화">
+    setHTML(m, `<div class="sheet npc-sheet" role="dialog" aria-modal="true" aria-label="${W[0]}와의 대화">
       <div class="npc-sheet-head">${portrait(ui.npcTalk.who, W[2], W[0])}<div><p class="eyebrow">對話 · 대화</p><h2>${label(W[0], W[1])}</h2></div></div>
       <div class="npc-lines">${ui.npcTalk.lines.map(line).join('')}</div>
       <div class="btns">${ui.npcTalk.offer
         ? `<button class="btn primary" data-act="arineat">죽 마시기 <small>(${arinFree() ? '오늘 첫 그릇 무료' : `은자 ${ARIN_CARE}냥`})</small></button><button class="btn ghost" data-act="arinno">거절한다</button>`
-        : '<button class="btn primary" data-act="closemodal">알겠습니다</button>'}</div></div>`;
+        : '<button class="btn primary" data-act="closemodal">알겠습니다</button>'}</div></div>`);
   }
   if (ui.modal === 'awaken' && ui.awaken) { const a = ui.awaken;
-    m.innerHTML = `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>
+    setHTML(m, `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>
       <div class="shrine-stage">${shrineArt(true)}</div>
       <p class="story">탁기 ${GACHA.awaken}개를 모두 삼킨 무신이 제자에게 권능의 한 조각을 내려 줍니다.</p>
       <ul class="awaken-list"><li>영구 능력치 <b>${a.statName} +${a.statVal}</b> · <b>최대 활력 +${a.hp}</b></li><li>하사품 <b class="r1">《${esc(a.item.name)}》</b>${a.item.grade ? ` <span class="pill grade-2">${a.item.grade}</span>` : ''}</li></ul>
-      <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`; }
-  if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 산토끼를 쫓던 손이 이제 수룡방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
+      <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`); }
+  if (ui.modal === 'ending') setHTML(m, `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 산토끼를 쫓던 손이 이제 수룡방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`);
   wireImages();
-  if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>${RESET_MSG}</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;
+  if (ui.modal === 'reset') setHTML(m, `<div class="sheet"><h2>처음부터 다시</h2><p>${RESET_MSG}</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`);
 }
 
 /* 처음부터 다시: 브라우저 확인창을 먼저 쓰고, 확인창이 막힌 환경(즉시 false 반환)에서는 화면 안 확인창으로 대신한다.

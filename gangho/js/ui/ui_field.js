@@ -4,7 +4,7 @@
 Bus.on('tick', () => {
   for (const el of document.querySelectorAll('[data-countdown]')) el.textContent = countdownText();
   const sig = liveSig(); if (sig === lastLiveSig) return; lastLiveSig = sig;   // 새 걸음이 드러났을 때만
-  const box = $('#liveSide'); if (box) box.innerHTML = liveSide();
+  const box = $('#liveSide'); if (box) setHTML(box, liveSide());
   const sc = $('#liveScene'); if (sc) sc.className = `live-scene ${liveDone(liveRec()) ? 'rest' : ''}`;
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
 });
@@ -207,8 +207,11 @@ function openReplay(key) {
   replayStop();
   if (key !== 'sim') { const d = replayData(key); markSeen(d.rec, d.rec.battles.indexOf(d.b)); }   // 결과보기: 이제 결과가 적힌다
   Object.assign(RP, { key, i: -1, speed: RP.speed || 1, playing: true });
-  ui.modal = 'replay:' + key; renderModal();
-  if ($('#spStage')) spBreathLoop();
+  const show = () => { if (RP.key !== key) return; ui.modal = 'replay:' + key; renderModal(); if ($('#spStage')) spBreathLoop(); };
+  // 무대 그림(배경 · 제자 · 요수)을 먼저 풀어 두고 연다: 창이 뜬 뒤 그림이 하나씩 튀어나오지 않게 (늦어도 0.7초 안에 연다)
+  const d = replayData(key), zid = d.rec ? d.rec.zone : zoneOfEnemy(d.b.eid);
+  const urls = spriteOn(zid, d.b.eid) ? spriteUrls(zid, d.b.eid) : [];
+  if (imgsReady(urls)) show(); else Promise.race([preloadImgs(urls), new Promise(r => setTimeout(r, 700))]).then(show);
 }
 function replayStop() { clearTimeout(RP.timer); RP.timer = null; }
 /* 관찰 창 기록 한 줄: 누가 한 행동인지(제자 얼굴 · 요수 그림)와 결과(적중·빗나감·회피·치명·피해·상성·연격·중독·출혈)를 수묵 아이콘으로 */
