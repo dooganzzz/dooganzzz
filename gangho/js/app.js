@@ -1,4 +1,4 @@
-/* 강호견문록 — 초기화(Init)와 전역 상태(State): 새 게임, 저장/불러오기, 저장 이전(migration), 시간 흐름 */
+/* 강호견문록 — 초기화(Init)와 전역 상태(State): 새 게임, 저장/불러오기, 저장 이전(migration), 시간 흐름(한 시간 탐험 결산) */
 
 const SAVE_KEY = 'ganghoKyeonmunrok_v2';
 
@@ -6,13 +6,15 @@ const SAVE_KEY = 'ganghoKyeonmunrok_v2';
    S: 저장되는 게임 상태 (localStorage). 화면 상태(탭·창·선택)는 ui/ui_tabs.js의 ui에 있다. */
 let S = null;
 
-/* 저장하지 않는 진행 상태: 진행 중인 전투와 3초 전투 타이머 */
-const RT = { battle: null, btimer: null };
+/* 저장하지 않는 진행 상태: 계산 중인 전투, 탐험 한 걸음의 상세 기록(journal)을 모으는 통 */
+const RT = { battle: null, journal: null };
+const LOG_MAX = 400;
 
 function newState(name, mugongId) {
   const st = {
-    v: 7, name, created: now(), lastTick: now(),
-    hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, activeTrainingSkillId: null,
+    v: 8, name, created: now(), lastTick: now(),
+    hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, exp: 0,
+    expedition: { zone: null, nextAt: null }, expeditions: [],
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
     inv: { potionHp: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
@@ -20,7 +22,6 @@ function newState(name, mugongId) {
     perm: { maxHp: 0, maxMp: 0 },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 }, cook: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
-    zone: null, seen: {},
     buffs: [], missions: [], arin: {}, supplyDay: '', restCd: 0, uid: 1,
     kills: 0, log: [],
   };
@@ -39,11 +40,13 @@ function load() {
   return null;
 }
 
-/* 견문록 기록은 상태에 남기고, 화면에는 신호로 알린다 */
-function log(text, cls = '') {
-  const entry = { t: now(), text, cls };
+/* 견문록 기록은 상태에 남기고, 화면에는 신호로 알린다.
+   탐험을 계산하는 동안(RT.journal)에는 견문록 대신 그 걸음의 상세 기록으로 모은다. t: 기록 시각(탐험 시각) */
+function log(text, cls = '', t = now()) {
+  if (RT.journal) { RT.journal.push({ text, cls }); return; }
+  const entry = { t, text, cls };
   S.log.push(entry);
-  if (S.log.length > 120) S.log.splice(0, S.log.length - 120);
+  if (S.log.length > LOG_MAX) S.log.splice(0, S.log.length - LOG_MAX);
   Bus.emit('log', entry);
 }
 
@@ -55,48 +58,47 @@ function startNewGame(name, mugongId) {
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
   ensureMissions();
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·포철삭·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
-  log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 수련해라."', 'npc');
+  log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 강호에 나가 부딪혀라."', 'npc');
   log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
   log('아린: "새 사형이다! 비급부터 익혀요. 상태 탭의 무공에 있어요!"', 'npc');
 }
 
-/* 예전 저장을 지금 규칙에 맞게 옮긴다. 비율을 유지해 진행도를 잃지 않는다.
-   tryStar가 전역 S를 보므로 S에 담은 뒤 부른다. */
+/* 예전 저장을 지금 규칙에 맞게 옮긴다.
+   v8: 지도·연무장·비급별 수련/실전 경험치가 사라졌다. 쌓아 둔 진행 비율만큼 경험치 주머니(S.exp)로 돌려준다. */
 function migrate(st) {
   if (!st) return null;
-  if ((st.v || 0) < 3) {
-    st.activeTrainingSkillId = null; delete st.training; delete st.gatherCd; delete st.opened; delete st.cleared;
-    st.v = 3;
-  }
-  if ((st.v || 0) < 5) st.v = 5;
-  if (st.v < 6) {
-    // 수련 경험치 눈금이 '초'로 바뀌었으므로 진행 비율을 유지한 채 환산한다
-    const oldNeed = n => Math.round(40 * Math.pow(1.28, n - 1));
-    for (const m of Object.values(st.manuals)) if (m.star < MAX_STAR) m.txp = m.txp / oldNeed(m.star) * need(m.star);
-    st.v = 6;
-  }
-  if (st.v < 7) {
-    // 경계가 3개(3·7·11성)에서 2개(5·11성)로, 수련·실전 눈금도 바뀌었으므로 진행 비율을 유지해 환산한다
-    const oldT = n => Math.round((n <= 3 ? 4 / 3 : n <= 7 ? 2 : 6) * 3600), oldC = n => n <= 3 ? 10 : n <= 7 ? 20 : 40;
-    for (const m of Object.values(st.manuals)) {
-      if (m.star >= MAX_STAR) continue;
-      m.txp = m.txp / oldT(m.star) * need(m.star); m.cxp = m.cxp / oldC(m.star) * needC(m.star);
-      m.gate = false;
+  if ((st.v || 0) < 8) {
+    let exp = 0;
+    for (const [id, m] of Object.entries(st.manuals || {})) {
+      if (m.star < MAX_STAR) {
+        const T = (m.star <= 5 ? 8 : 16) * 3600, C = m.star <= 5 ? 10 : 20;
+        const frac = m.gate ? 1 : clamp(((m.txp || 0) / T + (m.cxp || 0) / C) / 2, 0, 1);
+        exp += Math.round(frac * STAR_EXP[m.star - 1] * GRADES[MANUALS[id].grade].mult);
+      }
+      delete m.txp; delete m.cxp; delete m.gate;
     }
-    for (const id of Object.keys(st.manuals)) tryStar(id);
-    if (st.zone) st.zone = null;
-    st.v = 7;
+    st.exp = (st.exp || 0) + exp;
+    for (const k of ['zone', 'seen', 'activeTrainingSkillId', 'training', 'gatherCd', 'opened', 'cleared']) delete st[k];
+    st.expedition = { zone: null, nextAt: null }; st.expeditions = [];
+    st.buffs = [];                                          // 시간제 음식 효과는 '다음 탐험' 효과로 바뀌었다
+    st.v = 8;
+    st.migratedExp = exp;
   }
-  if (st.zone && (!st.zone.layout || !st.zone.start || st.zone.layout.length !== MAP_H)) st.zone = null;
   return st;
 }
 
-/* 시간 흐름: 1초마다 수련을 쌓고, 화면에는 신호만 보낸다 */
+/* 시간 흐름: 1초마다 기력이 조금씩 차오르고(한 시간이면 가득), 탐험 시각이 되면 결산한다 */
 let lastFrame = now();
 function tick() {
   if (!S) return;
-  const t = now(), dt = (t - lastFrame) / 1000; lastFrame = t;
-  advance(Math.min(dt, 5), false);
+  const t = now(), dt = Math.min(5, (t - lastFrame) / 1000); lastFrame = t;
+  const maxSta = calcStats().maxSta;
+  if (S.stamina < maxSta) S.stamina = Math.min(maxSta, S.stamina + maxSta * dt / 3600);
+  const recs = settleExpeditions(t);
+  if (recs.length) {
+    const r = recs[recs.length - 1];
+    notify.toast(`⛰️ 탐험에서 돌아왔습니다 — ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver >= 0 ? '+' : ''}${r.gain.silver}${r.end === 'defeat' ? ' · 쓰러져 귀환' : ''}`);
+  }
   Bus.emit('tick');
 }
 
@@ -111,7 +113,7 @@ function doReset() {
 Bus.on('save', save);
 
 /* 전투력은 늘 계산해서 쓰고, 저장 상태에는 거울 값으로만 둔다. 능력치·장비·무공이 바뀌는 모든 조작은
-   refresh 신호를 보내고, 시간 흐름(수련 돌파·버프 만료)은 틱마다 오므로 이 두 곳에서 맞추면 빠짐이 없다. */
+   refresh 신호를 보내고, 탐험 결산도 refresh를 보낸다. 틱에서도 한 번 더 맞춘다. */
 function syncCombatPower() { if (S) S.combatPower = calculateCombatPower(S); }
 Bus.on('refresh', syncCombatPower);
 Bus.on('tick', syncCombatPower);
@@ -123,12 +125,14 @@ function boot() {
   S = migrate(S);
   if (!S) showIntro();
   else {
-    const away = Math.min(OFFLINE_CAP, (now() - S.lastTick) / 1000);
-    if (away > 30 && S.activeTrainingSkillId) {
-      advance(away, true);
-      log(`자리를 비운 ${Math.floor(away / 60)}분 동안 폐관수련이 이어졌습니다.`, 'gold');
+    if (S.migratedExp !== undefined) {
+      log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 한 시간마다 강호로 나가 경험을 쌓습니다. 그동안의 수련은 경험치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
+      delete S.migratedExp;
     }
     ensureMissions();
+    // 자리를 비운 동안의 탐험을 한꺼번에 결산하고 (최대 8번) 결산 창을 띄운다
+    const recs = settleExpeditions();
+    if (recs.length) notify.view({ modal: 'settle:' + recs.map(r => r.id).join(',') });
     notify.refresh();
   }
   syncSide();

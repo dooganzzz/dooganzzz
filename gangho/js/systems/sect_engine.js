@@ -16,7 +16,7 @@ function progressMission(target) { for (const m of S.missions) if (m.type === 'k
 function missionReady(m) { return m.type === 'kill' ? m.prog >= m.n : has(m.target, m.n); }
 
 function completeMission(i) {
-  const m = S.missions[i]; if (!m || !missionReady(m) || S.zone) return;
+  const m = S.missions[i]; if (!m || !missionReady(m)) return;
   if (m.type === 'deliver') take(m.target, m.n);
   S.contrib += m.contrib; S.silver += m.silver;
   log(`문파 임무 완료! ${hlContrib('+' + m.contrib)}, ${hlSilver(m.silver)}`, 'good');
@@ -54,7 +54,6 @@ function addHint(r) {
 function arinTalk() { log(`아린: "${pick(ARIN_TALK)}"`, 'npc'); }
 
 function rest() {
-  if (S.zone) return;
   const st = calcStats();
   S.hp = st.maxHp; S.mp = st.maxMp;
   if (S.restCd <= now()) {
@@ -72,9 +71,11 @@ function jounGuide() {
   const tips = [
     [books, `비급이 ${books}권 있구나. 상태 탭의 무공에서 [ 익히기 ] 해라. 읽기만 해선 소용없다.`],
     [emptySlot, '익힌 무공은 상태 › 무공에서 장착해야 몸에 붙는다. 빈 자리가 있다.'],
-    [!S.activeTrainingSkillId, '연무장에 향이 꺼져 있더라. 자리 비울 때도 폐관수련은 걸어 두고 가라.'],
+    [!(S.expedition && S.expedition.zone), '아직 탐험지를 안 정했구나. 강호행에서 갈 곳을 정해 두면 한 시간마다 알아서 다녀온다.'],
+    [Object.keys(S.manuals).some(id => !starUpBlock(id)), '경험치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
+    [!has('potionHp', 3), '금창약이 떨어져 간다. 탐험 중에 위급하면 그걸 먹으니, 전방에서 넉넉히 사 둬라.'],
     [ready, `문파 임무 ${ready}건은 바로 완료할 수 있다. 정청 문파 임무에서 공헌도를 받아 가라.`],
-    [S.stamina < 20, '기력이 바닥이구나. 뒷마당 평상에서 쉬든지, 뭘 좀 먹어라.'],
+    [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].end === 'defeat', '지난 탐험에서 쓰러졌다지? 탐험지를 낮추든지, 무공과 장비를 더 올려라.'],
     [S.gear.length >= 3, '행낭에 안 쓰는 장비가 쌓였다. 청풍전방 왕 가에게 가면 은자로 바꿔 준다.'],
     [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],
   ];
@@ -83,7 +84,7 @@ function jounGuide() {
   notify.refresh();
 }
 function masterHint() {
-  const gated = Object.entries(S.manuals).find(([, m]) => m.gate && !has(GATES[m.star]));
+  const gated = Object.entries(S.manuals).find(([, m]) => GATES[m.star] && !has(GATES[m.star]));   // 돌파단이 필요한 성에 이르렀는데 없을 때
   const pill = gated ? GATES[gated[1].star] : QUESTS[questIndex()] && QUESTS[questIndex()][0].includes('소성 돌파단') ? 'pillLow' : null;
   const r = pill && RECIPES.find(x => x.out === pill);
   if (r && !S.codex.includes(r.id)) { addHint(r); notify.refresh(); return; }
@@ -132,14 +133,15 @@ function doHasan() {
 /* ───────── 순차 가이드 ───────── */
 const QUESTS = [
   ['비급 익히고 무공 장착하기', () => CAT_ORDER.every(c => S.active[c]), '상태 탭의 무공에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.'],
+  ['강호행에서 탐험지 정하기', () => !!(S.expedition && S.expedition.zone), '강호행 탭에서 청풍산을 탐험지로 정하십시오. 제자가 곧바로 첫 탐험을 떠나고, 그 뒤로는 한 시간마다 스스로 나갑니다.'],
+  ['경험치로 무공 성급 올리기', () => Object.values(S.manuals).some(m => m.star >= 2), '탐험에서 모은 경험치로 상태 › 무공에서 [ 성급 올리기 ]를 누르십시오.'],
   ['조운 대사형에게 오늘의 보급품 받기', () => !!S.flags.supplied, '정청의 조운에게 보급품을 받으십시오.'],
-  ['청풍산에서 첫 사냥', () => S.kills > 0, '강호행에서 청풍산으로 가, 🐾 요수(妖獸) 칸을 밟으면 싸움이 시작됩니다.'],
   ['화로에서 소성 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 6, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],
-  ['청풍산 두목 외눈 멧돼지왕 토벌', () => !!S.flags.boss1, '청풍산 가장 깊은 곳, 👹 표시가 두목의 거처입니다.'],
-  ['염화채 채주 적염도 토벌', () => !!S.flags.boss2, '화적패의 소굴 가장 깊은 곳에 채주가 있습니다.'],
-  ['무공 6성 — 소성(小成) 돌파', () => bestMugongStar() >= 6, '5성을 가득 채운 뒤 소성 돌파단을 복용하십시오.'],
-  ['적룡방 방주 갈천 토벌', () => !!S.flags.boss3, '적룡방 가장 깊은 곳에 방주의 거처가 있습니다.'],
-  ['무공 12성 — 대성(大成) 돌파', () => bestMugongStar() >= 12, '11성을 채운 뒤 대성 돌파단을 복용하십시오.'],
+  ['청풍산 두목 외눈 멧돼지왕 토벌', () => !!S.flags.boss1, '탐험 후반에 두목과 마주칩니다. 기척이 너무 무거우면 제자가 알아서 피하니, 더 강해진 뒤 다시 보내십시오.'],
+  ['염화채 채주 적염도 토벌', () => !!S.flags.boss2, '탐험지를 염화채로 바꾸십시오. 화적패의 소굴 깊은 곳에 채주가 있습니다.'],
+  ['무공 6성 — 소성(小成) 돌파', () => bestMugongStar() >= 6, '5성 무공을 경험치와 소성 돌파단으로 올리십시오.'],
+  ['적룡방 방주 갈천 토벌', () => !!S.flags.boss3, '탐험지를 적룡방으로 바꾸십시오.'],
+  ['무공 12성 — 대성(大成) 돌파', () => bestMugongStar() >= 12, '11성 무공을 경험치와 대성 돌파단으로 올리십시오.'],
   ['장문인에게 하산령 받기', () => !!S.flags.hasan, '장문인을 찾아가십시오.'],
 ];
 

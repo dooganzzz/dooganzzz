@@ -40,17 +40,10 @@ module.exports = async (b) => {
     await p.click('[data-sub="gear"]');
     ok('2 무장으로 전환', await p.evaluate(() => !!document.querySelector('.paperdoll') && ui.statusSub === 'gear'));
 
-    // 연무장 빈 슬롯 버튼 → 상태 › 무공
-    await p.evaluate(() => { for (const c of CAT_ORDER) if (S.active[c]) unequipManual(c); ui.tab = 'sect'; ui.sectSub = 'yeonmu'; render(); });
-    await p.click('.empty-art [data-tab="status"]');
-    ok('2 연무장 "상태 › 무공에서 장착" → 무공 하위 탭', await p.evaluate(() => ui.tab === 'status' && document.querySelector('.subtab.on .ko').textContent === '무공'));
-    await p.evaluate(() => { toggleTraining('mugong'); });
-    ok('3 미장착 수련 안내도 상태 탭 기준', await p.evaluate(() => [...document.querySelectorAll('.toast')].some(t => t.textContent.includes('상태 탭의 무공'))));
-
-    // 전투 중에는 상태 탭 잠김
-    await p.evaluate(() => { enterZone('cheongpung'); startBattle('rabbit'); stopBattleTimer(); render(); });
-    ok('2 전투 중 상태 탭 비활성', await p.$eval('[data-tab="status"]', e => e.disabled));
-    await p.evaluate(() => { RT.battle.over = true; closeBattle(); });
+    // 탐험 결산 창의 [성급 올리러 가기] → 상태 › 무공
+    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.stamina = 100; const r = runExpedition(now()); ui.modal = 'settle:' + r.id; render(); });
+    await p.click('.settle-sheet [data-tab="status"][data-sub="martial"]');
+    ok('2 결산 창 [성급 올리러 가기] → 상태 › 무공 (창 닫힘)', await p.evaluate(() => ui.tab === 'status' && document.querySelector('.subtab.on .ko').textContent === '무공' && !ui.modal));
 
     ok('오류/가로스크롤 없음', errs.length === 0 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(' | '));
     await p.close();

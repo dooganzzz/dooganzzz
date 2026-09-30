@@ -43,7 +43,6 @@ function manualBonus(id, star) {
   return b;
 }
 
-function trainBonus(st) { st = st || calcStats(); return 1 + st.train / 100 + st.trainBuff; }
 
 function gearStats(it) {
   const mult = 1 + 0.1 * (it.enh || 0), out = {};

@@ -23,7 +23,7 @@ module.exports = async (b) => {
 
     // 2. 청풍문 › 전방
     const subs = await p.$$eval('.subtabs .subtab', els => els.map(e => e.dataset.sub).join(','));
-    ok('2 서브탭 순서: 정청 | 연무장 | 화로 | 뒷마당 | 무신상 | 전방', subs === 'hall,yeonmu,forge,yard,shrine,shop', subs);
+    ok('2 서브탭 순서: 정청 | 화로 | 뒷마당 | 무신상 | 전방', subs === 'hall,forge,yard,shrine,shop', subs);
     await p.click('.subtabs [data-sub="shop"]');
     const shop = await p.evaluate(() => ({ head: document.querySelector('.shop-panel .panel-head .ko').textContent, npc: document.querySelector('.shop-panel .npc-head h3').textContent, mode: document.querySelector('.shop-mode .subtab.on').dataset.shopmode, items: document.querySelectorAll('[data-buy]').length, gear: document.querySelectorAll('[data-buygear]').length, purse: document.querySelector('.shop-panel .purse').textContent }));
     ok('2 청풍전방 왕 가 인터페이스', shop.head === '청풍전방' && /왕 가/.test(shop.npc) && /청풍전방 주인/.test(shop.npc), JSON.stringify(shop));
@@ -60,11 +60,6 @@ module.exports = async (b) => {
     ok('3 전부 팔기 → 남은 수량 모두 환전, 행낭에서 사라짐', sell.all === sell.unit * 2 && sell.gone, JSON.stringify(sell));
     const sg = await p.evaluate(() => { const it = makeGear('blade', 2, 3, false); it.enh = 2; S.gear.push(it); render(); const s0 = S.silver; document.querySelector(`[data-sellgear="${it.uid}"]`).click(); return { got: S.silver - s0, gone: !S.gear.includes(it), worn: !document.querySelector(`[data-sellgear="${S.equip.weapon.uid}"]`), badge: !S.gear.some(g => g.shop) || ![...document.querySelectorAll('[data-sellgear]')].some(b => S.gear.find(g => g.uid === +b.dataset.sellgear).shop) }; });
     ok('3 보관 장비 판매: 티어·희귀도·강화 반영 (25×1.75×1.3=57)', sg.got === 57 && sg.gone && sg.worn && sg.badge, JSON.stringify(sg));
-
-    // 사냥터에서는 전방 닫힘
-    await p.evaluate(() => { enterZone('cheongpung'); goTab('sect', 'shop'); render(); });
-    const zone = await p.evaluate(() => ({ leave: !!document.querySelector('[data-act="leave"]'), shop: !!document.querySelector('.shop-panel'), buy: (() => { S.silver = 100; return buyItem('salt'); })() }));
-    ok('사냥터에서는 전방 이용 불가 (귀환 안내)', zone.leave && !zone.shop && zone.buy === false, JSON.stringify(zone));
 
     ok('오류/가로스크롤 없음', errs.length === 0 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(' | '));
     await p.close();

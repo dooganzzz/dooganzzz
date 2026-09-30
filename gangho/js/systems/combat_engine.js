@@ -1,4 +1,4 @@
-/* [시스템] 3초 주기 자동 전투: 명중·치명·회피→반격 분기, 승패 정산 (DOM 조작 금지) */
+/* [시스템] 자동 전투: 한 판을 끝까지 계산하고 합마다 기록을 남긴다 (리플레이용). 명중·치명·회피→반격 분기, 승패 정산 (DOM 조작 금지) */
 
 /* ───────── 전투 (턴제) ───────── */
 function dmgBase(atk, def) { return (atk * atk) / (atk + def); }
@@ -28,14 +28,14 @@ function sense(eid) {
   return SENSE_TEXT.find(([t]) => ratio >= t);
 }
 
-/* 3초마다 한 번씩 공방(속도가 빠른 쪽이 먼저)이 오간다. 선택지는 없다. */
-let BATTLE_MS = 3000;
-
-function startBattle(eid) {
-  const E = ENEMIES[eid];
-  stopBattleTimer();
+/* 한 판을 끝까지 계산한다. 속도가 빠른 쪽이 먼저 치고, 합마다 대사·연출·양쪽 활력을 기록해 두면
+   화면(관찰하기)이 그 기록을 그대로 다시 튼다. opts.bonus: 기연 전투에서 이기면 받는 추가 보상 */
+function fight(eid, opts = {}) {
+  const E = ENEMIES[eid], st = calcStats();
+  const b = { eid, name: E.name, boss: !!E.boss, e: { ...E, hpNow: E.hp }, over: false, win: false, round: 0, st, lines: [], fx: [], bonus: opts.bonus || null,
+    start: { me: { hp: S.hp, mp: S.mp, maxHp: st.maxHp, maxMp: st.maxMp }, foe: { hp: E.hp, maxHp: E.hp } }, rounds: [], exp: 0, silver: 0 };
+  RT.battle = b;
   notify.trace('battle', `조우: ${eid} (${E.name}) · 활력 ${Math.round(S.hp)}`);
-  RT.battle = { eid, e: { ...E, hpNow: E.hp }, lines: [], over: false, round: 0, st: calcStats(), fx: [], prev: { me: S.hp, foe: E.hp } };
   bLine(`⚔️ ${josa(E.name, '이가')} 모습을 드러냈습니다!`, 'head');
   const [, stext, scls] = sense(eid);
   bLine(stext, 'sense ' + scls);
@@ -46,23 +46,24 @@ function startBattle(eid) {
   const mt = MANUALS[S.active.mugong];
   if (!mt) bLine('장착한 무공이 없어 맨손으로 맞섭니다.', 'muted');
   else if (mt.weapon !== weaponType()) bLine(`《${mt.name}》은 ${WEAPON_TYPES[mt.weapon]} 무공입니다. 병기가 맞지 않아 초식을 펼칠 수 없습니다.`, 'muted');
-  notify.view({ tab: 'field' });
-  notify.refresh();
-  RT.btimer = setInterval(battleRound, BATTLE_MS);
+  b.intro = b.lines;
+  while (!b.over && b.round < EXPEDITION.maxRounds) battleRound(b);
+  if (!b.over) {                                             // 끝내 승부가 나지 않으면 서로 물러난다
+    b.over = true; b.fled = true;
+    b.rounds[b.rounds.length - 1].lines.push({ text: '끝내 승부가 나지 않아 서로 물러났습니다.', cls: 'muted' });
+  }
+  RT.battle = null;
+  return b;
 }
 
-function stopBattleTimer() { if (RT.btimer) { clearInterval(RT.btimer); RT.btimer = null; } }
+/* 전투 기록 한 줄 (견문록이 아니라 전투 기록에만 남는다) */
+function bLine(text, cls = '') { RT.battle.lines.push({ text, cls }); }
 
-/* 전투 로그는 전투 창과 견문록에 함께 남긴다 */
-function bLine(text, cls = '') { RT.battle.lines.push({ text, cls }); log(text, 'battle ' + cls); }
-
-function battleRound() {
-  const b = RT.battle;
-  if (!b || b.over) { stopBattleTimer(); return; }
+function battleRound(b) {
   b.round++;
-  b.prev = { me: S.hp, foe: b.e.hpNow };
-  b.fx = [];
+  b.lines = []; b.fx = [];
   b.st = calcStats();
+  autoPotion(b);
   const order = b.st.spd >= b.e.spd ? ['me', 'foe'] : ['foe', 'me'];
   for (const who of order) {
     if (b.over) break;
@@ -70,8 +71,16 @@ function battleRound() {
     checkEnd(b);
   }
   if (!b.over) S.mp = Math.min(b.st.maxMp, S.mp + b.st.mpRegen);
-  else stopBattleTimer();
-  notify.battle();
+  b.rounds.push({ lines: b.lines, fx: b.fx, me: { hp: Math.round(S.hp), mp: Math.round(S.mp) }, foe: Math.round(b.e.hpNow) });
+}
+
+/* 활력이 바닥나면 제자가 알아서 금창약을 먹는다 */
+function autoPotion(b) {
+  if (S.hp >= b.st.maxHp * EXPEDITION.potionAt || !has('potionHp')) return;
+  const v = Math.round(b.st.maxHp * ITEMS.potionHp.use.hp);
+  take('potionHp', 1); S.hp = Math.min(b.st.maxHp, S.hp + v);
+  bLine(`🩹 숨을 고르며 금창약을 삼켰습니다. <span class="heal">활력 +${fmt(v)}</span>`, 'good');
+  b.fx.push({ side: 'me', t: `+${fmt(v)}`, k: 'heal' });
 }
 
 function checkEnd(b) {
@@ -143,19 +152,16 @@ function winBattle(b) {
   b.over = true; b.win = true;
   const E = ENEMIES[b.eid];
   bLine(`🏆 ${josa(E.name, '을를')} 쓰러뜨렸습니다!`, 'win');
-  clearNode();
-  const worn = CAT_ORDER.filter(c => S.active[c]);
-  for (const cat of worn) addXp(S.active[cat], 'cxp', 1);
-  if (worn.length) bLine(`실전 경험 +1 (${worn.map(c => CATS[c].name).join('·')})`, 'muted');
-  const silver = rint(...E.silver); S.silver += silver;
-  bLine(`${hlSilver(silver)} 획득`, 'loot');
+  if (E.xp) { b.exp = expGain(E.xp, b.st); S.exp += b.exp; bLine(`경험치 +${fmt(b.exp)}`, 'loot'); }
+  b.silver = rint(...E.silver); S.silver += b.silver;
+  bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다
   for (const [id, p] of E.drops) if (Math.random() < p) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
   if (E.gear && Math.random() < E.gear[1]) {
     const it = makeGear(pick(Object.keys(EQUIP_BASES)), E.gear[0], rollDropRarity(!!E.boss), false);
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
-  if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); applyFx(b.bonus.fx || {}); }
+  if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); for (const g of applyFx(b.bonus.fx || {})) bLine(`↳ ${hlItem(g)}`, 'loot'); }
   S.kills++;
   progressMission(b.eid);
   if (E.boss && !S.flags[E.boss]) {
@@ -178,26 +184,5 @@ function winBattle(b) {
 function loseBattle(b) {
   notify.trace('battle', `패배: ${b.eid} · ${b.round}합`);
   b.over = true; b.win = false;
-  const lost = Math.floor(S.silver * 0.1);
-  S.silver -= lost;
-  bLine(`💀 눈앞이 캄캄해집니다… 조운 사형이 업고 돌아왔습니다. (은자 ${lost}냥을 잃었습니다)`, 'bad');
-}
-
-function closeBattle() {
-  const b = RT.battle; if (!b || !b.over) return;
-  stopBattleTimer();
-  RT.battle = null;
-  if (!b.win) {
-    S.zone = null;
-    S.hp = Math.max(1, Math.round(calcStats().maxHp * 0.1));
-    notify.view({ tab: 'sect', sectSub: 'yard' });
-  }
-  notify.save(); notify.refresh();
-}
-
-function battleItem(id) {
-  const b = RT.battle; if (!b || b.over || !has(id)) return;
-  useItem(id, true);
-  b.lines.push({ text: `${ITEMS[id].icon} ${ITEMS[id].name}${jo(ITEMS[id].name, '을를')} 삼켰습니다.`, cls: 'good' });
-  notify.battle();
+  bLine('💀 무릎이 꺾입니다…', 'bad');
 }

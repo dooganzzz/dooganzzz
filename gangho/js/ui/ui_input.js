@@ -17,12 +17,12 @@ function onClick(e) {
   if (t.dataset.act === 'doreset') return doReset();
   if (!S) return;
   const d = t.dataset;
-  if (d.tab) { if (RT.battle && d.tab !== 'field') return; goTab(d.tab, d.sub); render(); return; }
-  if (d.move) { const [dx, dy] = d.move.split(',').map(Number); return move(dx, dy); }
-  if (d.zone) return enterZone(d.zone);
-  if (d.evchoice !== undefined && d.evkey) return chooseEvent(d.evkey, +d.evchoice);
+  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); render(); return; }
+  if (d.dest) return setDestination(d.dest);
+  if (d.watch) return openReplay(d.watch);
+  if (d.rp) return replayControl(d.rp, d.x);
+  if (d.starup) { starUp(d.starup); if (ui.modal && ui.modal.startsWith('mart:')) renderModal(); return; }
   if (d.fold) return toggleFold(d.fold);
-  if (d.train) return toggleTraining(d.train);
   if (d.shopmode) { ui.shopMode = d.shopmode; return render(); }
   if (d.buy) return buyItem(d.buy);
   if (d.buygear) { const [base, t] = d.buygear.split(':'); return buyGear(base, +t); }
@@ -34,9 +34,7 @@ function onClick(e) {
   if (d.unequipm) { const id = S.active[d.unequipm]; unequipManual(d.unequipm); if (ui.modal && id) { ui.modal = 'mart:' + id; renderModal(); } return; }
   if (d.mart) { ui.modal = 'mart:' + d.mart; return renderModal(); }
   if (d.manual) { ui.modal = 'manual:' + d.manual; return renderModal(); }
-  if (d.pill) return useItem(d.pill, false);
-  if (d.use) return useItem(d.use, false);
-  if (d.bitem) return battleItem(d.bitem);
+  if (d.use) return useItem(d.use);
   if (d.offer) return offer(d.offer, false);
   if (d.offerall) return offer(d.offerall, true);
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
@@ -53,10 +51,9 @@ function onClick(e) {
   if (d.fill) return fillPot(d.fill);
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
-    leave: leaveZone, interact, craft: () => doCraft(ui.craft, ui.pot), clearpot: () => { ui.pot = {}; render(); },
+    craft: () => doCraft(ui.craft, ui.pot), clearpot: () => { ui.pot = {}; render(); },
     rest, snack: arinSnack, talk: arinTalk, masterhint: masterHint, jounguide: jounGuide, supply: jounSupply, reroll: rerollMissions,
-    hasan: doHasan, closemodal: () => { ui.modal = null; render(); },
-    closebattle: closeBattle,
+    hasan: doHasan, closemodal: () => { replayStop(); ui.modal = null; render(); },
     reset: askReset,
     doreset: doReset,
   };

@@ -46,7 +46,7 @@ module.exports = async (b) => {
     await p.click('.gm-tab[data-gmtab="trace"]');
     await p.keyboard.press('Escape');
     await p.click('[data-tab="status"]');
-    await p.evaluate(() => { S.silver = 0; goTab('sect', 'shop'); render(); buyItem('potionHp'); enterZone('cheongpung'); startBattle('rabbit'); stopBattleTimer(); RT.battle.over = true; closeBattle(); leaveZone(); give('herb', 2); take('herb', 1); });
+    await p.evaluate(() => { S.silver = 0; goTab('sect', 'shop'); render(); buyItem('potionHp'); S.hp = 1e9; fight('rabbit'); give('herb', 2); take('herb', 1); });
     await p.keyboard.press('F1');
     const tr = await p.evaluate(() => ({ kinds: GM.trace.map(r => r.kind), top: GM.trace[0].text, rows: document.querySelectorAll('#gmTrace li').length, first: document.querySelector('#gmTrace li span:last-child').textContent, time: document.querySelector('#gmTrace li time').textContent, inLog: S.log.some(l => /콘솔/.test(l.text)) }));
     ok('2 탭 전환·클릭 추적', tr.kinds.includes('tab') && tr.kinds.includes('click'), tr.kinds.slice(0, 12).join(','));
@@ -80,20 +80,25 @@ module.exports = async (b) => {
 
     // 5. 쾌속 치트
     await p.click('.gm-tab[data-gmtab="cheat"]');
-    ok('5 수련 없으면 [수련 1시간 경과] 비활성', await p.$eval('[data-gm="train"]', e => e.disabled));
+    ok('5 탐험지가 없으면 [1시간 경과] 비활성', await p.$eval('[data-gm="hour"]', e => e.disabled));
     const ch = await p.evaluate(() => { const s0 = S.silver; document.querySelector('[data-gm="silver"]').click(); S.hp = 1; S.mp = 0; document.querySelector('[data-gm="heal"]').click(); const st = calcStats(); return { silver: S.silver - s0, hp: S.hp === st.maxHp, mp: S.mp === st.maxMp }; });
     ok('5 [은자 +1,000냥] · [활력/내력 100% 회복]', ch.silver === 1000 && ch.hp && ch.mp, JSON.stringify(ch));
     const tn = await p.evaluate(() => {
-      toggleTraining('mugong'); render(); gmRender();
-      const id = S.activeTrainingSkillId, m = S.manuals[id], t0 = m.txp;
-      document.querySelector('[data-gm="train"]').click();
-      const gain = m.txp - t0;
-      m.txp = need(m.star) - 10; m.cxp = needC(m.star); const star0 = m.star;
-      document.querySelector('[data-gm="train"]').click();
-      return { gain, rate: trainRate(id), star0, star1: m.star };
+      const r = {}, e0 = S.exp; document.querySelector('[data-gm="exp"]').click(); r.exp = S.exp - e0;
+      const n0 = S.expeditions.length; document.querySelector('[data-gm="expedite"]').click();
+      r.expedite = S.expeditions.length === n0 + 1 && S.expedition.zone === 'cheongpung' && /^settle:/.test(ui.modal);
+      ui.modal = null; render(); gmRender();
+      const n1 = S.expeditions.length; S.expedition.nextAt = now() + 1000; document.querySelector('[data-gm="hour"]').click();
+      r.hour = S.expeditions.length - n1;
+      S.expedition.nextAt = now() + 1000; const log0 = S.log.length; document.querySelector('[data-gm="hours8"]').click();
+      r.hours8 = S.log.slice(log0).some(l => /2번이 그냥 지나갔습니다/.test(l.text)); r.kept = S.expeditions.length;
+      ui.modal = null; render(); gmRender();
+      return r;
     });
-    ok('5 [수련 1시간 경과] → 수련치 3600초 × 효율', Math.abs(tn.gain - 3600 * tn.rate) < 1, JSON.stringify(tn));
-    ok('5 경과로 성 돌파 판정', tn.star1 === tn.star0 + 1, JSON.stringify(tn));
+    ok('5 [경험치 +1,000]', tn.exp === 1000, JSON.stringify(tn));
+    ok('5 [탐험 즉시 1회] → 탐험 기록 + 결산 창', tn.expedite, JSON.stringify(tn));
+    ok('5 [1시간 경과] → 예약된 탐험 1번 결산', tn.hour === 1, JSON.stringify(tn));
+    ok('5 [10시간 경과] → 8번만 결산 (2번은 지나감) · 기록은 최근 8번만', tn.hours8 && tn.kept === 8, JSON.stringify(tn));
     await p.click('[data-gm="reset"]');
     ok('5 초기화는 두 번 눌러야 (첫 번째는 확인 요청)', await p.evaluate(() => !!S && /한 번 더/.test(document.querySelector('[data-gm="reset"]').textContent)));
     await Promise.all([p.waitForNavigation(), p.click('[data-gm="reset"]')]);

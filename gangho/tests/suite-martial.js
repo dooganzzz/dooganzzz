@@ -16,9 +16,7 @@ module.exports = async (b) => {
   ok('2 시작 시 장착·습득 없음', st0.learned === 0 && st0.active === 0);
   ok('2 비급 4권 지급', st0.books === 'bk_cheolpo,bk_pocheolsak,bk_samjaeDo,bk_tonap', st0.books);
   // 빈 슬롯 상태: 연무장·전투
-  await p.click('[data-tab="sect"]'); await p.click('[data-sub="yeonmu"]');
-  ok('3 미장착이면 연무장 수련 불가', (await p.$$('[data-train]')).length === 0 && (await p.$$('.empty-art')).length === 4);
-  const bare = await p.evaluate(() => { S.hp = 9999; enterZone('cheongpung'); const r = fightSync('rabbit').win; RT.battle.over = true; closeBattle(); leaveZone(); return r; });
+  const bare = await p.evaluate(() => { S.hp = 9999; return fightSync('rabbit').win; });
   ok('무공 없이도 맨손 전투 가능', bare === true);
   // 행낭에서 익히기
   await p.click('[data-tab="bag"]'); await p.click('[data-filter="비급"]');
@@ -36,7 +34,7 @@ module.exports = async (b) => {
   await p.click('.mcard >> text=《삼재도법》');
   const md = await p.evaluate(() => { const sh = document.querySelector('.sheet'); return { title: sh.querySelector('h2').textContent, prog: sh.querySelector('p.num').textContent, desc: sh.querySelector('p.story').textContent, bonus: [...sh.querySelectorAll('.kv span')].map(e => e.textContent).slice(0, 2).join(','), btn: sh.querySelector('[data-equipm]') && sh.querySelector('[data-equipm]').textContent }; });
   ok('4 명칭·등급', md.title.includes('《삼재도법》') && md.title.includes('[삼류 무공]'), md.title);
-  ok('4 성급·숙련도', md.prog === '현재 1성 / 실전 0% / 수련 0%', md.prog);
+  ok('4 성급·다음 성까지 경험치', /^현재 1성 \/ 다음 성까지 경험치 60 \(보유 \d+\)$/.test(md.prog), md.prog);
   ok('4 설명문', md.desc.length > 20, md.desc.slice(0, 30) + '…');
   ok('4 보너스 효과', md.bonus.startsWith('공격력'), md.bonus);
   ok('4 미장착 → [ 장착하기 ]', md.btn === '[ 장착하기 ]');
@@ -48,12 +46,14 @@ module.exports = async (b) => {
   await p.click('[data-act="closemodal"]');
   for (const id of ['tonap', 'pocheolsak', 'cheolpo']) { await p.click(`.mcard[data-mart="${id}"]`); await p.click('[data-equipm]'); await p.click('[data-act="closemodal"]'); }
   ok('3 네 슬롯 모두 장착', (await p.$$('.mslot.empty')).length === 0);
-  // 수련 → 해제 시 수련 정지
-  await p.evaluate(() => toggleTraining('simbeop'));
+  // 장착 슬롯의 [▲ 성급] 단추: 경험치가 모자라면 비활성, 채우면 올라감
+  ok('3 장착 슬롯에 성급 올리기 단추 (경험치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="tonap"]'); return !!b && b.disabled; }));
+  await p.evaluate(() => { S.exp = 500; render(); });
+  await p.click('.mslot [data-starup="tonap"]');
+  ok('3 [▲ 성급] 누르면 2성 · 경험치 차감', await p.evaluate(() => S.manuals.tonap.star === 2 && S.exp === 500 - Math.round(60 * GRADES[MANUALS.tonap.grade].mult)));
   await p.click('.mslot [data-unequipm="simbeop"]');
-  const u = await p.evaluate(() => ({ slot: S.active.simbeop, train: S.activeTrainingSkillId, keep: !!S.manuals.tonap }));
-  ok('3 장착 해제 → 빈 슬롯, 수련 정지, 습득은 유지', u.slot === null && u.train === null && u.keep, JSON.stringify(u));
-  ok('3 해제된 비급은 연무장 수련 불가', await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'yeonmu'; render(); return !document.querySelector('[data-train="simbeop"]'); }));
+  const u = await p.evaluate(() => ({ slot: S.active.simbeop, keep: !!S.manuals.tonap }));
+  ok('3 장착 해제 → 빈 슬롯, 습득은 유지', u.slot === null && u.keep, JSON.stringify(u));
   // 장경각 → 비급서
   const shop = await p.evaluate(() => { S.contrib = 999; buyManual('cpDo'); return { book: count('bk_cpDo'), learned: !!S.manuals.cpDo }; });
   ok('장경각 구매 → 행낭 비급서', shop.book === 1 && !shop.learned);

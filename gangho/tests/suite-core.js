@@ -1,4 +1,4 @@
-/* 핵심 규칙: 탭, 연무장, 강호행, 전투, 무장, 도감, 견문록, 테마 */
+/* 핵심 규칙: 탭, 성장, 강호행, 전투, 무장, 도감, 견문록, 테마 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -14,68 +14,38 @@ module.exports = async (b) => {
   const tabs = await p.$$eval('.tab .ko', els => els.map(e => e.textContent).join(','));
   ok('1 탭 순서', tabs === '청풍문,상태,행낭,강호행,도감', tabs);
   ok('1 첫 화면=청풍문 › 정청', await p.$eval('.tab.on .ko', e => e.textContent) === '청풍문' && await p.$eval('.subtab.on .ko', e => e.textContent) === '정청');
-  // 2
+  // 2 성장: 연무장·비급별 수련치 없음, 경험치로 성급 올리기
   const t = await p.evaluate(() => {
-    const r = {}; r.default = S.activeTrainingSkillId;
-    const snap = () => CAT_ORDER.map(c => Math.round(S.manuals[S.active[c]].txp * 1000) / 1000).join('/');
-    const a = snap(); advance(600, true); r.idleUnchanged = a === snap();
-    toggleTraining('simbeop'); r.id = S.activeTrainingSkillId;
-    const before = CAT_ORDER.map(c => S.manuals[S.active[c]].txp); advance(3600, true);
-    const after = CAT_ORDER.map(c => S.manuals[S.active[c]].txp);
-    r.changed = CAT_ORDER.filter((c, i) => after[i] !== before[i]);
-    r.segs = [1, 5, 6, 11].map(st => trainHours(st));
-    r.perStarBase = need(1) / (trainRate('tonap') / trainBonus()) / 3600;
+    const r = {}, id = S.active.simbeop, m = S.manuals[id];
+    r.noTrainFields = !('txp' in m) && !('cxp' in m) && !('activeTrainingSkillId' in S) && typeof toggleTraining === 'undefined';
+    r.noYeonmu = !SECT_SUBS.some(([k]) => k === 'yeonmu');
+    r.cost = starCost(id); r.block = starUpBlock(id);
+    S.exp = r.cost; r.up = starUp(id); r.star = m.star; r.left = S.exp;
     return r;
   });
-  ok('2 기본 수련 정지', t.default === null);
-  ok('2 정지 시 경험치 불변', t.idleUnchanged);
-  ok('2 단일 비급만 누적', t.changed.length === 1 && t.changed[0] === 'simbeop', t.changed.join(','));
-  ok('2 성당 수련 시간 (1~5성 8h, 6~11성 16h)', t.segs.join('/') === '8/8/16/16' && Math.abs(t.perStarBase - 8) < 0.01, `1·5·6·11성 ${t.segs.join('/')}h`);
-  await p.click('[data-tab="sect"]'); await p.click('[data-sub="yeonmu"]');
-  ok('2 수련 중 카드 1개만 금빛', (await p.$$('.art.training')).length === 1);
-  // 3
+  ok('2 연무장·수련치 제거', t.noTrainFields && t.noYeonmu);
+  ok('2 경험치 부족하면 막힘 → 채우면 성급 +1, 경험치 차감', /경험치 60 필요/.test(t.block) && t.up && t.star === 2 && t.left === 0, JSON.stringify(t));
+  // 3 강호행: 지도 없음, 탐험지 선택
   await p.click('[data-tab="field"]');
   const zones = await p.$$eval('.zone h3', els => els.map(e => e.textContent).join(' | '));
-  ok('3 성급 표기 없음', !/성/.test(zones.replace(/평정/g,'')), zones);
-  ok('3 염화채·적룡방 숨김', (await p.$$('.zone')).length === 1);
-  await p.click('[data-zone="cheongpung"]');
-  const f = await p.evaluate(() => {
-    const r = {}; const L1 = S.zone.layout.join('/');
-    r.bossReach = reachable(S.zone.layout, ...S.zone.start); let k; S.zone.layout.forEach((row,y)=>[...row].forEach((c,x)=>{ if(c==='K') k=`${x},${y}`; })); r.bossReach = r.bossReach.has(k);
-    // 인접한 이벤트 노드 하나 처리
-    const [sx, sy] = S.zone.start; let target = null;
-    for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if (c === 'C') { target = [sx+dx, sy+dy, c]; break; } }
-    if (!target) for (const [dx,dy] of DIRS) { const c = tileAt('cheongpung', sx+dx, sy+dy); if (c !== '_' ) { S.zone.layout = S.zone.layout.map((row,y)=> y===sy+dy ? row.slice(0,sx+dx)+'C'+row.slice(sx+dx+1) : row); target=[sx+dx,sy+dy,'C']; break; } }
-    move(target[0]-sx, target[1]-sy); interact();
-    r.cleared = tileAt('cheongpung', target[0], target[1]) === 'o';
-    const hp = S.hp, sta = S.stamina; move(sx - target[0], sy - target[1]); move(target[0]-sx, target[1]-sy);
-    r.noRegen = S.hp === hp && S.stamina === sta;
-    r.stillCleared = tileAt('cheongpung', target[0], target[1]) === 'o';
-    leaveZone(); enterZone('cheongpung');
-    r.doneReset = Object.keys(S.zone.done).length === 0;
-    r.reshuffled = S.zone.layout.join('/') !== L1;
-    return r;
-  });
-  ok('3 보스 도달 보장', f.bossReach); ok('3 처리한 노드→산길', f.cleared); ok('3 필드 안에서는 리젠 없음', f.stillCleared);
-  ok('3 이동 시 자동 회복 없음', f.noRegen); ok('3 재입장 시 초기화', f.doneReset); ok('3 재입장 시 재배치', f.reshuffled);
-  // 4
+  ok('3 성급 표기 없음', !/성/.test(zones.replace(/평정/g, '')), zones);
+  ok('3 지도 없음 · 구역 3곳(잠김 2)', !(await p.$('.map, .cell, .dpad')) && (await p.$$('.zone')).length === 3 && (await p.$$('.zone.locked')).length === 2);
+  // 4 전투 (fight: 한 판을 끝까지 계산해 기록)
   const bt = await p.evaluate(() => {
-    startBattle('boar'); stopBattleTimer(); const r = {};
-    r.noStats = !/활력 \d|공격 \d|방어 \d/.test(document.querySelector('.bar.foe').textContent + document.querySelector('.blog').textContent);
-    r.sense = SENSE_TEXT.some(([, t]) => document.querySelector('.blog').textContent.includes(t));
-    r.cmds = document.querySelectorAll('[data-bact], [data-act="auto"]').length;
-    r.phase = !!document.querySelector('.phase-bar');
-    S.hp = 99999; RT.battle.e.hpNow = 1e9;
-    for (let i = 0; i < 60; i++) battleRound();
-    r.counter = RT.battle.lines.some(l => l.text.includes('반격(反擊)'));
-    RT.battle.over = true; closeBattle();
+    const r = {}; S.hp = 99999;
+    const b = fightSync('boar');
+    r.sense = SENSE_TEXT.some(([, t]) => b.intro.some(l => l.text.includes(t)));
+    r.noStats = !b.intro.some(l => /활력 \d|공격 \d|방어 \d/.test(l.text));
+    r.rounds = b.rounds.length > 0 && b.rounds.every(x => Array.isArray(x.lines) && typeof x.foe === 'number');
+    let counter = false;
+    for (let i = 0; i < 15 && !counter; i++) { S.hp = 99999; counter = fightSync('boar').rounds.some(x => x.lines.some(l => l.text.includes('반격(反擊)'))); }
+    r.counter = counter; S.hp = calcStats().maxHp;
     return r;
   });
   ok('4 적 수치 비노출', bt.noStats); ok('4 육감 지문', bt.sense);
-  ok('4 수동 선택지 없음 (자동 공방)', bt.cmds === 0 && bt.phase);
+  ok('4 합마다 기록 (리플레이용)', bt.rounds);
   ok('4 반격 발생 (반격 스탯)', bt.counter);
   // 5
-  await p.evaluate(() => { leaveZone(); });
   await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
   const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.martial-artist-img'), head: document.querySelector('.panel-head .ko').textContent }));
   ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸', bag.cap === 100);

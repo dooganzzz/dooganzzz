@@ -1,4 +1,4 @@
-/* 회피·반격 분기, 요수 대치, 금고, 견문록 역순, 정청 접기/펼치기 */
+/* 회피·반격 분기, 기척 지문, 금고 내용물, 견문록 역순, 정청 접기/펼치기 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -13,11 +13,10 @@ module.exports = async (b) => {
     // 1. 회피 성공 시 반격 없음 / 피격 후에만 반격
     const cb = await p.evaluate(() => {
       const run = (eva, counter) => {
-        startBattle('boar'); stopBattleTimer();
-        const b = RT.battle; S.hp = 1e9; b.e.hpNow = 1e9;
+        const b = { eid: 'boar', e: { ...ENEMIES.boar, hpNow: 1e9 }, lines: [], fx: [], over: false }; RT.battle = b; S.hp = 1e9;
         const lines = [];
         for (let i = 0; i < 40; i++) { b.st = calcStats(); b.st.eva = eva; b.st.counter = counter; b.st.spd = 1; const n = b.lines.length; enemyTurn(b); lines.push(b.lines.slice(n).map(l => l.text)); }
-        b.over = true; b.win = true; closeBattle();
+        RT.battle = null;
         return lines;
       };
       // 회피율 최대(적 명중 하한 40%) + 반격 100%
@@ -35,64 +34,36 @@ module.exports = async (b) => {
     ok('1 회피 성공 시 반격 판정 없음', cb.dodgeNoCounter);
     ok('1 반격은 피격 뒤에만 발동', cb.hitThenCounter);
 
-    // 2. 요수 대치
+    // 2. 기척 지문: 3단계 (제자가 두목을 피할지 가늠하는 데도 쓴다)
     const so = await p.evaluate(() => {
-      enterZone('cheongpung'); S.stamina = 999;
-      const [sx, sy] = S.zone.start; const [tx, ty] = DIRS.map(([dx, dy]) => [sx + dx, sy + dy]).find(([x, y]) => passable('cheongpung', x, y));
-      S.zone.layout = S.zone.layout.map((row, y) => y === ty ? row.slice(0, tx) + 'Y' + row.slice(tx + 1) : row);
-      const st0 = S.stamina;
-      move(tx - sx, ty - sy);
-      const panel = document.querySelector('.standoff');
-      const r = { noBattle: !RT.battle, noCost: S.stamina === st0, panel: !!panel, btn: panel && panel.querySelector('[data-act="interact"]').textContent.trim(), sense: panel && panel.querySelector('.sense').className, text: panel && panel.querySelector('.sense').textContent };
-      // 다시 그려도 같은 요수
-      const foe1 = S.zone.foes[`${tx},${ty}`]; render(); r.stable = S.zone.foes[`${tx},${ty}`] === foe1;
-      document.querySelector('.standoff [data-act="interact"]').click();
-      r.started = !!RT.battle && RT.battle.eid === foe1; r.cost = st0 - S.stamina;
-      stopBattleTimer(); RT.battle.over = true; RT.battle.win = true; closeBattle();
-      // 세 단계 지문
-      const st = calcStats();
-      r.tiers = SENSE_TEXT.map(t => t[2]).join(',');
-      r.weak = sense('rabbit')[2]; r.strong = sense('galcheon')[2];
+      const r = { tiers: SENSE_TEXT.map(t => t[2]).join(','), weak: sense('rabbit')[2], strong: sense('galcheon')[2] };
       r.colors = ['weak', 'even', 'strong'].map(c => { const el = document.createElement('p'); el.className = 'sense ' + c; document.body.appendChild(el); const col = getComputedStyle(el).color; el.remove(); return col; }).join(' | ');
+      S.hp = 1e9; const b = fightSync('rabbit'); r.intro = b.intro.some(l => /^sense /.test(l.cls));
       return r;
     });
-    ok('2 요수 칸을 밟아도 바로 싸우지 않음 (기력도 그대로)', so.noBattle && so.noCost);
-    ok('2 대치 패널 + [ ⚔️ 결투 시작 ]', so.panel && /결투 시작/.test(so.btn), so.btn);
-    ok('2 대치 지문 3단계', so.tiers === 'weak,even,strong' && so.weak === 'weak' && so.strong === 'strong', so.text);
+    ok('2 기척 지문 3단계', so.tiers === 'weak,even,strong' && so.weak === 'weak' && so.strong === 'strong');
     ok('2 지문 색: 녹색·황금·적색', so.colors === 'rgb(108, 195, 138) | rgb(240, 207, 130) | rgb(224, 104, 90)', so.colors);
-    ok('2 대치 상대는 고정, 버튼을 눌러야 전투·기력 소모', so.stable && so.started && so.cost === 4);
+    ok('2 전투 기록 첫머리에 기척 지문', so.intro);
 
     // 3. 금고
     const vault = await p.evaluate(() => {
-      const stat = { counts: [], icons: new Set() };
-      for (let i = 0; i < 200; i++) { const { layout } = generateLayout(ZONES.cheongpung); stat.counts.push(layout.join('').split('C').length - 1); }
-      if (!S.zone) enterZone('cheongpung');
-      const [sx, sy] = [S.zone.x, S.zone.y]; const [tx, ty] = DIRS.map(([dx, dy]) => [sx + dx, sy + dy]).find(([x, y]) => passable('cheongpung', x, y) && !'YK'.includes(tileAt('cheongpung', x, y)));
-      move(tx - sx, ty - sy);
-      const kinds = {}; let silverOk = true, bookSeen = false, alchemyOnly = true, forgeOnly = true, cookOnly = true;
-      S.stamina = 9999;
+      const Z = ZONES.cheongpung, kinds = {}; let silverOk = true, bookSeen = false, alchemyOnly = true, forgeOnly = true, cookOnly = true;
       for (let i = 0; i < 600; i++) {
-        S.zone.layout = S.zone.layout.map((row, y) => y === ty ? row.slice(0, tx) + 'C' + row.slice(tx + 1) : row); delete S.zone.done[`${tx},${ty}`];
-        const inv0 = { ...S.inv }, sil0 = S.silver, last = S.log[S.log.length - 1];
-        interact();
-        const l = S.log.slice(S.log.lastIndexOf(last) + 1).find(x => x.text.includes('금고를 열자'));
-        const v = VAULTS.find(v => l.text.includes(v.name)).name; kinds[v] = (kinds[v] || 0) + 1;
+        const inv0 = { ...S.inv }, sil0 = S.silver;
+        const v = openVault(Z).name; kinds[v] = (kinds[v] || 0) + 1;
         const gained = Object.keys(S.inv).filter(k => (S.inv[k] || 0) > (inv0[k] || 0));
         if (v === '은자 궤' && !(S.silver - sil0 >= 15 && S.silver - sil0 <= 35)) silverOk = false;
         if (v === '약재 궤' && gained.some(k => ITEMS[k].craftType !== 'alchemy')) alchemyOnly = false;
         if (v === '철물 궤' && gained.some(k => ITEMS[k].craftType !== 'forge')) forgeOnly = false;
         if (v === '식재 궤' && (gained.some(k => ITEMS[k].craftType !== 'cooking') || !gained.length)) cookOnly = false;
         if (v === '비급/장비 궤' && gained.some(k => ITEMS[k].kind === '비급')) bookSeen = true;
+        if (bagUsed() > 80) for (const k of Object.keys(S.inv)) if (ITEMS[k].kind === '재료') delete S.inv[k];
       }
-      const after = tileAt('cheongpung', tx, ty);
-      return { min: Math.min(...stat.counts), max: Math.max(...stat.counts), kinds, silverOk, alchemyOnly, forgeOnly, cookOnly, bookSeen, after, label: nodeInfo('cheongpung', 0, 0) && '금고(金庫)' };
+      return { kinds, silverOk, alchemyOnly, forgeOnly, cookOnly, bookSeen };
     });
-    ok('3 금고 19~23개 (약초·광맥 통합)', vault.min >= 19 && vault.max <= 23, `${vault.min}~${vault.max}`);
     ok('3 다섯 종류 무작위 (비급/장비 궤가 가장 드묾)', Object.keys(vault.kinds).length === 5 && vault.kinds['비급/장비 궤'] < vault.kinds['은자 궤'], JSON.stringify(vault.kinds));
     ok('3 은자 궤 15~35냥 · 약재 궤 연단 · 철물 궤 주조 · 식재 궤 조리 재료만', vault.silverOk && vault.alchemyOnly && vault.forgeOnly && vault.cookOnly);
     ok('3 비급/장비 궤에서 미습득 하품 비급', vault.bookSeen);
-    ok('3 연 금고는 산길로 전환', vault.after === 'o');
-    await p.evaluate(() => { if (S.zone) leaveZone(); });
 
     // 4. 견문록 역순
     const lg = await p.evaluate(() => {

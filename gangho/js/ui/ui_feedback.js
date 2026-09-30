@@ -1,4 +1,4 @@
-/* [화면] 연출: 성취 현판·토스트·플로팅 대미지·섬광·셰이크·타자기·지도 도착 */
+/* [화면] 연출: 성취 현판·토스트·플로팅 대미지·섬광·셰이크·타자기 */
 
 Bus.on('toast', text => toast(text));
 Bus.on('banner', (title, sub, tone) => banner(title, sub, tone));
@@ -77,10 +77,3 @@ function typewriteAll() {
 
 function skipTyping(at = Infinity) { for (const job of [...typing]) if (job.t0 < at) job.done(); }   // 이 클릭으로 막 시작된 연출은 남긴다
 
-/* 이동 직후 도착 칸이 살짝 튀어 오른다 */
-function stepFx() {
-  if (!ui.stepTo) return;
-  const el = document.querySelector(`.map-scroll .cell.here[data-xy="${ui.stepTo}"]`);
-  ui.stepTo = null;
-  if (el) { el.classList.add('step'); setTimeout(() => el.classList.remove('step'), 260); }
-}

@@ -47,14 +47,14 @@ module.exports = async (b) => {
   // 추적: 게임의 행동이 관리자 창으로 넘어온다
   await admin.click('.gm-tab[data-gmtab="trace"]');
   await game.click('[data-tab="status"]');
-  await game.evaluate(() => { enterZone('cheongpung'); startBattle('rabbit'); stopBattleTimer(); });
+  await game.evaluate(() => { S.hp = 1e9; fight('rabbit'); });
   await admin.waitForFunction(() => GM.trace.some(r => r.kind === 'battle' && /rabbit/.test(r.text)), null, { timeout: 3000 });
   const tr = await admin.evaluate(() => ({ kinds: GM.trace.slice(0, 20).map(r => r.kind), top: document.querySelector('#gmTrace li span:last-child').textContent, cmd: GM.trace.some(r => /관리자 창 명령: spawn/.test(r.text)) }));
   ok('2 게임의 클릭·탭·전투가 관리자 창에 실시간 추적', tr.kinds.includes('click') && tr.kinds.includes('tab') && tr.kinds.slice(0, 3).includes('battle'), tr.kinds.join(','));
   ok('2 관리자 창에서 보낸 명령도 추적에 남음', tr.cmd);
-  await admin.waitForFunction(() => RT.battle && RT.battle.eid === 'rabbit', null, { timeout: 3000 });
-  ok('1 전투 요약도 복사', true);
-  await game.evaluate(() => { RT.battle.over = true; RT.battle.win = true; closeBattle(); leaveZone(); });
+  await game.evaluate(() => { S.expedition.zone = 'cheongpung'; S.stamina = 100; runExpedition(now()); });
+  await admin.waitForFunction(() => S && S.expeditions.length === 1, null, { timeout: 3000 });
+  ok('1 탐험 기록도 복사', true);
 
   // 게임 새로고침 → 관리자 창은 살아 있고 다시 연결, 추적 기록 유지
   const before = await admin.evaluate(() => GM.trace.length);

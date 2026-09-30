@@ -19,7 +19,6 @@ function fireText(craft) {
 
 /* craft: 고른 기예, pot: 화로에 넣은 재료 {itemId: 개수}. 결과는 화면에 신호로 넘긴다 */
 function doCraft(craft, pot) {
-  if (S.zone) return;
   const total = potTotal(pot);
   if (!total) { notify.toast('화로에 재료를 넣으십시오.'); return; }
   for (const [id, n] of Object.entries(pot)) if (!has(id, n)) { notify.toast('재료가 부족합니다.'); return; }
@@ -76,7 +75,7 @@ function recipeName(r) { return r.out.startsWith('eq:') ? EQUIP_BASES[r.out.spli
 function recipeIcon(r) { return r.out.startsWith('eq:') ? (EQUIP_BASES[r.out.split(':')[1]].slot === 'weapon' ? '🗡️' : '🛡️') : ITEMS[r.out].icon; }
 
 function offer(id, all) {
-  if (S.zone || !has(id)) return;
+  if (!has(id)) return;
   const n = all ? count(id) : 1;
   take(id, n);
   const o = OFFER[id];

@@ -13,16 +13,16 @@ module.exports = async (b) => {
     // 1. 1차 탭
     const tabs = await p.$$eval('#tabs .tab', els => els.map(e => `${e.querySelector('.ko').textContent}(${e.querySelector('.hj').textContent})`).join(' | '));
     ok('1 1차 탭: 청풍문 | 상태 | 행낭 | 강호행 | 도감', tabs === '청풍문(淸風門) | 상태(狀態) | 행낭(行囊) | 강호행(江湖行) | 도감(圖鑑)', tabs);
-    ok('1 정청·연무장·화로·뒷마당·무신상 1차 탭 없음', await p.evaluate(() => !['hall', 'yeonmu', 'forge', 'yard', 'shrine'].some(t => document.querySelector(`#tabs [data-tab="${t}"]`))));
+    ok('1 정청·화로·뒷마당·무신상 1차 탭 없음', await p.evaluate(() => !['hall', 'yeonmu', 'forge', 'yard', 'shrine'].some(t => document.querySelector(`#tabs [data-tab="${t}"]`))));
     const bar = await p.evaluate(() => { const t = document.querySelector('#tabs'); return { over: t.scrollWidth - t.clientWidth, rows: new Set([...t.querySelectorAll('.tab')].map(e => Math.round(e.getBoundingClientRect().top))).size }; });
     ok('1 탭 바 한 줄 · 가로 스크롤 없음', bar.over <= 0 && bar.rows === 1, JSON.stringify(bar));
 
     // 2. 청풍문 2차 탭
     await p.click('[data-tab="status"]'); await p.click('[data-tab="sect"]');
     const s0 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, top: document.querySelector('.tab.on .ko').textContent, hall: !!document.querySelector('.npc-head') }));
-    ok('2 하위 탭 [ 정청 ][ 연무장 ][ 화로 ][ 뒷마당 ][ 무신상 ][ 전방 ]', s0.subs === '정청,연무장,화로,뒷마당,무신상,전방', s0.subs);
+    ok('2 하위 탭 [ 정청 ][ 화로 ][ 뒷마당 ][ 무신상 ][ 전방 ] (연무장 없음)', s0.subs === '정청,화로,뒷마당,무신상,전방', s0.subs);
     ok('2 기본 진입은 정청', s0.top === '청풍문' && s0.on === '정청' && s0.hall, JSON.stringify(s0));
-    const views = { yeonmu: '.arts', forge: '.forge', yard: '[data-act="rest"]', shrine: '.altar', shop: '.shop-panel', hall: '[data-fold="hq"]' };
+    const views = { forge: '.forge', yard: '[data-act="rest"]', shrine: '.altar', shop: '.shop-panel', hall: '[data-fold="hq"]' };
     for (const [sub, sel] of Object.entries(views)) {
       await p.click(`.subtabs [data-sub="${sub}"]`);
       const r = await p.evaluate(s => ({ view: !!document.querySelector(s), top: document.querySelector('.tab.on').dataset.tab, on: document.querySelector('.subtab.on').dataset.sub, bar: document.querySelectorAll('.subtabs:not(.shop-mode)').length }), sel);
@@ -38,19 +38,10 @@ module.exports = async (b) => {
     await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
     ok('상태 › 무장: 장비 슬롯만', await p.evaluate(() => !!document.querySelector('.paperdoll') && !document.querySelector('[data-filter]')));
 
-    // 사냥터에 나가 있으면 정청·화로·뒷마당·무신상은 귀환 안내, 연무장은 볼 수 있음
-    await p.evaluate(() => { enterZone('cheongpung'); });
-    await p.click('[data-tab="sect"]');
-    const z = await p.evaluate(() => ({ leave: !!document.querySelector('[data-act="leave"]'), bar: !!document.querySelector('.subtabs') }));
-    await p.click('.subtabs [data-sub="yeonmu"]');
-    const z2 = await p.evaluate(() => !!document.querySelector('.arts'));
-    ok('사냥터에서: 시설은 귀환 안내, 연무장은 열람', z.leave && z.bar && z2, JSON.stringify({ z, z2 }));
-
-    // 전투에서 지면 청풍문 › 뒷마당으로 업혀 옴
-    await p.evaluate(() => { startBattle('boar'); stopBattleTimer(); S.hp = 1; RT.battle.e.atk = 9999; let n = 0; while (!RT.battle.over && n++ < 40) battleRound(); });
-    ok('전투 중 청풍문·상태·행낭·도감 잠김', await p.evaluate(() => ['sect', 'status', 'bag', 'codex'].every(t => document.querySelector(`#tabs [data-tab="${t}"]`).disabled)));
-    await p.evaluate(() => { if (!RT.battle.win) closeBattle(); else { RT.battle.win = false; closeBattle(); } });
-    ok('패배 후 청풍문 › 뒷마당', await p.evaluate(() => ui.tab === 'sect' && document.querySelector('.subtab.on').dataset.sub === 'yard'));
+    // 탐험 중에도 문파 시설은 언제든 쓸 수 있다 (제자가 알아서 다녀온다)
+    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.expedition.nextAt = now() + 60000; render(); });
+    await p.click('[data-tab="sect"]'); await p.click('.subtabs [data-sub="shop"]');
+    ok('탐험지가 정해져 있어도 시설은 그대로 (귀환 안내 없음)', await p.evaluate(() => !!document.querySelector('.shop-panel') && !document.querySelector('[data-act="leave"]')));
 
     // 도감 → 화로 채우기는 청풍문 › 화로로
     await p.evaluate(() => { S.codex.push('a_hp'); openRecipe('a_hp'); });

@@ -71,65 +71,54 @@ function discardGear(uid) {
   S.gear.splice(i, 1); notify.refresh();
 }
 
-function useItem(id, inBattle) {
+/* 소모품 사용. 음식의 기력과 음식·영단 효과는 '다음 탐험'에 쓰인다 (기력은 최대치의 두 배까지 쌓인다) */
+function useItem(id) {
   const I = ITEMS[id]; if (!I.use || !has(id)) return;
   const u = I.use;
-  if (inBattle && (I.kind === '음식' || u.gate)) return;
   if (u.learn) { learnManual(id); return; }
-  if (u.gate) {
-    const gated = Object.keys(S.manuals).filter(k => S.manuals[k].gate && S.manuals[k].star === u.gate);
-    if (!gated.length) { notify.toast(`${GATE_NAME[u.gate]}에 막힌 비급이 없습니다.`); return; }
-    const target = gated.find(k => k === S.active.mugong) || gated.find(k => Object.values(S.active).includes(k)) || gated[0];
-    breakthrough(target); notify.refresh(); return;
-  }
   const st = calcStats();
   take(id, 1);
   const parts = [];
   if (u.hp) { const v = Math.round(st.maxHp * u.hp); S.hp = Math.min(st.maxHp, S.hp + v); parts.push(`활력 +${v}`); }
   if (u.mp) { const v = Math.round(st.maxMp * u.mp); S.mp = Math.min(st.maxMp, S.mp + v); parts.push(`내력 +${v}`); }
-  if (u.stamina) { S.stamina = Math.min(st.maxSta, S.stamina + u.stamina); parts.push(`기력 +${u.stamina}`); }
+  if (u.stamina) { S.stamina = Math.min(st.maxSta * 2, S.stamina + u.stamina); parts.push(`다음 탐험 기력 +${u.stamina}`); }
   if (u.perm) { for (const [k, v] of Object.entries(u.perm)) { S.perm[k] += v; parts.push(`${STAT_NAMES[k]} 영구 +${v}`); } }
   if (u.buff) {
     S.buffs = S.buffs.filter(b => b.key !== u.buff.key);
-    S.buffs.push({ ...u.buff, until: now() + u.buff.dur * 1000 });
-    parts.push(`${u.buff.name} ${Math.round(u.buff.dur / 60)}분`);
+    S.buffs.push({ key: u.buff.key, val: u.buff.val, name: u.buff.name });
+    parts.push(`${u.buff.name} (다음 탐험 동안)`);
   }
   log(`${I.icon} ${I.name} — ${parts.join(', ')}`, 'good');
-  if (!inBattle) notify.refresh();
+  notify.refresh();
 }
 
 function learnManual(bookId) {
   const mid = ITEMS[bookId].use.learn, M = MANUALS[mid];
   if (S.manuals[mid]) { notify.toast(`이미 익힌 무공입니다: ${M.name}`); return; }
   take(bookId, 1);
-  S.manuals[mid] = { star: 1, cxp: 0, txp: 0, gate: false };
+  S.manuals[mid] = { star: 1 };
   log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 상태 탭의 무공에서 장착할 수 있습니다.`, 'gold');
   notify.toast(`${M.name} 습득`);
   notify.refresh();
 }
 
 function equipManual(id) {
-  if (RT.battle || !S.manuals[id]) return;
+  if (!S.manuals[id]) return;
   const cat = MANUALS[id].cat, prev = S.active[cat];
   if (prev === id) return;
-  if (prev && S.activeTrainingSkillId === prev) S.activeTrainingSkillId = null;
   S.active[cat] = id; clampVitals();
   log(`《${MANUALS[id].name}》${jo(MANUALS[id].name, '을를')} ${CATS[cat].name} 자리에 운용합니다.`, 'good');
   notify.refresh();
 }
 
 function unequipManual(cat) {
-  if (RT.battle) return;
   const id = S.active[cat]; if (!id) return;
-  if (S.activeTrainingSkillId === id) { S.activeTrainingSkillId = null; log(`《${MANUALS[id].name}》 수련도 함께 멈췄습니다.`, 'muted'); }
   S.active[cat] = null; clampVitals();
   log(`《${MANUALS[id].name}》 운용을 거두었습니다.`, 'muted');
   notify.refresh();
 }
 
 function setActive(cat, id) {
-  if (RT.battle) return;
-  if (S.activeTrainingSkillId === S.active[cat]) S.activeTrainingSkillId = id;
   S.active[cat] = id; clampVitals(); notify.refresh();
 }
 
@@ -137,7 +126,7 @@ const enhCost = it => Math.round(15 * (it.tier || 1) * Math.pow((it.enh || 0) + 
 const enhChance = it => Math.max(30, 100 - (it.enh || 0) * 8);
 
 function enhanceGear(slot) {
-  const it = S.equip[slot]; if (!it || S.zone) return;
+  const it = S.equip[slot]; if (!it) return;
   if ((it.enh || 0) >= ENH_MAX) { notify.toast('더 이상 벼릴 수 없습니다.'); return; }
   const cost = enhCost(it);
   if (S.silver < cost) { notify.toast('은자가 부족합니다.'); return; }
@@ -162,7 +151,7 @@ function shopPoor(price, name) {
   notify.refresh();
 }
 function buyItem(id) {
-  const row = SHOP_STOCK.find(r => r[0] === id); if (!row || S.zone) return false;
+  const row = SHOP_STOCK.find(r => r[0] === id); if (!row) return false;
   const [, price] = row, name = ITEMS[id].name;
   if (S.silver < price) { shopPoor(price, name); return false; }
   if (!give(id, 1, true)) { notify.refresh(); return false; }
@@ -172,7 +161,7 @@ function buyItem(id) {
   return true;
 }
 function buyGear(base, tier) {
-  const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row || S.zone) return false;
+  const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row) return false;
   const price = row[2], name = EQUIP_BASES[base].names[tier - 1];
   if (S.silver < price) { shopPoor(price, name); return false; }
   if (!giveGear(makeGear(base, tier, 0, false), true)) { notify.refresh(); return false; }
@@ -182,7 +171,7 @@ function buyGear(base, tier) {
   return true;
 }
 function sellItem(id, n = 1) {
-  const price = itemSellPrice(id); if (S.zone || !price || !has(id)) return 0;
+  const price = itemSellPrice(id); if (!price || !has(id)) return 0;
   n = Math.min(n, count(id));
   take(id, n); S.silver += price * n;
   log(`💰 ${hlItem(ITEMS[id].name)} ×${n}을 팔아 ${hlSilver(price * n)}을 받았습니다. 왕 가: ${pick(MERCHANT.sellLines)}`, 'loot');
@@ -190,7 +179,7 @@ function sellItem(id, n = 1) {
   return price * n;
 }
 function sellGear(uid) {
-  const i = S.gear.findIndex(g => g.uid === uid); if (i < 0 || S.zone) return 0;
+  const i = S.gear.findIndex(g => g.uid === uid); if (i < 0) return 0;
   const it = S.gear[i], price = gearSellPrice(it); if (!price) return 0;
   S.gear.splice(i, 1); S.silver += price;
   log(`💰 [${RARITY[it.rarity].name}] ${hlItem(gearName(it))}${jo(gearName(it), '을를')} 팔아 ${hlSilver(price)}을 받았습니다.`, 'loot');

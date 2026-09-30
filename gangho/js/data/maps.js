@@ -1,13 +1,26 @@
-/* [데이터] 사냥터 지형 가중치 · 금고 보상 풀 · 사건(기연) 표 — 순수 정적 데이터 (로직 없음) */
+/* [데이터] 탐험 규칙 · 조우 가중치 · 금고 보상 풀 · 사건(기연) 표 — 순수 정적 데이터 (로직 없음) */
 
-/* 사냥터 지도: 가로 12 × 세로 10. 입장할 때마다 새로 생성한다 (systems/explore_engine.js의 generateLayout).
-   입구는 좌측 하단, 두목은 우측 상단 끝. 인접(대각 포함)한 노드끼리 연결된다. */
-const MAP_W = 12, MAP_H = 10;
+/* 자동 탐험: 한 시간에 한 번, 제자가 고른 구역으로 나가 기력을 모두 쓸 때까지 조우를 겪는다.
+   interval: 탐험 간격(ms) · maxQueue: 자리를 비운 동안 쌓이는 최대 횟수 · keep: 보관하는 탐험 기록 수
+   weights: 한 걸음마다 무엇을 만날지 · bossFrom: 기력을 이만큼 쓴 뒤부터 두목이 나올 수 있음
+   potionAt: 활력이 이 비율 아래면 금창약을 먹음 · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율
+   retreatAt: 금창약이 없고 활력이 이 비율 아래면 스스로 발길을 돌림 (벌칙 없음)
+   defeatLoss: 쓰러지면 이번 탐험에서 번 은자 중 잃는 비율 */
+const EXPEDITION = {
+  interval: 3600000, maxQueue: 8, keep: 8,
+  weights: { beast: 60, vault: 20, event: 6, trap: 7, gimmick: 7 },
+  bossFrom: 0.6, bossChance: 0.3, potionAt: 0.35, breathe: 0.08, retreatAt: 0.3, defeatLoss: 0.5, minStamina: 3, maxRounds: 60,
+};
+/* 탐험 중 조우 문구 */
+const EXP_TEXT = {
+  depart: ['짐을 꾸려 산문을 나섭니다.', '새벽 안개를 헤치고 길을 떠납니다.', '조운 사형의 배웅을 받으며 출발합니다.'],
+  avoid: '멀리서 느껴지는 기척이 너무 무겁습니다. 몸을 낮춰 조용히 물러났습니다.',
+  tired: '기력이 다해 발걸음을 돌립니다.',
+  retreat: '상처가 깊고 금창약도 떨어졌습니다. 무리하지 않고 발길을 돌립니다.',
+  defeat: '눈앞이 캄캄해집니다… 지나던 약초꾼이 청풍문까지 업어다 주었습니다.',
+};
 
-/* 산길 약 50%. 요수(妖獸)는 밟는 순간 지역 요수 중 하나가 무작위로 나타난다. 함정은 산길과 똑같이 보인다. */
-const MAP_SPEC = { void: [0.08, 0.1], beast: [23, 27], chest: [19, 23], event: [2, 3], trap: [4, 6] };   // 채집 노드는 모두 금고로 통합
-
-/* 요수 출현 가중치: [약한 요수 1, 약한 요수 2, 중형] — 깊은 곳일수록 중형이 잦다 */
+/* 요수 출현 가중치: [약한 요수 1, 약한 요수 2, 중형] — 탐험 후반(기력 절반 이상 쓴 뒤)일수록 중형이 잦다 */
 const BEAST_WEIGHT = { shallow: [50, 35, 15], deep: [30, 30, 40] };
 
 /* 금고(金庫): 열면 네 가지 중 하나 */
@@ -60,7 +73,8 @@ const STAMINA_COST = { battle: 4, herb: 3, mine: 3, chest: 3, gimmick: 5, boss: 
 /* ───────── 사냥터 사건 (기연 奇緣) ─────────
    zones: 나오는 지역 ('all'이면 어디서나). 선택지 req는 조건(부족하면 고를 수 없음),
    take: true면 조건으로 건 아이템·은자를 소모. out은 가중치(w)로 하나를 고른다.
-   fx 효과: silver, items, hpPct, stamina, contrib, trainHours, buff, perm, reveal, clue, book, gear:[tier, rarity]
+   fx 효과: silver, items, hpPct, stamina, contrib, exp, buff, perm, clue, book, gear:[tier, rarity]
+   자동 탐험에서는 제자가 조건을 채운 선택지 중 하나를 스스로 고른다
    fight: 적 id → 전투, bonus: 이기면 추가로 받는 fx */
 const EVENTS = [
   { id: 'herbalist', zones: ['cheongpung'], title: '부상당한 약초꾼',
@@ -84,7 +98,7 @@ const EVENTS = [
     text: '덩굴에 휘감긴 낡은 비석이 서 있습니다. 반쯤 지워진 글자 사이로 희미한 검결(劍訣)이 새겨져 있습니다.',
     choices: [
       { label: '내공으로 비문을 읽어 낸다', req: { stat: ['maxMp', 60] }, out: [
-        { w: 3, text: '글자가 눈앞에서 살아 움직입니다. 수련 중이던 무공의 한 대목이 환하게 풀립니다.', fx: { trainHours: 2 } },
+        { w: 3, text: '글자가 눈앞에서 살아 움직입니다. 수련 중이던 무공의 한 대목이 환하게 풀립니다.', fx: { exp: 120 } },
         { w: 1, text: '글자를 쫓다 머리가 어지러워집니다. 기혈이 잠시 뒤틀렸습니다.', fx: { hpPct: -0.1 } }] },
       { label: '이끼를 걷어 내고 탁본을 뜬다', out: [{ w: 1, text: '탁본을 챙겼습니다. 장경각 노인이 반길 것 같습니다.', fx: { contrib: 20 } }] },
       { label: '지나친다', out: [{ w: 1, text: '비석은 말없이 이끼 속으로 다시 잠깁니다.', fx: {} }] },
@@ -110,7 +124,7 @@ const EVENTS = [
   { id: 'deserter', zones: ['yeomhwa'], title: '화적 탈영병',
     text: '찢어진 두건을 쓴 어린 화적이 칼을 버리고 무릎을 꿇습니다. "살려만 주십시오. 채주에게 돌아가면 죽습니다."',
     choices: [
-      { label: '보내 준다', out: [{ w: 1, text: '소년이 떠나며 속삭입니다. "이 소굴의 길은… 이렇게 나 있습니다." 채 안의 지형이 머릿속에 그려집니다.', fx: { reveal: true } }] },
+      { label: '보내 준다', out: [{ w: 1, text: '소년이 떠나며 속삭입니다. "이 소굴의 길은… 이렇게 나 있습니다." 지름길을 알아 기운을 아꼈습니다.', fx: { stamina: 20 } }] },
       { label: '붙잡아 문파에 넘긴다', out: [{ w: 1, text: '소년을 청풍문으로 보냈습니다. 장문인이 화적 소굴의 사정을 캐물을 것입니다.', fx: { contrib: 40 } }] },
       { label: '가진 것을 내놓게 한다', out: [{ w: 1, text: '소년이 떨리는 손으로 주머니를 내밉니다. 은자 몇 냥과 불씨석 하나.', fx: { silver: 25, items: { emberStone: 1 } } }] },
     ] },
@@ -138,7 +152,7 @@ const EVENTS = [
     text: '안개 낀 강가에 낚싯대 하나만 드리운 노인이 미동도 없이 앉아 있습니다. 물고기가 그의 낚싯바늘 주위만 맴돕니다.',
     choices: [
       { label: '가르침을 청한다', req: { star: 6 }, out: [
-        { w: 1, text: '"칼끝이 아니라 물결을 보거라." 노인의 한마디에 막혔던 무리(武理)가 트입니다.', fx: { trainHours: 4 } }] },
+        { w: 1, text: '"칼끝이 아니라 물결을 보거라." 노인의 한마디에 막혔던 무리(武理)가 트입니다.', fx: { exp: 300 } }] },
       { label: '말없이 곁에 앉는다', out: [
         { w: 1, text: '해가 기울도록 물결만 바라보았습니다. 마음이 잔잔해집니다.', fx: { buff: { key: 'train', val: 0.5, dur: 1800, name: '고요한 물결' } } }] },
       { label: '물고기를 나눠 달라 한다', out: [{ w: 1, text: '노인이 망태기를 통째로 내밉니다. "많이 먹고 크거라."', fx: { items: { fish: 3 } } }] },
@@ -190,6 +204,3 @@ const EVENTS = [
       { label: '"칼입니다."', out: [{ w: 1, text: '"칼은 입이 없어도 사람을 울리지. 허나 발이 없으니 천 리는 못 가오." 스님이 혀를 찹니다.', fx: {} }] },
     ] },
 ];
-
-/* 8방향 이동: [dx, dy, 화살표] */
-const DIRS = [[-1, -1, '↖'], [0, -1, '↑'], [1, -1, '↗'], [-1, 0, '←'], [1, 0, '→'], [-1, 1, '↙'], [0, 1, '↓'], [1, 1, '↘']];

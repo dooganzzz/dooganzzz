@@ -24,16 +24,10 @@ async function startEquipped(p) {
   await p.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
 }
 const VIEWPORTS = [[1280, 900], [390, 844]];
-// 3초 주기 자동 전투를 검사에서는 즉시 끝까지 돌린다
+// 전투는 fight()가 한 판을 끝까지 계산한다. 검사에서는 fightSync(eid)로 부른다 (탐험 밖에서 전투 하나만 시험할 때)
 async function newPage(browser, w, h) {
   const p = await browser.newPage({ viewport: { width: w, height: h } });
-  await p.addInitScript(() => {
-    window.fightSync = (eid, maxRounds = 300) => {
-      startBattle(eid); stopBattleTimer();
-      let n = 0; while (!RT.battle.over && n++ < maxRounds) battleRound();
-      return RT.battle;
-    };
-  });
+  await p.addInitScript(() => { window.fightSync = eid => fight(eid); });
   return p;
 }
 module.exports = { playwright, GAME_URL, ok, result, watchErrors, startEquipped, VIEWPORTS, newPage };

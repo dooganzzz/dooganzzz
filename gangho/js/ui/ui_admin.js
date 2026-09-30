@@ -4,7 +4,7 @@
    ② 별도 창 (admin.html): 오버레이의 [새 창 ↗] 또는 admin.html을 직접 연다. 같은 출처의 게임 창과
       BroadcastChannel로 이어져 게임이 1초마다 상태·추적을 보내고, 관리자 창은 명령만 보낸다.
       게임을 새로고침·초기화해도 관리자 창과 추적 기록은 남고 다시 이어진다.
-   값 주입은 언제나 게임 쪽에서 기존 시스템 함수(give·advance·clampVitals·doReset …)로 실행한다 (GM_CMDS). */
+   값 주입은 언제나 게임 쪽에서 기존 시스템 함수(give·runExpedition·settleExpeditions·clampVitals·doReset …)로 실행한다 (GM_CMDS). */
 
 /* 출시 때 false로 두면 버튼·단축키가 모두 사라진다 */
 const GM_ENABLED = true;
@@ -70,10 +70,11 @@ function gmRenderLive() {
   const st = calcStats();
   const row = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
   const arts = CAT_ORDER.map(c => { const id = S.active[c], m = id && S.manuals[id];
-    return `<tr><td>${CATS[c].name}</td><td><code>${id || '—'}</code></td><td>${id ? MANUALS[id].name : ''}</td><td>${m ? m.star + '성' + (m.gate ? ' 관문' : '') : ''}</td><td>${m ? `실전 ${Math.floor(m.cxp)}/${needC(m.star)} · 수련 ${Math.floor(m.txp)}/${need(m.star)}${S.activeTrainingSkillId === id ? ' ▶' : ''}` : ''}</td></tr>`; }).join('');
+    return `<tr><td>${CATS[c].name}</td><td><code>${id || '—'}</code></td><td>${id ? MANUALS[id].name : ''}</td><td>${m ? m.star + '성' : ''}</td><td>${m ? (m.star >= MAX_STAR ? '대성' : `다음 ${fmt(starCost(id))}${GATES[m.star] ? ' + ' + GATES[m.star] : ''}${starUpBlock(id) ? '' : ' ✔'}`) : ''}</td></tr>`; }).join('');
+  const X = S.expedition, left = nextExpeditionIn();
   const inv = Object.entries(S.inv).map(([id, n]) => `<span class="gm-chip"><code>${id}</code> ×${n}</span>`).join('') || '<span class="gm-muted">비어 있음</span>';
-  box.innerHTML = `<div class="gm-kv">${row('전투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('위치', S.zone ? `${S.zone.id} (${S.zone.x},${S.zone.y})` : '청풍문')}${row('전투', RT.battle ? `${RT.battle.eid} ${RT.battle.round}합${RT.battle.over ? ' 끝' : ''}` : '—')}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
-    <table class="gm-table"><thead><tr><th>분류</th><th>ID</th><th>무공</th><th>성</th><th>경험치</th></tr></thead><tbody>${arts}</tbody></table>
+  box.innerHTML = `<div class="gm-kv">${row('전투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('경험치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('다음 출발', left === null ? '—' : `${Math.floor(left / 60000)}분 ${Math.floor(left / 1000) % 60}초`)}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
+    <table class="gm-table"><thead><tr><th>분류</th><th>ID</th><th>무공</th><th>성</th><th>다음 성급</th></tr></thead><tbody>${arts}</tbody></table>
     <div class="gm-chips">${inv}</div>
     ${S.gear.length ? `<div class="gm-chips">${S.gear.map(g => `<span class="gm-chip">uid ${g.uid} · ${g.name}${g.enh ? ' +' + g.enh : ''}</span>`).join('')}</div>` : ''}`;
   const keep = raw.scrollTop;
@@ -130,15 +131,18 @@ function gmGiveMats(rid) { gmDo('mats', rid); }
 
 /* 5. 쾌속 치트 */
 function gmViewCheat() {
-  const tid = S && S.activeTrainingSkillId, m = tid && S.manuals[tid];
+  const zone = S && S.expedition.zone;
   return `<div class="gm-cheats">
     <button class="gm-btn big" data-gm="silver" ${S ? '' : 'disabled'}>[은자 +1,000냥]</button>
+    <button class="gm-btn big" data-gm="exp" ${S ? '' : 'disabled'}>[경험치 +1,000]</button>
     <button class="gm-btn big" data-gm="heal" ${S ? '' : 'disabled'}>[활력/내력 100% 회복]</button>
     <button class="gm-btn big" data-gm="stamina" ${S ? '' : 'disabled'}>[기력 가득]</button>
-    <button class="gm-btn big" data-gm="train" ${m ? '' : 'disabled'}>[수련 1시간 경과]</button>
+    <button class="gm-btn big" data-gm="expedite" ${S ? '' : 'disabled'}>[탐험 즉시 1회]</button>
+    <button class="gm-btn big" data-gm="hour" ${zone ? '' : 'disabled'}>[1시간 경과 (예약된 탐험 결산)]</button>
+    <button class="gm-btn big" data-gm="hours8" ${zone ? '' : 'disabled'}>[10시간 경과 (8번까지만 쌓임 확인)]</button>
     <button class="gm-btn big danger ${GM.resetArm ? 'armed' : ''}" data-gm="reset">${GM.resetArm ? '[정말 초기화 — 한 번 더 누르기]' : '[데이터 완전 초기화]'}</button>
   </div>
-  <p class="gm-muted">${m ? `수련 중: 《${MANUALS[tid].name}》 ${m.star}성 · 수련 ${Math.floor(m.txp)} / ${need(m.star)}초` : '수련 중인 비급이 없습니다. 연무장에서 [ 수련하기 ]를 먼저 누르십시오.'}</p>`;
+  <p class="gm-muted">${zone ? `탐험지 ${zone} · 기력 ${Math.round(S.stamina)}` : '탐험지가 없으면 [탐험 즉시 1회]는 청풍산으로 보냅니다.'}</p>`;
 }
 function gmCheat(what) {
   if (what === 'reset' && !GM.resetArm) { GM.resetArm = true; gmRender(); return; }
@@ -174,12 +178,20 @@ const GM_CMDS = {
     if (what === 'silver') { S.silver += 1000; gmTrace('gm', `은자 +1000 → ${S.silver}`); }
     if (what === 'heal') { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; gmTrace('gm', `활력·내력 회복 → ${st.maxHp} / ${st.maxMp}`); }
     if (what === 'stamina') { S.stamina = calcStats().maxSta; gmTrace('gm', `기력 → ${S.stamina}`); }
-    if (what === 'train') {
-      const id = S.activeTrainingSkillId; if (!id) return;
-      const before = S.manuals[id].star;
-      advance(3600, false);                                // 연무장 시간 흐름을 그대로 1시간 돌린다 (관문·돌파 판정 포함)
-      const m = S.manuals[id];
-      gmTrace('gm', `수련 +1시간: ${id} ${before}성 → ${m.star}성${m.gate ? ' (관문)' : ''} · 수련 ${Math.floor(m.txp)}/${need(m.star)}`);
+    if (what === 'exp') { S.exp += 1000; gmTrace('gm', `경험치 +1000 → ${S.exp}`); }
+    if (what === 'expedite') {                               // 일정과 상관없이 지금 한 번 다녀오게 한다 (기력은 가득 채워서)
+      if (!S.expedition.zone) { S.expedition.zone = 'cheongpung'; S.expedition.nextAt = now() + EXPEDITION.interval; }
+      S.stamina = Math.max(S.stamina, calcStats().maxSta);
+      const r = runExpedition(now());
+      gmTrace('gm', `탐험 즉시: ${r.zone} ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver} · 경험치 ${r.gain.exp}`);
+      notify.view({ modal: 'settle:' + r.id });
+    }
+    if (what === 'hour' || what === 'hours8') {               // 예약 시각을 앞당겨 실제 결산 경로(settleExpeditions)를 그대로 탄다
+      const h = what === 'hour' ? 1 : 10;
+      S.expedition.nextAt -= h * EXPEDITION.interval;
+      const recs = settleExpeditions();
+      gmTrace('gm', `${h}시간 경과: 탐험 ${recs.length}번 결산`);
+      if (recs.length) notify.view({ modal: 'settle:' + recs.map(r => r.id).join(',') });
     }
   },
 };

@@ -35,12 +35,12 @@ module.exports = async (b) => {
     ok('1 능력치 변동(최대 활력 +40) → 반영', m.perm, JSON.stringify(m));
     const br = await p.evaluate(() => {
       const id = S.active.simbeop, mm = S.manuals[id], before = S.combatPower, g = GRADES[MANUALS[id].grade].mult;
-      toggleTraining('simbeop'); mm.txp = need(mm.star); mm.cxp = needC(mm.star); tryStar(id);
+      S.exp = starCost(id); starUp(id);
       return { before, after: S.combatPower, star: mm.star, g };
     });
     await p.waitForTimeout(1100);                                  // 돌파 뒤 다음 틱까지
     const br2 = await p.evaluate(() => ({ now: S.combatPower, calc: calculateCombatPower(S) }));
-    ok('1 성급 돌파 → 틱 안에 거울 값 갱신', br2.now === br2.calc && br2.now > br.before, JSON.stringify({ br, br2 }));
+    ok('1 성급 올리기 → 거울 값 갱신', br2.now === br2.calc && br2.now > br.before, JSON.stringify({ br, br2 }));
 
     // 2. 상단 헤더 · 변화량
     const hd = await p.evaluate(() => { const el = document.querySelector('#status .cp'); return { text: el.textContent, title: el.title, cp: fmt(calculateCombatPower(S)) }; });

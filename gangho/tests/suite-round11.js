@@ -1,4 +1,4 @@
-/* 손맛 연출: 피해 숫자·섬광·잔떨림, 수련 광원·기운 입자, 타자기, 지도 호버·도착 스케일 */
+/* 손맛 연출: 피해 숫자·섬광·잔떨림(관찰하기 창), 타자기, 움직임 줄이기 */
 'use strict';
 const { ok, GAME_URL, watchErrors, VIEWPORTS, newPage } = require('./lib');
 
@@ -27,20 +27,25 @@ module.exports = async (b) => {
     // 1. 전투 연출
     const logic = await p.evaluate(() => {
       const r0 = Math.random, out = {};
-      startBattle('boar'); stopBattleTimer();
-      const bt = RT.battle; bt.fx = [];
+      const bt = { eid: 'boar', e: { ...ENEMIES.boar, hpNow: 1e9 }, lines: [], fx: [], st: calcStats(), over: false }; RT.battle = bt;
       Math.random = () => 0.999; enemyTurn(bt); out.dodge = bt.fx[0];
       bt.fx = []; Math.random = () => 0.5; S.hp = 9999; bt.st.critRes = 99; enemyTurn(bt); out.me = bt.fx.find(f => f.side === 'me');
       bt.fx = []; Math.random = () => 0; playerHit(bt, 1, '평타'); out.foe = bt.fx.find(f => f.side === 'foe');
-      Math.random = r0;
+      Math.random = r0; RT.battle = null;
       return out;
     });
     ok('1 회피 → "회피!" (dodge)', logic.dodge && logic.dodge.t === '회피!' && logic.dodge.k === 'dodge', JSON.stringify(logic.dodge));
     ok('1 약한 피격은 강타 아님', logic.me && logic.me.k === 'hit' && logic.me.big === false, JSON.stringify(logic.me));
     ok('1 치명타는 강타(big)', logic.foe && logic.foe.k === 'crit' && logic.foe.big === true, JSON.stringify(logic.foe));
 
+    // 연출은 관찰하기(리플레이) 창에서 합마다 재생된다: 기록 하나를 만들어 한 합씩 넘겨 본다
     const vis = await p.evaluate(async () => {
-      RT.battle.fx = [{ side: 'foe', t: '-12', k: 'hit' }]; renderBattle();
+      const R = (fx, foe) => ({ lines: [{ text: '합', cls: '' }], fx, me: { hp: 100, mp: 40 }, foe });
+      S.expeditions.push({ id: 999999, at: now(), zone: 'cheongpung', steps: [], wins: 1, losses: 0, gain: {}, battles: [{ eid: 'boar', name: '멧돼지', boss: false, win: true, intro: [{ text: '⚔️ 시작', cls: 'head' }],
+        start: { me: { hp: 100, mp: 40, maxHp: 100, maxMp: 40 }, foe: { hp: 140, maxHp: 140 } },
+        rounds: [R([{ side: 'foe', t: '-12', k: 'hit' }], 128), R([{ side: 'foe', t: '-40', k: 'crit', big: true }, { side: 'me', t: '회피!', k: 'dodge' }], 88), R([], 0)], exp: 0, silver: 0 }] });
+      openReplay('999999:0'); replayStop(); RP.playing = false;
+      replayStep();
       await new Promise(r => setTimeout(r, 30));
       const foe = document.getElementById('pl-foe'), hit = foe.querySelector('.fx-num.hit');
       const o = {
@@ -48,7 +53,7 @@ module.exports = async (b) => {
         flash: foe.classList.contains('flash-hit'), overlay: getComputedStyle(foe.querySelector('.seal-av'), '::after').animationName,
         overlayDur: getComputedStyle(foe.querySelector('.seal-av'), '::after').animationDuration, shakeOnHit: foe.classList.contains('shake'),
       };
-      RT.battle.fx = [{ side: 'foe', t: '-40', k: 'crit', big: true }, { side: 'me', t: '회피!', k: 'dodge' }]; renderBattle();
+      replayStep();
       await new Promise(r => setTimeout(r, 30));
       const foe2 = document.getElementById('pl-foe'), crit = foe2.querySelector('.fx-num.crit'), dg = document.querySelector('#pl-me .fx-num.dodge');
       const cs = getComputedStyle(crit);
@@ -66,64 +71,7 @@ module.exports = async (b) => {
     ok('1 치명타 숫자 1.5배·굵은 금색·떨림', Math.abs(vis.critSize / vis.hitSize - 1.5) < 0.05 && vis.critWeight === '900' && /rgb\(255, 210, 74\)/.test(vis.critColor) && vis.critAnim === 'fxCrit', JSON.stringify([vis.critSize, vis.hitSize, vis.critColor, vis.critWeight, vis.critAnim]));
     ok('1 치명·강타 → 0.15초 shake', vis.shake && vis.shakeAnim === 'shake' && vis.shakeDur === '0.15s', `${vis.shakeAnim} ${vis.shakeDur}`);
     ok('1 회피는 청록색으로 솟구침·흔들림 없음', /rgb\(110, 231, 216\)/.test(vis.dodgeColor) && vis.dodgeAnim === 'fxRise' && !vis.meShake, `${vis.dodgeColor} ${vis.dodgeAnim}`);
-    await p.evaluate(() => { stopBattleTimer(); RT.battle = null; });
-
-    // 2. 연무장
-    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'yeonmu'; render(); });
-    await p.click('[data-train]');
-    const art = await p.evaluate(() => {
-      const t = document.querySelector('.art.training'), q = t && t.querySelector('.qi-rise');
-      return { n: document.querySelectorAll('.art.training').length, anim: t && getComputedStyle(t).animationName, parts: q ? q.querySelectorAll('i').length : 0,
-        partAnim: q && getComputedStyle(q.querySelector('i')).animationName, haze: q && getComputedStyle(q, '::before').animationName,
-        others: document.querySelectorAll('.art:not(.training) .qi-rise').length, clip: t && getComputedStyle(t).overflow };
-    });
-    ok('2 수련 카드 광원이 숨 쉬듯 (auraBreath)', art.n === 1 && art.anim === 'auraBreath', art.anim);
-    ok('2 아래서 위로 기운 입자·아지랑이', art.parts >= 6 && art.partAnim === 'qiUp' && art.haze === 'hazeRise' && art.clip === 'hidden', JSON.stringify(art));
-    ok('2 수련 안 하는 카드엔 입자 없음', art.others === 0);
-    await p.click('.art.training [data-train]');
-    ok('2 수련 중지 시 광원·입자 해제', (await p.$$('.art.training, .qi-rise')).length === 0);
-
-    // 3. 기연 문구도 타자기
-    const ev = await p.evaluate(() => {
-      if (S.zone) leaveZone(); enterZone('cheongpung'); S.stamina = 100;
-      const key = S.zone.layout.flatMap((row, y) => [...row].map((c, x) => c === 'E' ? `${x},${y}` : null)).find(Boolean);
-      openEvent(key);
-      const el = document.querySelector('.ev-text');
-      return { tw: el.dataset.tw, typing: el.classList.contains('typing'), title: document.querySelector('.event-sheet h2').textContent };
-    });
-    ok('3 기연 문구 타자기', ev.tw === 'ev' && ev.typing, JSON.stringify(ev));
-    await p.click('.ev-text');
-    ok('3 문구 클릭 → 즉시 전부', await p.evaluate(() => !document.querySelector('.ev-text').classList.contains('typing') && document.querySelector('.ev-text').textContent.length > 10));
-    await p.evaluate(() => { ui.modal = null; S.zone.evResult = S.zone.evResult || {}; render(); });
-
-    // 4. 지도
-    const mp = await p.evaluate(() => {
-      const L = S.zone.layout, pos = [];
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
-        const nx = S.zone.x + dx, ny = S.zone.y + dy;
-        if (passable(S.zone.id, nx, ny) && !['T', 'E', 'Y'].includes(tileAt(S.zone.id, nx, ny))) { pos.push([dx, dy]); break; }
-      }
-      if (!pos.length) return { none: true };
-      move(...pos[0]);
-      const here = document.querySelector('.map-scroll .cell.here');
-      return { step: here.classList.contains('step'), anim: getComputedStyle(here).animationName, dur: getComputedStyle(here).animationDuration };
-    });
-    ok('4 이동 시 도착 칸 0.2초 scale', mp.none || (mp.step && /stepPop/.test(mp.anim) && /^0\.2s/.test(mp.dur)), JSON.stringify(mp));
-    await p.waitForTimeout(320);
-    ok('4 도착 연출 뒤 step 해제', (await p.$$('.cell.here.step')).length === 0);
-    const hov = {};
-    for (const t of ['beast', 'chest', 'gimmick']) {
-      await p.evaluate(tp => { const S0 = S.seen[S.zone.id]; S.zone.layout.forEach((row, y) => [...row].forEach((c, x) => { if (c !== '_') S0[`${x},${y}`] = 1; })); render(); }, t);
-      const sel = `.map-scroll .cell.${t}:not(.here)`;
-      const el = await p.$(sel); if (!el) continue;
-      await el.scrollIntoViewIfNeeded(); await el.hover(); await p.waitForTimeout(600);   // .18s 전환이 끝날 때까지 (부하 때 여유)
-      hov[t] = await el.evaluate(e => ({ tf: getComputedStyle(e).transform, sh: getComputedStyle(e).boxShadow }));
-    }
-    const lift = v => v && /matrix\(1, 0, 0, 1, 0, -2\)/.test(v.tf);
-    ok('4 호버 시 위로 2px', ['beast', 'chest'].every(k => lift(hov[k])), JSON.stringify(Object.fromEntries(Object.entries(hov).map(([k, v]) => [k, v.tf]))));
-    ok('4 요수 붉은빛 광채', hov.beast && /rgba\(230, 80, 60/.test(hov.beast.sh), hov.beast && hov.beast.sh);
-    ok('4 금고 황금빛 광채', hov.chest && /rgba\(240, 200, 80/.test(hov.chest.sh), hov.chest && hov.chest.sh);
-    ok('4 채집지(기관) 초록빛 광채', !hov.gimmick || /rgba\(110, 210, 120/.test(hov.gimmick.sh), hov.gimmick && hov.gimmick.sh);
+    await p.evaluate(() => { replayStop(); ui.modal = null; S.expeditions.pop(); render(); });
 
     // 움직임 줄이기 설정 존중
     const rm = await b.newPage({ viewport: { width: w, height: h }, reducedMotion: 'reduce' });

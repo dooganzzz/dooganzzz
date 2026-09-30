@@ -8,8 +8,6 @@ Bus.on('refresh', () => render());
 Bus.on('view', patch => Object.assign(ui, patch));
 Bus.on('tick', () => renderHeader());
 
-/* 강호견문록 — 게임 로직 & 화면 */
-'use strict';
 /* DOM 선택 도우미 */
 const $ = sel => document.querySelector(sel);
 const label = (ko, hj) => `<b class="ko">${ko}</b><small class="hj">${hj}</small>`;
@@ -17,20 +15,18 @@ const label = (ko, hj) => `<b class="ko">${ko}</b><small class="hj">${hj}</small
 /* ───────── 화면 ───────── */
 /* 1차 탭 */
 const TABS = [
-  ['sect', '청풍문', '淸風門'],    // 하위: 정청 · 연무장 · 화로 · 뒷마당 · 무신상 · 전방
+  ['sect', '청풍문', '淸風門'],    // 하위: 정청 · 화로 · 뒷마당 · 무신상 · 전방
   ['status', '상태', '狀態'],      // 하위: 무장 · 무공
   ['bag', '행낭', '行囊'],
   ['field', '강호행', '江湖行'],
   ['codex', '도감', '圖鑑'],
 ];
 /* 2차 탭 (청풍문 시설 · 상태) */
-const SECT_SUBS = [['hall', '정청', '正廳'], ['yeonmu', '연무장', '演武場'], ['forge', '화로', '火爐'], ['yard', '뒷마당', '後院'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
+const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yard', '뒷마당', '後院'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
 const STATUS_SUBS = [['gear', '무장', '武裝'], ['martial', '무공', '武功']];
 const SUBS = { sect: SECT_SUBS, status: STATUS_SUBS };
 const SUB_KEY = { sect: 'sectSub', status: 'statusSub' };
 
-/* 사냥터에 나가 있으면 쓸 수 없는 시설 (연무장은 어디서나 볼 수 있다) */
-const BASE_TABS = new Set(['shrine', 'forge', 'yard', 'hall', 'shop']);
 
 /* 지금 보이는 화면: 1차 탭이 하위 탭을 가지면 고른 하위 탭 */
 function screen() {
@@ -67,13 +63,13 @@ function cpDeltaHtml(cp) {
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S);
   $('#status').innerHTML = `
-    <div class="who"><span class="name">${esc(S.name)}</span><span class="sect">청풍문 제자 · ${S.zone ? ZONES[S.zone.id].name : '청풍문'}</span></div>
-    <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}${bar('sta', S.stamina, st.maxSta, '기력')}</div>
-    <div class="purse"><span class="cp" title="종합 전투력"><i class="coin cpi">戰</i>${fmt(cp)}${cpDeltaHtml(cp)}</span><span title="은자"><i class="coin">銀</i>${fmt(S.silver)}</span><span title="문파 공헌도"><i class="coin c2">功</i>${fmt(S.contrib)}</span></div>`;
+    <div class="who"><span class="name">${esc(S.name)}</span><span class="sect">청풍문 제자 · ${S.expedition.zone ? `⛰️ ${ZONES[S.expedition.zone].name} · 다음 출발 <b>${countdownText()}</b>` : '탐험지 미정'}</span></div>
+    <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}${bar('sta', Math.min(S.stamina, st.maxSta), st.maxSta, '기력')}</div>
+    <div class="purse"><span class="cp" title="종합 전투력"><i class="coin cpi">戰</i>${fmt(cp)}${cpDeltaHtml(cp)}</span><span class="xp" title="경험치 (상태 › 무공에서 성급 올리기)"><i class="coin c3">經</i>${fmt(S.exp)}</span><span title="은자"><i class="coin">銀</i>${fmt(S.silver)}</span><span title="문파 공헌도"><i class="coin c2">功</i>${fmt(S.contrib)}</span></div>`;
 }
 
 function renderTabs() {
-  $('#tabs').innerHTML = TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}" ${RT.battle && id !== 'field' ? 'disabled' : ''}>${label(ko, hj)}</button>`).join('');
+  $('#tabs').innerHTML = TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}</button>`).join('');
 }
 
 /* 접기/펼치기 구역: 헤더를 누르면 본문에 .collapsed가 토글된다 (다시 그리지 않아 전환이 부드럽다) */
@@ -98,18 +94,10 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  if (BASE_TABS.has(scr) && S.zone) {
-    const [, ko, hj] = SECT_SUBS.find(t => t[0] === scr);
-    main.innerHTML = bar + `<section class="panel">${head(ko, hj)}<p class="story">지금은 ${ZONES[S.zone.id].name}에 나와 있습니다. 청풍문으로 돌아가야 이곳을 쓸 수 있습니다.</p><div><button class="btn" data-act="leave">청풍문으로 귀환</button></div></section>`;
-  } else {
-    main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, yeonmu: viewYeonmu, shrine: viewShrine, forge: viewForge, yard: viewYard, hall: viewHall, shop: viewShop, field: viewField, codex: viewCodex })[scr]();
-  }
+  main.innerHTML = bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, forge: viewForge, yard: viewYard, hall: viewHall, shop: viewShop, field: viewField, codex: viewCodex })[scr]();
   renderLog();
   renderModal();
   typewriteAll();
-  stepFx();
   wireImages();
-  drawMapLinks();
-  centerMap();
   save();
 }

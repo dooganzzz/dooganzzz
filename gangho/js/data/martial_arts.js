@@ -70,10 +70,9 @@ const MANUALS = {
 
 const STARTERS = ['samjaeGwon', 'samjaeGeom', 'samjaeDo', 'samjaeChang', 'samjaePyo'];
 const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창', hidden: '암기' };
-/* 성당 필요한 실전 승리 수: [입문 1~5성, 소성 6~11성] */
-const CXP_NEED = [10, 20];
-/* 자리를 비운 동안 쌓이는 폐관수련 한도 (초) */
-const OFFLINE_CAP = 24 * 3600;
+/* 성급을 올리는 데 드는 경험치: STAR_EXP[s - 1] = s성 → s+1성 (삼류 기준, 등급 계수를 곱한다).
+   5→6성(소성), 11→12성(대성)은 GATES의 돌파단도 함께 든다. 경험치는 탐험에서 적을 쓰러뜨려 얻는다. */
+const STAR_EXP = [60, 90, 130, 180, 260, 340, 430, 540, 660, 800, 1200];
 
 /* 종합 전투력 가중치: 최대 활력·내력, 공격력·방어력(장비·무공·무신상·버프 합계),
    장착 무공 4종마다 등급 계수(GRADES.mult) × 현재 성 × art */

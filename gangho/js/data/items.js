@@ -35,23 +35,23 @@ const ITEMS = {
   burntAsh:     { name: '탄 약초재',     icon: '🌫️', kind: '부산물', price: 0, desc: '연단 실패의 흔적. 무신상에 봉헌할 수 있다.' },
   dregs:        { name: '찌꺼기',        icon: '🫗', kind: '부산물', price: 0, desc: '조리 실패의 흔적. 무신상에 봉헌할 수 있다.' },
   // 연단
-  pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  use: { gate: 5 }, desc: '복용하면 소성 관문(5성→6성)에 막힌 비급이 소성(小成)에 이른다.' },
-  pillMid:   { name: '청심정기단', icon: '🔵', kind: '영단', price: 150, use: { buff: { key: 'train', val: 0.5, dur: 1800, name: '정기 순환' } }, desc: '복용하면 30분간 수련 효율 +50%.' },
-  pillHigh:  { name: '대성 돌파단', icon: '🟣', kind: '영단', price: 500, use: { gate: 11 }, desc: '복용하면 대성 관문(11성→12성)에 막힌 비급이 대성(大成)에 이른다.' },
-  potionHp:  { name: '금창약',   icon: '🩹', kind: '영약', price: 8,  use: { hp: 0.4 }, desc: '활력을 40% 회복한다. 전투 중 사용 가능.' },
+  pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '5성 비급을 6성 소성(小成)으로 올릴 때 경험치와 함께 복용한다. (상태 › 무공)' },
+  pillMid:   { name: '청심정기단', icon: '🔵', kind: '영단', price: 150, use: { buff: { key: 'train', val: 0.5, dur: 1800, name: '정기 순환' } }, desc: '복용하면 다음 탐험 동안 경험치 획득 +50%.' },
+  pillHigh:  { name: '대성 돌파단', icon: '🟣', kind: '영단', price: 500, desc: '11성 비급을 12성 대성(大成)으로 올릴 때 경험치와 함께 복용한다. (상태 › 무공)' },
+  potionHp:  { name: '금창약',   icon: '🩹', kind: '영약', price: 8,  use: { hp: 0.4 }, desc: '활력을 40% 회복한다. 탐험 중 활력이 바닥나면 제자가 알아서 먹는다.' },
   potionMp:  { name: '소환단',   icon: '💧', kind: '영약', price: 12, use: { mp: 0.5 }, desc: '내력을 50% 회복한다. 전투 중 사용 가능.' },
   clearPill: { name: '청심단',   icon: '🤍', kind: '영약', price: 60, use: { hp: 1, mp: 1 }, desc: '활력과 내력을 모두 회복한다.' },
   fireElixir:{ name: '화령단',   icon: '♨️', kind: '영약', price: 80, use: { perm: { maxMp: 15 } }, desc: '복용 시 최대 내력이 영구히 15 오른다.' },
   bloodPill: { name: '혈삼환',   icon: '❤️', kind: '영약', price: 120, use: { perm: { maxHp: 40 } }, desc: '복용 시 최대 활력이 영구히 40 오른다.' },
   // 조리
-  jumeokbap: { name: '주먹밥',       icon: '🍙', kind: '음식', price: 5,  use: { stamina: 20 }, desc: '기력 +20.' },
-  rabbitRoast:{ name: '토끼구이',    icon: '🍗', kind: '음식', price: 6,  use: { stamina: 25 }, desc: '기력 +25.' },
-  boarSuyuk: { name: '멧돼지 수육', icon: '🍲', kind: '음식', price: 20, use: { stamina: 50, buff: { key: 'atk', val: 0.1, dur: 600, name: '수육의 힘' } }, desc: '기력 +50, 10분간 공격력 +10%.' },
-  lingzhiBap:{ name: '산채밥', icon: '🍛', kind: '음식', price: 25, use: { stamina: 40, buff: { key: 'train', val: 0.25, dur: 900, name: '산채밥 기운' } }, desc: '기력 +40, 15분간 수련 효율 +25%.' },
-  fireStew:  { name: '화룡 전골',   icon: '🥘', kind: '음식', price: 40, use: { stamina: 70, buff: { key: 'atk', val: 0.2, dur: 900, name: '화룡의 열기' } }, desc: '기력 +70, 15분간 공격력 +20%.' },
-  fishRoast: { name: '잉어 구이',   icon: '🍢', kind: '음식', price: 18, use: { stamina: 45 }, desc: '기력 +45.' },
-  fishCongee:{ name: '잉어 어죽',   icon: '🥣', kind: '음식', price: 50, use: { stamina: 100, buff: { key: 'def', val: 0.2, dur: 900, name: '어죽의 온기' } }, desc: '기력 +100, 15분간 방어력 +20%.' },
-  arinSnack: { name: '아린표 약과', icon: '🍪', kind: '음식', price: 0,  use: { stamina: 40 }, desc: '아린이 몰래 구운 약과. 기력 +40.' },
+  jumeokbap: { name: '주먹밥',       icon: '🍙', kind: '음식', price: 5,  use: { stamina: 20 }, desc: '다음 탐험 기력 +20 (최대치를 넘어 쌓인다).' },
+  rabbitRoast:{ name: '토끼구이',    icon: '🍗', kind: '음식', price: 6,  use: { stamina: 25 }, desc: '다음 탐험 기력 +25 (최대치를 넘어 쌓인다).' },
+  boarSuyuk: { name: '멧돼지 수육', icon: '🍲', kind: '음식', price: 20, use: { stamina: 50, buff: { key: 'atk', val: 0.1, dur: 600, name: '수육의 힘' } }, desc: '다음 탐험 기력 +50, 다음 탐험 동안 공격력 +10%.' },
+  lingzhiBap:{ name: '산채밥', icon: '🍛', kind: '음식', price: 25, use: { stamina: 40, buff: { key: 'train', val: 0.25, dur: 900, name: '산채밥 기운' } }, desc: '다음 탐험 기력 +40, 다음 탐험 동안 경험치 획득 +25%.' },
+  fireStew:  { name: '화룡 전골',   icon: '🥘', kind: '음식', price: 40, use: { stamina: 70, buff: { key: 'atk', val: 0.2, dur: 900, name: '화룡의 열기' } }, desc: '다음 탐험 기력 +70, 다음 탐험 동안 공격력 +20%.' },
+  fishRoast: { name: '잉어 구이',   icon: '🍢', kind: '음식', price: 18, use: { stamina: 45 }, desc: '다음 탐험 기력 +45 (최대치를 넘어 쌓인다).' },
+  fishCongee:{ name: '잉어 어죽',   icon: '🥣', kind: '음식', price: 50, use: { stamina: 100, buff: { key: 'def', val: 0.2, dur: 900, name: '어죽의 온기' } }, desc: '다음 탐험 기력 +100, 다음 탐험 동안 방어력 +20%.' },
+  arinSnack: { name: '아린표 약과', icon: '🍪', kind: '음식', price: 0,  use: { stamina: 40 }, desc: '아린이 몰래 구운 약과. 다음 탐험 기력 +40.' },
   // 증표
   hasanryeong: { name: '낙양성 하산령', icon: '📜', kind: '증표', price: 0, desc: '청풍문 장문인이 내린 하산 허가증. 제2장 낙양성으로 가는 길이 열린다.' },
   // 비급서: 모든 비급마다 '비급' 아이템이 있다. 행낭에서 [ 익히기 ]로 소모하면 습득한 무공 목록에 오른다.
@@ -91,7 +91,7 @@ const SLOTS = {
   belt:   { name: '요대',   desc: '내력 회복·행낭 확장' },
   jade:   { name: '옥패',   desc: '최대 내력·내력 소모 감소' },
   ring:   { name: '가락지', desc: '치명타율·기예 보정' },
-  badge:  { name: '신분패', desc: '방치 수련 효율' },
+  badge:  { name: '신분패', desc: '경험치 획득' },
   mount:  { name: '탈것',   desc: '최대 기력' },
 };
 
@@ -100,7 +100,7 @@ const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring'
 const STAT_NAMES = {
   atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피율',
   crit: '치명타율', critRes: '치명 저항', mpRegen: '내력 회복', bag: '행낭 칸', mpCost: '내력 소모 감소',
-  craft: '기예 보정', train: '수련 효율', maxSta: '최대 기력', counter: '반격',
+  craft: '기예 보정', train: '경험치 획득', maxSta: '최대 기력', counter: '반격',
 };
 
 const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter']);

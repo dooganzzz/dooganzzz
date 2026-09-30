@@ -1,6 +1,4 @@
-/* [화면] 탭 화면: 청풍문(정청·연무장·화로·뒷마당·무신상) · 상태(무장·무공) · 행낭 · 도감 */
-
-Bus.on('tick', () => renderLive());   // 연무장 수련 막대를 1초마다 갱신
+/* [화면] 탭 화면: 청풍문(정청·화로·뒷마당·무신상·전방) · 상태(무장·무공) · 행낭 · 도감 */
 
 /* ───────── 이미지 (없으면 대체 그림) ───────── */
 const IMG = {
@@ -32,61 +30,6 @@ function portrait(who, seal, name) {
 
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 
-/* 연무장 */
-function xpRows(id) {
-  const m = S.manuals[id], on = S.activeTrainingSkillId === id;
-  if (m.star >= MAX_STAR) return '<div class="daesung">大成</div>';
-  const pc = m.cxp / needC(m.star) * 100, pt = m.txp / need(m.star) * 100;
-  return `<div class="xp" data-live="${id}">
-    <div class="xprow"><span>실전</span><div class="xpbar c"><span style="width:${Math.min(100, pc)}%"></span></div><b>${Math.min(100, Math.floor(pc))}%</b></div>
-    <div class="xprow"><span>수련</span><div class="xpbar t"><span class="progress-fill${on ? ' training-active' : ''}" style="width:${Math.min(100, pt)}%"></span></div><b>${Math.min(100, Math.floor(pt))}%</b></div>
-  </div>`;
-}
-
-function starSig() { return Object.values(S.manuals).map(m => m.star + (m.gate ? 'g' : '')).join(); }
-
-function renderLive() {
-  if (screen() !== 'yeonmu' && !/^(manual|mart):/.test(ui.modal || '')) return;
-  if (screen() === 'yeonmu' && S.activeTrainingSkillId && Math.floor(now() / 1000) % 30 === 0 && !ui.modal) { render(); return; }
-  for (const el of document.querySelectorAll('[data-live]')) {
-    const m = S.manuals[el.dataset.live]; if (!m || m.star >= MAX_STAR) continue;
-    const rows = el.querySelectorAll('.xprow');
-    [m.cxp / needC(m.star), m.txp / need(m.star)].forEach((r, i) => { const p = r * 100; rows[i].querySelector('.xpbar > span').style.width = Math.min(100, p) + '%'; rows[i].querySelector('b').textContent = Math.min(100, Math.floor(p)) + '%'; });
-  }
-  const sig = document.querySelector('[data-starsig]');
-  if (sig && sig.dataset.starsig !== starSig()) render();
-}
-
-function viewYeonmu() {
-  const tid = S.activeTrainingSkillId;
-  const cards = CAT_ORDER.map(cat => {
-    const id = S.active[cat], M = MANUALS[id], m = S.manuals[id], C = CATS[cat];
-    if (!id) return `<div class="art empty-art">
-      <div class="art-top"><span class="art-cat">${label(C.name, C.hanja)}</span></div>
-      <p class="story muted">운용 중인 ${C.name}${jo(C.name, '이가')} 없습니다.</p>
-      <div><button class="btn sm" data-tab="status" data-sub="martial">상태 › 무공에서 장착</button></div>
-    </div>`;
-    const on = tid === id;
-    const left = on ? (need(m.star) - m.txp) / trainRate(id) : 0;
-    return `<div class="art ${on ? 'training' : ''}" data-manual="${cat}" role="button" tabindex="0">
-      ${on ? `<span class="qi-rise" aria-hidden="true">${'<i></i>'.repeat(9)}</span>` : ''}
-      <div class="art-top"><span class="art-cat">${label(C.name, C.hanja)}</span><span class="art-star">${m.star}<small>성</small></span></div>
-      <div class="art-name">《${M.name}》 ${realmTag(m.star)}${m.gate ? ' <span class="pill warn">관문</span>' : ''}</div>
-      ${xpRows(id)}
-      <div class="art-foot">
-        <small class="muted">${m.star >= MAX_STAR ? '대성' : on ? (m.txp >= need(m.star) ? `수련 가득 참 · 실전 ${Math.max(0, needC(m.star) - Math.floor(m.cxp))}승 더` : `다음 성까지 약 ${fmtDur(left)}`) : `성당 수련 ${fmtDur(trainHours(m.star) * 3600)}`}</small>
-        <button class="btn sm ${on ? 'primary' : ''}" data-train="${cat}" ${m.star >= MAX_STAR ? 'disabled' : ''}>${on ? '[ 수련 중지 ]' : '[ 수련하기 ]'}</button>
-      </div>
-    </div>`;
-  }).join('');
-  const tm = tid && MANUALS[tid];
-  return `<section class="panel" data-starsig="${starSig()}">
-    ${head('연무장', '演武場', `<span class="pill ${tid ? '' : 'idle'}">${tid ? '수련 중' : '수련 정지'}</span>`)}
-    <p class="story">${tm ? `향이 타들어 갑니다. 《${tm.name}》 한 가지에만 온 정신을 모읍니다. 1~5성은 성마다 8시간, 소성 이후 6~11성은 16시간이 걸립니다.` : '연무장이 고요합니다. 수련할 비급 하나를 골라 [ 수련하기 ]를 누르십시오. 한 번에 한 비급만 수련할 수 있습니다.'}</p>
-    <div class="arts">${cards}</div>
-  </section>`;
-}
-
 /* 상태 탭 맨 위: 종합 전투력과 내역 */
 function cpCard() {
   const p = combatPowerParts(S), W = CP_WEIGHTS;
@@ -110,6 +53,7 @@ function viewMartial() {
       <div class="mslot-cat">${label(C.name, C.hanja)}</div>
       <b class="mslot-name">《${M.name}》</b>${realmTag(m.star)}
       <span class="art-star">${m.star}<small>성</small></span>
+      ${m.star < MAX_STAR ? (() => { const why = starUpBlock(id), pill = GATES[m.star]; return `<button class="btn ${why ? '' : 'primary'} sm starup" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `경험치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; })() : '<span class="daesung">大成</span>'}
       <button class="btn ghost sm" data-unequipm="${cat}">장착 해제</button>
     </div>`;
   }).join('');
@@ -120,7 +64,8 @@ function viewMartial() {
     return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》</b>${realmTag(m.star)}<span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
   }).join('');
   return `<section class="panel">
-    ${head('무공', '武功')}
+    ${head('무공', '武功', `<span class="exp-purse" title="탐험에서 적을 쓰러뜨려 모은 경험치">경험치 <b>${fmt(S.exp)}</b></span>`)}
+    <p class="muted exp-help">탐험에서 모은 경험치로 원하는 무공의 성급을 올립니다. 5→6성(소성)·11→12성(대성)에는 돌파단도 듭니다.</p>
     <div class="mslots">${slots}</div>
   </section>
   <section class="panel">
@@ -224,7 +169,7 @@ function viewHall() {
     }).join('')}</ul>`;
   const library = `
     <div class="shop">${shopManuals.map(([id, M]) => { const own = ownsBook(id); return `<div class="shop-item"><b>${M.name}</b><small>${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}</small><button class="btn sm" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}`}</button></div>`; }).join('')}
-    ${badges.map(g => { const own = ownsShop(g.id); return `<div class="shop-item"><b class="r${g.rarity}">${g.name}</b><small>신분패 · 수련 효율 +${g.stats.train}%</small><button class="btn sm" data-buybadge="${g.id}" ${own || S.contrib < g.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${g.cost}`}</button></div>`; }).join('')}</div>`;
+    ${badges.map(g => { const own = ownsShop(g.id); return `<div class="shop-item"><b class="r${g.rarity}">${g.name}</b><small>신분패 · 경험치 획득 +${g.stats.train}%</small><button class="btn sm" data-buybadge="${g.id}" ${own || S.contrib < g.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${g.cost}`}</button></div>`; }).join('')}</div>`;
   return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳')}${foldBody('hq', hq)}</section>
   <section class="panel fold">${foldHead('missions', '문파 임무', '門派任務', `<span class="num muted">${S.missions.filter(missionReady).length}건 완료 가능</span>`)}${foldBody('missions', missions)}</section>
   <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;

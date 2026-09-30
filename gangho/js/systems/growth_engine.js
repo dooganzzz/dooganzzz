@@ -1,0 +1,49 @@
+/* [시스템] 무공 성장: 탐험에서 모은 경험치로 원하는 비급의 성급을 올린다 (DOM 조작 금지)
+   1~5성 입문 → (소성 돌파단) → 6~11성 소성 → (대성 돌파단) → 12성 대성.
+   비급마다 따로 쌓이던 수련·실전 경험치는 없다. 경험치는 하나의 주머니(S.exp)에 모인다. */
+
+/* s성 → s+1성에 드는 경험치 (등급 계수 반영) */
+function starCost(id) {
+  const m = S.manuals[id]; if (!m || m.star >= MAX_STAR) return 0;
+  return Math.round(STAR_EXP[m.star - 1] * GRADES[MANUALS[id].grade].mult);
+}
+
+/* 올릴 수 없으면 이유를, 올릴 수 있으면 빈 문자열을 돌려준다 */
+function starUpBlock(id) {
+  const m = S.manuals[id]; if (!m) return '익히지 않은 무공';
+  if (m.star >= MAX_STAR) return '대성';
+  const pill = GATES[m.star];
+  if (S.exp < starCost(id)) return `경험치 ${fmt(starCost(id))} 필요`;
+  if (pill && !has(pill)) return `${ITEMS[pill].name} 필요`;
+  return '';
+}
+
+function starUp(id) {
+  const why = starUpBlock(id);
+  if (why) { notify.toast(why); return false; }
+  const m = S.manuals[id], M = MANUALS[id], cost = starCost(id), pill = GATES[m.star];
+  S.exp -= cost;
+  if (pill) take(pill, 1);
+  m.star++;
+  if (pill) {
+    log(`${ITEMS[pill].icon} ${ITEMS[pill].name}의 약기운이 기혈을 뚫습니다. 《${M.name}》 ${GATE_NAME[m.star - 1]} 돌파! ${m.star}성. (경험치 -${fmt(cost)})`, 'gold');
+    const lines = {
+      6: '노벽송: "소성(小成)이로구나. 이제야 무공이 네 몸을 알아보는 게야." — 기본 위력 상향!',
+      12: '노벽송: "…대성(大成)이다. 극의에 닿았으니 이 늙은이가 가르칠 건 더 없구나."',
+    };
+    if (lines[m.star]) log(lines[m.star], 'npc');
+  } else log(`《${M.name}》 ${m.star}성에 올랐습니다. (경험치 -${fmt(cost)})`, 'good');
+  if (m.star === 6) { log(`✨ 《${M.name}》 소성(小成) — 장착 능력치 30% 상향${M.cat === 'mugong' ? ', 초식 위력 25% 상향' : ''}.`, 'gold'); notify.banner('小成 · 소성', `《${M.name}》 6성`, 'jade'); }
+  if (m.star === MAX_STAR) { log(`🌟 《${M.name}》 대성(大成 / 極意) — ${DAESUNG_PASSIVE[M.cat].text}`, 'gold'); notify.banner('大成 · 대성', `《${M.name}》 극의(極意)`, 'gold'); }
+  if (m.star === 4 || m.star === 8) log(`《${M.name}》 제${m.star === 4 ? 2 : 3}초식이 열렸습니다.`, 'good');
+  notify.toast(`${M.name} ${m.star}성!`);
+  notify.trace('sys', `성급: ${id} → ${m.star}성 (경험치 -${cost})`);
+  notify.refresh();
+  return true;
+}
+
+/* 적을 쓰러뜨려 얻는 경험치: 신분패·음식·영단의 '경험치 획득' 보정을 곱한다 */
+function expGain(base, st) { st = st || calcStats(); return Math.round(base * (1 + st.train / 100 + st.trainBuff)); }
+
+function unlockedMoves(star) { return star >= 8 ? 3 : star >= 4 ? 2 : 1; }
+function bestMugongStar() { return Math.max(0, ...Object.entries(S.manuals).filter(([id]) => MANUALS[id].cat === 'mugong').map(([, m]) => m.star)); }

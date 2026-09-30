@@ -1,4 +1,5 @@
 /* 운영자 통합 디버그 콘솔 (GM). 게임 화면과 섞이지 않게 고정폭 글꼴·독립 오버레이로 그린다 */
+
 .gm-toggle { position: fixed; right: 12px; bottom: 12px; z-index: 60; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(120, 220, 160, .45); background: rgba(8, 14, 10, .85); color: #8ee0a8; font: 700 .72rem/1 ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; letter-spacing: .05em; cursor: pointer; opacity: .55; transition: opacity .15s; }
 .gm-toggle:hover, .gm-toggle[aria-expanded="true"] { opacity: 1; }
 .gm-panel { position: fixed; inset: 0; z-index: 70; background: rgba(0, 0, 0, .55); display: flex; justify-content: flex-end; }
@@ -60,13 +61,11 @@
   .gm-table { font-size: 11.5px; }
   .gm-toggle { width: 32px; height: 32px; right: 8px; bottom: 8px; }
 }
-
 /* 오버레이 머리의 [새 창 ↗] · 별도 창 연결 상태 */
 .gm-pop { margin-left: auto; padding: 2px 8px; font-size: 11.5px; }
 .gm-pop + .gm-x { margin-left: 4px; }
 .gm-conn { margin-left: auto; color: #8ee0a8; }
 .gm-conn.off { color: #ffd27a; }
-
 /* 별도 창(admin.html): 오버레이가 아니라 창 전체를 쓴다 */
 html:has(body.gm-standalone), body.gm-standalone { margin: 0; height: 100%; background: #0a0f0c; color-scheme: dark; }
 body.gm-standalone .gm-panel { position: static; inset: auto; height: 100vh; background: none; display: block; }
