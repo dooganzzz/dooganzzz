@@ -355,9 +355,9 @@
 
 /* ───────── 관찰 창 2D 스프라이트 무대 (시험) ───────── */
 .sprite-stage { position: relative; flex: none; aspect-ratio: 1400 / 594; max-height: 300px; width: 100%; margin: 6px 0; border-radius: 8px; overflow: hidden; background: #111 center / cover no-repeat; box-shadow: inset 0 0 40px rgba(0, 0, 0, .45); }
-.sp-fighter { position: absolute; bottom: 12%; z-index: 2; transition: left .28s cubic-bezier(.3, .7, .3, 1), right .28s cubic-bezier(.3, .7, .3, 1); }
-.sp-hero { left: 8%; width: 32%; aspect-ratio: 646 / 380; transition: left .43s cubic-bezier(.45, .05, .6, 1); }
-.sp-hero.dash { left: 36%; } .sp-hero.retreat { left: 8%; transition-duration: .3s; } .sp-hero.back { left: 2%; }
+.sp-fighter { position: absolute; bottom: 21%; z-index: 2; transition: left .28s cubic-bezier(.3, .7, .3, 1), right .28s cubic-bezier(.3, .7, .3, 1); }
+.sp-hero { left: 10%; width: 27%; aspect-ratio: 646 / 380; transition: left .43s cubic-bezier(.45, .05, .6, 1); }
+.sp-hero.dash { left: 38%; } .sp-hero.retreat { left: 10%; transition-duration: .3s; } .sp-hero.back { left: 4%; }
 .sp-spr { width: 100%; height: 100%; background: 0 0 / 900% 100% no-repeat; }
 .sp-hero[data-f="0"] .sp-spr { background-position: 0.0% 0; }
 .sp-hero[data-f="1"] .sp-spr { background-position: 12.5% 0; }
@@ -368,7 +368,7 @@
 .sp-hero[data-f="6"] .sp-spr { background-position: 75.0% 0; }
 .sp-hero[data-f="7"] .sp-spr { background-position: 87.5% 0; }
 .sp-hero[data-f="8"] .sp-spr { background-position: 100.0% 0; }
-.sp-foe { right: 8%; width: 21%; aspect-ratio: 1; }
+.sp-foe { right: 10%; width: 18%; aspect-ratio: 1; bottom: 19%; }
 .sp-foe.lunge { right: 40%; }
 .sp-foe img { width: 100%; height: 100%; object-fit: contain; }
 .sp-spr, .sp-foe img { filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
@@ -378,13 +378,15 @@
 .sp-foe.flip.idle img { animation-name: spBreathFlip; }
 @keyframes spBreath { 50% { transform: translateY(-2px) scaleY(1.012); } }
 @keyframes spBreathFlip { 0%, 100% { transform: scaleX(-1); } 50% { transform: scaleX(-1) translateY(-2px) scaleY(1.012); } }
-.sp-shadow { position: absolute; bottom: -3%; left: 50%; width: 46%; height: 8%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse, rgba(70, 52, 30, .55), rgba(70, 52, 30, 0) 70%); z-index: -1; }
-.sp-hero .sp-shadow { width: 26%; left: 50%; }
+.sp-shadow { position: absolute; bottom: -2.5%; left: 50%; width: 60%; height: 9%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse, rgba(60, 40, 18, .55) 0%, rgba(60, 40, 18, .28) 45%, rgba(60, 40, 18, 0) 72%); mix-blend-mode: multiply; z-index: -1; }
+.sp-shadow::after { content: ''; position: absolute; left: 22%; right: 22%; top: 30%; bottom: 25%; border-radius: 50%; background: rgba(35, 22, 8, .55); filter: blur(2px); }
+.sp-hero .sp-shadow { width: 30%; left: 50%; }
+.sp-hero.dash .sp-shadow { width: 42%; }
 .sp-fighter.hit { animation: spHit .35s; }
 @keyframes spHit { 0%, 100% { filter: none; } 30% { filter: brightness(2.2) sepia(1) hue-rotate(-40deg) saturate(4); } 20%, 60% { translate: 8px 0; } 40%, 80% { translate: -6px 0; } }
 .sp-fighter.ko { transform: rotate(16deg) translateY(10%); opacity: .3; transition: transform .6s, opacity .8s; }
 .sp-hero.ko { transform: rotate(-12deg) translateY(10%); }
-.sp-num { position: absolute; top: 34%; z-index: 5; font: 900 26px/1 serif; color: #e0301e; text-shadow: 0 0 3px #fff, 0 2px 3px #000; animation: spNum 1s ease-out forwards; pointer-events: none; }
+.sp-num { position: absolute; top: 26%; z-index: 5; font: 900 26px/1 serif; color: #e0301e; text-shadow: 0 0 3px #fff, 0 2px 3px #000; animation: spNum 1s ease-out forwards; pointer-events: none; }
 .sp-num.me { color: #c2281a; } .sp-num.crit { color: #ffcc33; font-size: 32px; } .sp-num.miss { color: #eef2f6; font-size: 20px; text-shadow: 0 1px 3px #000; }
 @keyframes spNum { from { opacity: 0; transform: translateY(10px) scale(.7); } 20% { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-40px); } }
 .sp-slash { position: absolute; left: 56%; top: 36%; width: 28%; height: 46%; z-index: 4; pointer-events: none; }
@@ -392,8 +394,14 @@
 .sp-slash.gold path { stroke: #ffd24a; filter: drop-shadow(0 0 3px rgba(255, 200, 80, .9)); }
 @media (max-width: 640px) { .sprite-stage { max-height: 170px; } .sp-num { font-size: 18px; } }
 
-.sp-streak { position: absolute; left: 50%; top: 40%; width: 30%; height: 36%; z-index: 4; pointer-events: none; overflow: visible; }
+.sp-streak { position: absolute; left: 52%; top: 34%; width: 30%; height: 36%; z-index: 4; pointer-events: none; overflow: visible; }
 .sp-streak path { fill: none; stroke: rgba(40, 52, 70, .85); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 240; stroke-dashoffset: 240; animation: stanceDraw .22s ease-out forwards, stanceFade .8s ease forwards; }
 .sp-streak .tip { stroke-width: 2; }
 .sp-streak.slash path { stroke: #e8b64a; stroke-width: 5; filter: drop-shadow(0 0 4px rgba(255, 200, 90, .9)); }
 .sp-streak.slash .thin { stroke-width: 2; stroke: #fff2c8; }
+
+/* 흙먼지: 달려 나갈 때 · 찌를 때 발밑에서 */
+.sp-dust { position: absolute; z-index: 1; width: 7%; aspect-ratio: 2 / 1; border-radius: 50%; pointer-events: none; background: radial-gradient(ellipse, rgba(196, 160, 110, .75), rgba(196, 160, 110, 0) 70%); filter: blur(1.5px); animation: spDust .7s ease-out forwards; }
+@keyframes spDust { from { opacity: .9; transform: translate(0, 0) scale(.5); } to { opacity: 0; transform: translate(var(--dx, -18px), -10px) scale(1.8); } }
+.sp-foe .sp-shadow { bottom: 7%; width: 80%; }
+.sp-shadow::after { background: rgba(35, 22, 8, .7); }

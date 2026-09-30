@@ -42,27 +42,32 @@ function spStreak(kind) {
     : '<path d="M10 78Q100 30 192 62"/><path class="thin" style="animation-delay:60ms,60ms" d="M20 90Q104 46 186 76"/>';
   st.appendChild(s); setTimeout(() => s.remove(), 900);
 }
+/* 발밑 흙먼지 (x: 무대 가로 %, 방향 dx) */
+function spDust(x, dx = -18, n = 2) {
+  const st = $('#spStage'); if (!st) return;
+  for (let i = 0; i < n; i++) { const d = document.createElement('i'); d.className = 'sp-dust'; d.style.left = (x + i * 2) + '%'; d.style.bottom = (19 + Math.random() * 2) + '%'; d.style.setProperty('--dx', (dx * (1 + i * .6)) + 'px'); d.style.animationDelay = (i * 60) + 'ms'; st.appendChild(d); setTimeout(() => d.remove(), 900); }
+}
 /* 달려가서: 평타는 힘껏 찌르기, 초식은 삼재검법 가로베기(준비 → 베기 → 마무리) */
 async function spHeroAttack(f, stance, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
   const k = Math.min(1, gap / 1000), w = ms => spWait(ms * k);
-  h.classList.remove('idle'); h.classList.add('dash');
-  let n = 0; const legs = setInterval(() => spFrame(h, n++ % 2 ? 'run2' : 'run1'), 110 * k);
+  h.classList.remove('idle'); h.classList.add('dash'); spDust(20, -22);
+  let n = 0; const legs = setInterval(() => { spFrame(h, n++ % 2 ? 'run2' : 'run1'); spDust(24 + n * 5, -14, 1); }, 110 * k);
   spFrame(h, 'run1'); await w(430); clearInterval(legs);
   const land = () => { if (f.k === 'miss') spNum('빗나감', 'foe', 'miss'); else { spFlash(e); spNum(f.t, 'foe', f.k === 'crit' ? 'crit' : ''); } };
   if (stance) {
     spFrame(h, 'slashA'); await w(150);
-    spFrame(h, 'slashB'); spStreak('slash'); land(); await w(170);
+    spFrame(h, 'slashB'); spDust(48, -20, 3); spStreak('slash'); land(); await w(170);
     spFrame(h, 'slashC'); await w(230);
   } else {
-    spFrame(h, 'thrust'); spStreak('thrust'); land(); await w(320);
+    spFrame(h, 'thrust'); spDust(46, -24, 3); spStreak('thrust'); land(); await w(320);
   }
   h.classList.remove('dash'); h.classList.add('retreat'); spFrame(h, 'idle'); await w(300);
   h.classList.remove('retreat'); h.classList.add('idle');
 }
 async function spFoeAttack(f, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
-  e.classList.remove('idle'); e.classList.add('lunge'); await spWait(gap * .25);
+  e.classList.remove('idle'); e.classList.add('lunge'); spDust(70, 18, 2); await spWait(gap * .25);
   if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); }
   else { spFrame(h, 'hurt'); spFlash(h); spNum(f.t, 'me', 'me'); }
   await spWait(gap * .4); e.classList.remove('lunge'); h.classList.remove('back'); spFrame(h, 'idle'); await spWait(gap * .2); e.classList.add('idle');
