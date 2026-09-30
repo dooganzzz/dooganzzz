@@ -1,9 +1,16 @@
 /* [화면] 운영자 통합 디버그 콘솔 (GM): 유저 상태 · 행동 추적 · 아이템 DB · 조합법 · 쾌속 치트
-   우측 하단 [GM] 버튼, 또는 F1 / ` / ~ 키로 여닫는다. 게임 화면과 겹치지 않는 독립 오버레이다.
-   값 주입은 기존 시스템 함수(give·advance·clampVitals·doReset …)를 그대로 불러 상태와 화면을 맞춘다. */
+   두 가지로 띄운다.
+   ① 게임 안 오버레이: 우측 하단 [GM] 버튼, 또는 F1 / ` / ~ 키로 여닫는다.
+   ② 별도 창 (admin.html): 오버레이의 [새 창 ↗] 또는 admin.html을 직접 연다. 같은 출처의 게임 창과
+      BroadcastChannel로 이어져 게임이 1초마다 상태·추적을 보내고, 관리자 창은 명령만 보낸다.
+      게임을 새로고침·초기화해도 관리자 창과 추적 기록은 남고 다시 이어진다.
+   값 주입은 언제나 게임 쪽에서 기존 시스템 함수(give·advance·clampVitals·doReset …)로 실행한다 (GM_CMDS). */
 
 /* 출시 때 false로 두면 버튼·단축키가 모두 사라진다 */
 const GM_ENABLED = true;
+/* admin.html(별도 창)에서 읽히면 true: 상태는 받은 복사본, 조작은 게임에 명령으로 보낸다 */
+const GM_REMOTE = !!window.GM_REMOTE;
+const GM_CHANNEL = 'gangho-gm';
 
 const GM = { open: false, tab: 'state', trace: [], itemQ: '', itemKind: 'all', recipeCraft: 'all', resetArm: false };
 const GM_TABS = [['state', '유저 상태'], ['trace', '행동 추적'], ['items', '아이템 DB'], ['recipes', '조합법'], ['cheat', '쾌속 치트']];
@@ -14,6 +21,7 @@ const GM_KIND = { tab: '탭', view: '화면', click: '클릭', battle: '전투',
 function gmTrace(kind, text) {
   GM.trace.unshift({ t: Date.now(), kind, text: String(text) });
   if (GM.trace.length > GM_TRACE_MAX) GM.trace.length = GM_TRACE_MAX;
+  if (!GM_REMOTE) gmPost({ type: 'trace', entry: GM.trace[0] });
   if (GM.open && GM.tab === 'trace') gmRenderTrace();
 }
 const gmTime = t => { const d = new Date(t); return `${hhmm(t)}:${String(d.getSeconds()).padStart(2, '0')}.${String(d.getMilliseconds()).padStart(3, '0')}`; };
@@ -41,7 +49,7 @@ function gmRender() {
   const body = !S && GM.tab !== 'trace' && GM.tab !== 'cheat' ? '<p class="gm-muted">게임을 시작하면 볼 수 있습니다.</p>'
     : ({ state: gmViewState, trace: gmViewTrace, items: gmViewItems, recipes: gmViewRecipes, cheat: gmViewCheat })[GM.tab]();
   panel.innerHTML = `<div class="gm-box" role="dialog" aria-label="운영자 콘솔">
-    <div class="gm-top"><b>GM 콘솔</b><small>F1 · \` 로 여닫기</small><button class="gm-x" data-gm="close" aria-label="닫기">✕</button></div>
+    <div class="gm-top"><b>GM 콘솔</b>${GM_REMOTE ? `<small id="gmConn" class="gm-conn">연결 중…</small>` : `<small>F1 · \` 로 여닫기</small><button class="gm-btn gm-pop" data-gm="popout" title="관리자 창을 따로 띄웁니다">새 창 ↗</button><button class="gm-x" data-gm="close" aria-label="닫기">✕</button>`}</div>
     <div class="gm-tabs" role="tablist">${tabs}</div>
     <div class="gm-body">${body}</div>
   </div>`;
@@ -73,15 +81,9 @@ function gmRenderLive() {
   raw.scrollTop = keep;
 }
 function gmApplyState(form) {
-  const changed = [];
-  for (const [k, n] of GM_FIELDS) {
-    const v = Number(form.elements[k].value);
-    if (!Number.isFinite(v) || Math.round(S[k]) === v) continue;
-    S[k] = Math.max(0, v); changed.push(`${n} ${S[k]}`);
-  }
-  clampVitals();
-  gmTrace('gm', changed.length ? `상태 적용: ${changed.join(', ')}` : '상태 적용: 바뀐 값 없음');
-  notify.refresh(); notify.save(); gmRender();
+  const vals = {};
+  for (const [k] of GM_FIELDS) { const v = Number(form.elements[k].value); if (Number.isFinite(v)) vals[k] = v; }
+  gmDo('apply', vals);
 }
 
 /* 2. 행동 추적 */
@@ -111,12 +113,7 @@ function gmRenderItems() {
     <td class="gm-acts"><button class="gm-btn" data-gmspawn="${id}" data-n="1">+1 소환</button><button class="gm-btn" data-gmspawn="${id}" data-n="10">+10 소환</button></td></tr>`).join('')
     || '<tr><td colspan="6" class="gm-muted">맞는 아이템이 없습니다.</td></tr>';
 }
-function gmSpawn(id, n) {
-  if (!ITEMS[id]) return;
-  const ok = give(id, n, true);
-  gmTrace('gm', ok ? `소환: ${id} ×${n} → 보유 ${count(id)}` : `소환 실패 (행낭 가득): ${id}`);
-  notify.refresh(); gmRenderItems();
-}
+function gmSpawn(id, n) { if (ITEMS[id]) gmDo('spawn', id, n); }
 
 /* 4. 조합법 */
 function gmViewRecipes() {
@@ -129,12 +126,7 @@ function gmViewRecipes() {
       <td>${recipeIcon(r)} ${recipeName(r)}</td><td>${S.codex.includes(r.id) ? '해금' : '—'}</td>
       <td class="gm-acts"><button class="gm-btn" data-gmmats="${r.id}">필요 재료 지급</button></td></tr>`).join('')}</tbody></table>`;
 }
-function gmGiveMats(rid) {
-  const r = RECIPES.find(x => x.id === rid); if (!r) return;
-  for (const [id, n] of Object.entries(r.in)) give(id, n, true);
-  gmTrace('gm', `재료 지급: ${rid} ← ${Object.entries(r.in).map(([id, n]) => `${id}×${n}`).join(', ')}`);
-  notify.refresh(); gmRender();
-}
+function gmGiveMats(rid) { gmDo('mats', rid); }
 
 /* 5. 쾌속 치트 */
 function gmViewCheat() {
@@ -149,23 +141,106 @@ function gmViewCheat() {
   <p class="gm-muted">${m ? `수련 중: 《${MANUALS[tid].name}》 ${m.star}성 · 수련 ${Math.floor(m.txp)} / ${need(m.star)}초` : '수련 중인 비급이 없습니다. 연무장에서 [ 수련하기 ]를 먼저 누르십시오.'}</p>`;
 }
 function gmCheat(what) {
-  if (what === 'reset') {
-    if (!GM.resetArm) { GM.resetArm = true; gmRender(); return; }
-    gmTrace('gm', '데이터 완전 초기화'); doReset(); return;
-  }
+  if (what === 'reset' && !GM.resetArm) { GM.resetArm = true; gmRender(); return; }
   GM.resetArm = false;
-  if (!S) return;
-  if (what === 'silver') { S.silver += 1000; gmTrace('gm', `은자 +1000 → ${S.silver}`); }
-  if (what === 'heal') { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; gmTrace('gm', `활력·내력 회복 → ${st.maxHp} / ${st.maxMp}`); }
-  if (what === 'stamina') { S.stamina = calcStats().maxSta; gmTrace('gm', `기력 → ${S.stamina}`); }
-  if (what === 'train') {
-    const id = S.activeTrainingSkillId; if (!id) return;
-    const before = S.manuals[id].star;
-    advance(3600, false);                                  // 연무장 시간 흐름을 그대로 1시간 돌린다 (관문·돌파 판정 포함)
-    const m = S.manuals[id];
-    gmTrace('gm', `수련 +1시간: ${id} ${before}성 → ${m.star}성${m.gate ? ' (관문)' : ''} · 수련 ${Math.floor(m.txp)}/${need(m.star)}`);
-  }
-  notify.refresh(); notify.save(); gmRender();
+  gmDo('cheat', what);
+}
+
+/* ───────── 명령: 오버레이에선 바로, 별도 창에선 게임에 보내 게임 쪽에서 실행 ───────── */
+const GM_CMDS = {
+  apply(vals) {
+    if (!S) return;
+    const changed = [];
+    for (const [k, n] of GM_FIELDS) {
+      if (!(k in vals) || Math.round(S[k]) === vals[k]) continue;
+      S[k] = Math.max(0, vals[k]); changed.push(`${n} ${S[k]}`);
+    }
+    clampVitals();
+    gmTrace('gm', changed.length ? `상태 적용: ${changed.join(', ')}` : '상태 적용: 바뀐 값 없음');
+  },
+  spawn(id, n) {
+    if (!S || !ITEMS[id]) return;
+    const ok = give(id, n, true);
+    gmTrace('gm', ok ? `소환: ${id} ×${n} → 보유 ${count(id)}` : `소환 실패 (행낭 가득): ${id}`);
+  },
+  mats(rid) {
+    const r = RECIPES.find(x => x.id === rid); if (!S || !r) return;
+    for (const [id, n] of Object.entries(r.in)) give(id, n, true);
+    gmTrace('gm', `재료 지급: ${rid} ← ${Object.entries(r.in).map(([id, n]) => `${id}×${n}`).join(', ')}`);
+  },
+  cheat(what) {
+    if (what === 'reset') { gmTrace('gm', '데이터 완전 초기화'); doReset(); return; }
+    if (!S) return;
+    if (what === 'silver') { S.silver += 1000; gmTrace('gm', `은자 +1000 → ${S.silver}`); }
+    if (what === 'heal') { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; gmTrace('gm', `활력·내력 회복 → ${st.maxHp} / ${st.maxMp}`); }
+    if (what === 'stamina') { S.stamina = calcStats().maxSta; gmTrace('gm', `기력 → ${S.stamina}`); }
+    if (what === 'train') {
+      const id = S.activeTrainingSkillId; if (!id) return;
+      const before = S.manuals[id].star;
+      advance(3600, false);                                // 연무장 시간 흐름을 그대로 1시간 돌린다 (관문·돌파 판정 포함)
+      const m = S.manuals[id];
+      gmTrace('gm', `수련 +1시간: ${id} ${before}성 → ${m.star}성${m.gate ? ' (관문)' : ''} · 수련 ${Math.floor(m.txp)}/${need(m.star)}`);
+    }
+  },
+};
+function gmDo(cmd, ...args) {
+  if (GM_REMOTE) { gmPost({ type: 'cmd', cmd, args }); gmTrace('sys', `명령 보냄: ${cmd} ${args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')}`); return; }
+  gmRunCmd(cmd, args);
+}
+function gmRunCmd(cmd, args) {
+  if (!GM_CMDS[cmd]) return;
+  GM_CMDS[cmd](...args);
+  if (cmd === 'cheat' && args[0] === 'reset') return;
+  notify.refresh(); notify.save();
+  if (GM.open) gmRender();
+  gmBroadcast();
+}
+
+/* ───────── 별도 창과의 연결 (BroadcastChannel) ───────── */
+let gmChan = null;
+function gmPost(msg) { if (gmChan) try { gmChan.postMessage(msg); } catch (e) { /* 복제할 수 없는 값 */ } }
+function gmOpenChannel(onMessage) {
+  if (!('BroadcastChannel' in window)) return false;
+  try { gmChan = new BroadcastChannel(GM_CHANNEL); gmChan.onmessage = e => onMessage(e.data || {}); return true; } catch (e) { gmChan = null; return false; }
+}
+/* 게임 → 관리자 창: 저장 상태 S 전체와 전투 요약 */
+function gmBroadcast() {
+  if (GM_REMOTE || !gmChan) return;
+  const b = RT.battle;
+  gmPost({ type: 'state', S, battle: b ? { eid: b.eid, round: b.round, over: b.over, win: b.win } : null, at: Date.now() });
+}
+function gmPopout() {
+  const w = window.open('admin.html', 'ganghoGM', 'width=880,height=940');
+  if (!w) { notify.toast('팝업이 막혔습니다. 브라우저에서 팝업을 허용하거나 admin.html을 직접 여십시오.'); gmTrace('warn', '관리자 창 팝업 차단'); return; }
+  gmTrace('gm', '관리자 창 열기 (admin.html)');
+  gmToggle(false);
+}
+
+/* 관리자 창(admin.html) 쪽 시작: 받은 복사본으로 같은 화면을 그린다 */
+function gmRemoteInit() {
+  GM.open = true;
+  const panel = $('#gmPanel');
+  let lastSeen = 0, drawn = false, hadS = null;
+  gmBindPanel(panel);
+  const status = () => { const el = $('#gmConn'); if (!el) return; const live = Date.now() - lastSeen < 2500;
+    el.textContent = live ? (S ? `● 연결됨 · ${S.name}` : '● 연결됨 · 시작 화면') : '○ 게임 창을 기다리는 중'; el.classList.toggle('off', !live); };
+  const ok = gmOpenChannel(msg => {
+    lastSeen = Date.now();
+    if (msg.type === 'trace') { GM.trace.unshift(msg.entry); if (GM.trace.length > GM_TRACE_MAX) GM.trace.length = GM_TRACE_MAX; if (GM.tab === 'trace') gmRenderTrace(); }
+    if (msg.type === 'backlog' && !GM.trace.length) { GM.trace = msg.trace.slice(0, GM_TRACE_MAX); if (GM.tab === 'trace') gmRenderTrace(); }
+    if (msg.type === 'state') {
+      S = msg.S; RT.battle = msg.battle;
+      if (!drawn || hadS !== !!S) { gmRender(); drawn = true; hadS = !!S; }
+      else if (GM.tab === 'state') gmRenderLive();
+      else if (GM.tab === 'items') gmRenderItems();
+      else if (GM.tab === 'cheat') gmRender();
+    }
+    status();
+  });
+  gmRender(); status();
+  if (!ok) { $('#gmConn').textContent = '이 브라우저는 창 사이 연결(BroadcastChannel)을 지원하지 않습니다'; return; }
+  gmPost({ type: 'hello' });
+  setInterval(() => { if (Date.now() - lastSeen > 2500) gmPost({ type: 'hello' }); status(); }, 1000);
 }
 
 /* ───────── 입력 ───────── */
@@ -173,13 +248,31 @@ function gmInit() {
   if (!GM_ENABLED || $('#gmPanel')) return;
   document.body.insertAdjacentHTML('beforeend', `<button id="gmToggle" class="gm-toggle" aria-expanded="false" aria-controls="gmPanel" title="운영자 콘솔 (F1 · \`)">GM</button><div id="gmPanel" class="gm-panel" hidden></div>`);
   $('#gmToggle').addEventListener('click', () => gmToggle());
-  const panel = $('#gmPanel');
+  gmBindPanel($('#gmPanel'));
+  // 관리자 창(admin.html)과 연결: 인사가 오면 추적 기록을 넘기고, 명령이 오면 게임 쪽에서 실행한다
+  gmOpenChannel(msg => {
+    if (msg.type === 'hello') { gmPost({ type: 'backlog', trace: GM.trace }); gmBroadcast(); }
+    if (msg.type === 'cmd') { gmTrace('gm', `관리자 창 명령: ${msg.cmd}`); gmRunCmd(msg.cmd, msg.args || []); }
+  });
+  setInterval(gmBroadcast, 1000);
+  // 단축키: 게임 입력칸에 글자를 치는 중이면 ` ~ 는 무시한다. 캡처 단계에서 먼저 받아 게임의 Esc 처리와 겹치지 않게 한다.
+  window.addEventListener('keydown', e => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+    if (e.key === 'F1' || (!typing && (e.key === '`' || e.key === '~'))) { e.preventDefault(); e.stopPropagation(); gmToggle(); return; }
+    if (e.key === 'Escape' && GM.open) { e.stopPropagation(); gmToggle(false); }
+  }, true);
+  gmBindGameTrace();
+}
+
+/* 콘솔 패널의 클릭·입력 (오버레이·별도 창 공용) */
+function gmBindPanel(panel) {
   panel.addEventListener('click', e => {
-    if (e.target === panel) return gmToggle(false);          // 바깥(어두운 막) 누르면 닫기
+    if (!GM_REMOTE && e.target === panel) return gmToggle(false);   // 바깥(어두운 막) 누르면 닫기
     const t = e.target.closest('button'); if (!t) return;
     const d = t.dataset;
     if (d.gmtab) { GM.tab = d.gmtab; GM.resetArm = false; return gmRender(); }
     if (d.gm === 'close') return gmToggle(false);
+    if (d.gm === 'popout') return gmPopout();
     if (d.gm === 'cleartrace') { GM.trace = []; return gmRenderTrace(); }
     if (d.gmspawn) return gmSpawn(d.gmspawn, +d.n);
     if (d.gmcraft) { GM.recipeCraft = d.gmcraft; return gmRender(); }
@@ -188,12 +281,10 @@ function gmInit() {
   });
   panel.addEventListener('submit', e => { e.preventDefault(); if (e.target.dataset.gmform === 'state' && S) gmApplyState(e.target); });
   panel.addEventListener('input', e => { const k = e.target.dataset.gminput; if (k) { GM[k] = e.target.value; gmRenderItems(); } });
-  // 단축키: 게임 입력칸에 글자를 치는 중이면 ` ~ 는 무시한다. 캡처 단계에서 먼저 받아 게임의 Esc 처리와 겹치지 않게 한다.
-  window.addEventListener('keydown', e => {
-    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
-    if (e.key === 'F1' || (!typing && (e.key === '`' || e.key === '~'))) { e.preventDefault(); e.stopPropagation(); gmToggle(); return; }
-    if (e.key === 'Escape' && GM.open) { e.stopPropagation(); gmToggle(false); }
-  }, true);
+}
+
+/* 게임 화면의 클릭·예외 추적 (게임 창에서만) */
+function gmBindGameTrace() {
   // 게임 화면의 클릭(버튼·탭)을 추적한다. GM 콘솔 안의 클릭은 제외
   document.addEventListener('click', e => {
     if (e.target.closest('#gmPanel, #gmToggle')) return;

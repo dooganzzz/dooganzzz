@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>강호견문록 GM</title>
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="gm-standalone">
+<!-- 운영자 관리자 창: 게임 창(index.html)과 BroadcastChannel로 이어진다. 같은 폴더(같은 출처)에서 열어야 한다. -->
+<div id="gmPanel" class="gm-panel"></div>
+<script>
+  window.GM_REMOTE = true;
+  let S = null;                          // 게임이 1초마다 보내는 저장 상태 복사본
+  const RT = { battle: null };           // 전투 요약 복사본
+  const $ = sel => document.querySelector(sel);
+</script>
+<!-- 데이터와 규칙 엔진은 DOM을 모르므로 그대로 읽어 복사본으로 계산한다 (화면 계층·app.js는 읽지 않음) -->
+<script src="js/core.js"></script>
+<script src="js/data/martial_arts.js"></script>
+<script src="js/data/items.js"></script>
+<script src="js/data/monsters.js"></script>
+<script src="js/data/maps.js"></script>
+<script src="js/data/sect.js"></script>
+<script src="js/systems/stats_engine.js"></script>
+<script src="js/systems/training_engine.js"></script>
+<script src="js/systems/inventory_engine.js"></script>
+<script src="js/systems/craft_engine.js"></script>
+<script src="js/systems/explore_engine.js"></script>
+<script src="js/systems/combat_engine.js"></script>
+<script src="js/systems/sect_engine.js"></script>
+<script src="js/ui/ui_admin.js"></script>
+<script>gmRemoteInit();</script>
+</body>
+</html>
