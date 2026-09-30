@@ -78,3 +78,4 @@ body.gm-standalone .gm-box { width: 100%; max-width: none; height: 100vh; border
 .gm-notes { list-style: none; margin: 0; padding: 0; font-size: 12px; max-height: 320px; overflow: auto; }
 .gm-notes li { display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); }
 .gm-notes time { flex: none; width: 80px; opacity: .6; }
+body.gm-locked #gmToggle, body.gm-locked #gmPanel { display: none !important; }

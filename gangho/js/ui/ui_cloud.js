@@ -50,12 +50,15 @@ async function cloudNames(ids) {
 /* 운영자 콘솔 유저 탭이 열려 있으면 다시 그린다 */
 function gmCloudChanged() { if (typeof GM !== 'undefined' && GM.open && GM.tab === 'users') gmRender(); }
 
+/* 다른 사람이 해 보는 게임에서는 GM 콘솔(치트)을 숨긴다: 주인·편집자로 확인되면 연다 */
+if (!window.GM_REMOTE && /^https?:$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) document.body.classList.add('gm-locked');
 async function cloudInit() {
   const C = window.claude;
   if (!C || typeof C.use !== 'function') { CLOUD.note = '클라우드 없음 — 파일로 직접 연 게임에서는 접속자·DB를 볼 수 없습니다 (claude.ai 아티팩트에서 여십시오).'; return; }
   const [db, room, user] = await Promise.all(['db', 'room', 'user'].map(n => C.use(n).catch(() => null)));
   Object.assign(CLOUD, { db, room, user, on: !!(db || room) });
   if (user) { CLOUD.uid = await user.id(); CLOUD.admin = (await user.isOwner()) || (await user.canEdit()); }
+  if (CLOUD.admin) document.body.classList.remove('gm-locked');
   CLOUD.note = CLOUD.on ? '' : '이 화면에서는 클라우드 기능을 쓸 수 없습니다.';
   if (room) {
     room.onPeers(ch => { CLOUD.peers = ch.peers.filter(p => p.kind === 'viewer'); cloudNames(CLOUD.peers.map(p => p.by || p.presence.uid).filter(Boolean)); gmCloudChanged(); });

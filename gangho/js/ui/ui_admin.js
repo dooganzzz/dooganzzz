@@ -32,7 +32,10 @@ Bus.on('log', e => { if (/\bbad\b/.test(e.cls)) gmTrace('warn', e.text.replace(/
 Bus.on('tick', () => { if (GM.open && GM.tab === 'state') gmRenderLive(); });
 
 /* ───────── 여닫기 ───────── */
+/* 인터넷에 올린 게임(claude.ai 아티팩트 등)에서는 주인·편집자에게만 콘솔을 연다. 파일로 직접 연 개발 화면은 늘 연다 */
+const gmLocked = () => document.body.classList.contains('gm-locked');
 function gmToggle(force) {
+  if (gmLocked() && force !== false) return;
   GM.open = force === undefined ? !GM.open : force;
   GM.resetArm = false;
   const panel = $('#gmPanel'); if (!panel) return;

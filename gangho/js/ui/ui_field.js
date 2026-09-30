@@ -5,7 +5,13 @@ Bus.on('tick', () => {
   for (const el of document.querySelectorAll('[data-countdown]')) el.textContent = countdownText();
   const sig = liveSig(); if (sig === lastLiveSig) return; lastLiveSig = sig;   // 새 걸음이 드러났을 때만
   const box = $('#liveSide'); if (box) setHTML(box, liveSide());
-  const sc = $('#liveScene'); if (sc) sc.className = `live-scene ${liveDone(liveRec()) ? 'rest' : ''}`;
+  const sc = $('#liveScene'), lr = liveRec();
+  if (sc) {
+    sc.classList.toggle('rest', liveDone(lr));
+    // 방금 드러난 걸음이 전투면 2.6초 동안 멈춰 서서 조우 연출
+    const n = lr && lr.pend ? shownSteps(lr) : 0, st = n ? lr.steps[n - 1] : null;
+    if (st && st.b !== undefined && !lr.shownAll && now() - stepAt(lr, n - 1) < 2600) sc.dataset.encUntil = stepAt(lr, n - 1) + 2600;
+  }
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
 });
 
@@ -21,18 +27,24 @@ function liveLoop(ts) {
   liveAnim.raf = requestAnimationFrame(liveLoop);
   const sc = document.getElementById('liveScene'); if (!sc) { cancelAnimationFrame(liveAnim.raf); liveAnim.raf = 0; return; }
   const dt = liveAnim.last ? Math.min(100, ts - liveAnim.last) : 16; liveAnim.last = ts;
-  const walker = sc.querySelector('.live-walker'), hero = document.getElementById('liveHero'), strip = sc.querySelector('.live-strip');
+  const walker = sc.querySelector('.live-walker'), hero = document.getElementById('liveHero'), far = sc.querySelector('.live-strip.far'), near = sc.querySelector('.live-strip.near');
+  const enc = now() < (+sc.dataset.encUntil || 0);                             // 조우: 멈춰 서서 칼을 겨눈다
+  sc.classList.toggle('enc', enc);
+  if (enc) { if (hero) hero.dataset.f = 4; return; }
   if (sc.classList.contains('rest') || reduceMotion()) {                      // 쉬는 중: 대기 시트로 가슴만 들썩
     liveAnim.acc += dt; if (liveAnim.acc > 260) { liveAnim.acc = 0; if (hero) hero.dataset.f = BREATH[liveAnim.breath++ % BREATH.length]; }
     return;
   }
   liveAnim.acc += dt;
   while (liveAnim.acc >= WALK_MS) { liveAnim.acc -= WALK_MS; liveAnim.f = (liveAnim.f + 1) % WALK_FRAMES; if (walker) walker.querySelector('.walk-spr').style.backgroundPositionX = (liveAnim.f * 100 / (WALK_FRAMES - 1)) + '%'; }
-  // 산길: 한 걸음 주기에 키의 0.7배만큼 (그림 한 장 폭마다 되감는다)
-  if (strip && walker) {
-    const img = strip.firstElementChild, h = walker.offsetHeight || 120, wImg = img && img.offsetWidth;
+  // 산길 두 겹: 가까운 땅은 한 걸음 주기에 키의 0.7배만큼(발이 미끄러지지 않게), 먼 산은 그 3분의 1 빠르기로 (그림 한 장 폭마다 되감는다)
+  if (near && walker) {
+    const img = near.firstElementChild, h = walker.offsetHeight || 120, wImg = img && img.offsetWidth;
     liveAnim.x += dt * (h * 0.7) / (WALK_MS * WALK_FRAMES);
-    if (wImg) { liveAnim.x %= wImg; strip.style.transform = `translate3d(${-liveAnim.x.toFixed(1)}px,0,0)`; }
+    if (wImg) {
+      near.style.transform = `translate3d(${-(liveAnim.x % wImg).toFixed(1)}px,0,0)`;
+      if (far) far.style.transform = `translate3d(${-((liveAnim.x * 0.33) % wImg).toFixed(1)}px,0,0)`;
+    }
   }
 }
 function liveScene(r) {
@@ -40,9 +52,10 @@ function liveScene(r) {
   const img = () => `<img src="assets/art/travel/${zid}.jpg" alt="">`;   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
   return `<div class="live-scene ${liveDone(r) ? 'rest' : ''}" id="liveScene">
-    <div class="live-strip" data-anim>${img()}${img()}${img()}</div>
+    <div class="live-world"><div class="live-strip far" data-anim>${img()}${img()}${img()}</div><div class="live-strip near" data-anim>${img()}${img()}${img()}</div></div>
     <div class="sp-fighter live-walker" id="liveWalker_${w}"><i class="sp-shadow"></i><div class="walk-spr" data-anim style="background-image:url('assets/art/sprites/walk_${w}.webp')"></div></div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0"><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
+    <img class="live-enc" src="assets/art/ui/b_encounter.png" alt="">
     <span class="live-where">${ZONES[zid].name}</span>
   </div>`;
 }
