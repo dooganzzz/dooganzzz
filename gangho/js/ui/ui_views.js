@@ -38,6 +38,14 @@ function portrait(who, seal, name) {
   return imgOr(IMG[who], 'npc-portrait', `<div class="npc-portrait fallback ${who}" role="img" aria-label="${name}">${seal}</div>`, name);
 }
 
+/* ───────── 등급 표기: 6단계 등급(하급·중급·상급·진품·명품·극품)마다 고유 색 (회·초·파·노·보·빨) ─────────
+   무공 등급(삼류·이류)은 가까운 아이템 등급 색을 빌린다 */
+const GRADE_CLASS_MAP = { '하급': 'grade-low', '중급': 'grade-mid', '상급': 'grade-high', '진품': 'grade-rare', '명품': 'grade-epic', '극품': 'grade-legend', '삼류': 'grade-low', '이류': 'grade-mid', '일류': 'grade-high' };
+const gradeClass = g => GRADE_CLASS_MAP[g] || 'grade-low';
+const gradeBadge = g => `<div class="item-grade-badge" title="${g}">${[...g].map(c => `<span>${c}</span>`).join('')}</div>`;
+/* 카드 머리: 이름(등급 색)과 등급 원형 뱃지를 양 끝에 */
+const itemCardHead = (name, g) => `<div class="item-card-header"><b class="item-name">${name}</b>${gradeBadge(g)}</div>`;
+
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
 const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})">${ELEMENTS[e].hanja}</span>` : '';
 const terrainTag = t => t ? `<span class="aff-tag tr" title="지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})">${TERRAINS[t].name}<small>${TERRAINS[t].hanja}</small></span>` : '';
@@ -190,8 +198,10 @@ function viewHall() {
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
   const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌']];
   const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';
-  const libCard = (name, tag, part, eff, cost, own, attr) => `<div class="shop-item lib-item"><div class="lib-top"><b class="r1">${name}</b><span class="pill grade-2">${tag}</span></div><small>${part}</small><small class="lib-eff">${eff}</small><button class="btn sm" ${attr} ${own || S.contrib < cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${cost}`}</button></div>`;
-  const libItems = lt === 'equipment' ? Object.entries(LIBRARY_GEAR).map(([id, G]) => libCard(G.name, '이류', `${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_SHORT[G.wtype] : ''}`, bonusText(G.stats), G.cost, ownsShop(id), `data-buylib="${id}"`))
+  const libCard = (name, grade, part, eff, cost, own, attr) => `<div class="item-card shop-item lib-item ${gradeClass(grade)}">${itemCardHead(name, grade)}
+    <div class="item-card-body"><div class="item-category">${part}</div><div class="item-effect lib-eff">${eff}</div></div>
+    <button class="btn sm btn-exchange" ${attr} ${own || S.contrib < cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${cost}`}</button></div>`;
+  const libItems = lt === 'equipment' ? Object.entries(LIBRARY_GEAR).map(([id, G]) => libCard(G.name, RARITY[1].name, `${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_SHORT[G.wtype] : ''}`, bonusText(G.stats), G.cost, ownsShop(id), `data-buylib="${id}"`))
     : lt === 'skills' ? shopManuals.map(([id, M]) => libCard(M.name, M.grade, `${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}`, `${esc(M.desc)}<br><span class="passive">독파 각인: ${bonusText(M.passiveBonus)}</span>`, M.cost, ownsBook(id), `data-buymanual="${id}"`))
     : badges.map(g => libCard(g.name, RARITY[g.rarity].name, '신분패', `수련치 획득 +${g.stats.train}%`, g.cost, ownsShop(g.id), `data-buybadge="${g.id}"`));
   const library = `
@@ -233,7 +243,7 @@ function viewShop() {
   if (mode === 'buy') {
     const wares = SHOP_STOCK.map(([id, pr]) => { const I = ITEMS[id]; return `<div class="ware"><span class="icon">${I.icon}</span><div><b>${I.name}</b> <span class="num muted">보유 ${count(id)}</span><small>${I.desc}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buy="${id}">사기</button></div>`; }).join('');
     const gear = SHOP_GEAR_STOCK.map(([base, t, pr]) => { const B = gearSpec(base, t); const st = Object.entries(B.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
-      return `<div class="ware"><span class="icon">${B.slot === 'weapon' ? '🗡️' : '🛡️'}</span><div><b class="r0">[하급] ${B.name}</b> <span class="num muted">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_SHORT[B.wtype] : ''}</span><small>${st}${B.desc ? ` — ${B.desc}` : ''}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buygear="${base}:${t}">사기</button></div>`; }).join('');
+      return `<div class="ware"><span class="icon">${B.slot === 'weapon' ? '🗡️' : '🛡️'}</span><div><b class="item-name grade-low">${B.name}</b> ${gradeBadge(RARITY[0].name)} <span class="num muted">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_SHORT[B.wtype] : ''}</span><small>${st}${B.desc ? ` — ${B.desc}` : ''}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buygear="${base}:${t}">사기</button></div>`; }).join('');
     body = `<h4 class="ware-head">소모품 · 재료</h4><div class="wares">${wares}</div><h4 class="ware-head">기본 장비</h4><div class="wares">${gear}</div>`;
   } else {
     const items = Object.keys(S.inv).filter(id => itemSellPrice(id) > 0);
@@ -290,7 +300,7 @@ function viewBag() {
   const items = Object.keys(S.inv).filter(id => ui.bagFilter === 'all' || ITEMS[id].kind === ui.bagFilter);
   return `<section class="panel">
     ${head('행낭', '行囊', `<span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
-    ${S.gear.length ? `<div class="gears">${S.gear.map(it => `<div class="gear r${it.rarity}"><div class="gtop"><span class="grade r${it.rarity}">${RARITY[it.rarity].name}</span><b>${it.name}</b><small class="muted">${SLOTS[it.slot].name}</small></div><small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}<div class="btns"><button class="btn sm" data-equip="${it.uid}">착용</button><button class="btn ghost sm" data-discard="${it.uid}">버리기</button></div></div>`).join('')}</div>` : ''}
+    ${S.gear.length ? `<div class="gears">${S.gear.map(it => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(it.name, RARITY[it.rarity].name)}<small class="muted item-category">${SLOTS[it.slot].name}${it.wtype ? ' · ' + WEAPON_SHORT[it.wtype] : ''}</small><small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}<div class="btns"><button class="btn sm" data-equip="${it.uid}">착용</button><button class="btn ghost sm" data-discard="${it.uid}">버리기</button></div></div>`).join('')}</div>` : ''}
     <div class="chips">${kinds.map(k => `<button class="chip ${ui.bagFilter === k ? 'on' : ''}" data-filter="${k}">${k === 'all' ? '전체' : k}</button>`).join('')}</div>
     <div class="items">${items.map(id => { const I = ITEMS[id]; return `<div class="item"><span class="icon">${I.icon}</span><div><b>${I.name}</b> <span class="num">×${count(id)}</span><small>${I.desc}</small></div>${I.use ? `<button class="btn sm" data-use="${id}">${I.kind === '비급' ? '익히기' : '사용'}</button>` : '<span></span>'}</div>`; }).join('')}</div>
   </section>`;

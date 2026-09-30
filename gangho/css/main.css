@@ -18,6 +18,8 @@
   --jade: #5fb09b;
   --hp: #c9523f; --mp: #4f7fc9; --sta: #86a84a;
   --r0: #9aa0a9; --r1: #6cc38a; --r2: #6ea4ee; --r3: #bb8ce4; --r4: #f0a452; --r5: #ff6b8a;
+  /* 장비 등급 6단계 색 (하급 회 · 중급 초 · 상급 파 · 진품 노 · 명품 보 · 극품 빨) */
+  --g0: #9ca3af; --g1: #22c55e; --g2: #3b82f6; --g3: #eab308; --g4: #a855f7; --g5: #ef4444;
   --sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --serif: 'Noto Serif KR', 'Batang', 'AppleMyungjo', serif;
   --radius: 6px;
@@ -112,12 +114,12 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .pill { display: inline-block; font-size: .72rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--jade); color: var(--jade); vertical-align: middle; }
 .pill.warn { border-color: var(--seal); color: var(--seal); }
 .grade { font-size: .7rem; font-weight: 700; padding: 1px 6px; border: 1px solid currentColor; border-radius: 3px; }
-.r0 { color: var(--r0); }
-.r1 { color: var(--r1); }
-.r2 { color: var(--r2); }
-.r3 { color: var(--r3); }
-.r4 { color: var(--r4); }
-.r5 { color: var(--r5); }
+.r0 { color: var(--g0); }
+.r1 { color: var(--g1); }
+.r2 { color: var(--g2); }
+.r3 { color: var(--g3); }
+.r4 { color: var(--g4); }
+.r5 { color: var(--g5); }
 .art { text-align: left; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; background: var(--raise); cursor: pointer; min-width: 0; transition: border-color .15s; }
 .art-star { font-size: 1.7rem; font-weight: 900; color: var(--gold); line-height: 1; font-variant-numeric: tabular-nums; }
 .art-star small { font-size: .8rem; font-weight: 400; color: var(--dim); margin-left: 2px; }
@@ -225,11 +227,11 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .dslot small { color: var(--dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; }
 .dslot b { font-family: var(--serif); font-size: .9rem; line-height: 1.3; overflow-wrap: anywhere; }
 .dslot.sel { box-shadow: 0 0 0 2px var(--gold); }
-.dslot.r0 { border-color: var(--r0); }
-.dslot.r1 { border-color: var(--r1); }
-.dslot.r2 { border-color: var(--r2); }
-.dslot.r3 { border-color: var(--r3); }
-.dslot.r4 { border-color: var(--r4); }
+.dslot.r0 { border-color: var(--g0); }
+.dslot.r1 { border-color: var(--g1); }
+.dslot.r2 { border-color: var(--g2); }
+.dslot.r3 { border-color: var(--g3); }
+.dslot.r4 { border-color: var(--g4); }
 .side-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .statsheet { display: flex; flex-direction: column; gap: 3px; font-size: .86rem; padding: 12px; background: var(--raise); border: 1px solid var(--line); border-radius: var(--radius); }
 .statsheet div { display: flex; justify-content: space-between; border-bottom: 1px dotted var(--line-2); }
@@ -748,3 +750,23 @@ body {
   .currency-chips { gap: 5px; }
   .currency-chips .chip-badge { padding: 2px 5px; font-size: 10px; }
 }
+
+/* ───────── 아이템 카드: 등급별 고유 색 · 이름과 원형 등급 뱃지를 양 끝 수평 배치 ───────── */
+.grade-low    { --grade-color: #9ca3af; --grade-bg: rgba(156, 163, 175, .12); }
+.grade-mid    { --grade-color: #22c55e; --grade-bg: rgba(34, 197, 94, .12); }
+.grade-high   { --grade-color: #3b82f6; --grade-bg: rgba(59, 130, 246, .12); }
+.grade-rare   { --grade-color: #eab308; --grade-bg: rgba(234, 179, 8, .12); }
+.grade-epic   { --grade-color: #a855f7; --grade-bg: rgba(168, 85, 247, .12); }
+.grade-legend { --grade-color: #ef4444; --grade-bg: rgba(239, 68, 68, .12); }
+.item-card { align-items: stretch; }
+.item-card.gear { border-left-color: var(--grade-color); }
+.item-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; width: 100%; }
+.item-card-header .item-name, .item-name.grade-low { color: var(--grade-color); font-size: 15px; font-weight: 700; line-height: 1.3; word-break: keep-all; font-family: var(--serif); }
+.item-name { color: var(--grade-color); }
+.item-grade-badge { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px; min-width: 26px; border-radius: 50%; border: 1px solid var(--grade-color, #9ca3af); background-color: var(--grade-bg, rgba(156, 163, 175, .12)); color: var(--grade-color, #9ca3af); font-size: 10px; line-height: 1.1; font-weight: 600; vertical-align: middle; flex: none; }
+.ware .item-grade-badge { --grade-color: #9ca3af; --grade-bg: rgba(156, 163, 175, .12); width: 22px; height: 22px; min-width: 22px; font-size: 9px; }
+.item-card-body { display: flex; flex-direction: column; gap: 2px; }
+.item-category { font-size: 12px; color: var(--dim); }
+.item-effect { font-size: 11px; color: var(--silver); line-height: 1.45; }
+.btn-exchange { align-self: flex-start; margin-top: 6px; }
+.item-card.gear { color: var(--ink); }   /* 등급 색은 이름·뱃지·왼쪽 띠에만 */

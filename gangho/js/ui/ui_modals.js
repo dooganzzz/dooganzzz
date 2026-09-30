@@ -69,7 +69,7 @@ function fillPot(rid) {
 function equipModal(slot) {
   const cur = S.equip[slot], list = S.gear.filter(g => g.slot === slot);
   const mw = S.active.mugong && MANUALS[S.active.mugong].weapon;
-  const card = (it, btns) => `<div class="gear r${it.rarity}"><div class="gtop"><span class="grade r${it.rarity}">${RARITY[it.rarity].name}</span><b>${gearName(it)}</b>${it.wtype ? `<small class="muted">${WEAPON_SHORT[it.wtype]}</small>` : ''}</div>
+  const card = (it, btns) => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(gearName(it), RARITY[it.rarity].name)}${it.wtype ? `<small class="muted item-category">${WEAPON_SHORT[it.wtype]}</small>` : ''}
     <small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}${slot === 'weapon' && mw && it.wtype !== mw ? `<small class="warn">장착 무공은 ${WEAPON_TYPES[mw]} 무공이라 초식이 나가지 않습니다</small>` : ''}
     <div class="btns">${btns}</div></div>`;
   const curHtml = cur ? card(cur, `<button class="btn sm" data-enhance="${slot}" ${(cur.enh || 0) >= ENH_MAX || S.silver < enhCost(cur) ? 'disabled' : ''}>🔨 ${(cur.enh || 0) >= ENH_MAX ? '강화 완료' : `강화 +${(cur.enh || 0) + 1} · ${hlSilver(enhCost(cur))} · ${enhChance(cur)}%`}</button><button class="btn ghost sm" data-unequip="${slot}">해제</button>`) : '<p class="muted">비어 있습니다.</p>';
