@@ -106,14 +106,17 @@ const SLOTS = {
   armor:  { name: '호갑',   desc: '활력·방어력' },
   helmet: { name: '투구',   desc: '치명 저항' },
   boots:  { name: '신발',   desc: '공격 속도·회피율' },
-  belt:   { name: '허리띠', desc: '적재량·활력 보정' },
+  belt:   { name: '요대',   desc: '적재량·활력 보정' },
   jade:   { name: '옥대',   desc: '기공 위력·단전(내력) 보정' },
   ring:   { name: '가락지', desc: '내력·특수 보정' },
+  ring2:  { name: '가락지', desc: '내력·특수 보정 (두 번째 손)' },
   badge:  { name: '신분패', desc: '수련치 획득' },
   mount:  { name: '탈것',   desc: '최대 기력' },
 };
 
-const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring', 'badge', 'mount'];
+const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring', 'ring2', 'badge', 'mount'];
+/* 장착 칸이 받는 장비 부위 (가락지는 두 손에 하나씩) */
+const SLOT_ACCEPTS = { ring2: 'ring' };
 
 const STAT_NAMES = {
   atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피율',
@@ -183,8 +186,8 @@ const GEAR_DB = {
   g_ironRing:  { slot: 'ring', name: '무쇠 가락지',  stats: { atk: 2 },      desc: '단단하게 두드려 만든 쇠반지.' },
   g_hornRing:  { slot: 'ring', name: '흑각 가락지',  stats: { staSave: 2 },  desc: '흑우 뿔을 깎아 만든 반지. 발걸음이 가볍다.' },
   g_bronzeRing:{ slot: 'ring', name: '청동 가락지',  stats: { maxMp: 8 },    desc: '조잡한 구리 반지. 내력이 조금 더 고인다.' },
-  // 허리띠
-  g_hempBelt:  { slot: 'belt', name: '거친 삼베 허리띠',   stats: { bag: 4 },          desc: '매듭으로 묶는 기본 허리띠.' },
+  // 요대
+  g_hempBelt:  { slot: 'belt', name: '거친 삼베 요대',   stats: { bag: 4 },          desc: '매듭으로 묶는 기본 허리띠.' },
   g_leatherBelt:{ slot: 'belt', name: '무두질한 가죽 요대', stats: { def: 3, bag: 6 },  desc: '질긴 소가죽 끈.' },
   g_silkBelt:  { slot: 'belt', name: '흑사 편직 요대',     stats: { breathe: 2 },      desc: '검은 비단실을 꼬아 만든 요대. 숨이 빨리 돌아온다.' },
   // 옥대

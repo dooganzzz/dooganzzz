@@ -68,13 +68,18 @@ function shopGear(id, st = S) {
   return { uid: st.uid++, shop: id, slot: g.slot, name: g.name, rarity: g.rarity, stats: { ...g.stats }, unique: null };
 }
 
-function equipItem(uid) {
+/* 장착 칸이 받는 장비 부위 (가락지 두 번째 칸은 가락지를 받는다) */
+const slotAccepts = slot => SLOT_ACCEPTS[slot] || slot;
+/* to: 넣을 장착 칸 (없으면 부위 칸. 가락지는 첫 칸이 차 있고 둘째 칸이 비었으면 둘째 칸으로) */
+function equipItem(uid, to) {
   const i = S.gear.findIndex(g => g.uid === uid); if (i < 0) return;
   const it = S.gear[i];
+  let slot = to && slotAccepts(to) === it.slot ? to : it.slot;
+  if (!to && it.slot === 'ring' && S.equip.ring && !S.equip.ring2) slot = 'ring2';
   S.gear.splice(i, 1);
-  if (S.equip[it.slot]) S.gear.push(S.equip[it.slot]);
-  S.equip[it.slot] = it;
-  notify.view({ slotSel: it.slot });
+  if (S.equip[slot]) S.gear.push(S.equip[slot]);
+  S.equip[slot] = it;
+  notify.view({ slotSel: slot });
   log(`${it.name}${jo(it.name, '을를')} 착용했습니다.`);
   clampVitals(); notify.refresh();
 }

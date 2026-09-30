@@ -71,18 +71,21 @@ function cpCard() {
 
 /* 상태 › 무공 */
 function viewMartial() {
-  const slots = CAT_ORDER.map(cat => {
+  // 방위 배치: 12시 심법 · 9시 무공 · 3시 기공 · 6시 경공, 가운데 운기조식 가부좌
+  const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };
+  const card = cat => {
     const id = S.active[cat], C = CATS[cat];
-    if (!id) return `<div class="mslot empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><div class="mslot-cat">${label(C.name, C.hanja)}</div><small class="muted">${C.desc}</small><p class="muted">비어 있음 · 눌러서 장착</p></div>`;
+    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">${C.desc}</small><p class="muted">비어 있음 · 눌러서 장착</p></div></div>`;
     const M = MANUALS[id], m = S.manuals[id];
-    return `<div class="mslot" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog">
-      <div class="mslot-cat">${label(C.name, C.hanja)}</div>
-      <b class="mslot-name">《${M.name}》${manualAffTag(id)}</b>${realmTag(m.star)}
-      <span class="art-star">${m.star}<small>성</small></span>
-      ${m.star < MAX_STAR ? (() => { const why = starUpBlock(id), pill = GATES[m.star]; return `<button class="btn ${why ? '' : 'primary'} sm starup" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `수련치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; })() : '<span class="daesung">大成</span>'}
-      <button class="btn ghost sm" data-unequipm="${cat}">장착 해제</button>
-    </div>`;
-  }).join('');
+    return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog">
+      <div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div>
+      <b class="mslot-name skill-title">《${M.name}》${manualAffTag(id)}</b>
+      <div class="skill-level-row">${realmTag(m.star)}<span class="art-star skill-level">${m.star}<small>성</small></span></div>
+      <div class="skill-btn-group">${m.star < MAX_STAR ? (() => { const why = starUpBlock(id), pill = GATES[m.star]; return `<button class="btn ${why ? '' : 'primary'} sm starup btn-upgrade" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `수련치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; })() : '<span class="daesung">大成</span>'}
+      <button class="btn ghost sm btn-unequip" data-unequipm="${cat}">장착 해제</button></div>
+    </div></div>`;
+  };
+  const slots = `${card('simbeop')}${card('mugong')}<div class="meditation-center-frame" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)</div></div>${card('gigong')}${card('gyeonggong')}`;
   const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat));
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급');
   const cards = learned.map(id => {
@@ -92,7 +95,7 @@ function viewMartial() {
   return `<section class="panel martial-slots">
     ${head('무공', '武功', `<span class="exp-purse" title="탐험에서 적을 쓰러뜨려 모은 수련치">수련치 <b>${fmt(S.exp)}</b></span>`)}
     <p class="muted exp-help">탐험에서 모은 수련치로 원하는 무공의 성급을 올립니다. 5→6성(소성)·11→12성(대성)에는 돌파단도 듭니다.</p>
-    <div class="mslots">${slots}</div>
+    <div class="mslots martial-arts-core-layout">${slots}</div>
   </section>
   <section class="panel martial-learned">
     ${head('익힌 무공', '習得', `<span class="num muted">${learned.length}종</span>`)}
@@ -266,25 +269,24 @@ function viewShop() {
 /* 상태 › 무장: 착용 장비 슬롯 · 선택 장비 강화 · 능력치 */
 function viewGear() {
   const st = calcStats();
-  const slot = s => {
+  // 장착 칸 카드: 부위 아이콘 · 칸 이름 · 장착한 장비(없으면 비어있음) · 행낭에 이 칸에 맞는 장비 수
+  const slot = (s, cls = '') => {
     const it = S.equip[s];
-    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}" aria-haspopup="dialog">${slotIcon(s)}<small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
+    return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${slotIcon(s)}<small class="slot-label">${SLOTS[s].name}</small><span class="slot-item-name ${it ? 'equipped' : 'empty'}">${it ? gearName(it) : '비어있음'}</span>${slotCount(s)}</button>`;
   };
-  const acc = s => {
-    const it = S.equip[s];
-    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${slotIcon(s)}<small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
-  };
-  const slotCount = s => { const n = S.gear.filter(g => g.slot === s).length; return n ? `<em class="slot-n" title="행낭에 이 부위 장비 ${n}점">+${n}</em>` : ''; };
+  const slotCount = s => { const n = S.gear.filter(g => g.slot === slotAccepts(s)).length; return n ? `<em class="slot-n" title="행낭에 이 칸에 맞는 장비 ${n}점">+${n}</em>` : ''; };
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
   return `<section class="panel">
     ${head('무장', '武裝')}
     <div class="bag-top">
       <div class="armory">
-        <div class="paperdoll">
-          ${['helmet', 'weapon', 'jade', 'armor'].map(slot).join('')}
-          <div class="doll-wrap" style="grid-area:doll">${portraitCard()}</div>
+        <!-- 왼쪽: 가락지 · 무기 · 요대 / 가운데: 투구 + 제자 초상 / 오른쪽: 옥대 · 호갑 · 가락지 -->
+        <div class="equipment-view-layout paperdoll">
+          <div class="equip-column equip-left">${slot('ring')}${slot('weapon')}${slot('belt')}</div>
+          <div class="character-center-frame">${slot('helmet', 'slot-top')}<div class="char-illustration-container doll-wrap">${portraitCard()}</div></div>
+          <div class="equip-column equip-right">${slot('jade')}${slot('armor')}${slot('ring2')}</div>
         </div>
-        <div class="acc-row">${['boots', 'belt', 'ring', 'badge', 'mount'].map(acc).join('')}</div>
+        <div class="equipment-bottom-bar acc-row">${['boots', 'badge', 'mount'].map(s => slot(s, 'small')).join('')}</div>
       </div>
       <div class="side-col">
         <p class="muted slot-help">장비 칸을 누르면 그 부위에 맞는 행낭 장비가 떠서 바로 장착·교체·해제·강화할 수 있습니다.</p>

@@ -130,6 +130,7 @@ const SLOT_ICON = {
   ring: 'M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM10 9l2-5 2 5',
   badge: 'M7 3h10v18l-5-3-5 3zM10 8h4M10 11h4',
   mount: 'M6 20l2-8-3-4 4-4 5 2 5 6-2 2-4-2-1 8M9 7l1-3',
+  ring2: 'M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM10 9l2-5 2 5',
   'w-blade': 'M5 19c8-3 12-9 14-16-4 5-9 9-13 11zM4 20l3-3',
   'w-sword': 'M19 3L7 15M5 13l6 6M4 20l3-3',
   'w-spear': 'M4 20L18 6M18 6l2-4-4 2zM14 7l3 3',
@@ -140,6 +141,20 @@ function slotIcon(slot) {
   const w = slot === 'weapon' && S.equip.weapon ? 'w-' + (S.equip.weapon.wtype || 'sword') : null;
   const d = SLOT_ICON[w] || SLOT_ICON[slot] || SLOT_ICON['w-sword'];
   return `<svg class="slot-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+/* ───────── 운기조식: 가부좌를 틀고 단전에 기운을 모으는 무림인 (상태 › 무공 가운데) ───────── */
+function meditationArt() {
+  return `<svg class="meditation-svg" viewBox="0 0 80 80" role="img" aria-label="가부좌 운기조식">
+    <g fill="#d8c59a" opacity=".9">
+      <circle cx="40" cy="17" r="7"/><path d="M36 11q4-6 8 0l-1-4q-3-2-6 0z" opacity=".8"/>
+      <path d="M31 27q9-5 18 0l3 20q-12 5-24 0z"/>
+      <path d="M31 30q-7 8-8 17q4 3 10 1l1-5q-4-1-3-4zM49 30q7 8 8 17q-4 3-10 1l-1-5q4-1 3-4z"/>
+      <path d="M16 58q4-10 24-10t24 10q-8 7-24 7t-24-7z"/>
+    </g>
+    <circle class="dantian" cx="40" cy="44" r="3.2" fill="#f0cf82"/>
+    <g class="qi-flow" fill="none" stroke="#f0cf82" stroke-width="1" opacity=".7"><path d="M40 44q-14-10-6-26"/><path d="M40 44q14-10 6-26"/></g>
+  </svg>`;
 }
 
 /* ───────── 움직임 줄이기: 기기 설정 또는 게임 설정(바닥글) ───────── */
