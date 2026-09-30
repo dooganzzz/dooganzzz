@@ -110,6 +110,12 @@ function doReset() {
 
 Bus.on('save', save);
 
+/* 전투력은 늘 계산해서 쓰고, 저장 상태에는 거울 값으로만 둔다. 능력치·장비·무공이 바뀌는 모든 조작은
+   refresh 신호를 보내고, 시간 흐름(수련 돌파·버프 만료)은 틱마다 오므로 이 두 곳에서 맞추면 빠짐이 없다. */
+function syncCombatPower() { if (S) S.combatPower = calculateCombatPower(S); }
+Bus.on('refresh', syncCombatPower);
+Bus.on('tick', syncCombatPower);
+
 function boot() {
   bindInput();
   gmInit();                                              // 운영자 콘솔 (GM_ENABLED일 때만)

@@ -5,6 +5,21 @@ function dmgBase(atk, def) { return (atk * atk) / (atk + def); }
 function dmgCalc(atk, def) { return Math.max(1, Math.round(dmgBase(atk, def) * rnd(0.9, 1.1))); }
 function reaction(dmg, maxHp) { const r = dmg / maxHp; return HIT_TEXT.find(([t]) => r >= t); }
 
+/* 종합 전투력 (정수). 능력치는 calcStats 합계를 쓰므로 장비·무공·무신상·영약·버프가 모두 반영된다.
+   player는 저장 상태 S (관리자 창에서는 받은 복사본). 다른 객체를 넘기면 그 상태로 잠시 바꿔 계산한다. */
+function combatPowerParts(player = S) {
+  if (!player) return { base: 0, gear: 0, arts: 0, total: 0 };
+  const prev = S; S = player;
+  try {
+    const st = calcStats(), W = CP_WEIGHTS;
+    const base = st.maxHp * W.maxHp + st.maxMp * W.maxMp;
+    const gear = st.atk * W.atk + st.def * W.def;
+    const arts = CAT_ORDER.reduce((a, c) => { const id = S.active[c], m = id && S.manuals[id]; return a + (m ? GRADES[MANUALS[id].grade].mult * m.star * W.art : 0); }, 0);
+    return { base: Math.round(base), gear: Math.round(gear), arts: Math.round(arts), total: Math.round(base + gear + arts) };
+  } finally { S = prev; }
+}
+function calculateCombatPower(player = S) { return combatPowerParts(player).total; }
+
 function sense(eid) {
   const E = ENEMIES[eid], st = calcStats();
   const myTurns = E.hp / (dmgBase(st.atk, E.def) * 1.3);

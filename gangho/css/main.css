@@ -55,7 +55,7 @@ h4 { font-size: .8rem; font-weight: 700; letter-spacing: .08em; color: var(--sil
 .who .name { font-family: var(--serif); font-weight: 700; font-size: 1.15rem; }
 .who .sect { font-size: .75rem; color: var(--dim); }
 .bars { display: grid; grid-template-columns: repeat(3, minmax(120px, 170px)); gap: 6px; }
-.purse { display: flex; gap: 14px; font-weight: 700; }
+.purse { display: flex; flex-wrap: wrap; gap: 4px 14px; font-weight: 700; }
 .purse span { display: inline-flex; align-items: center; gap: 6px; }
 .coin { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--gold); color: var(--gold); font-family: var(--serif); font-style: normal; font-size: .72rem; }
 .coin.c2 { border-color: var(--jade); color: var(--jade); }
@@ -521,3 +521,17 @@ body {
   .ware { grid-template-columns: 30px minmax(0, 1fr) auto; }
   .ware > .btn, .ware > .btns { grid-column: 2 / -1; justify-self: end; }
 }
+
+/* 종합 전투력: 헤더 소형 표기 + 상태 탭 맨 위 카드 */
+.coin.cpi { background: radial-gradient(circle at 40% 35%, #e0785f, #7a2a1f); color: #fff1ec; }
+.purse .cp { position: relative; }
+.cp-delta { position: absolute; left: 100%; top: -9px; margin-left: 2px; font-style: normal; font-size: .7rem; font-weight: 800; white-space: nowrap; }
+.cp-delta.up { color: #7fe0a0; }
+.cp-delta.down { color: #ff8e7a; }
+.cp-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding: 14px 18px; border-radius: var(--radius); border: 1px solid rgba(212, 175, 55, .35); background: linear-gradient(100deg, rgba(122, 42, 31, .35), rgba(20, 23, 28, .85) 55%); box-shadow: 0 8px 24px rgba(0, 0, 0, .4); }
+.cp-main { display: flex; align-items: baseline; gap: 14px; }
+.cp-label .ko { font-size: 1.05rem; }
+.cp-value { font-family: var(--serif); font-weight: 900; font-size: 2.1rem; line-height: 1; color: #f0cf82; text-shadow: 0 0 18px rgba(212, 175, 55, .35); font-variant-numeric: tabular-nums; }
+.cp-parts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--dim); font-size: .85rem; }
+.cp-parts b { color: var(--silver); font-variant-numeric: tabular-nums; margin-left: 4px; }
+@media (max-width: 640px) { .cp-value { font-size: 1.7rem; } }

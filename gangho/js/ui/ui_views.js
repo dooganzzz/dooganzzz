@@ -87,6 +87,19 @@ function viewYeonmu() {
   </section>`;
 }
 
+/* 상태 탭 맨 위: 종합 전투력과 내역 */
+function cpCard() {
+  const p = combatPowerParts(S), W = CP_WEIGHTS;
+  return `<section class="cp-card" aria-label="종합 전투력">
+    <div class="cp-main"><span class="cp-label">${label('전투력', '戰鬪力')}</span><b class="cp-value">${fmt(p.total)}</b></div>
+    <div class="cp-parts">
+      <span title="최대 활력 × ${W.maxHp} + 최대 내력 × ${W.maxMp}">체력·내력 <b>${fmt(p.base)}</b></span>
+      <span title="공격력 × ${W.atk} + 방어력 × ${W.def}">공격·방어 <b>${fmt(p.gear)}</b></span>
+      <span title="장착 무공 4종: 등급 계수 × 성 × ${W.art}">무공 <b>${fmt(p.arts)}</b></span>
+    </div>
+  </section>`;
+}
+
 /* 상태 › 무공 */
 function viewMartial() {
   const slots = CAT_ORDER.map(cat => {

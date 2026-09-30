@@ -116,7 +116,7 @@ module.exports = async (b) => {
       await p.evaluate(tp => { const S0 = S.seen[S.zone.id]; S.zone.layout.forEach((row, y) => [...row].forEach((c, x) => { if (c !== '_') S0[`${x},${y}`] = 1; })); render(); }, t);
       const sel = `.map-scroll .cell.${t}:not(.here)`;
       const el = await p.$(sel); if (!el) continue;
-      await el.scrollIntoViewIfNeeded(); await el.hover(); await p.waitForTimeout(260);
+      await el.scrollIntoViewIfNeeded(); await el.hover(); await p.waitForTimeout(600);   // .18s 전환이 끝날 때까지 (부하 때 여유)
       hov[t] = await el.evaluate(e => ({ tf: getComputedStyle(e).transform, sh: getComputedStyle(e).boxShadow }));
     }
     const lift = v => v && /matrix\(1, 0, 0, 1, 0, -2\)/.test(v.tf);

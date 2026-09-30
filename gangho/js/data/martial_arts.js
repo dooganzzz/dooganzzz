@@ -74,3 +74,7 @@ const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창',
 const CXP_NEED = [10, 20];
 /* 자리를 비운 동안 쌓이는 폐관수련 한도 (초) */
 const OFFLINE_CAP = 24 * 3600;
+
+/* 종합 전투력 가중치: 최대 활력·내력, 공격력·방어력(장비·무공·무신상·버프 합계),
+   장착 무공 4종마다 등급 계수(GRADES.mult) × 현재 성 × art */
+const CP_WEIGHTS = { maxHp: 1.0, maxMp: 1.5, atk: 5.0, def: 3.0, art: 10 };

@@ -56,12 +56,20 @@ function bar(cls, cur, max, name, hideNum) {
   return `<div class="bar ${cls}"><span class="bar-fill" style="width:${p}%"></span><span class="bar-text"><b>${name}</b>${hideNum ? '' : ` ${fmt(cur)} / ${fmt(max)}`}</span></div>`;
 }
 
+/* 전투력이 바뀌면 헤더에 잠깐 ▲/▼ 변화량을 붙인다 */
+const cpMark = { last: null, delta: 0, until: 0 };
+function cpDeltaHtml(cp) {
+  const t = Date.now();
+  if (cpMark.last !== null && cp !== cpMark.last) { cpMark.delta = cp - cpMark.last; cpMark.until = t + 2500; }
+  cpMark.last = cp;
+  return t < cpMark.until && cpMark.delta ? `<em class="cp-delta ${cpMark.delta > 0 ? 'up' : 'down'}">${cpMark.delta > 0 ? '▲' : '▼'}${fmt(Math.abs(cpMark.delta))}</em>` : '';
+}
 function renderHeader() {
-  const st = calcStats();
+  const st = calcStats(), cp = calculateCombatPower(S);
   $('#status').innerHTML = `
     <div class="who"><span class="name">${esc(S.name)}</span><span class="sect">청풍문 제자 · ${S.zone ? ZONES[S.zone.id].name : '청풍문'}</span></div>
     <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}${bar('sta', S.stamina, st.maxSta, '기력')}</div>
-    <div class="purse"><span title="은자"><i class="coin">銀</i>${fmt(S.silver)}</span><span title="문파 공헌도"><i class="coin c2">功</i>${fmt(S.contrib)}</span></div>`;
+    <div class="purse"><span class="cp" title="종합 전투력"><i class="coin cpi">戰</i>${fmt(cp)}${cpDeltaHtml(cp)}</span><span title="은자"><i class="coin">銀</i>${fmt(S.silver)}</span><span title="문파 공헌도"><i class="coin c2">功</i>${fmt(S.contrib)}</span></div>`;
 }
 
 function renderTabs() {
@@ -89,7 +97,7 @@ function render() {
   if (!S) return;
   renderHeader(); renderTabs();
   const main = $('#main');
-  const scr = screen(), bar = SUBS[ui.tab] ? subtabBar(ui.tab) : '';
+  const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
   if (BASE_TABS.has(scr) && S.zone) {
     const [, ko, hj] = SECT_SUBS.find(t => t[0] === scr);
     main.innerHTML = bar + `<section class="panel">${head(ko, hj)}<p class="story">지금은 ${ZONES[S.zone.id].name}에 나와 있습니다. 청풍문으로 돌아가야 이곳을 쓸 수 있습니다.</p><div><button class="btn" data-act="leave">청풍문으로 귀환</button></div></section>`;
