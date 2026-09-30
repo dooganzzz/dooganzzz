@@ -66,16 +66,18 @@ function spDust(x, dx = -18, n = 2) {
   for (let i = 0; i < n; i++) { const d = document.createElement('i'); d.className = 'sp-dust'; d.style.left = (x + i * 2) + '%'; d.style.bottom = (19 + Math.random() * 2) + '%'; d.style.setProperty('--dx', (dx * (1 + i * .6)) + 'px'); d.style.animationDelay = (i * 60) + 'ms'; st.appendChild(d); setTimeout(() => d.remove(), 900); }
 }
 /* 달려가서: 평타는 힘껏 찌르기, 초식은 삼재검법 가로베기(준비 → 베기 → 마무리) */
+let spOnHit = null;   // 이번 합의 첫 타격 순간에 한 번 (체력 막대 갱신)
+const spImpact = f => { if (spOnHit) { spOnHit(); spOnHit = null; } playFx([f]); };
 async function spHeroAttack(f, stance, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
   const k = Math.min(1, gap / 1000), w = ms => spWait(ms * k);
   h.classList.remove('idle'); h.classList.add('dash'); spDust(20, -22);
   let n = 0; const legs = setInterval(() => { spFrame(h, n++ % 2 ? 'run2' : 'run1'); spDust(24 + n * 5, -14, 1); }, 110 * k);
   spFrame(h, 'run1'); await w(430); clearInterval(legs);
-  const land = () => { if (f.k === 'miss') spNum('빗나감', 'foe', 'miss'); else { spFlash(e); spNum(f.t, 'foe', f.k === 'crit' ? 'crit' : ''); } };
+  const land = () => { spImpact(f); if (f.k === 'miss') spNum('빗나감', 'foe', 'miss'); else { spFlash(e); spNum(f.t, 'foe', f.k === 'crit' ? 'crit' : ''); } };
   if (stance) {
     spFrame(h, 'slashA'); await w(150);
-    spFrame(h, 'slashB'); spDust(48, -20, 3); spStreak('slash'); land(); await w(170);
+    spFrame(h, 'slashB'); if (stance.t) playFx([stance]); spDust(48, -20, 3); spStreak('slash'); land(); await w(170);
     spFrame(h, 'slashC'); await w(230);
   } else {
     spFrame(h, 'thrust'); spDust(46, -24, 3); spStreak('thrust'); land(); await w(320);
@@ -87,7 +89,7 @@ async function spFoeAttack(f, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
   const atk = e.querySelector('.sp-fatk');
   if (atk) return spFoeStrike(f, gap, h, e, atk);
-  e.classList.remove('idle'); e.classList.add('lunge'); spDust(70, 18, 2); await spWait(gap * .25);
+  e.classList.remove('idle'); e.classList.add('lunge'); spDust(70, 18, 2); await spWait(gap * .25); spImpact(f);
   if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); }
   else { spFrame(h, 'hurt'); spFlash(h); spNum(f.t, 'me', 'me'); }
   await spWait(gap * .4); e.classList.remove('lunge'); h.classList.remove('back'); spFrame(h, 'idle'); await spWait(gap * .2); e.classList.add('idle');
@@ -96,21 +98,26 @@ async function spFoeAttack(f, gap) {
 async function spFoeStrike(f, gap, h, e, atk) {
   const k = Math.min(1, gap / 1000), w = ms => spWait(ms * k), fr = i => { atk.style.backgroundPositionX = i * 50 + '%'; };
   e.classList.remove('idle'); e.classList.add('striking', 'step'); fr(0); await w(260);
-  fr(1); spDust(66, 20, 2);
+  fr(1); spDust(66, 20, 2); spImpact(f);
   if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); }
   else { spFrame(h, 'hurt'); spFlash(h); spNum(f.t, 'me', 'me'); }
   await w(300); fr(2); await w(240);
   e.classList.remove('striking', 'step'); h.classList.remove('back'); spFrame(h, 'idle'); await w(160); e.classList.add('idle');
 }
 /* 한 합 재생: 기록된 연출(fx) 순서대로 공격을 나눠 움직인다 */
-async function spritePlayRound(r, last, win, ms) {
-  if (!$('#spStage') || reduceMotion()) return;
-  const acts = []; let stance = false;
+async function spritePlayRound(r, last, win, ms, onHit) {
+  if (!$('#spStage') || reduceMotion()) { if (onHit) onHit(); return; }
+  spOnHit = onHit || null;
+  const acts = [], rest = []; let stance = false;
   for (const f of r.fx || []) {
-    if (f.side === 'banner') { stance = true; continue; }
+    if (f.side === 'banner') { stance = f; continue; }
     if (f.side === 'foe' && /hit|crit|miss/.test(f.k)) { acts.push(['me', f, stance]); stance = false; }
     else if (f.side === 'me' && /hit|crit|dodge/.test(f.k)) acts.push(['foe', f]);
+    else rest.push(f);
   }
+  if (stance) acts.length ? 0 : rest.push(stance);   // 공격 없이 초식 이름만 있으면 그대로 띄운다
+  if (rest.length) playFx(rest);
+  if (!acts.length && spOnHit) { spOnHit(); spOnHit = null; }
   const gap = Math.min(900, (ms * .85) / Math.max(1, acts.length));
   for (const [who, f, st] of acts) { if (!$('#spStage')) return; if (who === 'me') await spHeroAttack(f, st, gap); else await spFoeAttack(f, gap); }
   if (last) { const x = win ? $('#spFoe') : $('#spHero'); if (x) { x.classList.remove('idle'); x.classList.add('ko'); } }

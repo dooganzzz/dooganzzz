@@ -204,8 +204,11 @@ function replayStep() {
   const prev = RP.i < 0 ? { me: { hp: b.start.me.hp, mp: b.start.me.mp }, foe: b.start.foe.hp } : b.rounds[RP.i];
   RP.i++;
   const r = b.rounds[RP.i], s = b.start;
-  $('#rpMe').innerHTML = vbar('hp', r.me.hp, prev.me.hp, s.me.maxHp, '활력') + bar('mp', r.me.mp, s.me.maxMp, '내력');
-  $('#rpFoe').innerHTML = vbar('hp foe', r.foe, prev.foe, s.foe.maxHp, '기세', true);
+  // 막대 갱신: 스프라이트 무대가 있으면 첫 타격이 닿는 순간에, 없으면 곧바로
+  const bars = () => { $('#rpMe').innerHTML = vbar('hp', r.me.hp, prev.me.hp, s.me.maxHp, '활력') + bar('mp', r.me.mp, s.me.maxMp, '내력');
+    $('#rpFoe').innerHTML = vbar('hp foe', r.foe, prev.foe, s.foe.maxHp, '기세', true); };
+  const sprite = !!$('#spStage') && !reduceMotion() && !RP.skip;
+  if (!sprite) bars();
   const logEl = $('#rpLog');
   for (const t of logEl.querySelectorAll('.rp-turn.now')) t.classList.remove('now');
   logEl.insertAdjacentHTML('beforeend', rpTurn(`第${RP.i + 1}合 · 제${RP.i + 1}합`, r.lines.map(l => rpLine(l, b, true)).join(''), 'now'));
@@ -213,8 +216,8 @@ function replayStep() {
   const last = RP.i >= b.rounds.length - 1;
   $('#rpRound').textContent = last ? (b.win ? '勝' : b.fled ? '和' : '敗') : `${RP.i + 1}합`;
   $('#rpProg').textContent = `${RP.i + 1} / ${b.rounds.length}합`;
-  playFx(r.fx || []);
-  if (!RP.skip || last) spritePlayRound(RP.skip ? { fx: [] } : r, last, b.win, RP_MS / RP.speed);
+  if (sprite) spritePlayRound(r, last, b.win, RP_MS / RP.speed, bars);   // 번쩍임·숫자·초식 이름은 칼·이빨이 닿는 순간에
+  else { playFx(r.fx || []); if ($('#spStage') && last) spritePlayRound({ fx: [] }, last, b.win, RP_MS / RP.speed); }
   if (last) { box.classList.add(b.win ? 'won' : 'lost'); RP.playing = false; $('#rpToggle').textContent = '▶ 재생'; replayStop(); return; }
   if (RP.playing) RP.timer = setTimeout(replayStep, RP_MS / RP.speed);
 }
