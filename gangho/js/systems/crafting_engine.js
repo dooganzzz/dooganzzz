@@ -88,10 +88,40 @@ function pray(times = 1) {
   const got = [];
   for (let i = 0; i < n; i++) got.push(gachaRoll());
   S.shrine.pulls = (S.shrine.pulls || 0) + n;
+  S.statueResidueCount = (S.statueResidueCount || 0) + n * GACHA.cost;   // 탁기 정화 누적
   log(`🗿 무신상에 검게 탄 찌꺼기 ${n * GACHA.cost}개를 공양했습니다. 돌아온 것: ${got.map(g => hlItem(g.text)).join(', ')}`, 'gold');
   notify.view({ gachaResult: got });
+  let aw = null;
+  while (S.statueResidueCount >= GACHA.awaken) aw = triggerStatueAwakeningReward();
+  if (aw) notify.view({ modal: 'awaken', awaken: aw });
   notify.refresh();
   return got;
+}
+
+/* 누적 300개: 무신이 깨어나 영구 능력치(4대 스탯 하나 +1 · 최대 활력 +20)와 삼류~이류 완제품 하나를 하사한다 */
+function triggerStatueAwakeningReward() {
+  S.statueResidueCount -= GACHA.awaken;
+  const stat = pick(Object.keys(ATTRS));
+  S.perm.attr = S.perm.attr || {}; S.perm.attr[stat] = (S.perm.attr[stat] || 0) + 1;
+  S.perm.maxHp += GACHA.awakenHp;
+  const item = rollGrade3To2Product();
+  clampVitals();
+  log(`[무신의 응답] 석상이 탁기를 모두 삼켜 눈을 떴습니다! ${ATTRS[stat].name} 영구 +1 · 최대 활력 영구 +${GACHA.awakenHp}, ${hlItem(`《${item.name}》`)}${jo(item.name, '을를')} 하사받았습니다.`, 'gold');
+  notify.banner('무신의 응답', `${ATTRS[stat].name} +1 · 활력 +${GACHA.awakenHp} · ${item.name}`, '');
+  return { stat, statName: ATTRS[stat].name, statVal: 1, hp: GACHA.awakenHp, item };
+}
+/* 삼류~이류 완제품: 장비(단조 중급·장경각 이류) 또는 아직 없는 비급(삼류·청풍 이류). 행낭이 차면 비급으로 */
+function rollGrade3To2Product() {
+  const books = [...GACHA.books, ...GACHA.awakenBooks].filter(id => !S.manuals[id] && !has('bk_' + id));
+  if (Math.random() < 0.5 || !books.length) {
+    const ids = [...Object.keys(CRAFT_GEAR), ...Object.keys(LIBRARY_GEAR)], id = pick(ids);
+    const it = LIBRARY_GEAR[id] ? libraryGear(id) : makeNamedGear(id);
+    if (LIBRARY_GEAR[id]) delete it.shop;                                   // 하사품은 장경각 교환과 별개
+    if (giveGear(it, true)) return { type: 'equipment', name: it.name, grade: LIBRARY_GEAR[id] ? '이류' : '중급' };
+    if (!books.length) { const n = rint(2, 3); give('saenghyeol', n, true); return { type: 'supply', name: `생혈고 ×${n}`, grade: '' }; }
+  }
+  const id = pick(books); give('bk_' + id, 1, true);
+  return { type: 'skillBook', name: `${MANUALS[id].name} 비급`, grade: MANUALS[id].grade };
 }
 function gachaRoll() {
   const T = Object.fromEntries(GACHA.table.map(e => [e.k, e.w]));

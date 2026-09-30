@@ -1,31 +1,46 @@
 /* [시스템] 청풍문: 문파 임무·인물(조운·아린·장문인)·장경각·창고·하산 (DOM 조작 금지) */
 
-/* ───────── 문파 임무 ───────── */
+/* ───────── 문파 임무: 토벌만. 해금된 사냥터의 요수를 3~6마리 (강한 요수일수록 적게) ─────────
+   공헌 보상은 예전 계산값의 절반. 새 임무 갱신은 10냥부터 한 번 할 때마다 10냥씩 오르고, 매일 자정에 초기화된다 */
+const MISSION_N = { 1: [5, 6], 2: [4, 5], 3: [3, 4], 4: [3, 3] };
 function genMission() {
   const zid = pick(ZONE_ORDER.filter(zoneUnlocked)), Z = ZONES[zid];
-  if (Math.random() < 0.55) {
-    const eid = pick(Z.enemies), E = ENEMIES[eid], n = rint(3, 6);
-    return { type: 'kill', target: eid, n, prog: 0, contrib: Math.round(E.xp * n * 0.4 + 10), silver: Math.round(E.xp * n * 0.3), zone: zid };
-  }
-  const id = pick(Z.mats), n = rint(2, 5);
-  return { type: 'deliver', target: id, n, prog: 0, contrib: Math.round(ITEMS[id].price * n + 10), silver: Math.round(ITEMS[id].price * n), zone: zid };
+  const eid = pick(Z.enemies), E = ENEMIES[eid], [lo, hi] = MISSION_N[E.tier || 2], n = rint(lo, hi);
+  return { type: 'kill', target: eid, n, prog: 0, contrib: Math.floor((E.xp * n * 0.4 + 10) * 0.5), silver: Math.round(E.xp * n * 0.3), zone: zid };
 }
 
 function ensureMissions() { while (S.missions.length < 3) S.missions.push(genMission()); }
 function progressMission(target) { for (const m of S.missions) if (m.type === 'kill' && m.target === target && m.prog < m.n) m.prog++; }
-function missionReady(m) { return m.type === 'kill' ? m.prog >= m.n : has(m.target, m.n); }
+function missionReady(m) { return m.prog >= m.n; }
 
 function completeMission(i) {
   const m = S.missions[i]; if (!m || !missionReady(m)) return;
-  if (m.type === 'deliver') take(m.target, m.n);
   S.contrib += m.contrib; S.silver += m.silver;
   log(`문파 임무 완료! ${hlContrib('+' + m.contrib)}, ${hlSilver(m.silver)}`, 'good');
   S.missions.splice(i, 1); ensureMissions(); notify.refresh();
 }
 
+const questDay = (t = now()) => new Date(t).toLocaleDateString('ko-KR');
+/* 오늘 새 임무를 받는 값: 10냥 + 오늘 갱신한 횟수 × 10냥 */
+function getQuestRefreshCost() { return 10 + (S.questRefreshCount || 0) * 10; }
 function rerollMissions() {
-  if (S.silver < 5) { notify.toast('은자가 부족합니다.'); return; }
-  S.silver -= 5; S.missions = []; ensureMissions(); log('노벽송이 하품을 하며 새 임무 두루마리를 던져줍니다.', 'npc'); notify.refresh();
+  const cost = getQuestRefreshCost();
+  if (S.silver < cost) { notify.toast(`은자가 부족합니다. (새 임무 ${cost}냥)`); return; }
+  S.silver -= cost; S.questRefreshCount = (S.questRefreshCount || 0) + 1;
+  S.missions = []; ensureMissions();
+  log(`노벽송이 하품을 하며 새 토벌 임무 두루마리를 던져줍니다. ${hlSilver(-cost)} (다음 갱신 ${getQuestRefreshCost()}냥)`, 'npc'); notify.refresh();
+}
+/* 자정이 지나면 토벌 임무 3종을 새로 받고 갱신 비용이 10냥으로 돌아간다 */
+function checkDailyMidnightReset(t = now()) {
+  const today = questDay(t);
+  if (S.lastQuestResetDate === today) return false;
+  const first = !S.lastQuestResetDate;
+  S.lastQuestResetDate = today; S.questRefreshCount = 0;
+  if (first) return false;                                   // 처음 기록할 때는 지금 임무를 그대로 둔다
+  S.missions = []; ensureMissions();
+  log('[문파] 자정이 지나 문파 토벌 임무와 갱신 비용이 초기화되었습니다.', 'npc');
+  notify.refresh();
+  return true;
 }
 
 /* ───────── 인물 ───────── */
@@ -103,6 +118,16 @@ function buyBadge(id) {
   if (!giveGear(shopGear(id), true)) return;
   S.contrib -= g.cost;
   log(`${hlItem(g.name)}${jo(g.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
+  notify.refresh();
+}
+
+/* 장경각 이류 장비 교환 (공헌도) */
+function buyLibraryGear(id) {
+  const G = LIBRARY_GEAR[id];
+  if (!G || S.contrib < G.cost || ownsShop(id)) return;
+  if (!giveGear(libraryGear(id), true)) return;
+  S.contrib -= G.cost;
+  log(`장경각에서 이류 장비 ${hlItem(G.name)}${jo(G.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
   notify.refresh();
 }
 

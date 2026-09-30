@@ -82,7 +82,7 @@ module.exports = async (b) => {
     // 4. 도감 4탭
     await p.click('[data-tab="codex"]');
     const cx = await p.evaluate(() => ({ tabs: [...document.querySelectorAll('[data-codextab]')].map(e => e.querySelector('.ko').textContent).join('|') }));
-    ok('4 도감: 몬스터 | 무공 | 단조 비법 | 단약 비법', cx.tabs === '몬스터|무공|단조 비법|단약 비법', cx.tabs);
+    ok('4 도감: 몬스터 | 비급 | 단조 비법 | 단약 비법', cx.tabs === '몬스터|비급|단조 비법|단약 비법', cx.tabs);
     await p.click('[data-codextab="forge"]');
     const fr = await p.evaluate(() => ({ known: document.querySelectorAll('.recipe-row:not(.unknown)').length, unknown: document.querySelectorAll('.recipe-row.unknown').length, text: (document.querySelector('.recipe-row:not(.unknown)') || {}).textContent || '' }));
     ok('4 단조 비법: 발견한 것만 재료·결과와 함께 (못 찾은 비법은 숨김)', fr.known === 1 && fr.unknown === 0 && /청강검/.test(fr.text) && /거친 철광석 ×3/.test(fr.text), JSON.stringify(fr));
@@ -105,7 +105,7 @@ module.exports = async (b) => {
       r.defeats = d.defeats; r.drained = d.end === 'tired' && S.stamina <= EXPEDITION.minStamina + 0.001;
       return r;
     });
-    ok('5 한 번 탐험의 조우는 10걸음 안팎 (기력 소모 상향)', lp.steps.every(n => n >= 5 && n <= 18), JSON.stringify(lp.steps));
+    ok('5 한 번 탐험의 조우는 10걸음 안팎 (전투 3~5 · 금고 1~3 + α)', lp.steps.every(n => n >= 4 && n <= 18), JSON.stringify(lp.steps));
     ok('5 쓰러져도 탐험은 이어지고 기력이 다할 때까지 간다', lp.defeats >= 2 && lp.drained, JSON.stringify(lp));
     const bp = await p.evaluate(() => { const keep = S.bossPity; S.bossPity = {}; const r = [bossChanceNow('cheongpung')]; S.bossPity.cheongpung = 5; r.push(bossChanceNow('cheongpung')); S.bossPity.cheongpung = 999; r.push(bossChanceNow('cheongpung')); S.bossPity = keep; return { r: r.map(x => Math.round(x * 1000) / 1000), noAvoid: !('bossAvoid' in EXPEDITION) }; });
     ok('5 두목: 기척 회피 없음 · 2.5%에서 못 만날수록 +3%p (최대 50%)', bp.noAvoid && bp.r.join() === '0.025,0.175,0.5', JSON.stringify(bp));

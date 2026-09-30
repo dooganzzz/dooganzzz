@@ -93,6 +93,18 @@ const WEAPON_ADV = {
 /* 상성 계수. elem: 오행 극 · weapAtk: 병기 우세 공격력 · weapHit: 병기 우세 명중 보정(%p) · weapDown: 병기 열세 피해 감소
    terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 */
 const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terrainMatch: 0.8, terrainMiss: 1.2 };
+/* 전투 보정: minDmg 적 공격의 최소 피해(공격력 대비, 방어로도 못 막는 몫) · elemPenalty 오행 역상성일 때 받는 피해 추가
+   powerBase 초식 피해 배율의 기준(장경각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
+const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2 };
+/* 쓰러졌을 때 남기는 패배 원인 (관찰·탐험 기록) */
+const DEFEAT_CAUSE = {
+  crit: '상대의 날카로운 기습에 호흡이 흐트러졌습니다.',
+  heavy: '적의 묵직한 일격에 기세가 꺾였습니다.',
+  combo: '몰아치는 연격을 끝내 받아내지 못했습니다.',
+  dot: '독과 상처가 쌓여 끝내 버티지 못했습니다.',
+  elem: '상성이 맞지 않는 기운에 내력이 흩어졌습니다.',
+  grind: '길어진 싸움에 힘이 다했습니다.',
+};
 
 /* 4대 기본 스탯 (캐릭터 생성 때 배분).
    per: ATTR_BASE를 기준으로 한 점마다 더하거나 뺀다 (per.elem: 오행 극 보정 %p)

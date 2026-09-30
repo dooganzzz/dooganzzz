@@ -52,7 +52,8 @@ module.exports = async (b) => {
       const keepInt = S.attr.int; S.attr.int = 6;         // 지력 기준값에서 비교
       // 청령목괴 = 木·창, 내 병기 = 창 → 병기는 호각이라 오행만 본다
       const A = affinity('treant'), B = affinity('eliteAxe'), C = affinity('boar');
-      r.rabbit = [A.el, A.dealt, A.taken, A.wp]; r.bandit = [B.el, B.foe]; r.boar = C.el;
+      r.up = Math.round((1 + AFFINITY.elem + calcStats().elem / 100) * 1000) / 1000;   // 지력·비급 각인의 오행 위력 포함
+      r.rabbit = [A.el, Math.round(A.dealt * 1000) / 1000, A.taken, A.wp]; r.bandit = [B.el, B.foe]; r.boar = C.el;
       S.attr.int = 10; r.int = affinity('treant').dealt; S.attr.int = 6;
       // 같은 난수로 한 대: 상극 우세 vs 상성 없음
       const R = Math.random; Math.random = () => 0.5;
@@ -64,10 +65,10 @@ module.exports = async (b) => {
     });
     ok('2 오행 상극: 木剋土 · 火剋金 · 土剋水 · 金剋木 · 水剋火', el.beats.split(',').sort().join() === '木剋土,水剋火,火剋金,土剋水,金剋木'.split(',').sort().join(), el.beats);
     ok('2 극하면 1, 극당하면 -1, 상생·무속성 0', el.rel === '1,-1,0,0', el.rel);
-    ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×1.25 · 받는 피해 ×0.75', el.me === 'metal' && el.rabbit[0] === 1 && el.rabbit[1] === 1.25 && el.rabbit[2] === 0.75 && el.rabbit[3] === 0, JSON.stringify(el));
+    ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×(1.25 + 오행 위력) · 받는 피해 ×0.75', el.me === 'metal' && el.rabbit[0] === 1 && el.rabbit[1] === el.up && el.up >= 1.25 && el.rabbit[2] === 0.75 && el.rabbit[3] === 0, JSON.stringify(el));
     ok('2 金 기공 vs 火 정예 도부수: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
-    ok('2 지력이 높으면 극할 때 위력 추가', el.int > 1.25, String(el.int));
-    ok('2 실제 타격에 반영 (같은 난수 기준 1.25배)', Math.abs(el.ratio - 1.25) < 0.03, String(el.ratio));
+    ok('2 지력이 높으면 극할 때 위력 추가', el.int > el.up, String(el.int));
+    ok('2 실제 타격에 반영 (같은 난수 기준 주는 피해 배율만큼)', Math.abs(el.ratio - el.up) < 0.03, `${el.ratio} / ${el.up}`);
 
     // 3. 병기 상성
     const wp = await p.evaluate(() => {
@@ -138,11 +139,11 @@ module.exports = async (b) => {
     ok('5 [공양 10회]: 찌꺼기가 모자라면 되는 만큼 (14개 → 4회)', gc.got === 4 && gc.left === 2 && gc.pulls === 4, JSON.stringify(gc));
     ok('5 결과는 약재·소모품·광석·장비·영단·비급 중 하나', gc.kinds && ['herb', 'supply', 'ore', 'gear'].every(k => gc.dist[k] > 0), JSON.stringify(gc.dist));
     ok('5 비급은 드물게 · 같은 비급은 두 번 나오지 않음', (gc.dist.book || 0) <= gc.nBooks && new Set(gc.books).size === gc.books.length, JSON.stringify(gc.books));
-    await p.evaluate(() => { S.inv.slag = 7; goTab('sect', 'shrine'); render(); });
-    const sh = await p.evaluate(() => ({ one: !document.querySelector('[data-pray="1"]').disabled, ten: !document.querySelector('[data-pray="10"]').disabled, me: /나/.test(document.querySelector('.altar .pill').textContent), rate: document.querySelectorAll('.gacha-table li').length }));
-    await p.click('[data-pray="1"]');
+    await p.evaluate(() => { S.inv.slag = 7; S.statueResidueCount = 0; ui.modal = null; goTab('sect', 'shrine'); render(); });   // 위 표본 공양으로 무신이 깨어났으면 창을 닫는다
+    const sh = await p.evaluate(() => ({ one: !document.querySelector('[data-pray="1"]').disabled, ten: !document.querySelector('[data-pray="10"]').disabled, me: /나/.test(document.querySelector('.altar .pill').textContent), rate: document.querySelectorAll('.gacha-table li').length, purify: !!document.querySelector('.purify') }));
+    await p.click('[data-pray="1"]'); await p.click('[data-act="confirmok"]');
     const sh2 = await p.evaluate(() => ({ res: document.querySelectorAll('.gacha-res li').length, slag: count('slag'), log: /공양/.test(S.log[S.log.length - 1].text) }));
-    ok('5 무신상(나) 화면: 공양 1회/10회 · 나올 확률표', sh.one && sh.ten && sh.me && sh.rate === 6, JSON.stringify(sh));
+    ok('5 무신상(나) 화면: 공양 1회/10회 · 확률표 없음 · 탁기 정화 게이지', sh.one && sh.ten && sh.me && sh.rate === 0 && sh.purify, JSON.stringify(sh));
     ok('5 공양하면 돌아온 것 표시 · 견문록 기록', sh2.res === 1 && sh2.slag === 4 && sh2.log, JSON.stringify(sh2));
 
     // 6. 심상수련장
@@ -174,7 +175,7 @@ module.exports = async (b) => {
     await p.evaluate(() => { ui.modal = 'mart:' + S.active.gigong; renderModal(); });
     ok('7 기공 상세: 극하는 오행 · 극당하는 오행', await p.evaluate(() => /木 속성 적에게 피해 \+25%/.test(document.querySelector('.sheet').textContent) && /火 속성 적에게는 -25%/.test(document.querySelector('.sheet').textContent)));
     await p.evaluate(() => { ui.modal = null; ui.statusSub = 'gear'; render(); });
-    ok('7 전투력 카드 아래 4대 스탯 · 주력 기예', await p.evaluate(() => { const t = document.querySelector('.cp-attr').textContent; return /근력 10/.test(t) && /민첩 6/.test(t) && /기예 단약/.test(t); }));
+    ok('7 전투력 카드 아래 4대 스탯 · 주력 기예', ...(await p.evaluate(() => { const t = document.querySelector('.cp-attr').textContent; return [t.includes(`근력 ${attrOf('str')}`) && t.includes(`민첩 ${attrOf('agi')}`) && /기예 단약/.test(t), t + ' / 민첩 ' + attrOf('agi')]; })));   // 비급 각인이 더해진 값
 
     // 8. 주력 기예 효과
     const tl = await p.evaluate(() => {

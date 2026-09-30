@@ -104,20 +104,28 @@ function artSlotModal(cat) {
 /* ───────── 공통 재확인 창: 판매·휴식처럼 실수로 누르면 곤란한 행동 앞에 ─────────
    showConfirmModal({ title, message, confirmText, cancelText, onConfirm }) */
 let confirmCb = null;
-function showConfirmModal({ title = '확인', message = '정말 진행하시겠습니까?', confirmText = '확인', cancelText = '취소', onConfirm } = {}) {
+function showConfirmModal({ title = '확인', message = '정말 진행하시겠습니까?', details = [], confirmText = '확인', cancelText = '취소', onConfirm } = {}) {
   confirmCb = typeof onConfirm === 'function' ? onConfirm : null;
-  ui.confirm = { title, message, confirmText, cancelText };
+  if (ui.modal !== 'confirm') ui.confirmBack = ui.modal || null;   // 무공 창 등 위에서 띄웠으면 닫은 뒤 그 창으로 돌아간다
+  ui.confirm = { title, message, details, confirmText, cancelText };
   ui.modal = 'confirm'; renderModal();
+}
+/* 범용 행동 확인: 자원을 쓰거나 되돌릴 수 없는 행동 앞에서 무엇이 일어나는지 요약하고 동의를 받는다
+   requestActionConfirm({ title, description, details: ['은자 -30냥', …], confirmText: '진행', onConfirm }) */
+function requestActionConfirm({ title, description, details = [], confirmText = '진행', onConfirm }) {
+  showConfirmModal({ title, message: description, details, confirmText, cancelText: '취소', onConfirm });
 }
 function confirmModal() {
   const c = ui.confirm || {};
   return `<div class="sheet confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
     <h2 id="confirmTitle">${esc(c.title)}</h2>
     <p class="story">${c.message}</p>
+    ${c.details && c.details.length ? `<ul class="confirm-details">${c.details.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
     <div class="btns"><button class="btn primary" data-act="confirmok">${esc(c.confirmText)}</button><button class="btn ghost" data-act="closemodal">${esc(c.cancelText)}</button></div>
   </div>`;
 }
-function confirmAccept() { const cb = confirmCb; confirmCb = null; ui.modal = null; render(); if (cb) cb(); }
+function confirmAccept() { const cb = confirmCb; confirmCb = null; ui.modal = ui.confirmBack || null; ui.confirmBack = null; render(); if (cb) cb(); }
+function confirmCancel() { confirmCb = null; ui.modal = ui.confirmBack || null; ui.confirmBack = null; render(); }
 
 function renderModal() {
   const m = $('#modal');
@@ -139,6 +147,12 @@ function renderModal() {
       if (RP.playing) RP.timer = setTimeout(replayStep, 500);
     }
   }
+  if (ui.modal === 'awaken' && ui.awaken) { const a = ui.awaken;
+    m.innerHTML = `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>
+      <div class="shrine-stage">${shrineArt()}</div>
+      <p class="story">탁기 ${GACHA.awaken}개를 모두 삼킨 무신이 제자에게 권능의 한 조각을 내려 줍니다.</p>
+      <ul class="awaken-list"><li>영구 능력치 <b>${a.statName} +${a.statVal}</b> · <b>최대 활력 +${a.hp}</b></li><li>하사품 <b class="r1">《${esc(a.item.name)}》</b>${a.item.grade ? ` <span class="pill grade-2">${a.item.grade}</span>` : ''}</li></ul>
+      <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`; }
   if (ui.modal === 'ending') m.innerHTML = `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 산토끼를 쫓던 손이 이제 수룡방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`;
   wireImages();
   if (ui.modal === 'reset') m.innerHTML = `<div class="sheet"><h2>처음부터 다시</h2><p>${RESET_MSG}</p><div class="btns"><button class="btn danger" data-act="doreset">새로 시작</button><button class="btn ghost" data-act="closemodal">그만두기</button></div></div>`;

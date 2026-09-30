@@ -9,6 +9,7 @@ function calcStats() {
     for (const [k, v] of Object.entries(D.abs || {})) s[k] += v * attrOf(a);       // 민첩: 수치 그대로
   }
   for (const [k, v] of Object.entries(codexBonus().stats)) s[k] = (s[k] || 0) + v;   // 지역 도감 완성 보상
+  for (const [k, v] of Object.entries(manualPassive().stats)) s[k] = (s[k] || 0) + v;  // 비급 독파 영구 보너스 (장착 여부 무관)
   // 옥대의 기공 위력(qiPct)은 기공 능력치에 곱하므로 먼저 모은다
   const qi = SLOT_ORDER.reduce((a, slot) => a + ((S.equip[slot] && S.equip[slot].stats.qiPct) || 0), 0);
   for (const cat of CAT_ORDER) {
@@ -18,7 +19,7 @@ function calcStats() {
   }
   for (const slot of SLOT_ORDER) {
     const it = S.equip[slot]; if (!it) continue;
-    for (const [k, v] of Object.entries(gearStats(it))) s[k] = (s[k] || 0) + v;
+    for (const [k, v] of Object.entries(gearStats(it))) if (!ATTRS[k]) s[k] = (s[k] || 0) + v;   // 4대 스탯 보정은 attrOf에서
     if (it.unique) s[it.unique.key] = (s[it.unique.key] || 0) + it.unique.val;
   }
   s.atk += S.shrine.atk; s.maxMp += S.shrine.mp; s.eva += S.shrine.eva; s.crit += Math.floor(S.shrine.total / 10) * 2;
@@ -70,8 +71,18 @@ function clampVitals() {
   S.hp = clamp(S.hp, 0, st.maxHp); S.mp = clamp(S.mp, 0, st.maxMp); S.stamina = Math.max(0, S.stamina);
 }
 
-/* 기본 스탯: 배분한 값 + 지역 도감 완성 보상 */
-function attrOf(a) { return ((S.attr && S.attr[a]) || ATTR_BASE) + (codexBonus().attr[a] || 0); }
+/* 기본 스탯: 배분한 값 + 지역 도감 완성 보상 + 비급 독파 보너스 + 장비 + 무신상 각성(영구) */
+function attrOf(a) {
+  const gear = SLOT_ORDER.reduce((n, slot) => n + ((S.equip[slot] && S.equip[slot].stats[a]) || 0), 0);
+  return ((S.attr && S.attr[a]) || ATTR_BASE) + (codexBonus().attr[a] || 0) + (manualPassive().attr[a] || 0) + gear + ((S.perm && S.perm.attr && S.perm.attr[a]) || 0);
+}
+/* 비급 독파 영구 보너스: 익힌 비급마다 passiveBonus를 장착 여부와 무관하게 더한다 */
+function manualPassive() {
+  const out = { attr: {}, stats: {} };
+  for (const id of Object.keys((S && S.manuals) || {})) { const P = MANUALS[id] && MANUALS[id].passiveBonus; if (!P) continue;
+    for (const [k, v] of Object.entries(P)) { const o = ATTRS[k] ? out.attr : out.stats; o[k] = (o[k] || 0) + v; } }
+  return out;
+}
 /* 받은 지역 도감 완성 보상의 합 */
 function codexBonus() {
   const out = { attr: {}, stats: {} };

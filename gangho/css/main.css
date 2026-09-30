@@ -121,7 +121,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .art { text-align: left; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; background: var(--raise); cursor: pointer; min-width: 0; transition: border-color .15s; }
 .art-star { font-size: 1.7rem; font-weight: 900; color: var(--gold); line-height: 1; font-variant-numeric: tabular-nums; }
 .art-star small { font-size: .8rem; font-weight: 400; color: var(--dim); margin-left: 2px; }
-.xp { display: flex; flex-direction: column; gap: 5px; }
 .daesung { font-family: var(--serif); font-weight: 900; color: var(--gold); font-size: 1.2rem; }
 /* 모달 공통 */
 .modal { position: fixed; inset: 0; background: rgba(5, 6, 8, .78); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 16px; z-index: 10; overflow-y: auto; }
@@ -647,3 +646,64 @@ body {
   .chip-badge { padding: 0 5px; font-size: .66rem; }
   .chip-value { font-size: .82rem; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* ───────── 원스크린 컴팩트 규격: 헤더 인디케이터 · 전투력 카드 · 무공/무장 카드 · 익힌 무공 ───────── */
+.status-chip { height: 24px; gap: 4px; padding: 0 8px 0 3px; }
+.chip-badge { height: 20px; min-width: 22px; padding: 0 5px; font-size: 10px; border-radius: 10px; }
+.chip-value { font-size: 12px; }
+.cp-card { padding: 8px 16px; gap: 6px 16px; }
+.cp-main { gap: 10px; }
+.cp-value { font-size: 1.5rem; }
+.cp-parts { font-size: 12px; gap: 2px 12px; }
+.cp-attr { font-size: 11px; gap: 2px 10px; margin-top: 2px; }
+.martial-slots, .martial-learned { padding: 12px 14px; gap: 8px; }
+.exp-help { font-size: 11px; margin: 0; line-height: 1.4; }
+.mslots { gap: 8px; }
+.mslot { min-height: 110px; padding: 8px 12px; gap: 4px; }
+.mslot > * { margin-bottom: 0; }
+.mslot-cat { font-size: 11px; }
+.mslot-name { font-size: 13px; font-weight: 700; }
+.mslot .art-star { font-size: 13px; }
+.mslot .art-star small { font-size: 11px; }
+.mslot .btn, .mslot .starup { padding: 3px 6px; font-size: 10px; min-height: 0; line-height: 1.3; }
+.mslot .btn + .btn { margin-top: 4px; }
+.mslot .realm { font-size: 10px; padding: 0 6px; }
+.mcards { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 6px; }
+.mcard { padding: 6px 10px; gap: 2px; }
+.mcard b { font-size: 13px; }
+.mcard small { font-size: 11px; }
+.mcard .art-star { font-size: 13px; }
+.dslot { min-height: 52px; padding: 5px 4px; }
+@media (max-width: 640px) {
+  .chip-value { font-size: 12px; }
+  .cp-value { font-size: 1.35rem; }
+  .dslot { min-height: 48px; }
+}
+
+/* 도감 › 비급: 영구 각인 */
+.beasts .passive { display: block; color: #8ee0c8; font-size: 11px; }
+.passive-sum { font-size: 12px; color: var(--silver); padding: 6px 10px; border-left: 3px solid var(--jade); background: rgba(95, 176, 155, .06); border-radius: 3px; }
+.passive-sum b { color: #8ee0c8; font-weight: 700; }
+
+/* 장경각: 세 칸 탭 · 이류 품목 카드 */
+.lib-tabs { margin-bottom: 4px; }
+.lib-item { gap: 3px; }
+.lib-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; width: 100%; }
+.lib-item .lib-eff { color: var(--silver); font-size: 11px; line-height: 1.45; }
+.lib-item .passive { color: #8ee0c8; }
+.pill.grade-2 { color: #6cc38a; border-color: rgba(108, 195, 138, .5); font-size: 10px; padding: 0 6px; }
+.lib-item .btn { margin-top: 4px; }
+
+/* 무신상: 탁기 정화 게이지 · 각성 창 */
+.purify { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid rgba(212, 175, 55, .25); border-radius: var(--radius); background: rgba(10, 12, 16, .5); }
+.purify-head { display: flex; justify-content: space-between; align-items: baseline; font-size: .85rem; color: var(--silver); }
+.purify-head b { color: var(--gold-2); }
+.purify-bar { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .06); overflow: hidden; }
+.purify-bar span { display: block; height: 100%; background: linear-gradient(90deg, #5d4a3a, #d8b25e); transition: width .6s ease; }
+.awaken-sheet { text-align: center; align-items: center; }
+.awaken-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.awaken-sheet .shrine-art { width: 140px; height: 161px; }
+.awaken-sheet .statue .eyes path { stroke: #ffe39a; filter: drop-shadow(0 0 4px #ffd27a); }
+
+/* 행동 확인 창: 소모·변화 요약 */
+.confirm-details { margin: 0; padding: 8px 12px 8px 26px; border-left: 3px solid var(--gold); background: rgba(216, 178, 94, .06); border-radius: 3px; font-size: .88rem; color: var(--silver); display: grid; gap: 3px; }

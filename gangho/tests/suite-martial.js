@@ -22,10 +22,10 @@ module.exports = async (b) => {
   await p.click('[data-tab="bag"]'); await p.click('[data-filter="비급"]');
   const btns = await p.$$eval('.items .item button', e => e.map(x => x.textContent));
   ok('2 행낭 비급 [익히기] 버튼', btns.length === 4 && btns.every(t => t === '익히기'), btns.join(','));
-  await p.click('[data-use="bk_samjaeDo"]');
+  await p.click('[data-use="bk_samjaeDo"]'); await p.click('[data-act="confirmok"]');
   const l1 = await p.evaluate(() => ({ learned: !!S.manuals.samjaeDo, left: count('bk_samjaeDo') }));
   ok('2 익히기: 소모 + 습득 목록 등록', l1.learned && l1.left === 0);
-  for (const k of ['bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) await p.click(`[data-use="${k}"]`);
+  for (const k of ['bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
   // 상태 › 무공
   await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
   const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mcard b')].map(e => e.textContent).join(',') }));
@@ -49,7 +49,7 @@ module.exports = async (b) => {
   // 장착 슬롯의 [▲ 성급] 단추: 경험치가 모자라면 비활성, 채우면 올라감
   ok('3 장착 슬롯에 성급 올리기 단추 (경험치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="tonap"]'); return !!b && b.disabled; }));
   await p.evaluate(() => { S.exp = 500; render(); });
-  await p.click('.mslot [data-starup="tonap"]');
+  await p.click('.mslot [data-starup="tonap"]'); await p.click('[data-act="confirmok"]');
   ok('3 [▲ 성급] 누르면 2성 · 경험치 차감', await p.evaluate(() => S.manuals.tonap.star === 2 && S.exp === 500 - Math.round(60 * GRADES[MANUALS.tonap.grade].mult)));
   await p.click('.mslot [data-unequipm="simbeop"]');
   const u = await p.evaluate(() => ({ slot: S.active.simbeop, keep: !!S.manuals.tonap }));

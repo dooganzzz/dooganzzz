@@ -23,7 +23,7 @@ module.exports = async (b) => {
     ok('1 안내는 상황에 맞게 (비급 있으면 익히기 안내)', /상태 탭의 무공에서 \[ 익히기 \]/.test(g2), g2);
 
     // 2. 청풍문 › 전방
-    const subs = await p.$$eval('.subtabs .subtab', els => els.map(e => e.dataset.sub).join(','));
+    const subs = await p.$$eval('.subtabs:not(.lib-tabs) .subtab', els => els.map(e => e.dataset.sub).join(','));
     ok('2 서브탭 순서: 정청 | 화로 | 뒷마당 | 연무장 | 무신상 | 전방', subs === 'hall,forge,yard,yeonmu,shrine,shop', subs);
     await p.click('.subtabs [data-sub="shop"]');
     const shop = await p.evaluate(() => ({ head: document.querySelector('.shop-panel .panel-head .ko').textContent, npc: document.querySelector('.shop-panel .npc-head h3').textContent, mode: document.querySelector('.shop-mode .subtab.on').dataset.shopmode, items: document.querySelectorAll('[data-buy]').length, gear: document.querySelectorAll('[data-buygear]').length, purse: document.querySelector('.shop-panel .purse').textContent }));
@@ -31,9 +31,9 @@ module.exports = async (b) => {
     ok('3 구매 탭: 소모품·재료 + 기본 장비 진열, 소지 은자 표시', shop.mode === 'buy' && shop.items >= 7 && shop.gear >= 8 && /은자/.test(shop.purse), JSON.stringify(shop));
 
     // 3. 구매: 은자 차감 + 행낭 반영
-    const buy = await p.evaluate(() => { S.silver = 100; const n0 = count('saenghyeol'); document.querySelector('[data-buy="saenghyeol"]').click(); return { silver: S.silver, got: count('saenghyeol') - n0, log: S.log[S.log.length - 1].text }; });
+    const buy = await p.evaluate(() => { S.silver = 100; const n0 = count('saenghyeol'); document.querySelector('[data-buy="saenghyeol"]').click(); const asked = ui.modal === 'confirm'; document.querySelector('[data-act="confirmok"]').click(); return { asked, silver: S.silver, got: count('saenghyeol') - n0, log: S.log[S.log.length - 1].text }; });
     ok('3 구매: 은자 -30, 생혈고 +1', buy.silver === 70 && buy.got === 1 && /전방에서/.test(buy.log), JSON.stringify(buy));
-    const bg = await p.evaluate(() => { S.silver = 100; const g0 = S.gear.length; document.querySelector('[data-buygear="g_straightSword:1"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity, named: it.named }; });
+    const bg = await p.evaluate(() => { S.silver = 100; const g0 = S.gear.length; document.querySelector('[data-buygear="g_straightSword:1"]').click(); document.querySelector('[data-act="confirmok"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity, named: it.named }; });
     ok('3 하급 장비 구매 → 행낭 보관 장비', bg.silver === 55 && bg.added === 1 && bg.name === '직도형 박검' && bg.rarity === 0 && bg.named === 'g_straightSword', JSON.stringify(bg));
 
     // 은자 부족: 구매 차단 + 견문록 오류

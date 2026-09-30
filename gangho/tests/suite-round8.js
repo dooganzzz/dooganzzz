@@ -69,11 +69,11 @@ module.exports = async (b) => {
       for (let i = 0; i < 400; i++) kinds.add(openVault(Z).name);
       const st = calcStats(); S.hp = st.maxHp; S.stamina = 50;
       const tr = stepTrap();
-      const strong = c => Object.entries(c).filter(([e]) => ENEMIES[e].rank === 3).reduce((a, [, n]) => a + n, 0);
+      const strong = c => Object.entries(c).filter(([e]) => ENEMIES[e].tier >= 3).reduce((a, [, n]) => a + n, 0);
       return { pool: Z.enemies, early, late, s0: strong(early), s1: strong(late), kinds: [...kinds].sort(), trap: { hp: st.maxHp - S.hp, sta: 50 - S.stamina, t: tr.t } };
     });
     ok('5 요수는 지역 풀(청풍산 9종)에서 가중치로', Object.keys(enc.early).length === 9 && Object.keys(enc.early).every(e => enc.pool.includes(e)), JSON.stringify(enc.early));
-    ok('5 탐험 후반일수록 강한 요수(rank 3)가 잦음', enc.s1 > enc.s0 * 1.8, `초반 ${enc.s0} · 후반 ${enc.s1}`);
+    ok('5 정예·위험 강적(3·4단계)은 조우의 약 25% (18% + 7%)', Math.abs(enc.s0 / 2000 - 0.25) < 0.04 && Math.abs(enc.s1 / 2000 - 0.25) < 0.04, `${enc.s0} · ${enc.s1} / 2000`);
     ok('5 금고 네 종류가 무작위로 (식재 궤 없음)', enc.kinds.length === 4 && !enc.kinds.includes('식재 궤'), enc.kinds.join(','));
     ok('6 함정: 활력·기력 감소', enc.trap.hp > 0 && enc.trap.sta === 5 && /덫/.test(enc.trap.t), JSON.stringify(enc.trap));
     ok('6 청풍산 드랍은 청풍산 재료 6종 (두목은 돌파단 재료도)', await p.evaluate(() => ZONES.cheongpung.enemies.every(e => DROPS[e].every(([id]) => ZONES.cheongpung.mats.includes(id)))));

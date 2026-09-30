@@ -1,7 +1,7 @@
-/* [화면] 도감: [ 몬스터 ] | [ 무공 ] | [ 단조 비법 ] | [ 단약 비법 ]
-   만난 요수 · 익힌 무공 · 화로에서 한 번이라도 성공한 비법만 적힌다. 총 몇 개인지, 못 찾은 것은 드러내지 않는다 */
+/* [화면] 도감: [ 몬스터 ] | [ 비급 ] | [ 단조 비법 ] | [ 단약 비법 ]
+   만난 요수 · 독파한 비급(영구 보너스) · 화로에서 한 번이라도 성공한 비법만 적힌다. 총 몇 개인지, 못 찾은 것은 드러내지 않는다 */
 
-const CODEX_TABS = [['monster', '몬스터', '妖獸'], ['martial', '무공', '武功'], ['forge', '단조 비법', '鍛造'], ['alchemy', '단약 비법', '丹藥']];
+const CODEX_TABS = [['monster', '몬스터', '妖獸'], ['martial', '비급', '秘笈'], ['forge', '단조 비법', '鍛造'], ['alchemy', '단약 비법', '丹藥']];
 
 function viewCodex() {
   const tab = CODEX_TABS.some(([k]) => k === ui.codexTab) ? ui.codexTab : 'monster';
@@ -10,6 +10,9 @@ function viewCodex() {
   const body = tab === 'monster' ? codexMonsters() : tab === 'martial' ? codexMartial() : codexRecipes(tab);
   return `<section class="panel codex-panel">${head('도감', '圖鑑')}${bar}${body}</section>`;
 }
+
+/* 능력치 묶음 → "근력 +1 · 공격력 +3 · 치명타율 +0.5%" */
+const bonusText = o => Object.entries(o || {}).filter(([, v]) => v).map(([k, v]) => `${STAT_NAMES[k] || k} +${Math.round(v * 10) / 10}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
 
 const CODEX_EMPTY = '<p class="story muted">아직 강호에서 견문을 넓히지 못했습니다.</p>';
 
@@ -28,16 +31,17 @@ function codexMonsters() {
   return `<p class="muted">강호에서 직접 마주친 상대만 기록됩니다. 오행과 병기는 겨뤄 본 자만이 알 수 있습니다.</p>${cols ? `<div class="codex">${cols}</div>` : CODEX_EMPTY}`;
 }
 
-/* 무공: 분류별. 익힌 무공만 */
+/* 비급: 분류별. 독파한 비급만. 비급마다 몸에 새겨진 영구 보너스(장착 여부 무관)와 그 합계 */
 function codexMartial() {
   const cols = CAT_ORDER.map(cat => {
     const got = Object.keys(MANUALS).filter(id => MANUALS[id].cat === cat && S.manuals[id]);
     if (!got.length) return '';
     const rows = got.map(id => { const M = MANUALS[id], m = S.manuals[id];
-      return `<li><button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
+      return `<li><button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.passiveBonus ? `<small class="passive">각인 ${bonusText(M.passiveBonus)}</small>` : ''}${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
     return `<article class="codex-col"><h3>${label(CATS[cat].name, CATS[cat].hanja)}</h3><ul class="beasts">${rows}</ul></article>`;
   }).join('');
-  return `<p class="muted">직접 체득하고 익힌 무공의 비결만 온전히 기록됩니다.</p>${cols ? `<div class="codex">${cols}</div>` : CODEX_EMPTY}`;
+  const P = manualPassive(), sum = bonusText({ ...P.attr, ...P.stats });
+  return `<p class="muted">독파하여 깨우친 비급의 비결이 온전히 기록되며, 몸에 영구히 각인됩니다.</p>${sum ? `<p class="passive-sum">몸에 새겨진 각인 합계: <b>${sum}</b></p>` : ''}${cols ? `<div class="codex">${cols}</div>` : CODEX_EMPTY}`;
 }
 
 /* 단조·단약 비법: 화로에서 한 번이라도 성공한 비법만. 필요 재료와 결과물을 모두 공개 */

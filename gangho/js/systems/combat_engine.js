@@ -34,7 +34,7 @@ function affinity(eid, st = calcStats()) {
   return {
     el, wp, me, foe: E.elem, wt, fwt: E.wtype || null, weak,
     dealt: (el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * (wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1) * (1 + weak),
-    taken: (el > 0 ? 1 - A.elem : el < 0 ? 1 + Math.max(0, A.elem - (st.elemRes || 0) / 100) : 1) * (wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
+    taken: (el > 0 ? 1 - A.elem : el < 0 ? (1 + Math.max(0, A.elem - (st.elemRes || 0) / 100)) * (1 + COMBAT_RULES.elemPenalty) : 1) * (wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
     myHit: wp > 0 ? A.weapHit : 0, foeHit: wp < 0 ? A.weapHit : 0,
   };
 }
@@ -101,13 +101,13 @@ function battleRound(b) {
   tickDots(b); checkEnd(b);
   if (b.over) { b.rounds.push({ lines: b.lines, fx: b.fx, me: { hp: Math.round(S.hp), mp: Math.round(S.mp) }, foe: Math.round(b.e.hpNow) }); return; }
   autoPotion(b);
-  const order = b.st.spd + attrOf('agi') >= b.e.spd ? ['me', 'foe'] : ['foe', 'me'];   // 선공: 내 속도 + 민첩 vs 요수 속도
+  const order = !b.e.first && b.st.spd + attrOf('agi') + (b.st.first || 0) >= b.e.spd ? ['me', 'foe'] : ['foe', 'me'];   // 위험 강적은 선공 고정   // 선공: 내 속도 + 민첩 + 선공 보정 vs 요수 속도
   for (const who of order) {
     if (b.over) break;
     if (who === 'me') playerAttack(b); else enemyTurn(b);
     checkEnd(b);
   }
-  if (!b.over) S.mp = Math.min(b.st.maxMp, S.mp + b.st.mpRegen);
+  if (!b.over) S.mp = Math.min(b.st.maxMp, S.mp + b.st.mpRegen + b.st.maxMp * (b.st.mpRegenPct || 0) / 100);   // 내력 회복 + 회복률(최대 내력 %)
   b.rounds.push({ lines: b.lines, fx: b.fx, me: { hp: Math.round(S.hp), mp: Math.round(S.mp) }, foe: Math.round(b.e.hpNow) });
 }
 
@@ -146,7 +146,7 @@ function addDot(b, side, kind, spec) {
 function tickDots(b) {
   for (const side of ['me', 'foe']) {
     for (const d of b.dot[side]) {
-      if (side === 'me') S.hp = Math.max(0, S.hp - d.dmg); else b.e.hpNow = Math.max(0, b.e.hpNow - d.dmg);
+      if (side === 'me') { S.hp = Math.max(0, S.hp - d.dmg); b.lastBlow = 'dot'; } else b.e.hpNow = Math.max(0, b.e.hpNow - d.dmg);
       bLine(`${d.kind === 'poison' ? '🟢' : '🩸'} ${side === 'me' ? '독과 상처가 몸을 파고듭니다' : `${b.e.name}의 상처에서 피가 흐릅니다`} — ${DOT_NAME[d.kind]} <span class="dmg">(-${fmt(d.dmg)})</span>`, 'log-stance-result dot');
       if (b.fx) b.fx.push({ side, t: `-${fmt(d.dmg)}`, k: 'hit' });
       d.turns--;
@@ -186,8 +186,9 @@ function playerHit(b, mult, o) {
     if (b.fx) b.fx.push({ side: 'foe', t: '빗나감', k: 'miss' });
     return false;
   }
-  let dmg = dmgCalc(st.atk, Math.max(0, e.def - (st.pierce || 0))) * mult * A.dealt * (o.title && o.cls !== 'counter' ? 1 + (st.qiDmg || 0) : 1);   // 관통력 · 통맥환(초식)
-  const crit = Math.random() * 100 < st.crit;
+  const def = Math.max(0, e.def * (1 - (st.armorPen || 0) / 100) - (st.pierce || 0));   // 방어 무시(%) → 관통력
+  let dmg = dmgCalc(st.atk, def) * mult * A.dealt * (o.title && o.cls !== 'counter' ? 1 + (st.qiDmg || 0) : 1);   // 통맥환(초식)
+  const crit = Math.random() * 100 < st.crit + (o.critUp || 0);
   if (crit) dmg *= 1.6;
   dmg = Math.round(dmg);
   e.hpNow = Math.max(0, e.hpNow - dmg);
@@ -195,7 +196,15 @@ function playerHit(b, mult, o) {
   const [, txt, cls] = reaction(dmg, e.hp);
   bLine(`${crit ? '<b class="crit">회심의 일격!</b> 급소를 정확히 꿰뚫었다! ' : ''}${josa(e.name, '이가')} ${txt} <span class="dmg">(-${fmt(dmg)})</span>`, `log-stance-result ${cls}${crit ? ' crit' : ''}`);
   if (st.lifesteal) S.hp = Math.min(st.maxHp, S.hp + Math.round(dmg * st.lifesteal / 100));
-  if (st.bleed && b.dot && e.hpNow > 0) addDot(b, 'foe', 'bleed', [st.bleed / 100, 0.04, 3]);   // 혈문도: 출혈
+  if (st.bleed && b.dot && e.hpNow > 0) addDot(b, 'foe', 'bleed', [st.bleed / 100, 0.04, 3]);   // 혈문도·유엽표: 출혈
+  if (o.stanceBleed && b.dot && e.hpNow > 0) addDot(b, 'foe', 'bleed', [1, 0.04, o.stanceBleed]);   // 추영표: 초식 적중 시 출혈
+  if (o.weaken && e.hpNow > 0) {                                                                      // 벽력도: 기세(공격력) 깎기
+    const floor = ENEMIES[b.eid].atk * (1 - COMBAT_RULES.weakenMax);
+    if (e.atk > floor) { e.atk = Math.max(floor, e.atk * (1 - o.weaken / 100)); bLine(`${e.name}의 기세가 꺾여 손끝이 무뎌집니다.`, 'log-stance-desc aff-up'); }
+  }
+  if (st.shock && e.hpNow > 0 && !e.stunned && Math.random() * 100 < st.shock) {                     // 권갑: 충격
+    e.stunned = true; bLine(`💫 충격! ${josa(e.name, '이가')} 몸이 굳어 한 합 움직이지 못합니다.`, 'log-stance-desc aff-up');
+  }
   return true;
 }
 
@@ -207,7 +216,9 @@ function playerAttack(b) {
   if (canCombo && Math.random() * 100 < 35 + st.combo) {
     const moves = unlockedMoves(m.star), g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
-    const mults = [1.6, 2.2, 3.2].map(v => v * (1 + (g - 1) * 0.5) * realmMult);
+    const power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase;   // 장경각 무공 고유 피해 배율
+    const mults = [1.6, 2.2, 3.2].map(v => v * (1 + (g - 1) * 0.5) * realmMult * power);
+    let hitsInRow = 0;
     const chain = [100, 50, 38];
     for (let i = 0; i < moves; i++) {
       if (i > 0 && Math.random() * 100 >= chain[i] + st.combo) break;
@@ -216,7 +227,9 @@ function playerAttack(b) {
       S.mp -= cost;
       comboDone = true;
       const sc = M.stances[i];
-      const ok = playerHit(b, mults[i], { title: `【 ${M.name} - ${sc.name} !! 】`, desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: sc.name });
+      const ok = playerHit(b, mults[i], { title: `【 ${M.name} - ${sc.name} !! 】`, desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: sc.name,
+        critUp: (M.chainCrit || 0) * hitsInRow, weaken: M.weaken, stanceBleed: M.stanceBleed });
+      if (ok) hitsInRow++;
       if (!ok || b.e.hpNow <= 0) break;
     }
   }
@@ -228,6 +241,7 @@ function enemyTurn(b) {
   const e = b.e, st = b.st, A = b.aff || NO_AFF;
   const hitChance = Math.max(40, 95 - st.eva) + A.foeHit + (e.acc || 0);
   const hits = e.hits || 1;
+  if (e.stunned) { e.stunned = false; bLine(`${josa(e.name, '이가')} 충격에서 헤어나지 못해 공격하지 못합니다.`, 'log-stance-desc'); return; }
   bLine(`${josa(e.name, '이가')} ${e.atkText || FOE_ATK_TEXT[e.wtype || 'none']}!`, 'log-stance-desc foe');
   let hitAny = false;
   for (let h = 0; h < hits && S.hp > 0; h++) {
@@ -240,10 +254,12 @@ function enemyTurn(b) {
       continue;
     }
     // 2) 피격
-    let dmg = Math.max(1, Math.round(dmgCalc(e.atk, st.def) * A.taken * (h > 0 ? 0.6 : 1)));
+    // 방어가 높아도 공격력의 20%는 그대로 들어온다 (안전지대 방지)
+    let dmg = Math.max(1, Math.round(Math.max(dmgCalc(e.atk, Math.max(0, st.def - (e.pierce || 0))), e.atk * COMBAT_RULES.minDmg) * A.taken * (h > 0 ? 0.6 : 1)));
     const crit = Math.random() * 100 < Math.max(0, (e.crit || 8) - st.critRes / 2);
     if (crit) dmg = Math.round(dmg * 1.5);
     S.hp = Math.max(0, S.hp - dmg);
+    b.lastBlow = crit ? 'crit' : h > 0 ? 'combo' : A.el < 0 ? 'elem' : dmg >= st.maxHp * 0.2 ? 'heavy' : 'grind';
     hitAny = true;
     if (b.fx) b.fx.push({ side: 'me', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= st.maxHp * 0.2 });
     const [, , cls] = reaction(dmg, st.maxHp);
@@ -294,7 +310,8 @@ function winBattle(b) {
 function loseBattle(b) {
   notify.trace('battle', `패배: ${b.eid} · ${b.round}합`);
   b.over = true; b.win = false;
-  bLine('💀 무릎이 꺾입니다…', 'bad');
+  b.cause = DEFEAT_CAUSE[b.lastBlow || 'grind'];
+  bLine(`💀 무릎이 꺾입니다… — ${b.cause}`, 'bad');
 }
 
 /* ───────── 심상수련장: 만나 본 요수와 기력 소모 없이 겨룬다 ─────────

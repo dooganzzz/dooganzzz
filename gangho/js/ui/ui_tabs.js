@@ -2,7 +2,7 @@
 
 /* 화면 상태 (저장하지 않음): 탭·접힘·화로 투입·창·행낭 필터·선택 슬롯 */
 let ui = { fold: { hq: true, missions: true, library: true },   // 아코디언은 모두 접힌 채로 시작 (true = 접힘)
-  tab: 'sect', sectSub: 'hall', pot: {}, craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null };
+  tab: 'sect', sectSub: 'hall', pot: {}, craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null, libTab: 'equipment' };
 
 /* 시스템 신호 → 화면 */
 Bus.on('refresh', () => render());
@@ -62,16 +62,19 @@ function cpDeltaHtml(cp) {
   cpMark.last = cp;
   return t < cpMark.until && cpMark.delta ? `<em class="cp-delta ${cpMark.delta > 0 ? 'up' : 'down'}">${cpMark.delta > 0 ? '▲' : '▼'}${fmt(Math.abs(cpMark.delta))}</em>` : '';
 }
+/* 헤더 수치: 10만 이상은 만·억 단위로 줄인다 (폰에서도 한 줄). 정확한 값은 툴팁에 */
+const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
+  return a >= 1e8 ? `${+(n / 1e8).toFixed(1)}억` : a >= 1e5 ? `${+(n / 1e4).toFixed(1)}만` : fmt(n); };
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S);
   $('#status').innerHTML = `
     <div class="who"><span class="name">${esc(S.name)}</span><span class="sect">청풍문 제자 · ${S.expedition.zone ? `⛰️ ${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <b>${countdownText()}</b>` : '탐험지 미정'}</span></div>
     <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
     <div class="user-status-bar">
-      <div class="status-chip combat-power" title="종합 전투력"><span class="chip-badge badge-combat">전투</span><span class="chip-value" id="header-cp">${fmt(cp)}</span>${cpDeltaHtml(cp)}</div>
-      <div class="status-chip exp" title="경험치 (상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-exp">경험</span><span class="chip-value" id="header-exp">${fmt(S.exp)}</span></div>
-      <div class="status-chip silver" title="은자"><span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmt(S.silver)}</span></div>
-      <div class="status-chip contribution" title="문파 공헌도"><span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmt(S.contrib)}</span></div>
+      <div class="status-chip combat-power" title="종합 전투력 ${fmt(cp)}"><span class="chip-badge badge-combat">전투</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
+      <div class="status-chip exp" title="경험치 ${fmt(S.exp)} (상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-exp">경험</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
+      <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥"><span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
+      <div class="status-chip contribution" title="문파 공헌도 ${fmt(S.contrib)}"><span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
     </div>`;
 }
 

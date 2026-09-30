@@ -43,8 +43,8 @@ module.exports = async (b) => {
     ok('1 성급 올리기 → 거울 값 갱신', br2.now === br2.calc && br2.now > br.before, JSON.stringify({ br, br2 }));
 
     // 2. 상단 헤더 · 변화량
-    const hd = await p.evaluate(() => { const el = document.querySelector('#status .cp'); return { text: el.textContent, title: el.title, cp: fmt(calculateCombatPower(S)) }; });
-    ok('2 헤더 상시 표기 (은자 옆 소형)', hd.text.startsWith('戰' + hd.cp) && hd.title === '종합 전투력', JSON.stringify(hd));
+    const hd = await p.evaluate(() => { const el = document.querySelector('#status .status-chip.combat-power'); return { badge: el.querySelector('.chip-badge').textContent, value: el.querySelector('#header-cp').textContent, title: el.title, cp: fmt(calculateCombatPower(S)) }; });
+    ok('2 헤더 상시 표기 ([전투] 한글 뱃지)', hd.badge === '전투' && hd.value === hd.cp && hd.title.startsWith('종합 전투력'), JSON.stringify(hd));
     const dl = await p.evaluate(() => { unequip('weapon'); const d = document.querySelector('#status .cp-delta'); const r = { down: d && d.classList.contains('down') && d.textContent.startsWith('▼') }; equipItem(S.gear[S.gear.length - 1].uid); const u = document.querySelector('#status .cp-delta'); r.up = u && u.classList.contains('up'); return r; });
     ok('2 전투력이 바뀌면 ▲/▼ 변화량 잠깐 표시', dl.down && dl.up, JSON.stringify(dl));
     ok('2 변화량은 잠시 뒤 사라짐 (2.5초)', await p.waitForFunction(() => !document.querySelector('#status .cp-delta'), null, { timeout: 4500 }).then(() => true, () => false));

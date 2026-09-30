@@ -81,12 +81,12 @@ function viewMartial() {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
     return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》${manualAffTag(id)}</b>${realmTag(m.star)}<span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
   }).join('');
-  return `<section class="panel">
+  return `<section class="panel martial-slots">
     ${head('무공', '武功', `<span class="exp-purse" title="탐험에서 적을 쓰러뜨려 모은 경험치">경험치 <b>${fmt(S.exp)}</b></span>`)}
     <p class="muted exp-help">탐험에서 모은 경험치로 원하는 무공의 성급을 올립니다. 5→6성(소성)·11→12성(대성)에는 돌파단도 듭니다.</p>
     <div class="mslots">${slots}</div>
   </section>
-  <section class="panel">
+  <section class="panel martial-learned">
     ${head('익힌 무공', '習得', `<span class="num muted">${learned.length}종</span>`)}
     ${learned.length ? `<div class="mcards">${cards}</div>` : `<p class="story">아직 익힌 무공이 없습니다. ${books.length ? `비급 ${books.length}권을 가지고 있습니다. 아래에서 [ 익히기 ] 하십시오.` : ''}</p>`}
     ${books.length ? `<div class="chips">${books.map(k => `<button class="chip" data-use="${k}">📘 ${ITEMS[k].name} 익히기</button>`).join('')}</div>` : ''}
@@ -95,7 +95,7 @@ function viewMartial() {
 
 /* 무신상 (조각상 · 나): 검게 탄 찌꺼기 공양 → 무작위 보상 */
 function viewShrine() {
-  const n = count('slag'), c = GACHA.cost, tot = GACHA.table.reduce((a, e) => a + e.w, 0);
+  const n = count('slag'), c = GACHA.cost;
   const res = ui.gachaResult;
   const old = S.shrine.total ? `<div class="blessings"><div><small>공격력</small><b>+${S.shrine.atk}</b></div><div><small>최대 내력</small><b>+${S.shrine.mp}</b></div><div><small>회피율</small><b>+${S.shrine.eva}%</b></div><div><small>치명타율</small><b>+${Math.floor(S.shrine.total / 10) * 2}%</b></div></div><p class="muted">예전 봉헌(${S.shrine.total}회)으로 받은 힘은 그대로 남아 있습니다.</p>` : '';
   return `<section class="panel altar">
@@ -110,8 +110,12 @@ function viewShrine() {
       </div>
       <p class="muted">화로에서 조합에 실패하면 (단조·단약 모두) 검게 탄 찌꺼기가 남습니다. 누적 공양 ${fmt(S.shrine.pulls || 0)}회.</p>
     </div>
+    <div class="purify">
+      <div class="purify-head"><span>탁기 정화(누적 공양)</span><b class="num">${fmt(S.statueResidueCount || 0)} / ${GACHA.awaken}</b></div>
+      <div class="purify-bar"><span style="width:${Math.min(100, (S.statueResidueCount || 0) / GACHA.awaken * 100)}%"></span></div>
+      <small class="muted">검게 탄 찌꺼기 ${GACHA.awaken}개를 삼켜 정화하면, 무신의 권능이 깨어나 영구 능력치와 진귀한 완제품을 하사합니다.</small>
+    </div>
     ${res && res.length ? `<div class="gacha-res"><h4>돌아온 것</h4><ul>${res.map((g, i) => `<li class="${g.cls}" style="--i:${i}">${g.text}</li>`).join('')}</ul></div>` : ''}
-    <details class="gacha-table"><summary>나올 수 있는 것</summary><ul>${GACHA.table.map(e => `<li><span>${e.name}</span><b>${Math.round(e.w / tot * 100)}%</b></li>`).join('')}</ul><small class="muted">비급은 삼류 무공 25종·입문 무공 가운데 아직 없는 것. 장비는 열린 구역의 최고 티어 (청풍산은 하급 장비 37종 중 하나).</small></details>
     ${old}
   </section>`;
 }
@@ -178,15 +182,21 @@ function viewHall() {
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
       <div class="npc-acts"><button class="btn ghost sm" data-act="jounguide">문파 안내</button><button class="btn ${supplied ? 'ghost' : 'primary'} sm" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>`;
   const missions = `
-    <div class="btns"><button class="btn ghost sm" data-act="reroll">새 임무 (은자 5냥)</button></div>
+    <div class="btns"><button class="btn ghost sm" data-act="reroll">새 임무 (은자 ${getQuestRefreshCost()}냥)</button><small class="muted">갱신할 때마다 10냥씩 오르고, 매일 자정에 10냥으로 돌아갑니다.</small></div>
     <ul class="missions">${S.missions.map((m, i) => {
-      const tname = m.type === 'kill' ? ENEMIES[m.target].name : ITEMS[m.target].name;
-      const prog = m.type === 'kill' ? m.prog : Math.min(count(m.target), m.n);
-      return `<li><div><b>${m.type === 'kill' ? '토벌' : '납품'}</b> ${tname} ${m.n}${m.type === 'kill' ? '마리' : '개'} <small class="muted">${ZONES[m.zone].name}</small></div><div class="mprog"><span style="width:${prog / m.n * 100}%"></span></div><span class="num">${prog}/${m.n}</span><span class="reward">공헌 ${m.contrib}</span><button class="btn sm" data-mission="${i}" ${missionReady(m) ? '' : 'disabled'}>완료</button></li>`;
+      const tname = ENEMIES[m.target].name, prog = m.prog;
+      return `<li><div><b>토벌</b> ${tname} ${m.n}마리 <small class="muted">${ZONES[m.zone].name}</small></div><div class="mprog"><span style="width:${prog / m.n * 100}%"></span></div><span class="num">${prog}/${m.n}</span><span class="reward">공헌 ${m.contrib}</span><button class="btn sm" data-mission="${i}" ${missionReady(m) ? '' : 'disabled'}>완료</button></li>`;
     }).join('')}</ul>`;
+  // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
+  const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌']];
+  const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';
+  const libCard = (name, tag, part, eff, cost, own, attr) => `<div class="shop-item lib-item"><div class="lib-top"><b class="r1">${name}</b><span class="pill grade-2">${tag}</span></div><small>${part}</small><small class="lib-eff">${eff}</small><button class="btn sm" ${attr} ${own || S.contrib < cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${cost}`}</button></div>`;
+  const libItems = lt === 'equipment' ? Object.entries(LIBRARY_GEAR).map(([id, G]) => libCard(G.name, '이류', `${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_SHORT[G.wtype] : ''}`, bonusText(G.stats), G.cost, ownsShop(id), `data-buylib="${id}"`))
+    : lt === 'skills' ? shopManuals.map(([id, M]) => libCard(M.name, M.grade, `${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}`, `${esc(M.desc)}<br><span class="passive">독파 각인: ${bonusText(M.passiveBonus)}</span>`, M.cost, ownsBook(id), `data-buymanual="${id}"`))
+    : badges.map(g => libCard(g.name, RARITY[g.rarity].name, '신분패', `경험치 획득 +${g.stats.train}%`, g.cost, ownsShop(g.id), `data-buybadge="${g.id}"`));
   const library = `
-    <div class="shop">${shopManuals.map(([id, M]) => { const own = ownsBook(id); return `<div class="shop-item"><b>${M.name}</b><small>${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}</small><button class="btn sm" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}`}</button></div>`; }).join('')}
-    ${badges.map(g => { const own = ownsShop(g.id); return `<div class="shop-item"><b class="r${g.rarity}">${g.name}</b><small>신분패 · 경험치 획득 +${g.stats.train}%</small><button class="btn sm" data-buybadge="${g.id}" ${own || S.contrib < g.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${g.cost}`}</button></div>`; }).join('')}</div>`;
+    <div class="subtabs lib-tabs" role="tablist" aria-label="장경각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
+    <div class="shop lib-grid">${libItems.join('')}</div>`;
   return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳')}${foldBody('hq', hq)}</section>
   <section class="panel fold">${foldHead('missions', '문파 임무', '門派任務', `<span class="num muted">${S.missions.filter(missionReady).length}건 완료 가능</span>`)}${foldBody('missions', missions)}</section>
   <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;

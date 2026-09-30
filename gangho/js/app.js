@@ -23,10 +23,11 @@ function newState(name, mugongId, opts = {}) {
     inv: { saenghyeol: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
-    perm: { maxHp: 0, maxMp: 0 },
+    perm: { maxHp: 0, maxMp: 0, attr: {} },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
     buffs: [], missions: [], arin: {}, supplyDay: '', uid: 1, bossPity: {}, codexRewards: {},
+    questRefreshCount: 0, lastQuestResetDate: '', statueResidueCount: 0,
     kills: 0, log: [],
   };
   st.equip.badge = shopGear('badge1', st);
@@ -62,7 +63,7 @@ function startNewGame(name, mugongId, opts = {}) {
   S.equip.weapon = makeNamedGear(STARTER_GEAR[wt]);
   S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
-  ensureMissions();
+  ensureMissions(); checkDailyMidnightReset();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
   if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·포철삭·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
@@ -141,6 +142,10 @@ function migrate(st) {
   for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && (it.shop === 'badge2' || it.shop === 'badge3')) it.stats = { ...SHOP_GEAR.find(g => g.id === it.shop).stats };
   st.bossPity = st.bossPity || {}; st.codexRewards = st.codexRewards || {};
   delete st.restCd;
+  // 문파 임무는 토벌만 · 비급/무신상 영구 보너스
+  if (st.missions) st.missions = st.missions.filter(m => m.type === 'kill');
+  st.questRefreshCount = st.questRefreshCount || 0; if (st.lastQuestResetDate === undefined) st.lastQuestResetDate = '';
+  st.perm = st.perm || { maxHp: 0, maxMp: 0 }; st.perm.attr = st.perm.attr || {}; st.statueResidueCount = st.statueResidueCount || 0;
   if (st.codex) st.codex = st.codex.filter(id => RECIPES.some(r => r.id === id));
   const outOk = o => !o || (o.startsWith('gear:') ? !!CRAFT_GEAR[o.slice(5)] : !!ITEMS[o]);
   if (st.craftNotes) st.craftNotes = st.craftNotes.filter(n => CRAFTS[n.craft] && Object.keys(n.mats).every(id => ITEMS[id]) && outOk(n.out));
@@ -161,6 +166,7 @@ function tick() {
     const r = recs[recs.length - 1];
     notify.toast(`⛰️ 탐험에서 돌아왔습니다 — ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver >= 0 ? '+' : ''}${r.gain.silver}${r.defeats ? ` · 쓰러짐 ${r.defeats}번` : ''}`);
   }
+  checkDailyMidnightReset(t);
   Bus.emit('tick');
 }
 
@@ -192,7 +198,7 @@ function boot() {
       log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 한 시간마다 강호로 나가 경험을 쌓습니다. 그동안의 수련은 경험치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
       delete S.migratedExp;
     }
-    ensureMissions();
+    ensureMissions(); checkDailyMidnightReset();
     for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
     // 자리를 비운 동안의 탐험을 한꺼번에 결산하고 (최대 8번) 결산 창을 띄운다
     const recs = settleExpeditions();

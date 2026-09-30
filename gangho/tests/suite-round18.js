@@ -30,7 +30,7 @@ module.exports = async (b) => {
       return { head: top.className.includes('exp-head') && /청풍산 탐험/.test(top.textContent), watch: watch.length, battles: r.battles.length, sample: watch[0] && watch[0].closest('.chron-text').textContent, time: top.querySelector('time').textContent === hhmm(r.at), sep: !S.log.some(l => /모습을 드러냈습니다/.test(l.text)) };
     });
     ok('2 견문록 맨 위에 탐험 요약', lg.head, JSON.stringify(lg));
-    ok('2 전투마다 "…와 전투에서 승리/패배 [관찰하기]"', lg.watch === lg.battles && /(과|와) 전투에서 (승리|패배|무승부)\s*관찰하기/.test(lg.sample), lg.sample);
+    ok('2 전투마다 "…와 전투에서 승리/패배 [관찰하기]"', lg.watch === lg.battles && /(과|와) 전투에서 (승리|패배|무승부)( — [^관]+)?\s*관찰하기/.test(lg.sample), lg.sample);
     ok('2 전투 대사는 견문록에 쏟아지지 않음 (관찰하기에서만)', lg.sep);
 
     // 3. 관찰하기 → 그 전투만 리플레이
@@ -124,11 +124,11 @@ module.exports = async (b) => {
     ok('7 탐험지 바꾸기 (일정은 그대로)', await p.evaluate(() => S.expedition.zone === 'yeomhwa' && !/^settle:/.test(ui.modal || '') && nextExpeditionIn() > 0));
 
     // 8. 성장: 헤더 경험치 · 상태 › 무공 성급 올리기
-    const g = await p.evaluate(() => { S.exp = 12345; render(); return { coin: document.querySelector('#status .purse .xp').textContent, title: document.querySelector('#status .purse .xp').title }; });
-    ok('8 헤더에 경험치 (經)', g.coin === '經12,345', JSON.stringify(g));
+    const g = await p.evaluate(() => { S.exp = 12345; render(); const el = document.querySelector('#status .status-chip.exp'); const r = { badge: el.querySelector('.chip-badge').textContent, value: el.querySelector('#header-exp').textContent, title: el.title }; S.exp = 1234567; render(); r.big = document.querySelector('#header-exp').textContent; r.bigTitle = document.querySelector('#status .status-chip.exp').title; S.exp = 12345; render(); return r; });
+    ok('8 헤더에 경험치 ([경험] 한글 뱃지 · 10만 이상은 만 단위)', g.badge === '경험' && g.value === '12,345' && g.big === '123.5만' && /1,234,567/.test(g.bigTitle), JSON.stringify(g));
     await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
     const m0 = await p.evaluate(() => ({ purse: document.querySelector('.exp-purse b').textContent, btn: document.querySelectorAll('.mslot [data-starup]:not([disabled])').length }));
-    await p.click('.mslot [data-starup]:not([disabled])');
+    await p.click('.mslot [data-starup]:not([disabled])'); await p.click('[data-act="confirmok"]');
     ok('8 상태 › 무공: 경험치 표시 · [▲ 성급] → 올라가고 경험치 줄어듦', m0.purse === '12,345' && m0.btn === 4 && await p.evaluate(() => S.exp < 12345 && Object.values(S.manuals).some(m => m.star >= 2)), JSON.stringify(m0));
     await p.click('.mcard[data-mart]');
     const md = await p.evaluate(() => ({ btn: !!document.querySelector('.sheet [data-starup]'), kv: document.querySelector('.sheet').textContent.includes('필요 경험치') }));

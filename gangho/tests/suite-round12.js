@@ -30,7 +30,7 @@ module.exports = async (b) => {
     await p.click('[data-sub="martial"]');
     const s2 = await p.evaluate(() => ({ on: document.querySelector('.subtab.on .ko').textContent, tab: document.querySelector('.tab.on .ko').textContent, mslots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), books: document.querySelectorAll('.chips [data-use^="bk_"]').length, doll: !!document.querySelector('.paperdoll') }));
     ok('2 무공: 4대 무공 슬롯 + 보유 비급', s2.on === '무공' && s2.tab === '상태' && s2.mslots === '무공,심법,경공,기공' && s2.books === 4 && !s2.doll, JSON.stringify(s2));
-    for (const k of ['bk_samjaeGeom', 'bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) await p.click(`[data-use="${k}"]`);
+    for (const k of ['bk_samjaeGeom', 'bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
     const s3 = await p.evaluate(() => ({ learned: document.querySelectorAll('.mcard').length, on: document.querySelector('.subtab.on .ko').textContent }));
     ok('2 무공에서 바로 익히기 → 익힌 무공 목록, 하위 탭 유지', s3.learned === 4 && s3.on === '무공', JSON.stringify(s3));
 

@@ -48,7 +48,7 @@ module.exports = async (b) => {
   // 5
   await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
   const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.character-portrait-card .portrait-img'), head: document.querySelector('.panel-head .ko').textContent }));
-  ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸', bag.cap === 100);
+  ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸 이상 (근력 각인·장비로 늘어남)', bag.cap >= 100, String(bag.cap));
   ok('5 상단 슬롯', bag.top === '투구,무기,옥대,호갑', bag.top); ok('5 하단 가로 5슬롯', bag.bottom === '신발,허리띠,가락지,신분패,탈것', bag.bottom); ok('5 초상 카드 이미지', bag.img);
   // 7 + 6
   await p.evaluate(() => { S.silver = 100; render(); });

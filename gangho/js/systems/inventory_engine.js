@@ -58,6 +58,11 @@ function rollDropRarity(boss) {
   return r < 0.05 ? 2 : r < 0.3 ? 1 : 0;
 }
 
+/* 장경각 이류 장비: 2티어 중급, shop 표시로 한 점만 교환 */
+function libraryGear(id, st = S) {
+  const G = LIBRARY_GEAR[id];
+  return { uid: st.uid++, shop: id, named: id, tier: 2, slot: G.slot, wtype: G.wtype || null, name: G.name, rarity: 1, stats: { ...G.stats }, unique: null, grade: '이류' };
+}
 function shopGear(id, st = S) {
   const g = SHOP_GEAR.find(x => x.id === id);
   return { uid: st.uid++, shop: id, slot: g.slot, name: g.name, rarity: g.rarity, stats: { ...g.stats }, unique: null };
@@ -113,7 +118,9 @@ function learnManual(bookId) {
   if (S.manuals[mid]) { notify.toast(`이미 익힌 무공입니다: ${M.name}`); return; }
   take(bookId, 1);
   S.manuals[mid] = { star: 1 };
-  log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 상태 탭의 무공에서 장착할 수 있습니다.`, 'gold');
+  const pb = Object.entries(M.passiveBonus || {}).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
+  log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 상태 탭의 무공에서 장착할 수 있습니다.${pb ? ` 몸에 영구히 각인: ${pb}` : ''}`, 'gold');
+  clampVitals();
   notify.toast(`${M.name} 습득`);
   notify.refresh();
 }

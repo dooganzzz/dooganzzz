@@ -20,11 +20,10 @@ function weighted(table) {
 }
 
 /* 요수: 지역 요수 중 하나를 가중치로 고른다. 탐험 후반(기력을 절반 넘게 쓴 뒤)일수록 중형이 잦다 */
-function pickBeast(Z, depth) {
-  const w = depth >= 0.5 ? BEAST_WEIGHT.deep : BEAST_WEIGHT.shallow;
-  const ranks = Object.fromEntries(Object.entries(w).filter(([k]) => Z.enemies.some(e => (ENEMIES[e].rank || 1) === +k)));   // 이 구역에 있는 강약만
-  const rank = +weighted(ranks);
-  return pick(Z.enemies.filter(e => (ENEMIES[e].rank || 1) === rank));
+function pickBeast(Z) {
+  const tiers = Object.fromEntries(Object.entries(TIER_WEIGHT).filter(([k]) => Z.enemies.some(e => (ENEMIES[e].tier || 2) === +k)));   // 이 구역에 있는 단계만
+  const tier = +weighted(tiers);
+  return pick(Z.enemies.filter(e => (ENEMIES[e].tier || 2) === tier));
 }
 
 /* ───────── 사냥터 사건 (기연) ───────── */
@@ -86,9 +85,9 @@ function openVault(Z) {
 function stepBattle(rec, eid, bonus) {
   const b = fight(eid, { bonus });
   if (b.win) { const st = calcStats(); S.hp = Math.min(st.maxHp, S.hp + Math.round(st.maxHp * (EXPEDITION.breathe + (st.breathe || 0) / 100))); }   // 숨 고르기 (흑사 편직 요대 등)
-  rec.battles.push({ eid, name: b.name, boss: b.boss, win: b.win, fled: !!b.fled, intro: b.intro, start: b.start, rounds: b.rounds, exp: b.exp, silver: b.silver });
+  rec.battles.push({ eid, name: b.name, boss: b.boss, win: b.win, fled: !!b.fled, intro: b.intro, start: b.start, rounds: b.rounds, exp: b.exp, silver: b.silver, cause: b.cause || null });
   const res = b.win ? '승리' : b.fled ? '무승부' : '패배';
-  return { t: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 전투에서 ${res}`, cls: b.win ? (b.boss ? 'gold' : 'good') : 'bad', b: rec.battles.length - 1, lost: !b.win && !b.fled };
+  return { t: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 전투에서 ${res}${b.cause ? ` — ${b.cause}` : ''}`, cls: b.win ? (b.boss ? 'gold' : 'good') : 'bad', b: rec.battles.length - 1, lost: !b.win && !b.fled };
 }
 function stepVault(Z) {
   const v = openVault(Z);
