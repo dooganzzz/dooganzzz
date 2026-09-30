@@ -10,7 +10,7 @@ function spriteOn(zid, eid) { const w = weaponType(); return SPRITE_TRIAL.some(t
 function spriteStage(zid, eid) {
   return `<div class="sprite-stage" id="spStage" style="background-image:url('${SPRITE_SRC.stage(zid)}')">
     <div class="sp-fighter sp-hero idle" id="spHero" data-f="0"><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(weaponType())}')"></div></div>
-    <div class="sp-fighter sp-foe idle ${FOE_FACES_RIGHT.has(eid) ? 'flip' : ''} ${FOE_SHEET[eid] ? 'sheet' : ''}" id="spFoe" data-f="0"><i class="sp-shadow"></i>${FOE_SHEET[eid]
+    <div class="sp-fighter sp-foe idle ${FOE_FACES_RIGHT.has(eid) ? 'flip' : ''} ${FOE_SHEET[eid] ? 'fsheet' : ''}" id="spFoe" data-f="0"><i class="sp-shadow"></i>${FOE_SHEET[eid]
       ? `<div class="sp-fspr" style="background-image:url('assets/art/sprites/foe_${eid}.png');background-size:${FOE_SHEET[eid] * 100}% 100%"></div>`
       : `<img src="${ART_SRC.beast(eid)}" alt="">`}</div>
   </div>`;
@@ -44,7 +44,7 @@ let spFoeT = null;
 function spBreathLoop() {
   clearInterval(spBreathT); clearInterval(spFoeT); let i = 0, j = 0;
   spBreathT = setInterval(() => { const h = $('#spHero'); if (!h) { clearInterval(spBreathT); return; } if (h.classList.contains('idle')) h.dataset.f = BREATH[i++ % BREATH.length]; }, 260);
-  const e = $('#spFoe'), n = e && e.classList.contains('sheet') ? e.querySelector('.sp-fspr') : null;
+  const e = $('#spFoe'), n = e && e.classList.contains('fsheet') ? e.querySelector('.sp-fspr') : null;
   if (n) { const N = Math.round(parseFloat(n.style.backgroundSize) / 100);
     spFoeT = setInterval(() => { if (!n.isConnected) { clearInterval(spFoeT); return; } if (e.classList.contains('idle')) n.style.backgroundPositionX = (j++ % N) * 100 / (N - 1) + '%'; }, 170); }
 }

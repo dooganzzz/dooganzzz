@@ -413,4 +413,4 @@
 /* 요수 스프라이트: 제자리에서 똬리가 늘었다 줄었다 */
 .sp-fspr { width: 100%; height: 100%; background-repeat: no-repeat; background-position: 0 0; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
 .sp-foe.flip .sp-fspr { transform: scaleX(-1); }
-.sp-foe.sheet.idle .sp-fspr { animation: none; }
+.sp-foe.fsheet.idle .sp-fspr { animation: none; }
