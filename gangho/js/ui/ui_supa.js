@@ -3,14 +3,14 @@
    운영자는 GM 콘솔 유저 탭에서 암호를 넣어 gangho_players로 목록을 본다 (IP는 서버가 요청에서 기록).
    SUPA.url · SUPA.key가 비어 있으면 아무것도 하지 않는다. 설정 방법: supabase/migrations/…_gangho_players.sql */
 const SUPA = {
-  url: '',            // 예: https://abcdefgh.supabase.co
-  key: '',            // Project Settings › API Keys의 publishable(anon) 키. 공개해도 되는 키 (표는 함수로만 열린다)
+  url: 'https://fcyoqshwtvynfqxmgbrc.supabase.co',
+  key: 'sb_publishable_mAeTFtAFaAiTOA9z5XGSSQ_GAsQMGw5',   // publishable 키: 공개해도 되는 키 (표는 함수로만 열린다)
 };
 const SUPA_ST = { lastSig: '', lastSave: '', busy: false, syncedAt: 0, err: '', pass: '', list: null, listErr: '', loading: false };
 const supaOn = () => !!(SUPA.url && SUPA.key);
 async function supaRpc(fn, body) {
   const r = await fetch(`${SUPA.url.replace(/\/$/, '')}/rest/v1/rpc/${fn}`, {
-    method: 'POST', headers: { apikey: SUPA.key, Authorization: `Bearer ${SUPA.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    method: 'POST', headers: { apikey: SUPA.key, ...(/^sb_/.test(SUPA.key) ? {} : { Authorization: `Bearer ${SUPA.key}` }), 'Content-Type': 'application/json' }, body: JSON.stringify(body),   // 새 publishable 키는 apikey 머리글만
   });
   const text = await r.text();
   if (!r.ok) throw new Error((() => { try { return JSON.parse(text).message; } catch (e) { return text || r.status; } })());
