@@ -20,12 +20,12 @@ module.exports = async (b) => {
     // 2. 청풍문 2차 탭
     await p.click('[data-tab="status"]'); await p.click('[data-tab="sect"]');
     const s0 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, top: document.querySelector('.tab.on .ko').textContent, hall: !!document.querySelector('.npc-head') }));
-    ok('2 하위 탭 [ 정청 ][ 연무장 ][ 화로 ][ 뒷마당 ][ 무신상 ]', s0.subs === '정청,연무장,화로,뒷마당,무신상', s0.subs);
+    ok('2 하위 탭 [ 정청 ][ 연무장 ][ 화로 ][ 뒷마당 ][ 무신상 ][ 전방 ]', s0.subs === '정청,연무장,화로,뒷마당,무신상,전방', s0.subs);
     ok('2 기본 진입은 정청', s0.top === '청풍문' && s0.on === '정청' && s0.hall, JSON.stringify(s0));
-    const views = { yeonmu: '.arts', forge: '.forge', yard: '[data-act="rest"]', shrine: '.altar', hall: '[data-fold="hq"]' };
+    const views = { yeonmu: '.arts', forge: '.forge', yard: '[data-act="rest"]', shrine: '.altar', shop: '.shop-panel', hall: '[data-fold="hq"]' };
     for (const [sub, sel] of Object.entries(views)) {
       await p.click(`.subtabs [data-sub="${sub}"]`);
-      const r = await p.evaluate(s => ({ view: !!document.querySelector(s), top: document.querySelector('.tab.on').dataset.tab, on: document.querySelector('.subtab.on').dataset.sub, bar: document.querySelectorAll('.subtabs').length }), sel);
+      const r = await p.evaluate(s => ({ view: !!document.querySelector(s), top: document.querySelector('.tab.on').dataset.tab, on: document.querySelector('.subtab.on').dataset.sub, bar: document.querySelectorAll('.subtabs:not(.shop-mode)').length }), sel);
       ok(`2 [${sub}] 누르면 해당 시설 화면으로 교체`, r.view && r.top === 'sect' && r.on === sub && r.bar === 1, JSON.stringify(r));
     }
     await p.click('.subtabs [data-sub="forge"]'); await p.click('[data-tab="codex"]'); await p.click('[data-tab="sect"]');

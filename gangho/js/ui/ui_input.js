@@ -23,7 +23,12 @@ function onClick(e) {
   if (d.evchoice !== undefined && d.evkey) return chooseEvent(d.evkey, +d.evchoice);
   if (d.fold) return toggleFold(d.fold);
   if (d.train) return toggleTraining(d.train);
-  if (d.store) return buyStore(d.store);
+  if (d.shopmode) { ui.shopMode = d.shopmode; return render(); }
+  if (d.buy) return buyItem(d.buy);
+  if (d.buygear) { const [base, t] = d.buygear.split(':'); return buyGear(base, +t); }
+  if (d.sell) return sellItem(d.sell, 1);
+  if (d.sellall) return sellItem(d.sellall, count(d.sellall));
+  if (d.sellgear) return sellGear(+d.sellgear);
   if (d.enhance) return enhanceGear(d.enhance);
   if (d.equipm) { equipManual(d.equipm); if (ui.modal) { ui.modal = 'mart:' + d.equipm; renderModal(); } return; }
   if (d.unequipm) { const id = S.active[d.unequipm]; unequipManual(d.unequipm); if (ui.modal && id) { ui.modal = 'mart:' + id; renderModal(); } return; }
@@ -49,7 +54,7 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     leave: leaveZone, interact, craft: () => doCraft(ui.craft, ui.pot), clearpot: () => { ui.pot = {}; render(); },
-    rest, snack: arinSnack, talk: arinTalk, masterhint: masterHint, supply: jounSupply, reroll: rerollMissions,
+    rest, snack: arinSnack, talk: arinTalk, masterhint: masterHint, jounguide: jounGuide, supply: jounSupply, reroll: rerollMissions,
     hasan: doHasan, closemodal: () => { ui.modal = null; render(); },
     closebattle: closeBattle,
     reset: askReset,

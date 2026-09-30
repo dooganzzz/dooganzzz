@@ -64,6 +64,24 @@ function rest() {
   notify.refresh();
 }
 
+/* 조운(대사형): 문파 안내 전담. 지금 상태를 보고 다음에 할 일을 짚어 준다 (거래는 전방 왕 가) */
+function jounGuide() {
+  const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').length;
+  const emptySlot = CAT_ORDER.some(c => !S.active[c]) && Object.keys(S.manuals).length;
+  const ready = S.missions.filter(missionReady).length;
+  const tips = [
+    [books, `비급이 ${books}권 있구나. 상태 탭의 무공에서 [ 익히기 ] 해라. 읽기만 해선 소용없다.`],
+    [emptySlot, '익힌 무공은 상태 › 무공에서 장착해야 몸에 붙는다. 빈 자리가 있다.'],
+    [!S.activeTrainingSkillId, '연무장에 향이 꺼져 있더라. 자리 비울 때도 폐관수련은 걸어 두고 가라.'],
+    [ready, `문파 임무 ${ready}건은 바로 완료할 수 있다. 정청 문파 임무에서 공헌도를 받아 가라.`],
+    [S.stamina < 20, '기력이 바닥이구나. 뒷마당 평상에서 쉬든지, 뭘 좀 먹어라.'],
+    [S.gear.length >= 3, '행낭에 안 쓰는 장비가 쌓였다. 청풍전방 왕 가에게 가면 은자로 바꿔 준다.'],
+    [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],
+  ];
+  const hit = tips.find(([c]) => c);
+  log(`조운: "${hit ? hit[1] : pick(['필요한 물건은 청풍전방 왕 가에게 사라. 난 장작이나 팬다.', '강호행 들어가기 전에 금창약은 꼭 챙겨라.', '두목은 무작정 덤빌 상대가 아니다. 기척부터 살펴라.'])}"`, 'npc');
+  notify.refresh();
+}
 function masterHint() {
   const gated = Object.entries(S.manuals).find(([, m]) => m.gate && !has(GATES[m.star]));
   const pill = gated ? GATES[gated[1].star] : QUESTS[questIndex()] && QUESTS[questIndex()][0].includes('소성 돌파단') ? 'pillLow' : null;
@@ -110,14 +128,6 @@ function doHasan() {
   notify.refresh();
 }
 
-function buyStore(id) {
-  const row = JOUN_SHOP.find(r => r[0] === id); if (!row || S.zone) return;
-  if (S.silver < row[1]) { notify.toast('은자가 부족합니다.'); return; }
-  if (!give(id, 1, true)) return;
-  S.silver -= row[1];
-  log(`조운의 창고에서 ${hlItem(ITEMS[id].name)}${jo(ITEMS[id].name, '을를')} ${hlSilver(row[1])}에 샀습니다.`, 'loot');
-  notify.refresh();
-}
 
 /* ───────── 순차 가이드 ───────── */
 const QUESTS = [

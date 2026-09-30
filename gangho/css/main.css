@@ -389,7 +389,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 /* 자동 공격 */
 .act-auto { width: 100%; border-color: rgba(212, 175, 55, .35); color: var(--gold-2); }
 /* 조운의 창고 */
-.store { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(212, 175, 55, .12); }
 /* 경계 표시: 입문 · 소성 · 대성 */
 .realm { display: inline-flex; align-items: baseline; gap: 3px; font-family: var(--sans); font-size: .72rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; vertical-align: middle; white-space: nowrap; }
 .realm small { font-family: var(--serif); font-weight: 400; font-size: .9em; opacity: .8; }
@@ -503,4 +502,22 @@ body {
   .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; overflow: visible; padding-block: 4px 8px; }
   .tab { flex-direction: column; align-items: center; gap: 1px; padding: 7px 2px 8px; font-size: .95rem; min-width: 0; }
   .tab .hj { margin-left: 0; font-size: .6em; letter-spacing: .12em; }
+}
+
+/* 청풍문 › 전방: 왕 가의 진열대 */
+.npc-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.shop-panel .shop-mode { max-width: 300px; }
+.ware-head { font-size: .95rem; color: var(--silver); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.wares { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.ware { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto; gap: 8px 10px; align-items: center; padding: 9px 10px; border-radius: 6px; background: rgba(28, 34, 44, .55); border: 1px solid rgba(212, 175, 55, .12); }
+.ware .icon { font-size: 1.4rem; text-align: center; }
+.ware small { display: block; color: var(--dim); font-size: .75rem; line-height: 1.4; }
+.ware .btns { display: flex; gap: 4px; }
+.ware .price { font-variant-numeric: tabular-nums; font-weight: 700; color: #e8c872; white-space: nowrap; }
+.ware .price small { display: inline; color: var(--dim); margin-left: 1px; }
+.btn.short { opacity: .5; }
+@media (max-width: 640px) {
+  .wares { grid-template-columns: 1fr; }
+  .ware { grid-template-columns: 30px minmax(0, 1fr) auto; }
+  .ware > .btn, .ware > .btns { grid-column: 2 / -1; justify-self: end; }
 }

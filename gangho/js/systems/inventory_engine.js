@@ -148,6 +148,54 @@ function enhanceGear(slot) {
 }
 
 const gearName = it => `${it.name}${it.enh ? ` +${it.enh}` : ''}`;
+/* ───────── 전방(상점) 거래 ─────────
+   은자는 S.silver, 소지품은 S.inv{아이템: 개수}, 보관 장비는 S.gear[]. 청풍문 안에서만 거래한다. */
+const itemSellPrice = id => ITEMS[id].price || 0;                 // 비급·증표·약과처럼 값이 0이면 팔 수 없다
+function gearSellPrice(it) {
+  if (it.shop) return 0;                                           // 신분패·탈것은 문파 물건이라 팔 수 없다
+  return Math.round(GEAR_SELL.tier[(it.tier || 1) - 1] * RARITY[it.rarity].mult * (1 + (it.enh || 0) * GEAR_SELL.enh));
+}
+function shopPoor(price, name) {
+  log(`🚫 은자가 부족해 ${name}${jo(name, '을를')} 살 수 없습니다. (필요 ${fmt(price)}냥 · 소지 ${fmt(S.silver)}냥) 왕 가: ${MERCHANT.poor}`, 'bad');
+  notify.refresh();
+}
+function buyItem(id) {
+  const row = SHOP_STOCK.find(r => r[0] === id); if (!row || S.zone) return false;
+  const [, price] = row, name = ITEMS[id].name;
+  if (S.silver < price) { shopPoor(price, name); return false; }
+  if (!give(id, 1, true)) { notify.refresh(); return false; }
+  S.silver -= price;
+  log(`🛒 전방에서 ${hlItem(name)}${jo(name, '을를')} ${hlSilver(price)}에 샀습니다. 왕 가: ${pick(MERCHANT.buyLines)}`, 'loot');
+  notify.refresh();
+  return true;
+}
+function buyGear(base, tier) {
+  const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row || S.zone) return false;
+  const price = row[2], name = EQUIP_BASES[base].names[tier - 1];
+  if (S.silver < price) { shopPoor(price, name); return false; }
+  if (!giveGear(makeGear(base, tier, 0, false), true)) { notify.refresh(); return false; }
+  S.silver -= price;
+  log(`🛒 전방에서 [하품] ${hlItem(name)}${jo(name, '을를')} ${hlSilver(price)}에 샀습니다. 행낭에서 착용하십시오.`, 'loot');
+  notify.refresh();
+  return true;
+}
+function sellItem(id, n = 1) {
+  const price = itemSellPrice(id); if (S.zone || !price || !has(id)) return 0;
+  n = Math.min(n, count(id));
+  take(id, n); S.silver += price * n;
+  log(`💰 ${hlItem(ITEMS[id].name)} ×${n}을 팔아 ${hlSilver(price * n)}을 받았습니다. 왕 가: ${pick(MERCHANT.sellLines)}`, 'loot');
+  notify.refresh();
+  return price * n;
+}
+function sellGear(uid) {
+  const i = S.gear.findIndex(g => g.uid === uid); if (i < 0 || S.zone) return 0;
+  const it = S.gear[i], price = gearSellPrice(it); if (!price) return 0;
+  S.gear.splice(i, 1); S.silver += price;
+  log(`💰 [${RARITY[it.rarity].name}] ${hlItem(gearName(it))}${jo(gearName(it), '을를')} 팔아 ${hlSilver(price)}을 받았습니다.`, 'loot');
+  notify.refresh();
+  return price;
+}
+
 function giveSilver(n) { S.silver += n; log(`${hlSilver(n)} 획득`, 'loot'); }
 
 function spend(cost) {

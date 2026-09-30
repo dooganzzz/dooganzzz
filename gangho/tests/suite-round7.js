@@ -1,4 +1,4 @@
-/* 재료 단서, 조운의 창고, 장비 강화 */
+/* 재료 단서, 전방 구매, 장비 강화 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -28,9 +28,9 @@ module.exports = async (b) => {
     await p.click('.ctile.locked');
     ok('2 단서 없는 칸은 미발견 안내', (await p.$$eval('.toast', e => e[e.length - 1].textContent)).includes('아직 발견하지 못한 비전'));
 
-    // 4. 조운의 창고, 장비 강화
-    const shop = await p.evaluate(() => { S.silver = 1000; const n0 = count('potionHp'); buyStore('potionHp'); return { spent: 1000 - S.silver, got: count('potionHp') - n0 }; });
-    ok('4 조운의 창고에서 은자로 구매', shop.spent === 15 && shop.got === 1, JSON.stringify(shop));
+    // 4. 전방 구매, 장비 강화
+    const shop = await p.evaluate(() => { S.silver = 1000; const n0 = count('potionHp'); buyItem('potionHp'); return { spent: 1000 - S.silver, got: count('potionHp') - n0 }; });
+    ok('4 전방에서 은자로 구매', shop.spent === 15 && shop.got === 1, JSON.stringify(shop));
     const enh = await p.evaluate(() => {
       S.silver = 99999; const atk0 = calcStats().atk, w = S.equip.weapon;
       for (let i = 0; i < 40 && (w.enh || 0) < 3; i++) enhanceGear('weapon');
@@ -39,8 +39,8 @@ module.exports = async (b) => {
     ok('4 장비 강화: 단계·공격력 상승, 은자 소모', enh.enh === 3 && enh.atk1 > enh.atk0 && enh.spent > 0, JSON.stringify(enh));
     await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'gear'; ui.slotSel = 'weapon'; render(); });
     ok('4 무장 화면 강화 버튼', !!(await p.$('[data-enhance="weapon"]')));
-    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
-    ok('4 정청에 조운의 창고', (await p.$$('[data-store]')).length >= 10);
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'shop'; render(); });
+    ok('4 청풍문 › 전방 진열', (await p.$$('[data-buy]')).length >= 10);
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

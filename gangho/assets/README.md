@@ -8,5 +8,6 @@
 | `portraits/npc_nobyeoksong.png` | 정청 · 노벽송 (장문인) | 정사각 144×144 이상 |
 | `portraits/npc_joun.png` | 정청 · 조운 (대사형) | 정사각 144×144 이상 |
 | `portraits/npc_arin.png` | 뒷마당 · 아린 (사매) | 정사각 144×144 이상 |
+| `portraits/npc_wang.png` | 전방 · 왕 가 (청풍전방 주인) | 정사각 144×144 이상 |
 
 초상화는 68px 칸에 `object-fit: cover`로 잘려 들어가니, 얼굴을 가운데에 두면 됩니다.
