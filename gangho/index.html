@@ -16,9 +16,11 @@
 </head>
 <body>
 <div class="app">
-  <header class="top">
-    <div class="brand"><span class="seal">江湖</span><div><h1>강호견문록</h1><small>제1장 · 청풍문 편</small></div></div>
-    <div id="status" class="status"></div>
+  <header class="top main-header">
+    <!-- 좌측: 캐릭터 정보(1행) · 활력/내력 게이지와 전투력·수련치·은자·공헌(2행) — renderHeader()가 채운다 -->
+    <div id="status" class="status header-left"></div>
+    <!-- 우측: 메인 타이틀 배너 -->
+    <div class="brand header-right header-banner"><span class="seal brand-symbol">江湖</span><div class="brand-text"><h1 class="brand-title">강호견문록</h1><small class="brand-sub">제1장 · 청풍문 편</small></div></div>
   </header>
   <nav id="tabs" class="tabs" aria-label="장소"></nav>
   <div class="body">

@@ -68,14 +68,21 @@ const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S);
   $('#status').innerHTML = `
-    <div class="who"><span class="name">${esc(S.name)}</span><span class="sect">청풍문 제자 · ${S.expedition.zone ? `⛰️ ${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <b>${countdownText()}</b>` : '탐험지 미정'}</span></div>
-    <div class="bars">${bar('hp', S.hp, st.maxHp, '활력')}${bar('mp', S.mp, st.maxMp, '내력')}</div>
-    <div class="user-status-bar">
-      <div class="status-chip combat-power" title="종합 전투력 ${fmt(cp)}"><span class="chip-badge badge-combat">전투</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
-      <div class="status-chip exp" title="경험치 ${fmt(S.exp)} (상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-exp">경험</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
-      <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥"><span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
-      <div class="status-chip contribution" title="문파 공헌도 ${fmt(S.contrib)}"><span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
+    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `⛰️ ${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <strong class="highlight-timer">${countdownText()}</strong>` : '탐험지 미정'}</span></div>
+    <div class="status-indicator-row">
+      <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
+      <div class="currency-chips user-status-bar">
+        <div class="status-chip combat combat-power" title="종합 전투력 ${fmt(cp)}"><span class="chip-badge badge-combat">전투력</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
+        <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 경험치 · 상태 › 무공에서 성급 올리기)"><span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
+        <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥"><span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
+        <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}"><span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
+      </div>
     </div>`;
+}
+/* 헤더 게이지: [활력] 뱃지 + 막대(수치는 막대 안) */
+function gauge(cls, cur, max, name) {
+  const p = max ? clamp(cur / max * 100, 0, 100) : 0;
+  return `<div class="stat-gauge ${cls}-gauge"><span class="gauge-badge">${name}</span><div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:${p}%"></div><span class="gauge-text">${fmt(cur)} / ${fmt(max)}</span></div></div>`;
 }
 
 function renderTabs() {
