@@ -191,6 +191,7 @@ const PROLOGUE = [
 /* 서장은 한 단계씩 먹이 번지듯 드러난다: 서문 → (누르면) 제자 이름 → 4대 스탯 → 입문 무공 → 기예와 시작 단추.
    자동 검사(웹드라이버)에서는 한 번에 모두 펼친다 */
 const INTRO_STEPS = 4;
+const STARTER_LABEL = { fist: '권장법', sword: '검법', blade: '도법', spear: '창법', hidden: '암기술' };
 function showIntro() {
   let chosen = 'samjaeGeom', talent = 'forge';
   let stage = navigator.webdriver ? INTRO_STEPS : 0, fresh = 0;   // fresh: 방금 드러난 단계 (그 단계만 번지며 나타난다)
@@ -218,7 +219,7 @@ function showIntro() {
         <b class="attr-val">${attr[k]}</b>
         <button class="btn sm ghost" data-attr="${k}" data-d="1" ${attr[k] >= ATTR_MAX || left() <= 0 ? 'disabled' : ''} aria-label="${A.name} 올리기">＋</button></div>`).join('')}</div>`)}
       ${step(3, `<p class="field-l">입문 무공 <small class="muted">입문 무공이 곧 첫 병기입니다</small></p>
-      <div class="starters starter-books">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}">${starterIco(id)}<b>${M.name}</b><small>${WEAPON_SHORT[M.weapon]}</small></button>`; }).join('')}</div>`)}
+      <div class="starters starter-books">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}">${starterIco(id)}<b>${STARTER_LABEL[M.weapon]}</b></button>`; }).join('')}</div>`)}
       ${step(4, `<p class="field-l">기예 <small class="muted">(技藝)</small></p>
       <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><span class="talent-ico" style="background-image:url('${TALENT_ICO[k]}')"></span><b>${T.name} <small>${T.hanja}</small></b><em class="talent-sub">${T.sub}</em></button>`).join('')}</div>
       <p class="muted">${left() ? `남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.` : '병기 상성: 권장 › 검/도 › 창·암기 › 권장 …'}</p>
@@ -242,6 +243,7 @@ function showIntro() {
       startNewGame(name, chosen, { attr: { ...attr }, talent });
       goTab('sect', 'hall');
       render();
+      if (!reduceMotion()) replay(document.querySelector('.app'), 'app-reveal');   // 메인 화면이 먹 번지듯 서서히
       return;
     }
     // 입력칸·단추가 아닌 곳을 누르면 다음 단계가 드러난다

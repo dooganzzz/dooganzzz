@@ -175,17 +175,19 @@ function viewHall() {
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();
   const hq = `
-    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn ghost sm" data-act="masterhint">말 걸기</button></div>
-    <div class="quest">
-      ${q ? `<small class="muted">지금 할 일 · ${qi + 1}/${QUESTS.length}</small><b>${q[0]}</b><p class="story">${q[2]}</p>` : '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'}
+    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint" ${!tutorReady() && q ? 'disabled title="지금 가르침을 먼저 이루십시오"' : ''}>${tutorReady() ? '말 걸기 <small>새 가르침</small>' : q ? '수행 중' : '말 걸기'}</button></div>
+    <div class="quest ${tutorReady() ? 'locked' : ''}">
+      ${!q ? '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'
+        : tutorReady() ? `<small class="muted">장문인의 가르침 · ${qi + 1}/${QUESTS.length}</small><b>${qi > 0 ? '가르침을 이루었습니다!' : '장문인께 인사드리기'}</b><p class="story">장문인에게 [ 말 걸기 ]를 눌러 ${qi > 0 ? '다음 가르침을 받으십시오.' : '첫 가르침을 받으십시오.'}</p>`
+        : `<small class="muted">장문인의 가르침 · ${qi + 1}/${QUESTS.length}</small><b>${q[0]}</b><p class="story">${q[2]}</p>`}
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
-      <div class="npc-acts"><button class="btn ghost sm" data-act="jounguide">문파 안내</button><button class="btn ${supplied ? 'ghost' : 'primary'} sm" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
+      <div class="npc-acts"><button class="btn talk-btn" data-act="jounguide">문파 안내</button><button class="btn talk-btn ${supplied ? '' : 'ready'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 배고프죠? 죽 끓여 놨어요!"</p></div>
-      <div class="npc-acts"><button class="btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'primary' : 'ghost'} sm" data-act="talk" title="죽 한 그릇 · 활력·내력 모두 회복">말 걸기 <small>(${arinFree() ? '오늘 첫 죽 무료' : `죽 은자 ${ARIN_CARE}냥`})</small></button></div></div>`;
+      <div class="npc-acts"><button class="btn talk-btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'ready' : ''}" data-act="talk" title="죽 한 그릇 · 활력·내력 모두 회복">말 걸기 <small>(${arinFree() ? '오늘 첫 죽 무료' : `죽 은자 ${ARIN_CARE}냥`})</small></button></div></div>`;
   const missions = `
-    <div class="btns"><button class="btn ghost sm" data-act="reroll">새 임무 (은자 ${getQuestRefreshCost()}냥)</button><small class="muted">갱신할 때마다 10냥씩 오르고, 매일 자정에 10냥으로 돌아갑니다.</small></div>
+    <div class="btns"><button class="btn talk-btn" data-act="reroll">새 임무 (은자 ${getQuestRefreshCost()}냥)</button><small class="muted">갱신할 때마다 10냥씩 오르고, 매일 자정에 10냥으로 돌아갑니다.</small></div>
     <ul class="missions">${S.missions.map((m, i) => {
       const tname = ENEMIES[m.target].name, prog = m.prog;
       return `<li><div><b>토벌</b> ${tname} ${m.n}마리 <small class="muted">${ZONES[m.zone].name}</small></div><div class="mprog"><span style="width:${prog / m.n * 100}%"></span></div><span class="num">${prog}/${m.n}</span><span class="reward">공헌 ${m.contrib}</span><button class="btn sm" data-mission="${i}" ${missionReady(m) ? '' : 'disabled'}>완료</button></li>`;

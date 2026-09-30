@@ -176,3 +176,34 @@ const QUESTS = [
 ];
 
 function questIndex() { const i = QUESTS.findIndex(q => !q[1]()); return i < 0 ? QUESTS.length : i; }
+
+/* 장문인의 가르침(튜토리얼): 장문인에게 말을 걸어야 다음 할 일이 드러난다.
+   S.tutorShown = 지금까지 드러난 할 일 수. 지금 할 일을 이루면 말 걸기 단추가 다시 켜진다 */
+const QUEST_TALK = [
+  '비급은 읽기만 해선 소용없다. 행낭의 비급 네 권을 익히고, 상태 › 무공에서 네 자리에 모두 걸어라.',
+  '몸에 걸었으면 강호에 나가 부딪혀야지. 강호행에서 청풍산을 탐험지로 정하거라. 한 시간마다 알아서 다녀올 게다.',
+  '싸우고 돌아오면 수련치가 쌓인다. 그걸로 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.',
+  '조운이 녀석이 보급품을 챙겨 뒀을 게다. 가서 받아 오너라. 하루에 한 번이다.',
+  '5성에 이르면 벽에 막힌다. 소성 돌파단이 있어야 넘는다. 화로에서 직접 달여 보거라.',
+  '청풍산 깊은 곳에 적염 호랑이가 산다. 두목이다. 만나면 피하지 말고, 지면 강해져서 다시 가라.',
+  '호랑이를 잡았다니 대견하구나. 이제 염화채다. 산적 연합의 채주 적패천을 꺾어라.',
+  '6성, 소성(小成)의 문턱을 넘어라. 수련치와 돌파단, 둘 다 필요하다.',
+  '수룡방주 벽해룡. 물 위의 용이다. 탐험지를 수룡방으로 바꾸어라.',
+  '12성, 대성(大成)이다. 대성 돌파단은 피와 물과 불, 셋이 서로를 다스려야 빚어진다.',
+  '… 여기까지 왔구나. 나를 찾아와라. 하산을 허하마.',
+];
+const tutorShown = () => S.tutorShown === undefined ? questIndex() + 1 : S.tutorShown;
+/* 장문인에게 새로 들을 가르침이 있는가 (지금 할 일이 아직 드러나지 않았으면) */
+function tutorReady() { const qi = questIndex(); return qi < QUESTS.length && tutorShown() <= qi; }
+function masterTalk() {
+  const qi = questIndex();
+  if (!tutorReady()) return masterHint();
+  if (qi > 0 && tutorShown() === qi) log(`노벽송: "${pick(['잘했다.', '제법이구나.', '허허, 벌써 해냈느냐.'])} 다음 가르침을 주마."`, 'npc');
+  S.tutorShown = qi + 1;
+  log(`노벽송: "${QUEST_TALK[qi]}"`, 'npc');
+  log(`[장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${QUESTS[qi][0]}`, 'gold');
+  const pill = /소성 돌파단/.test(QUESTS[qi][0]) ? 'pillLow' : /대성/.test(QUESTS[qi][0]) ? 'pillHigh' : null;
+  const r = pill && RECIPES.find(x => x.out === pill);
+  if (r && !S.codex.includes(r.id)) addHint(r);
+  notify.refresh();
+}

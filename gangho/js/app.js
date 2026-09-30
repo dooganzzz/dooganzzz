@@ -63,6 +63,7 @@ function startNewGame(name, mugongId, opts = {}) {
   S.equip.weapon = makeNamedGear(STARTER_GEAR[wt]);
   S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
+  S.tutorShown = 0;                                  // 장문인에게 말을 걸어야 첫 가르침이 드러난다
   ensureMissions(); checkDailyMidnightReset();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
   if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
