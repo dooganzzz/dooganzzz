@@ -7,10 +7,12 @@
    potionAt: 활력이 이 비율 아래면 생혈고를 바름 · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율
    villageAt: 생혈고가 없고 활력이 이 비율 아래면 마을로 내려가 치료 (기력 villageSta 소모, 활력·내력 회복 후 다시 사냥)
    defeatSta: 쓰러지면 잃는 기력 (활력·내력을 회복하고 다시 사냥)
-   bossAvoid: 두목의 기척 비율(senseRatio)이 이보다 낮으면 제자가 피한다 — 낮을수록 무모하게 덤빈다 */
+   bossAvoid: 두목의 기척 비율(senseRatio)이 이보다 낮으면 제자가 피한다 — 낮을수록 무모하게 덤빈다
+   battles · vaults: 탐험 한 번의 전투 조우 · 금고 횟수 [최소, 최대]. 출발 때 이 안에서 정하고, 다 겪으면 돌아온다.
+     기력이 먼저 바닥나도 최소 횟수는 지친 몸으로 채운다. 두목·기연 전투도 전투 1회 · extras: 함정·기관·기연을 합친 최대 횟수 */
 const EXPEDITION = {
   interval: 3600000, maxQueue: 8, keep: 8,
-  weights: { beast: 62, vault: 16, event: 6, trap: 8, gimmick: 8 },
+  weights: { beast: 55, vault: 25, event: 6, trap: 7, gimmick: 7 }, battles: [3, 5], vaults: [1, 3], extras: 2,
   bossFrom: 0.5, bossChance: 0.35, potionAt: 0.35, breathe: 0.06, villageAt: 0.3, villageSta: 12, defeatSta: 25, bossAvoid: 0.3, minStamina: 3, maxRounds: 60,
 };
 /* 탐험 중 조우 문구 */
@@ -36,7 +38,7 @@ const VAULTS = [
 const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.08 };
 
 /* 걸음마다 드는 기력 (기력은 숨겨진 능력치. 매 정각 출발 때 가득 차고, 아이템으로는 회복되지 않는다) */
-const STAMINA_COST = { battle: 12, chest: 8, gimmick: 10, boss: 20 };
+const STAMINA_COST = { battle: 17, chest: 10, gimmick: 10, boss: 25 };
 
 /* ───────── 사냥터 사건 (기연 奇緣) ─────────
    zones: 나오는 지역 ('all'이면 어디서나). 선택지 req는 조건(부족하면 고를 수 없음),

@@ -136,14 +136,21 @@ function runExpedition(at = now()) {
   // 지형 상성(구역 단위)과 기력 소모 감소(장비)를 걸음마다의 기력에 곱한다
   const tm = terrainMult(zid), mult = tm * (1 - (st0.staSave || 0) / 100);
   rec.terrain = { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(mult * 1000) / 1000, extra: 0 };
-  const spend = base => { const c = base * mult; S.stamina -= c; rec.terrain.extra += c - base; };
+  const spend = base => { const c = base * mult; S.stamina = Math.max(0, S.stamina - c); rec.terrain.extra += c - base; };
   const recover = () => { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; };
+  // 이번 탐험에서 겪을 전투·금고 횟수를 정해 둔다
+  const plan = rec.plan = { battles: rint(...W.battles), vaults: rint(...W.vaults) };
+  let vaults = 0, extras = 0;
   rec.defeats = 0; rec.villages = 0;
   try {
-    while (S.stamina >= W.minStamina && guard++ < 300) {
-      const depth = 1 - S.stamina / budget;
+    while (guard++ < 300) {
+      const nB = rec.battles.length, needB = nB < W.battles[0], needV = vaults < W.vaults[0];
+      const doneB = nB >= plan.battles, doneV = vaults >= plan.vaults;
+      if (doneB && doneV) break;                                  // 정한 만큼 다 겪었다
+      const tired = S.stamina < W.minStamina;
+      if (tired && !needB && !needV) break;                       // 기력이 바닥났고 최소 횟수도 채웠다
+      const depth = Math.max(1 - S.stamina / budget, (nB + vaults) / (plan.battles + plan.vaults));
       if (S.hp < calcStats().maxHp * W.villageAt && !has('saenghyeol')) {      // 마을 치료: 기력을 써서 활력·내력을 채우고 다시 오른다
-        if (S.stamina < W.villageSta) break;
         spend(W.villageSta); recover(); rec.villages++;
         step('village', () => { log(EXP_TEXT.village, 'muted'); return { t: '🏘️ 마을로 내려가 상처를 치료하고 다시 올랐습니다 (기력 소모)', cls: 'muted' }; });
         continue;
@@ -152,16 +159,27 @@ function runExpedition(at = now()) {
         rec.defeats++; spend(W.defeatSta); recover();
         rec.steps[rec.steps.length - 1].d.push({ text: EXP_TEXT.defeat, cls: 'bad' });
       };
-      if (Z.boss && !bossSeen && depth >= W.bossFrom && S.stamina >= STAMINA_COST.boss && Math.random() < W.bossChance) {
+      if (Z.boss && !doneB && !tired && !bossSeen && depth >= W.bossFrom && Math.random() < W.bossChance) {
         bossSeen = true;
         if (senseRatio(Z.boss) < W.bossAvoid) { step('avoid', () => { log(EXP_TEXT.avoid, 'muted'); return { t: `🌫️ ${ENEMIES[Z.boss].name}의 기척 — 너무 무거워 물러났습니다`, cls: 'muted' }; }); continue; }
         spend(STAMINA_COST.boss);
         if (step('boss', () => stepBattle(rec, Z.boss)).lost) lost();
         continue;
       }
-      let k = weighted(W.weights);
-      if (k === 'event' && used.size) k = 'vault';            // 기연은 탐험 한 번에 한 번
-      if (S.stamina < COST[k] * mult) break;
+      let k;
+      if (tired) k = needB ? 'beast' : 'vault';                   // 지친 몸으로 최소 횟수만 채운다
+      else {
+        const wt = {};
+        if (!doneB) wt.beast = W.weights.beast;
+        if (!doneV) wt.vault = W.weights.vault;
+        if (extras < W.extras) { if (!doneB && !used.size) wt.event = W.weights.event; wt.trap = W.weights.trap; wt.gimmick = W.weights.gimmick; }
+        k = weighted(wt);
+        if (S.stamina < COST[k] * mult) {                          // 기력이 모자라면: 최소 횟수가 남았으면 그것부터, 아니면 돌아온다
+          if (!needB && !needV) break;
+          k = needB ? 'beast' : 'vault';
+        }
+      }
+      if (k === 'vault') vaults++; else if (k !== 'beast') extras++;
       spend(COST[k]);
       const r = step(k, () => k === 'beast' ? stepBattle(rec, pickBeast(Z, depth))
         : k === 'vault' ? stepVault(Z) : k === 'event' ? stepEvent(rec, zid, used) : k === 'trap' ? stepTrap() : stepGimmick(Z));
