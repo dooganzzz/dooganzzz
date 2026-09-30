@@ -163,7 +163,7 @@ function replayRestart() {
   replayStop();
   const { b } = d, s = b.start;
   RP.i = -1; RP.playing = true;
-  box.classList.remove('won', 'lost');
+  box.classList.remove('won', 'lost'); spriteReset();
   $('#rpMe').innerHTML = vbar('hp', s.me.hp, s.me.hp, s.me.maxHp, '활력') + bar('mp', s.me.mp, s.me.maxMp, '내력');
   $('#rpFoe').innerHTML = vbar('hp foe', s.foe.hp, s.foe.hp, s.foe.maxHp, '기세', true);
   $('#rpLog').innerHTML = rpTurn('開戰 · 전투 시작', b.intro.map(l => rpLine(l, b)).join(''), 'intro');
@@ -182,6 +182,7 @@ function replayModal(key) {
       <div class="plaque foe ${b.boss ? 'boss' : ''}" id="pl-foe"><div class="seal-av foe">${ENEMIES[b.eid] ? beastArt(b.eid) : sealChar(b.name)}</div><div class="pl-info"><h3>${b.name}</h3><small>${b.boss ? '두목(頭目)' : '요수(妖獸)'} ${ENEMIES[b.eid] ? elemTag(ENEMIES[b.eid].elem) + weaponTag(ENEMIES[b.eid].wtype) : ''}</small><div id="rpFoe">${vbar('hp foe', s.foe.hp, s.foe.hp, s.foe.maxHp, '기세', true)}</div></div></div>
       <div class="move-banner" id="moveBanner" aria-hidden="true"></div>
     </div>
+    ${spriteOn(zid, b.eid) ? spriteStage(zid, b.eid) : ''}
     <div class="blog combat-log-stream" id="rpLog">${rpTurn('開戰 · 전투 시작', b.intro.map(l => rpLine(l, b)).join(''), 'intro')}</div>
     <div class="rp-ctl">
       <button class="btn sm" data-rp="restart" title="기록을 지우고 첫 합부터">↺ 처음부터</button>
@@ -212,13 +213,14 @@ function replayStep() {
   $('#rpRound').textContent = last ? (b.win ? '勝' : b.fled ? '和' : '敗') : `${RP.i + 1}합`;
   $('#rpProg').textContent = `${RP.i + 1} / ${b.rounds.length}합`;
   playFx(r.fx || []);
+  if (!RP.skip || last) spritePlayRound(RP.skip ? { fx: [] } : r, last, b.win, RP_MS / RP.speed);
   if (last) { box.classList.add(b.win ? 'won' : 'lost'); RP.playing = false; $('#rpToggle').textContent = '▶ 재생'; replayStop(); return; }
   if (RP.playing) RP.timer = setTimeout(replayStep, RP_MS / RP.speed);
 }
 function replayControl(what, x) {
   const d = replayData(RP.key); if (!d) return;
   if (what === 'speed') { RP.speed = +x; for (const c of document.querySelectorAll('[data-rp="speed"]')) c.classList.toggle('on', +c.dataset.x === RP.speed); return; }
-  if (what === 'end') { replayStop(); RP.playing = false; while (RP.i < d.b.rounds.length - 1) replayStep(); return; }
+  if (what === 'end') { replayStop(); RP.playing = false; RP.skip = true; while (RP.i < d.b.rounds.length - 1) replayStep(); RP.skip = false; return; }
   if (what === 'restart') return replayRestart();
   if (what === 'step') { replayStop(); RP.playing = false; $('#rpToggle').textContent = '▶ 재생'; if (RP.i < d.b.rounds.length - 1) replayStep(); return; }
   if (what === 'toggle') {
