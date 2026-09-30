@@ -5,13 +5,15 @@ const SPRITE_TRIAL = [{ zone: 'cheongpung', weapon: 'sword', eid: 'viper' }];
 const SPRITE_SRC = { hero: w => `assets/art/sprites/hero_${w}.png`, stage: z => `assets/art/stages/${z}.jpg` };
 const FOE_FACES_RIGHT = new Set(['viper']);
 /* 요수 숨쉬기 스프라이트 (칸 수). 똬리를 늘렸다 줄였다 하는 식으로 바닥은 제자리 */
-const FOE_SHEET = { viper: 8 };                 // 원화가 오른쪽을 보는 요수는 뒤집어 제자를 보게
+const FOE_SHEET = { viper: 8 };
+/* 요수 공격 스프라이트 (움츠림 · 물기 · 고개 들기). 칸은 숨쉬기 칸의 두 배 폭, 똬리 위치는 같다 */
+const FOE_ATK = { viper: 3 };                 // 원화가 오른쪽을 보는 요수는 뒤집어 제자를 보게
 function spriteOn(zid, eid) { const w = weaponType(); return SPRITE_TRIAL.some(t => t.zone === zid && t.eid === eid && t.weapon === w); }
 function spriteStage(zid, eid) {
   return `<div class="sprite-stage" id="spStage" style="background-image:url('${SPRITE_SRC.stage(zid)}')">
     <div class="sp-fighter sp-hero idle" id="spHero" data-f="0"><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(weaponType())}')"></div></div>
     <div class="sp-fighter sp-foe idle ${FOE_FACES_RIGHT.has(eid) ? 'flip' : ''} ${FOE_SHEET[eid] ? 'fsheet' : ''}" id="spFoe" data-f="0"><i class="sp-shadow"></i>${FOE_SHEET[eid]
-      ? `<div class="sp-fspr" style="background-image:url('assets/art/sprites/foe_${eid}.png');background-size:${FOE_SHEET[eid] * 100}% 100%"></div>`
+      ? `<div class="sp-fspr" style="background-image:url('assets/art/sprites/foe_${eid}.png');background-size:${FOE_SHEET[eid] * 100}% 100%"></div>${FOE_ATK[eid] ? `<div class="sp-fatk" style="background-image:url('assets/art/sprites/foe_${eid}_atk.png');background-size:${FOE_ATK[eid] * 100}% 100%"></div>` : ''}`
       : `<img src="${ART_SRC.beast(eid)}" alt="">`}</div>
   </div>`;
 }
@@ -83,10 +85,22 @@ async function spHeroAttack(f, stance, gap) {
 }
 async function spFoeAttack(f, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
+  const atk = e.querySelector('.sp-fatk');
+  if (atk) return spFoeStrike(f, gap, h, e, atk);
   e.classList.remove('idle'); e.classList.add('lunge'); spDust(70, 18, 2); await spWait(gap * .25);
   if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); }
   else { spFrame(h, 'hurt'); spFlash(h); spNum(f.t, 'me', 'me'); }
   await spWait(gap * .4); e.classList.remove('lunge'); h.classList.remove('back'); spFrame(h, 'idle'); await spWait(gap * .2); e.classList.add('idle');
+}
+/* 공격 스프라이트가 있는 요수: 반걸음 다가가 움츠렸다가 목을 쭉 뻗어 문다 */
+async function spFoeStrike(f, gap, h, e, atk) {
+  const k = Math.min(1, gap / 1000), w = ms => spWait(ms * k), fr = i => { atk.style.backgroundPositionX = i * 50 + '%'; };
+  e.classList.remove('idle'); e.classList.add('striking', 'step'); fr(0); await w(260);
+  fr(1); spDust(66, 20, 2);
+  if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); }
+  else { spFrame(h, 'hurt'); spFlash(h); spNum(f.t, 'me', 'me'); }
+  await w(300); fr(2); await w(240);
+  e.classList.remove('striking', 'step'); h.classList.remove('back'); spFrame(h, 'idle'); await w(160); e.classList.add('idle');
 }
 /* 한 합 재생: 기록된 연출(fx) 순서대로 공격을 나눠 움직인다 */
 async function spritePlayRound(r, last, win, ms) {

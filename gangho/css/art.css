@@ -414,3 +414,8 @@
 .sp-fspr { width: 100%; height: 100%; background-repeat: no-repeat; background-position: 0 0; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
 .sp-foe.flip .sp-fspr { transform: scaleX(-1); }
 .sp-foe.fsheet.idle .sp-fspr { animation: none; }
+/* 요수 공격 스프라이트: 숨쉬기 칸 대신 두 배 폭 칸을 똬리 자리에 겹쳐 보인다 */
+.sp-fatk { position: absolute; right: 0; bottom: 0; width: 200%; height: 100%; background-repeat: no-repeat; background-position: 0 0; display: none; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
+.sp-foe.flip .sp-fatk { transform: scaleX(-1); }
+.sp-foe.striking .sp-fatk { display: block; } .sp-foe.striking .sp-fspr { visibility: hidden; }
+.sp-foe.step { right: 30%; }
