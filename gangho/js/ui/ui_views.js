@@ -3,6 +3,7 @@
 /* ───────── 이미지 (없으면 대체 그림) ───────── */
 const IMG = {
   doll: 'assets/character_silhouette.png',
+  portrait: 'assets/images/character_default.png',
   merchant: 'assets/portraits/npc_wang.png',
   master: 'assets/portraits/npc_nobyeoksong.png',
   joun: 'assets/portraits/npc_joun.png',
@@ -22,6 +23,15 @@ function wireImages() {
     const fail = () => { brokenImg.add(im.getAttribute('src')); im.outerHTML = decodeURIComponent(im.dataset.fb); };
     if (im.complete && im.naturalWidth === 0) fail(); else im.addEventListener('error', fail, { once: true });
   }
+}
+
+/* 상태 › 무장: 제자 일러스트 카드 (3:4). 기본 이미지를 못 읽으면 먹빛 플레이스홀더 */
+const PORTRAIT_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400"><rect width="300" height="400" fill="#1b1612"/><g fill="none" stroke="#5d4a3a" stroke-width="3" opacity=".8"><circle cx="150" cy="120" r="44"/><path d="M70 360c6-92 40-150 80-150s74 58 80 150"/></g><text x="150" y="380" font-size="22" text-anchor="middle" fill="#7a6552" font-family="serif">形</text></svg>');
+function portraitCard() {
+  return `<div class="character-portrait-card">
+    <img src="${IMG.portrait}" alt="제자의 형상" class="portrait-img" onerror="this.onerror=null;this.src='${PORTRAIT_FALLBACK}'">
+    <div class="portrait-name-tag">청풍문 제자 (${esc(S.name || '무명')})</div>
+  </div>`;
 }
 
 function portrait(who, seal, name) {
@@ -250,7 +260,7 @@ function viewGear() {
       <div class="armory">
         <div class="paperdoll">
           ${['helmet', 'weapon', 'jade', 'armor'].map(slot).join('')}
-          <div class="doll-wrap" style="grid-area:doll">${imgOr(IMG.doll, 'martial-artist-img', DOLL_SVG, '무인 실루엣')}</div>
+          <div class="doll-wrap" style="grid-area:doll">${portraitCard()}</div>
         </div>
         <div class="acc-row">${['boots', 'belt', 'ring', 'badge', 'mount'].map(acc).join('')}</div>
       </div>
