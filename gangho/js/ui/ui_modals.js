@@ -8,7 +8,7 @@ function martialModal(id) {
   const M = MANUALS[id], m = S.manuals[id], cat = M.cat;
   const worn = S.active[cat] === id;
   const bonus = Object.entries(manualBonus(id, m.star)).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-  const moves = M.weapon && M.stances ? `<h4>초식</h4><ol class="moves">${M.stances.map(({ name: mv }, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 시동', '제2초식 · 연계', '제3초식 · 결착'][i]}${open ? '' : ` — ${i === 1 ? '4성' : '8성'} 돌파 시 해금`}</small></li>`; }).join('')}</ol>
+  const moves = M.weapon && M.stances ? `<h4>초식</h4><ol class="moves">${M.stances.map(({ name: mv }, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 소성', '제2초식 · 대성'][i]}${open ? '' : ` — ${i === 0 ? '6성 소성' : '12성 대성'} 돌파 시 해금`}</small></li>`; }).join('')}</ol>
     <p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : '';
   const pill = GATES[m.star];
   let gateInfo;
@@ -139,6 +139,7 @@ function renderModal() {
   if (ui.modal.startsWith('artslot:')) m.innerHTML = artSlotModal(ui.modal.slice(8));
   if (ui.modal.startsWith('recipe:')) m.innerHTML = recipeModal(ui.modal.slice(7));
   if (ui.modal.startsWith('settle:')) { const h = settleModal(ui.modal.slice(7).split(',').map(Number)); if (!h) { ui.modal = null; m.hidden = true; return; } m.innerHTML = h; }
+  if (ui.modal === 'loot') { const h = lootModal(); if (!h) { ui.modal = null; m.hidden = true; return; } m.innerHTML = h; }
   if (ui.modal.startsWith('replay:')) {
     const key = ui.modal.slice(7), box = $('#rpBox');
     if (!box || box.dataset.key !== key) {                   // 다른 이유로 다시 그려져도 재생 중인 관찰 창은 그대로 둔다

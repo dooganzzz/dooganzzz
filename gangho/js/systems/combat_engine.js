@@ -177,7 +177,7 @@ function playerHit(b, mult, o) {
   if (typeof o === 'string') o = { desc: o };
   const e = b.e, st = b.st, A = b.aff || NO_AFF, v = stanceVars(b);
   const hitChance = Math.max(55, 95 - e.eva) + A.myHit + (st.acc || 0);
-  if (o.banner && b.fx) b.fx.push({ side: 'banner', t: o.banner, k: o.cls === 'counter' ? 'counter' : 'move', w: o.w || weaponType(), n: o.n || 0 });   // w·n: 관찰 창 초식 연출(병기 · 몇 번째 초식)
+  if (o.banner && b.fx) b.fx.push({ side: 'banner', t: o.banner, k: o.cls === 'counter' ? 'counter' : 'move', w: o.w || weaponType(), n: o.n || 0, mid: o.mid });   // w·n: 관찰 창 초식 연출(병기 · 몇 번째 초식)
   if (o.title) bLine(o.title, `log-stance-title ${o.cls || ''}`);
   bLine(stanceFill(o.desc, v), 'log-stance-desc');
   if (A.wp > 0 && !b.affSaid) { b.affSaid = true; bLine('[상성 우위] 병기의 이점을 살린 궤적이 적의 빈틈을 파고든다!', 'log-stance-desc aff-up'); }
@@ -213,13 +213,14 @@ function playerAttack(b) {
   const canCombo = !!M && M.weapon === weaponType();
   let comboDone = false;
   b.affSaid = false;                                        // 상성 우위 지문은 한 턴에 한 번
-  if (canCombo && Math.random() * 100 < 35 + st.combo) {
-    const moves = unlockedMoves(m.star), g = GRADES[M.grade].mult;
+  const moves = canCombo && m ? unlockedMoves(m.star) : 0;
+  if (moves && Math.random() * 100 < 35 + st.combo) {
+    const g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
     const power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase;   // 장경각 무공 고유 피해 배율
-    const mults = [1.6, 2.2, 3.2].map(v => v * (1 + (g - 1) * 0.5) * realmMult * power);
+    const mults = [1.8, 3.4].map(v => v * (1 + (g - 1) * 0.5) * realmMult * power);
     let hitsInRow = 0;
-    const chain = [100, 50, 38];
+    const chain = [100, 45];                                  // 제2초식(대성)은 제1초식에 이어서만
     for (let i = 0; i < moves; i++) {
       if (i > 0 && Math.random() * 100 >= chain[i] + st.combo) break;
       const cost = Math.max(1, Math.round((5 + m.star + i * (6 + m.star)) * g * (1 - (st.mpCost + st.mpSave) / 100)));
@@ -227,7 +228,7 @@ function playerAttack(b) {
       S.mp -= cost;
       comboDone = true;
       const sc = M.stances[i];
-      const ok = playerHit(b, mults[i], { title: `【 ${M.name} - ${sc.name} !! 】`, desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: sc.name, w: M.weapon, n: i + 1,
+      const ok = playerHit(b, mults[i], { title: `【 ${M.name} - ${sc.name} !! 】`, desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: sc.name, w: M.weapon, n: i + 1, mid: id,
         critUp: (M.chainCrit || 0) * hitsInRow, weaken: M.weaken, stanceBleed: M.stanceBleed });
       if (ok) hitsInRow++;
       if (!ok || b.e.hpNow <= 0) break;

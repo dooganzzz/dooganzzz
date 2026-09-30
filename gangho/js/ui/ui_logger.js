@@ -56,6 +56,8 @@ function chronDetail(e) {
   if (!e.ref) return '';
   const rec = findExpedition(e.ref.r);
   if (!rec) return '<small class="muted chron-gone">오래된 탐험이라 상세 기록은 지워졌습니다.</small>';
+  if (rec.pend && !rec.claimed && e.ref.s === undefined) return '';                 // 보상을 받기 전에는 결산을 숨긴다
+  if (e.ref.s !== undefined && rec.steps[e.ref.s] && rec.steps[e.ref.s].b !== undefined && !battleSeen(rec, rec.steps[e.ref.s].b)) return '';   // 안 본 전투의 속내는 숨긴다
   if (e.ref.s === undefined) {
     const g = rec.gain, part = (o, f) => Object.entries(o || {}).map(([id, n]) => `${itemIco(id, 'sm')}${ITEMS[id].name} ×${n}`).join(' · ') || f;
     return `<details class="chron-more" ${ui.chronOpen === rec.id ? 'open' : ''}><summary>결산 보기</summary><dl class="chron-gain">
@@ -70,9 +72,26 @@ function chronDetail(e) {
   if (!st || !st.d || !st.d.length) return '';
   return `<details class="chron-more"><summary>자세히</summary><div class="chron-detail">${st.d.map(l => `<p class="${l.cls}">${chronDecor(l.text)}</p>`).join('')}</div></details>`;
 }
+/* 실시간 강호행 기록: 드러날 시각이 되지 않은 걸음은 숨기고, 전투는 본 것만 결과를 적는다. 없으면 null */
+function chronLive(e, t = now()) {
+  if (!e.ref) return e;
+  const rec = findExpedition(e.ref.r);
+  if (!rec || !rec.pend) return e;                                          // 예전 탐험 기록
+  const cap = x => Math.min(x, rec.shownAt || Infinity);
+  if (e.ref.s === undefined) {
+    if (!liveDone(rec, t)) return null;
+    if (rec.claimed) return { ...e, t: cap(liveEndAt(rec)) };
+    return { ...e, t: cap(liveEndAt(rec)), text: `⛰️ ${ZONES[rec.zone].name} 강호행을 마치고 돌아왔습니다 — 전투 ${rec.battles.length}번 <button class="watch claim" data-act="claim">최종보상확인</button>` };
+  }
+  const st = rec.steps[e.ref.s];
+  if (!st || !stepShown(rec, e.ref.s, t)) return null;
+  const seen = st.b === undefined || battleSeen(rec, st.b);
+  const btn = st.b !== undefined ? ` <button class="watch ${seen ? '' : 'unseen'}" data-watch="${rec.id}:${st.b}">${seen ? '다시보기' : '결과보기'}</button>` : '';
+  return { ...e, t: cap(stepAt(rec, e.ref.s)), text: stepText(rec, st) + btn, cls: `exp-step ${seen ? st.cls : 'enc'}` };
+}
 function viewChronicle() {
-  const f = ui.chronFilter || 'all';
-  const list = S.log.filter(e => chronMatch(e, f)).slice().reverse();
+  const f = ui.chronFilter || 'all', t = now();
+  const list = S.log.map(e => chronLive(e, t)).filter(e => e && chronMatch(e, f)).reverse().map((e, i) => [e, i]).sort((a, b) => b[0].t - a[0].t || a[1] - b[1]).map(x => x[0]);
   let day = '';
   const rows = list.map(e => {
     const dl = dayLabel(e.t), sep = dl !== day ? `<li class="chron-day">${dl}</li>` : '';

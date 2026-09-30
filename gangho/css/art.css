@@ -419,3 +419,66 @@
 .sp-foe.flip .sp-fatk { transform: scaleX(-1); }
 .sp-foe.striking .sp-fatk { display: block; } .sp-foe.striking .sp-fspr { visibility: hidden; }
 .sp-foe.step { right: 30%; }
+
+/* 스프라이트 무대 확장: 병기별 동작 · 초식 그림(소성 먹빛 / 대성 광휘) · 암기 비표 · 대성 암전 */
+.sp-hero.dash-s { left: 30%; }
+.sprite-stage.shake { animation: spStageShake .32s; }
+@keyframes spStageShake { 0%,100% { transform: none; } 20% { transform: translate(-5px, 2px); } 45% { transform: translate(5px, -2px); } 70% { transform: translate(-3px, 1px); } }
+.sp-vfx { position: absolute; z-index: 4; pointer-events: none; }
+.sp-vfx.n1 { left: 34%; top: 14%; width: 56%; height: 64%; object-fit: contain; animation: spVfx1 1s ease-out forwards; }
+.sp-vfx.n2 { left: 22%; top: 2%; width: 76%; height: 88%; object-fit: contain; mix-blend-mode: screen; filter: drop-shadow(0 0 10px rgba(255, 230, 160, .7)); animation: spVfx2 1.3s ease-out forwards; z-index: 6; }
+@keyframes spVfx1 { 0% { opacity: 0; transform: translateX(-8%) scale(.85); } 25% { opacity: .95; transform: none; } 70% { opacity: .85; } 100% { opacity: 0; transform: translateX(4%) scale(1.04); } }
+@keyframes spVfx2 { 0% { opacity: 0; transform: scale(.5); filter: brightness(2.2) drop-shadow(0 0 16px #fff); } 18% { opacity: 1; transform: scale(1.08); } 35% { transform: scale(1); } 75% { opacity: .95; } 100% { opacity: 0; transform: scale(1.12); } }
+.sp-vfx.spark { right: 12%; top: 24%; width: 20%; aspect-ratio: 1; object-fit: contain; animation: spSpark .55s ease-out forwards; }
+.sp-vfx.spark.small { width: 13%; top: 32%; }
+.sp-vfx.spark.crit { mix-blend-mode: screen; width: 26%; top: 18%; }
+.sp-vfx.dodge { left: 6%; top: 26%; width: 22%; aspect-ratio: 1; object-fit: contain; animation: spSpark .6s ease-out forwards; }
+@keyframes spSpark { 0% { opacity: 0; transform: scale(.4) rotate(-10deg); } 30% { opacity: 1; transform: scale(1) rotate(0); } 100% { opacity: 0; transform: scale(1.2) rotate(6deg); } }
+.sp-dim { position: absolute; inset: 0; z-index: 1; background: radial-gradient(ellipse at 40% 60%, rgba(10, 8, 20, .35), rgba(5, 4, 12, .72)); animation: spFadeIn .3s ease forwards; pointer-events: none; }
+.sp-aura { position: absolute; z-index: 1; left: 8%; bottom: 14%; width: 30%; mix-blend-mode: screen; pointer-events: none; animation: spAura 1.2s ease-in-out infinite alternate, spFadeIn .3s ease; }
+.sp-dim.out, .sp-aura.out { animation: spFadeOut .4s ease forwards; }
+@keyframes spFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes spFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes spAura { from { transform: scale(.94); opacity: .8; } to { transform: scale(1.06); opacity: 1; } }
+.sp-dart { position: absolute; z-index: 5; left: 26%; width: 5%; height: 2px; background: linear-gradient(90deg, rgba(40, 50, 70, 0), #2a3446 60%, #cfd6e0); border-radius: 2px; animation: spDart .26s linear forwards; pointer-events: none; }
+.sp-dart::after { content: ''; position: absolute; right: -4px; top: -3px; border: 4px solid transparent; border-left: 7px solid #4a5568; }
+@keyframes spDart { from { transform: translateX(0); opacity: 1; } to { transform: translateX(900%); opacity: .9; } }
+.stance-vfx { position: absolute; right: 4%; top: 8%; width: 60%; height: 80%; z-index: 5; pointer-events: none; }
+.stance-vfx img { width: 100%; height: 100%; object-fit: contain; }
+.stance-vfx.n1 img { animation: spVfx1 1.2s ease-out forwards; }
+.stance-vfx.n2 img { mix-blend-mode: screen; animation: spVfx2 1.4s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) { .sp-vfx, .stance-vfx { display: none; } }
+
+/* 실시간 강호행: 왼쪽 산길 무대(제자가 걷고 배경이 흐른다) · 오른쪽 배속 견문록 */
+.live-wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 760px) { .live-wrap { grid-template-columns: 1fr; } }
+.live-scene { width: 100%; position: relative; overflow: hidden; border-radius: 8px; aspect-ratio: 16 / 8; min-height: 180px; background: #d8cfbb; box-shadow: inset 0 0 30px rgba(0, 0, 0, .35); }
+.live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; animation: liveScroll 48s linear infinite; }
+.live-strip img { height: 100%; width: auto; flex: none; display: block; }
+@keyframes liveScroll { from { transform: translateX(0); } to { transform: translateX(-33.333%); } }
+.live-scene.rest .live-strip { animation-play-state: paused; }
+.live-hero.sp-hero { left: 22%; bottom: 7%; width: 44%; transition: none; }
+.live-scene:not(.rest) .live-hero { animation: liveBob .68s ease-in-out infinite; }
+@keyframes liveBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5%); } }
+.live-where { position: absolute; right: 8px; top: 6px; z-index: 3; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; }
+.live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.live-speed { flex-wrap: wrap; }
+.live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
+.live-prog span { display: block; height: 100%; background: linear-gradient(90deg, #8a6a3a, #d4a64c); transition: width 1s linear; }
+.live-state { margin: 0; font-size: 13px; }
+.live-log { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow: auto; display: flex; flex-direction: column; gap: 3px; }
+.live-log li { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 6px; background: rgba(255, 255, 255, .045); font-size: 13px; line-height: 1.4; }
+.live-log li time { flex: none; font-size: 11px; opacity: .6; font-variant-numeric: tabular-nums; }
+.live-log li span { flex: 1; min-width: 0; }
+.live-log li.enc { background: rgba(170, 60, 40, .16); box-shadow: inset 3px 0 0 #a8412a; }
+.live-log li.fresh { animation: liveFresh 1.2s ease-out; }
+@keyframes liveFresh { from { background: rgba(212, 166, 76, .55); transform: translateX(-6px); } }
+.live-btns { margin-top: auto; align-items: center; }
+.watch.unseen { background: #a8412a; color: #fff; border-color: #7d2d1c; }
+.watch.claim { background: linear-gradient(#e2bb62, #b88a36); color: #2b1d08; border-color: #8a6420; font-weight: 700; }
+.chron-row.enc .chron-text { color: #7d2d1c; }
+.loot-grid { list-style: none; padding: 0; margin: 10px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.loot-grid li { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(212, 166, 76, .25); animation: lootIn .45s ease-out backwards; }
+.loot-grid li:nth-child(2) { animation-delay: .06s; } .loot-grid li:nth-child(3) { animation-delay: .12s; } .loot-grid li:nth-child(4) { animation-delay: .18s; } .loot-grid li:nth-child(n+5) { animation-delay: .24s; }
+.loot-grid li b { flex: 1; font-size: 13px; } .loot-grid li span { font-variant-numeric: tabular-nums; }
+@keyframes lootIn { from { opacity: 0; transform: translateY(8px) scale(.96); } }

@@ -88,7 +88,7 @@ function stepBattle(rec, eid, bonus) {
   if (b.win) { const st = calcStats(); S.hp = Math.min(st.maxHp, S.hp + Math.round(st.maxHp * (EXPEDITION.breathe + (st.breathe || 0) / 100))); }   // 숨 고르기 (흑사 편직 요대 등)
   rec.battles.push({ eid, name: b.name, boss: b.boss, win: b.win, fled: !!b.fled, intro: b.intro, start: b.start, rounds: b.rounds, exp: b.exp, silver: b.silver, cause: b.cause || null });
   const res = b.win ? '승리' : b.fled ? '무승부' : '패배';
-  return { t: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 전투에서 ${res}${b.cause ? ` — ${b.cause}` : ''}`, cls: b.win ? (b.boss ? 'gold' : 'good') : 'bad', b: rec.battles.length - 1, lost: !b.win && !b.fled };
+  return { t: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 전투에서 ${res}${b.cause ? ` — ${b.cause}` : ''}`, enc: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 조우했습니다`, cls: b.win ? (b.boss ? 'gold' : 'good') : 'bad', b: rec.battles.length - 1, lost: !b.win && !b.fled };
 }
 function stepVault(Z) {
   const v = openVault(Z);
@@ -121,7 +121,7 @@ function stepEvent(rec, zid, used) {
   const head = `📜 기연 「${ev.title}」 — ${ch.label}`;
   if (!out.fight) return { t: head, cls: 'npc' };
   const fb = stepBattle(rec, out.fight, out.bonus);
-  return { ...fb, t: `${head} → ${fb.t}` };
+  return { ...fb, t: `${head} → ${fb.t}`, enc: `${head} → ${fb.enc}` };
 }
 
 /* ───────── 탐험 한 번 ───────── */
@@ -134,7 +134,7 @@ function runExpedition(at = now()) {
   const before = { silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length };
   const used = new Set();
   let bossSeen = false, guard = 0;
-  const step = (k, fn) => { RT.journal = []; const r = fn() || {}; rec.steps.push({ k, t: r.t, cls: r.cls || '', b: r.b, d: RT.journal }); return r; };
+  const step = (k, fn) => { RT.journal = []; const r = fn() || {}; rec.steps.push({ k, t: r.t, enc: r.enc, cls: r.cls || '', b: r.b, d: RT.journal }); return r; };
   const COST = { beast: STAMINA_COST.battle, vault: STAMINA_COST.chest, event: STAMINA_COST.battle, trap: 0, gimmick: STAMINA_COST.gimmick };
   // 지형 상성(구역 단위)과 기력 소모 감소(장비)를 걸음마다의 기력에 곱한다
   const tm = terrainMult(zid), mult = tm * (1 - (st0.staSave || 0) / 100);
@@ -196,6 +196,7 @@ function runExpedition(at = now()) {
     if (d > 0) g.items[id] = d; else if (d < 0) g.used[id] = -d;
   }
   rec.gain = g;
+  holdRewards(rec, S.gear.slice(before.gear));
   S.bossPity = S.bossPity || {};
   S.bossPity[zid] = bossSeen ? 0 : (S.bossPity[zid] || 0) + 1;       // 두목 천장: 만나면 초기화
   rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
@@ -214,13 +215,13 @@ function runExpedition(at = now()) {
   return rec;
 }
 
-/* 견문록에는 걸음마다 한 줄. 전투에는 [관찰하기] 단추를 붙인다 (탐험 시각으로 찍는다).
+/* 견문록에는 걸음마다 한 줄. 전투에는 [결과보기] 단추를 붙인다 (탐험 시각으로 찍고, 드러나는 시각은 stepAt).
    최신이 위에 오도록 걸음을 먼저 적고, 머리줄(요약)을 마지막에 적는다. */
 function writeExpeditionLog(rec) {
   const Z = ZONES[rec.zone], g = rec.gain;
   for (const s of rec.steps) {
-    const watch = s.b !== undefined ? ` <button class="watch" data-watch="${rec.id}:${s.b}">관찰하기</button>` : '';
-    log(`${s.t}${watch}`, `exp-step ${s.cls}`, rec.at, { r: rec.id, s: rec.steps.indexOf(s) });
+    const watch = s.b !== undefined ? ` <button class="watch" data-watch="${rec.id}:${s.b}">결과보기</button>` : '';
+    log(`${stepText(rec, s)}${watch}`, `exp-step ${s.b !== undefined && !battleSeen(rec, s.b) ? '' : s.cls}`, rec.at, { r: rec.id, s: rec.steps.indexOf(s) });
   }
   const items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
   log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 수련치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.defeats ? ` · <b class="warn">쓰러짐 ${rec.defeats}번</b>` : ''}${rec.villages ? ` · 마을 치료 ${rec.villages}번` : ''}`, 'exp-head', rec.at, { r: rec.id });
@@ -260,8 +261,62 @@ function setDestination(zid) {
     S.stamina = Math.max(S.stamina, calcStats().maxSta);
     recs = [runExpedition(now())];
     X.nextAt = nextTopOfHour();
-    notify.view({ modal: 'settle:' + recs[0].id });
+    notify.view({ tab: 'field' });
   }
   notify.refresh();
   return recs;
+}
+
+/* ───────── 실시간 강호행: 한 시간 탐험을 배속으로 지켜본다 ─────────
+   결과(보상 · 기록)는 정각에 한 번에 정해진다. 견문록은 걸음마다 드러나는 시각이 있어, 배속(2 · 3 · 4배)만큼 빨리 차례로 보인다.
+   전투는 미리 결과를 적지 않고 '조우했습니다'만 적는다. [결과보기]로 관찰해야 결과가 적힌다.
+   얻은 것은 곧바로 들어오지 않고 보관해 두었다가, [최종보상확인]을 누를 때 한꺼번에 받는다 */
+const LIVE_SPEEDS = [2, 3, 4, 0];                           // 0 = 일괄확인
+function liveSpeed() { const v = S.liveSpeed; return LIVE_SPEEDS.includes(v) ? v : 3; }
+function setLiveSpeed(v) { if (LIVE_SPEEDS.includes(v)) { S.liveSpeed = v; notify.refresh(); } }
+/* 이 탐험의 견문이 다 드러나는 데 걸리는 시간 (ms) */
+function liveDur() { const v = liveSpeed(); return v ? EXPEDITION.interval / v : 0; }
+/* i번째 걸음이 드러나는 시각. 마지막 걸음이 끝나는 시각에 요약이 뜬다 */
+function stepAt(rec, i) { const n = rec.steps.length; return rec.at + (n ? (i + 1) / (n + 1) : 1) * liveDur(); }
+function liveEndAt(rec) { return rec.at + liveDur(); }
+function stepShown(rec, i, t = now()) { return rec.shownAll || t >= stepAt(rec, i); }
+function liveDone(rec, t = now()) { return !rec || rec.shownAll || t >= liveEndAt(rec); }
+function shownSteps(rec, t = now()) { let n = 0; while (n < rec.steps.length && stepShown(rec, n, t)) n++; return n; }
+/* 지금 지켜보는 탐험: 가장 최근 탐험 */
+function liveRec() { return S.expeditions.length ? S.expeditions[S.expeditions.length - 1] : null; }
+/* 일괄확인: 지금 진행 중인 견문을 모두 드러낸다 */
+function revealAll() { for (const r of S.expeditions) { if (!r.shownAll && !r.shownAt) r.shownAt = now(); r.shownAll = true; } notify.refresh(); }
+/* 전투 결과: 관찰하기로 본 전투만 결과가 적힌다 */
+function battleSeen(rec, bi) { const b = rec && rec.battles[bi]; return !b || b.seen !== false; }
+function markSeen(rec, bi) { const b = rec && rec.battles[bi]; if (b && b.seen === false) { b.seen = true; notify.save(); } }
+function stepText(rec, s) { return s.b !== undefined && !battleSeen(rec, s.b) && s.enc ? s.enc : s.t; }
+
+/* 얻은 것은 보관해 둔다 (쓴 것은 이미 쓴 채로). 새 탐험의 전투는 모두 '아직 안 봄' */
+function holdRewards(rec, newGear) {
+  const g = rec.gain, P = rec.pend = { silver: Math.max(0, g.silver), exp: Math.max(0, g.exp), contrib: Math.max(0, g.contrib), items: { ...g.items }, gear: newGear };
+  S.silver -= P.silver; S.exp -= P.exp; S.contrib -= P.contrib;
+  for (const [id, n] of Object.entries(P.items)) take(id, Math.min(n, S.inv[id] || 0));
+  if (newGear.length) S.gear = S.gear.filter(it => !newGear.includes(it));
+  for (const b of rec.battles) b.seen = false;
+}
+function pendingRecs() { return S.expeditions.filter(r => r.pend && !r.claimed); }
+/* 받을 수 있는가: 보관 중인 탐험의 견문이 모두 끝났을 때 */
+function canClaim(t = now()) { const p = pendingRecs(); return p.length > 0 && p.every(r => liveDone(r, t)); }
+/* 최종보상확인: 보관한 것을 모두 받는다. 행낭이 차 있어도 버리지 않는다. 받은 것을 돌려준다 */
+function claimRewards() {
+  const recs = pendingRecs(), sum = { silver: 0, exp: 0, contrib: 0, items: {}, gear: [], n: recs.length };
+  for (const r of recs) {
+    const P = r.pend;
+    S.silver += P.silver; S.exp += P.exp; S.contrib += P.contrib;
+    sum.silver += P.silver; sum.exp += P.exp; sum.contrib += P.contrib;
+    for (const [id, n] of Object.entries(P.items)) { S.inv[id] = (S.inv[id] || 0) + n; sum.items[id] = (sum.items[id] || 0) + n; }
+    for (const it of P.gear) { S.gear.push(it); sum.gear.push(it); }
+    r.claimed = true; r.shownAll = true;
+  }
+  if (recs.length) {
+    const items = Object.entries(sum.items).map(([id, n]) => `${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`);
+    log(`🏆 강호행에서 얻은 것을 챙겼습니다 — ${hlSilver(sum.silver)}${sum.exp ? ` · 수련치 +${fmt(sum.exp)}` : ''}${sum.contrib ? ` · 공헌 +${sum.contrib}` : ''}${items.length ? ` · ${hlItem(items.join(', '))}` : ''}${sum.gear.length ? ` · 장비 ${sum.gear.length}점` : ''}`, 'gold');
+    notify.refresh(); notify.save();
+  }
+  return sum;
 }

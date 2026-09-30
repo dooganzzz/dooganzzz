@@ -55,7 +55,7 @@ function playFx(fx) {
 
 /* 초식 연출: 초식이 터지면 요수 쪽 허공에 병기마다 다른 먹선 동작이 그려진다.
    검 = 가는 세 줄 베기 · 도 = 두꺼운 초승달 내려치기 · 창 = 곧은 찌르기와 파문 · 권장 = 겹겹 충격파와 장인(掌印) · 암기 = 날아가는 비표들.
-   몇 번째 초식인지(n)에 따라 획 수·크기가 늘고, 셋째 초식은 금빛. 초식 이름으로 기울기를 바꿔 초식마다 모양이 조금씩 다르다 */
+   반격 등 무공 그림이 없는 연출에 쓴다. 초식 이름으로 기울기를 바꿔 초식마다 모양이 조금씩 다르다 */
 const STANCE_SVG = {
   sword: (k) => Array.from({ length: 2 + k }, (_, i) => `<path class="stroke" style="--d:${i * 90}ms" d="M${18 + i * 14} ${104 - i * 10}Q${96 + i * 6} ${8 + i * 12} ${186 - i * 8} ${26 + i * 16}"/>`).join(''),
   blade: (k) => `<path class="fill" d="M24 22Q120 ${40 + k * 6} 178 112Q${118 - k * 4} 70 24 22Z"/><path class="stroke" style="--d:60ms" d="M24 22Q120 ${40 + k * 6} 178 112"/>` + (k > 1 ? `<path class="stroke" style="--d:200ms" d="M40 12Q132 36 190 96"/>` : ''),
@@ -65,7 +65,13 @@ const STANCE_SVG = {
 };
 const hashStr = t => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 function stanceAnim(ar, f) {
-  const w = STANCE_SVG[f.w] ? f.w : 'sword', n = f.k === 'counter' ? 1 : Math.min(3, Math.max(1, f.n || 1));
+  if (f.mid && f.n) {                                     // 무공마다 다른 초식 그림 (소성 = 먹빛 · 대성 = 광휘). 스프라이트 무대가 있으면 무대가 띄운다
+    if ($('#spStage')) return;
+    const v = document.createElement('div'); v.className = `stance-vfx n${f.n >= 2 ? 2 : 1}`; v.setAttribute('aria-hidden', 'true');
+    v.innerHTML = `<img src="assets/art/fx/${f.mid}_${f.n >= 2 ? 2 : 1}.webp" alt="">`;
+    ar.appendChild(v); setTimeout(() => v.remove(), 1500); return;
+  }
+  const w = STANCE_SVG[f.w] ? f.w : 'sword', n = f.k === 'counter' ? 1 : f.n >= 2 ? 3 : 1;   // 대성 초식은 금빛
   const tilt = (hashStr(f.t) % 31) - 15;
   const el = document.createElement('div');
   el.className = `stance-anim w-${w} n${n} ${f.k === 'counter' ? 'counter' : ''}`;

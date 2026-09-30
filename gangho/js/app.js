@@ -177,7 +177,7 @@ function tick() {
   const recs = settleExpeditions(t);
   if (recs.length) {
     const r = recs[recs.length - 1];
-    notify.toast(`⛰️ 탐험에서 돌아왔습니다 — ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver >= 0 ? '+' : ''}${r.gain.silver}${r.defeats ? ` · 쓰러짐 ${r.defeats}번` : ''}`);
+    notify.toast(`⛰️ 제자가 ${ZONES[r.zone].name}(으)로 길을 떠났습니다 — 강호행 탭에서 지켜보십시오`);
   }
   checkDailyMidnightReset(t);
   Bus.emit('tick');
@@ -213,9 +213,9 @@ function boot() {
     }
     ensureMissions(); checkDailyMidnightReset();
     for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
-    // 자리를 비운 동안의 탐험을 한꺼번에 결산하고 (최대 8번) 결산 창을 띄운다
+    // 자리를 비운 동안의 탐험을 한꺼번에 치른다 (최대 8번). 얻은 것은 강호행 탭의 [최종보상확인]으로 받는다
     const recs = settleExpeditions();
-    if (recs.length) notify.view({ modal: 'settle:' + recs.map(r => r.id).join(',') });
+    if (recs.length) notify.toast(`⛰️ 자리를 비운 동안 강호행 ${recs.length}번 — 강호행 탭에서 견문과 보상을 확인하십시오`);
     notify.refresh();
   }
   lastFrame = now();
