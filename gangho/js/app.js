@@ -145,6 +145,16 @@ function migrate(st) {
   // 문파 임무는 토벌만 · 비급/무신상 영구 보너스
   if (st.missions) st.missions = st.missions.filter(m => m.type === 'kill');
   st.questRefreshCount = st.questRefreshCount || 0; if (st.lastQuestResetDate === undefined) st.lastQuestResetDate = '';
+  // 장비 위계 재조정: 하급 장비 37종·단조 장비는 지금 데이터 수치로 맞춘다 (강화 단계는 유지)
+  for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) {
+    if (!it || !it.named) continue;
+    if (it.crafted && CRAFT_GEAR[it.named]) { it.stats = { ...CRAFT_GEAR[it.named].stats }; it.rarity = CRAFT_GEAR[it.named].rarity || 1; }
+    else if (!it.crafted && GEAR_DB[it.named]) it.stats = { ...GEAR_DB[it.named].stats };
+  }
+  for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && it.base && it.tier === 1 && EQUIP_BASES[it.base]) {   // 기본형 1티어
+    const mult = RARITY[it.rarity].mult; it.stats = {};
+    for (const [k, v] of Object.entries(EQUIP_BASES[it.base].stats[0])) it.stats[k] = PCT_STATS.has(k) ? Math.round(v * mult * 10) / 10 : Math.max(1, Math.round(v * mult));
+  }
   st.perm = st.perm || { maxHp: 0, maxMp: 0 }; st.perm.attr = st.perm.attr || {}; st.statueResidueCount = st.statueResidueCount || 0;
   if (st.codex) st.codex = st.codex.filter(id => RECIPES.some(r => r.id === id));
   const outOk = o => !o || (o.startsWith('gear:') ? !!CRAFT_GEAR[o.slice(5)] : !!ITEMS[o]);

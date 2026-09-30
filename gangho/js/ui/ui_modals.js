@@ -45,7 +45,7 @@ function recipeModal(rid) {
   const G = recipeGear(r);
   if (G) {
     const stats = Object.entries(G.stats).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${v}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-    body = `<p class="story">${G.desc}</p><div class="kv"><span>분류</span><b>${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_TYPES[G.wtype] : ''} · [${RARITY[1].name}]</b></div><h4>능력치</h4>${stats}`;
+    body = `<p class="story">${G.desc}</p><div class="kv"><span>분류</span><b>${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_TYPES[G.wtype] : ''} · [${G.rank || RARITY[G.rarity || 1].name}]</b></div><h4>능력치</h4>${stats}`;
   } else {
     const I = ITEMS[r.out];
     body = `<p class="story">${I.desc}</p><div class="kv"><span>분류</span><b>${I.kind}${I.grade ? ' · ' + I.grade : ''}</b></div><div class="kv"><span>보유</span><b>${count(r.out)}개</b></div>`;

@@ -14,6 +14,8 @@ const EXPEDITION = {
   interval: 3600000, maxQueue: 8, keep: 8,
   weights: { beast: 55, vault: 25, event: 6, trap: 7, gimmick: 7 }, battles: [3, 5], vaults: [1, 3], extras: 2,
   bossChance: 0.025, bossPity: 0.03, bossMax: 0.5, potionAt: 0.35, breathe: 0.06, villageAt: 0.3, villageSta: 12, defeatSta: 25, minStamina: 3, maxRounds: 60,
+  rewardMult: 0.1,   // 원정 은자·수련치(경험치) 획득 배율 (인플레이션 억제, 반올림)
+  dropMult: 0.1,     // 요수 전리품·채집 재료 드랍 확률 배율 (1회 1개). 두목의 확정 드랍은 그대로
 };
 /* 탐험 중 조우 문구 */
 const EXP_TEXT = {

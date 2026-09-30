@@ -13,6 +13,19 @@ const RECIPES = [
   { id: 'f_c_spear',  craft: 'forge', in: { blackwood: 2, silverOre: 2, dragonScale: 1 }, out: 'gear:c_spear' },
   { id: 'f_c_hidden', craft: 'forge', in: { boarMolar: 2, scorpionSac: 1, roughOre: 2 },  out: 'gear:c_hidden' },
   { id: 'f_c_ring',   craft: 'forge', in: { silverOre: 1, mistDew: 2 },                   out: 'gear:c_ring' },
+  // 청풍문 단조 — 2재료(저난이도) · 3재료(고난이도)
+  { id: 'f_t2_sword',  craft: 'forge', in: { roughOre: 3, blackwood: 2 },                  out: 'gear:t2_sword' },
+  { id: 'f_t2_blade',  craft: 'forge', in: { roughOre: 4, blackwood: 1 },                  out: 'gear:t2_blade' },
+  { id: 'f_t2_fist',   craft: 'forge', in: { wildcatHide: 2, roughOre: 2 },                out: 'gear:t2_fist' },
+  { id: 'f_t2_spear',  craft: 'forge', in: { blackwood: 4, roughOre: 2 },                  out: 'gear:t2_spear' },
+  { id: 'f_t2_hidden', craft: 'forge', in: { roughOre: 4, treeSap: 1 },                    out: 'gear:t2_hidden' },
+  { id: 'f_t2_armor',  craft: 'forge', in: { wildcatHide: 3, treeSap: 2 },                 out: 'gear:t2_armor' },
+  { id: 'f_t3_sword',  craft: 'forge', in: { blackIngot: 3, blackwood: 3, treeSap: 2 },    out: 'gear:t3_sword' },
+  { id: 'f_t3_blade',  craft: 'forge', in: { blackIngot: 4, boarMolar: 2, blackwood: 2 },  out: 'gear:t3_blade' },
+  { id: 'f_t3_fist',   craft: 'forge', in: { wildcatHide: 4, blackIngot: 2, viperScale: 2 }, out: 'gear:t3_fist' },
+  { id: 'f_t3_spear',  craft: 'forge', in: { blackwood: 5, blackIngot: 3, boarMolar: 2 },  out: 'gear:t3_spear' },
+  { id: 'f_t3_hidden', craft: 'forge', in: { blackIngot: 3, viperSac: 2, treeSap: 2 },     out: 'gear:t3_hidden' },
+  { id: 'f_t3_jade',   craft: 'forge', in: { wildcatHide: 3, treeSap: 3, blackIngot: 1 },  out: 'gear:t3_jade' },
   { id: 'f_c_belt',   craft: 'forge', in: { wildcatHide: 3, wolfSinew: 2 },               out: 'gear:c_belt' },
 
   // ───── 단약 (8품) ─────

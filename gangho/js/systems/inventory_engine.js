@@ -39,7 +39,7 @@ function makeGear(base, tier, rarity, crafted) {
 /* 이름 있는 장비 한 점: 하급 장비(GEAR_DB, 하급 고정) 또는 단조 장비(CRAFT_GEAR, 중급 고정) */
 function makeNamedGear(id, st = S) {
   const crafted = !!CRAFT_GEAR[id], G = crafted ? CRAFT_GEAR[id] : GEAR_DB[id];
-  return { uid: st.uid++, named: id, tier: crafted ? 2 : 1, slot: G.slot, wtype: G.wtype || null, name: G.name, rarity: crafted ? 1 : 0, stats: { ...G.stats }, unique: null, crafted };
+  return { uid: st.uid++, named: id, tier: crafted ? 2 : 1, slot: G.slot, wtype: G.wtype || null, name: G.name, rarity: crafted ? (G.rarity || 1) : 0, stats: { ...G.stats }, unique: null, crafted };
 }
 /* 드랍·공양·금고의 장비: 1티어 하급은 하급 장비 37종 중에서, 그 밖에는 기본형으로 */
 function dropGear(tier, rarity) {

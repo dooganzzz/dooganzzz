@@ -14,6 +14,8 @@ const ITEMS = {
   boarMolar:    { name: '멧돼지 어금니', icon: '🦷', kind: '재료', craftType: 'forge',   price: 5,  desc: '사나운 멧돼지의 굵은 어금니. 갈면 날이 선다.' },
   wildcatHide:  { name: '살쾡이 가죽',   icon: '🟫', kind: '재료', craftType: 'forge',   price: 5,  desc: '얇지만 질긴 가죽.' },
   treeSap:      { name: '청령목 수액',   icon: '💧', kind: '재료', craftType: 'alchemy', price: 6,  desc: '청령목괴의 몸에서 흐르는 푸른 수액. 맑은 기운이 돈다.' },
+  viperScale:   { name: '독사 비늘',     icon: '🐍', kind: '재료', craftType: 'forge',   price: 6,  desc: '흑비단독사의 검은 비늘. 얇지만 칼날이 미끄러진다.' },
+  viperSac:     { name: '독사 독낭',     icon: '🟢', kind: '재료', craftType: 'forge',   price: 8,  desc: '흑비단독사의 독주머니. 암기 끝에 바르면 상처가 곪는다.' },
   roughOre:     { name: '거친 철광석',   icon: '🪨', kind: '재료', craftType: 'forge',   price: 3,  desc: '청풍산에서 캔 거친 쇠돌.' },
   // 염화채 드랍 재료
   redStone:     { name: '적염석',         icon: '🔴', kind: '재료', craftType: 'forge',   price: 12, desc: '열기를 머금은 붉은 돌. 염화채 협곡에서 난다.' },
@@ -127,13 +129,13 @@ const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train',
 /* 장비 기본형: slot → names[tier-1], stats[tier-1] */
 
 const EQUIP_BASES = {
-  fist  : { slot: 'weapon', wtype: 'fist', names: ['철권갑', '흑철 수투', '한철 권갑'], stats: [{ atk: 7 }, { atk: 20 }, { atk: 42 }] },
-  sword : { slot: 'weapon', wtype: 'sword', names: ['철검', '흑철검', '한철검'], stats: [{ atk: 8, crit: 1 }, { atk: 22, crit: 2 }, { atk: 45, crit: 3 }] },
-  blade : { slot: 'weapon', wtype: 'blade', names: ['박도', '흑철도', '한철 귀두도'], stats: [{ atk: 10 }, { atk: 26 }, { atk: 52 }] },
-  spear : { slot: 'weapon', wtype: 'spear', names: ['철창', '흑철창', '한철 장창'], stats: [{ atk: 9, spd: 1 }, { atk: 24, spd: 2 }, { atk: 48, spd: 3 }] },
-  hidden: { slot: 'weapon', wtype: 'hidden', names: ['철비표통', '흑철 비표통', '한철 매화통'], stats: [{ atk: 6, eva: 2 }, { atk: 18, eva: 4 }, { atk: 38, eva: 6 }] },
-  armor : { slot: 'armor', names: ['가죽 호갑', '흑철 경갑', '한철 어린갑'], stats: [{ maxHp: 40, def: 4 }, { maxHp: 120, def: 12 }, { maxHp: 280, def: 25 }] },
-  helmet: { slot: 'helmet', names: ['가죽 두건', '흑철 투구', '한철 투구'], stats: [{ critRes: 5, def: 2, counter: 2 }, { critRes: 10, def: 5, counter: 4 }, { critRes: 16, def: 10, counter: 6 }] },
+  fist  : { slot: 'weapon', wtype: 'fist', names: ['철권갑', '흑철 수투', '한철 권갑'], stats: [{ atk: 12 }, { atk: 20 }, { atk: 42 }] },
+  sword : { slot: 'weapon', wtype: 'sword', names: ['철검', '흑철검', '한철검'], stats: [{ atk: 13, crit: 1 }, { atk: 22, crit: 2 }, { atk: 45, crit: 3 }] },
+  blade : { slot: 'weapon', wtype: 'blade', names: ['박도', '흑철도', '한철 귀두도'], stats: [{ atk: 14 }, { atk: 26 }, { atk: 52 }] },
+  spear : { slot: 'weapon', wtype: 'spear', names: ['철창', '흑철창', '한철 장창'], stats: [{ atk: 14, spd: 1 }, { atk: 24, spd: 2 }, { atk: 48, spd: 3 }] },
+  hidden: { slot: 'weapon', wtype: 'hidden', names: ['철비표통', '흑철 비표통', '한철 매화통'], stats: [{ atk: 11, eva: 2 }, { atk: 18, eva: 4 }, { atk: 38, eva: 6 }] },
+  armor : { slot: 'armor', names: ['가죽 호갑', '흑철 경갑', '한철 어린갑'], stats: [{ maxHp: 40, def: 5 }, { maxHp: 120, def: 12 }, { maxHp: 280, def: 25 }] },
+  helmet: { slot: 'helmet', names: ['가죽 두건', '흑철 투구', '한철 투구'], stats: [{ critRes: 5, def: 3, counter: 2 }, { critRes: 10, def: 5, counter: 4 }, { critRes: 16, def: 10, counter: 6 }] },
   boots : { slot: 'boots', names: ['짚신', '흑철 징신', '한철 운혜'], stats: [{ spd: 2, eva: 2 }, { spd: 4, eva: 4 }, { spd: 6, eva: 6 }] },
   belt  : { slot: 'belt', names: ['가죽 요대', '흑철 요대', '한철 요대'], stats: [{ mpRegen: 1, bag: 5 }, { mpRegen: 2, bag: 10 }, { mpRegen: 4, bag: 15 }] },
   jade  : { slot: 'jade', names: ['청옥대', '흑옥대', '한옥대'], stats: [{ maxMp: 15, mpCost: 3 }, { maxMp: 40, mpCost: 6 }, { maxMp: 90, mpCost: 10 }] },
@@ -144,39 +146,39 @@ const EQUIP_BASES = {
    staSave: 탐험 기력 소모 -% · breathe: 승리 후 숨 고르기 활력 +%p · qiPct: 장착 기공 능력치 +% · elemRes: 오행 극당할 때 받는 피해 -%p */
 const GEAR_DB = {
   // 권장
-  g_bandage:   { slot: 'weapon', wtype: 'fist',   name: '무명 붕대',       stats: { atk: 4, spd: 1 },          desc: '주먹에 칭칭 감은 무명천. 손등 까지는 것만 막아 준다.' },
-  g_hideTosu:  { slot: 'weapon', wtype: 'fist',   name: '거친 가죽 토수',   stats: { atk: 6, def: 1 },          desc: '팔뚝까지 덮는 거친 가죽 토시.' },
-  g_studFist:  { slot: 'weapon', wtype: 'fist',   name: '무쇠 징 권갑',     stats: { atk: 8 },                  desc: '손마디마다 무쇠 징을 박은 권갑. 투박하지만 아프다.' },
-  g_woodFist:  { slot: 'weapon', wtype: 'fist',   name: '목인갑',           stats: { atk: 6, counter: 2 },      desc: '목인장 수련용으로 나무를 덧댄 권갑. 받아치기 좋다.' },
-  g_copperGlove:{ slot: 'weapon', wtype: 'fist',  name: '동선 장갑',        stats: { atk: 7, crit: 1 },         desc: '구리실을 촘촘히 엮은 장갑.' },
+  g_bandage:   { slot: 'weapon', wtype: 'fist',   name: '무명 붕대',       stats: { atk: 10, spd: 1 },          desc: '주먹에 칭칭 감은 무명천. 손등 까지는 것만 막아 준다.' },
+  g_hideTosu:  { slot: 'weapon', wtype: 'fist',   name: '거친 가죽 토수',   stats: { atk: 11, def: 1 },          desc: '팔뚝까지 덮는 거친 가죽 토시.' },
+  g_studFist:  { slot: 'weapon', wtype: 'fist',   name: '무쇠 징 권갑',     stats: { atk: 13 },                  desc: '손마디마다 무쇠 징을 박은 권갑. 투박하지만 아프다.' },
+  g_woodFist:  { slot: 'weapon', wtype: 'fist',   name: '목인갑',           stats: { atk: 11, counter: 2 },      desc: '목인장 수련용으로 나무를 덧댄 권갑. 받아치기 좋다.' },
+  g_copperGlove:{ slot: 'weapon', wtype: 'fist',  name: '동선 장갑',        stats: { atk: 12, crit: 1 },         desc: '구리실을 촘촘히 엮은 장갑.' },
   // 검
-  g_rustySword:{ slot: 'weapon', wtype: 'sword',  name: '녹슨 연습검',      stats: { atk: 5 },                  desc: '청풍문 연무장 구석에 굴러다니던 연습검.' },
-  g_dullSword: { slot: 'weapon', wtype: 'sword',  name: '날 무딘 철검',     stats: { atk: 7 },                  desc: '날이 무뎌 베기보다 두드리기에 가깝다.' },
-  g_bronzeRapier:{ slot: 'weapon', wtype: 'sword', name: '청동 세검',       stats: { atk: 7, crit: 2 },         desc: '가늘고 가벼운 청동 검. 찌르기에 좋다.' },
-  g_mapleSword:{ slot: 'weapon', wtype: 'sword',  name: '단풍목 목검',      stats: { atk: 5, eva: 2 },          desc: '단풍나무를 깎은 목검. 가벼워 몸놀림이 산다.' },
-  g_straightSword:{ slot: 'weapon', wtype: 'sword', name: '직도형 박검',    stats: { atk: 9, crit: 1 },         desc: '곧고 얇은 외날 검.' },
+  g_rustySword:{ slot: 'weapon', wtype: 'sword',  name: '녹슨 연습검',      stats: { atk: 11 },                  desc: '청풍문 연무장 구석에 굴러다니던 연습검.' },
+  g_dullSword: { slot: 'weapon', wtype: 'sword',  name: '날 무딘 철검',     stats: { atk: 12 },                  desc: '날이 무뎌 베기보다 두드리기에 가깝다.' },
+  g_bronzeRapier:{ slot: 'weapon', wtype: 'sword', name: '청동 세검',       stats: { atk: 12, crit: 2 },         desc: '가늘고 가벼운 청동 검. 찌르기에 좋다.' },
+  g_mapleSword:{ slot: 'weapon', wtype: 'sword',  name: '단풍목 목검',      stats: { atk: 11, eva: 2 },          desc: '단풍나무를 깎은 목검. 가벼워 몸놀림이 산다.' },
+  g_straightSword:{ slot: 'weapon', wtype: 'sword', name: '직도형 박검',    stats: { atk: 14, crit: 1 },         desc: '곧고 얇은 외날 검.' },
   // 도
-  g_chippedBlade:{ slot: 'weapon', wtype: 'blade', name: '이가 빠진 마도',  stats: { atk: 7 },                  desc: '말 탄 병사가 쓰던 도. 날 곳곳이 이가 빠졌다.' },
-  g_ironSaber: { slot: 'weapon', wtype: 'blade',  name: '무쇠 낭도',        stats: { atk: 9 },                  desc: '무쇠를 두드려 만든 두툼한 낭도.' },
-  g_blackSaber:{ slot: 'weapon', wtype: 'blade',  name: '흑철 박도',        stats: { atk: 11 },                 desc: '흑철을 섞어 무겁고 단단한 박도.' },
-  g_axeBlade:  { slot: 'weapon', wtype: 'blade',  name: '벌목용 벌채도',    stats: { atk: 10, crit: 1 },        desc: '나무 베던 벌채도. 한 번 박히면 깊다.' },
-  g_shortBlade:{ slot: 'weapon', wtype: 'blade',  name: '두정 단도',        stats: { atk: 8, spd: 1 },          desc: '짧고 날렵한 단도. 칼끝이 둥글다.' },
+  g_chippedBlade:{ slot: 'weapon', wtype: 'blade', name: '이가 빠진 마도',  stats: { atk: 12 },                  desc: '말 탄 병사가 쓰던 도. 날 곳곳이 이가 빠졌다.' },
+  g_ironSaber: { slot: 'weapon', wtype: 'blade',  name: '무쇠 낭도',        stats: { atk: 14 },                  desc: '무쇠를 두드려 만든 두툼한 낭도.' },
+  g_blackSaber:{ slot: 'weapon', wtype: 'blade',  name: '흑철 박도',        stats: { atk: 15 },                 desc: '흑철을 섞어 무겁고 단단한 박도.' },
+  g_axeBlade:  { slot: 'weapon', wtype: 'blade',  name: '벌목용 벌채도',    stats: { atk: 14, crit: 1 },        desc: '나무 베던 벌채도. 한 번 박히면 깊다.' },
+  g_shortBlade:{ slot: 'weapon', wtype: 'blade',  name: '두정 단도',        stats: { atk: 13, spd: 1 },          desc: '짧고 날렵한 단도. 칼끝이 둥글다.' },
   // 창
-  g_bambooSpear:{ slot: 'weapon', wtype: 'spear', name: '대나무 죽창',      stats: { atk: 6, spd: 1 },          desc: '대나무 끝을 비스듬히 깎은 죽창.' },
-  g_flailSpear:{ slot: 'weapon', wtype: 'spear',  name: '녹슨 편곤창',      stats: { atk: 8 },                  desc: '자루 끝에 쇠사슬이 달린 녹슨 창.' },
-  g_waxSpear:  { slot: 'weapon', wtype: 'spear',  name: '백랍목 장창',      stats: { atk: 8, spd: 1, eva: 1 },  desc: '잘 휘는 백랍목 자루의 장창.' },
-  g_needleSpear:{ slot: 'weapon', wtype: 'spear', name: '철침 단창',        stats: { atk: 9, crit: 1 },         desc: '바늘처럼 가는 쇠촉을 단 짧은 창.' },
-  g_trident:   { slot: 'weapon', wtype: 'spear',  name: '사냥용 삼지창',    stats: { atk: 10 },                 desc: '멧돼지 사냥에 쓰던 세 갈래 창.' },
+  g_bambooSpear:{ slot: 'weapon', wtype: 'spear', name: '대나무 죽창',      stats: { atk: 11, spd: 1 },          desc: '대나무 끝을 비스듬히 깎은 죽창.' },
+  g_flailSpear:{ slot: 'weapon', wtype: 'spear',  name: '녹슨 편곤창',      stats: { atk: 13 },                  desc: '자루 끝에 쇠사슬이 달린 녹슨 창.' },
+  g_waxSpear:  { slot: 'weapon', wtype: 'spear',  name: '백랍목 장창',      stats: { atk: 13, spd: 1, eva: 1 },  desc: '잘 휘는 백랍목 자루의 장창.' },
+  g_needleSpear:{ slot: 'weapon', wtype: 'spear', name: '철침 단창',        stats: { atk: 14, crit: 1 },         desc: '바늘처럼 가는 쇠촉을 단 짧은 창.' },
+  g_trident:   { slot: 'weapon', wtype: 'spear',  name: '사냥용 삼지창',    stats: { atk: 14 },                 desc: '멧돼지 사냥에 쓰던 세 갈래 창.' },
   // 암기
-  g_dullStar:  { slot: 'weapon', wtype: 'hidden', name: '무딘 철표창',      stats: { atk: 5, eva: 1 },          desc: '끝이 무딘 쇠 표창 몇 자루.' },
-  g_pebbles:   { slot: 'weapon', wtype: 'hidden', name: '자갈 주머니',      stats: { atk: 4, eva: 2 },          desc: '냇가에서 골라 담은 동글동글한 자갈.' },
-  g_rustyKnife:{ slot: 'weapon', wtype: 'hidden', name: '녹슨 비도',        stats: { atk: 6, eva: 1 },          desc: '던지는 칼. 녹이 슬어 날이 무디다.' },
-  g_caltrops:  { slot: 'weapon', wtype: 'hidden', name: '조잡한 철질려',    stats: { atk: 6, crit: 1 },         desc: '대충 벼린 쇠마름쇠 한 줌.' },
-  g_woodNeedle:{ slot: 'weapon', wtype: 'hidden', name: '목제 비연침',      stats: { atk: 5, eva: 3 },          desc: '나무를 깎아 만든 가벼운 침.' },
+  g_dullStar:  { slot: 'weapon', wtype: 'hidden', name: '무딘 철표창',      stats: { atk: 11, eva: 1 },          desc: '끝이 무딘 쇠 표창 몇 자루.' },
+  g_pebbles:   { slot: 'weapon', wtype: 'hidden', name: '자갈 주머니',      stats: { atk: 10, eva: 2 },          desc: '냇가에서 골라 담은 동글동글한 자갈.' },
+  g_rustyKnife:{ slot: 'weapon', wtype: 'hidden', name: '녹슨 비도',        stats: { atk: 11, eva: 1 },          desc: '던지는 칼. 녹이 슬어 날이 무디다.' },
+  g_caltrops:  { slot: 'weapon', wtype: 'hidden', name: '조잡한 철질려',    stats: { atk: 11, crit: 1 },         desc: '대충 벼린 쇠마름쇠 한 줌.' },
+  g_woodNeedle:{ slot: 'weapon', wtype: 'hidden', name: '목제 비연침',      stats: { atk: 11, eva: 3 },          desc: '나무를 깎아 만든 가벼운 침.' },
   // 방어구
-  g_hempRobe:  { slot: 'armor', name: '해진 삼베 도포',      stats: { maxHp: 15, def: 1 },            desc: '기본 의복. 겨우 살갗을 가린다.' },
-  g_hunterCoat:{ slot: 'armor', name: '질긴 사냥꾼 가죽옷',  stats: { maxHp: 35, def: 4 },            desc: '짐승 가죽을 겹쳐 지은 겉옷. 물리 공격에 강하다.' },
-  g_cpRobe:    { slot: 'armor', name: '청풍문 규격 도포',    stats: { maxHp: 30, def: 3, maxMp: 8 },  desc: '청풍문 수련생의 기본 도포. 단전을 편하게 한다.' },
+  g_hempRobe:  { slot: 'armor', name: '해진 삼베 도포',      stats: { maxHp: 15, def: 3 },            desc: '기본 의복. 겨우 살갗을 가린다.' },
+  g_hunterCoat:{ slot: 'armor', name: '질긴 사냥꾼 가죽옷',  stats: { maxHp: 35, def: 5 },            desc: '짐승 가죽을 겹쳐 지은 겉옷. 물리 공격에 강하다.' },
+  g_cpRobe:    { slot: 'armor', name: '청풍문 규격 도포',    stats: { maxHp: 30, def: 4, maxMp: 8 },  desc: '청풍문 수련생의 기본 도포. 단전을 편하게 한다.' },
   // 가락지
   g_ironRing:  { slot: 'ring', name: '무쇠 가락지',  stats: { atk: 2 },      desc: '단단하게 두드려 만든 쇠반지.' },
   g_hornRing:  { slot: 'ring', name: '흑각 가락지',  stats: { staSave: 2 },  desc: '흑우 뿔을 깎아 만든 반지. 발걸음이 가볍다.' },
@@ -234,17 +236,36 @@ const LIBRARY_GEAR = {
   lg_jade:   { slot: 'jade',                    name: '청풍보옥대', hanja: '淸風寶玉帶', stats: { maxHp: 40, maxMp: 30, bag: 10 },   cost: 220, desc: '푸른 옥을 박은 허리 옥대. 단전이 넉넉해지고 짐도 더 진다.' },
 };
 
+/* 단조 장비: 재료 수로 위계를 나눈다 (필드 드랍템 < 2재료 조합템 < 3재료 조합템)
+   2재료(초급 단조 · 삼류 상급~이류 하급, 중급): 공격 18~22 · 방어 7~9 · 4대 스탯 +1
+   3재료(중급 단조 · 정통 이류, 상급): 공격 26~32 · 방어 12~15 · 4대 스탯 +2 · 고유 특수 옵션
+   rarity: RARITY 번호(1 중급 · 2 상급) · rank: 등급 표기 */
 const CRAFT_GEAR = {
-  c_fist:   { slot: 'weapon', wtype: 'fist',   name: '흑철 권갑',     hanja: '黑鐵拳匣',   stats: { atk: 22, def: 8 },            desc: '흑철을 겹겹이 두드려 만든 권갑. 막고 치기에 모두 좋다.' },
-  c_sword:  { slot: 'weapon', wtype: 'sword',  name: '청강검',        hanja: '靑鋼劍',     stats: { atk: 28, crit: 3 },           desc: '푸른빛이 도는 강철 검. 날이 쉽게 무뎌지지 않는다.' },
-  c_blade:  { slot: 'weapon', wtype: 'blade',  name: '혈문도',        hanja: '血紋刀',     stats: { atk: 32, bleed: 20 },         desc: '핏빛 무늬가 새겨진 도. 베인 상처가 쉬이 아물지 않는다 (출혈).' },
-  c_spear:  { slot: 'weapon', wtype: 'spear',  name: '벽파 삼지창',   hanja: '碧波三枝槍', stats: { atk: 30, pierce: 5 },         desc: '물결을 가르는 세 갈래 창. 갑옷 틈을 꿰뚫는다 (관통).' },
-  c_hidden: { slot: 'weapon', wtype: 'hidden', name: '칠성 투골정',   hanja: '七星透骨釘', stats: { atk: 25, spd: 2, acc: 8 },    desc: '북두칠성처럼 흩어져 날아가는 일곱 개의 쇠못.' },
-  c_armor:  { slot: 'armor',                   name: '청강 사슬갑',   hanja: '靑鋼鎖子甲', stats: { def: 24, maxHp: 80 },         desc: '청강 고리를 촘촘히 엮은 사슬갑.' },
-  c_ring:   { slot: 'ring',                    name: '벽옥환',        hanja: '碧玉環',     stats: { maxMp: 40, atk: 5 },          desc: '짙푸른 옥으로 깎은 고리. 단전에 기운이 고인다.' },
-  c_belt:   { slot: 'belt',                    name: '웅모 포대',     hanja: '熊毛布帶',   stats: { def: 10, bag: 20 },           desc: '곰털을 덧댄 두툼한 허리띠. 짐을 잔뜩 걸 수 있다.' },
-  c_jade:   { slot: 'jade',                    name: '수정 영옥대',   hanja: '水晶靈玉帶', stats: { qiPct: 6, elemRes: 5 },       desc: '수정과 영옥을 박은 띠. 기공이 맑게 돌고 상극의 기운을 누그러뜨린다.' },
+  // ── 2재료 조합 ──
+  c_fist:   { slot: 'weapon', wtype: 'fist',   name: '흑철 권갑',     hanja: '黑鐵拳匣',   rarity: 1, rank: '삼류 상급', stats: { atk: 20, def: 8, str: 1 },     desc: '흑철을 겹겹이 두드려 만든 권갑. 막고 치기에 모두 좋다.' },
+  c_ring:   { slot: 'ring',                    name: '벽옥환',        hanja: '碧玉環',     rarity: 1, rank: '삼류 상급', stats: { maxMp: 40, atk: 5, int: 1 },   desc: '짙푸른 옥으로 깎은 고리. 단전에 기운이 고인다.' },
+  c_belt:   { slot: 'belt',                    name: '웅모 포대',     hanja: '熊毛布帶',   rarity: 1, rank: '삼류 상급', stats: { def: 8, bag: 20, con: 1 },     desc: '곰털을 덧댄 두툼한 허리띠. 짐을 잔뜩 걸 수 있다.' },
+  t2_sword: { slot: 'weapon', wtype: 'sword',  name: '청풍 단련검',   hanja: '淸風鍛鍊劍', rarity: 1, rank: '삼류 상급', stats: { atk: 19, agi: 1 },             desc: '거친 쇠와 흑목 자루로 두드려 낸 청풍문 수련검.' },
+  t2_blade: { slot: 'weapon', wtype: 'blade',  name: '청풍 단련도',   hanja: '淸風鍛鍊刀', rarity: 1, rank: '삼류 상급', stats: { atk: 21, str: 1 },             desc: '쇠를 넉넉히 먹여 묵직한 수련도.' },
+  t2_fist:  { slot: 'weapon', wtype: 'fist',   name: '청풍 단련권갑', hanja: '淸風鍛鍊拳匣', rarity: 1, rank: '삼류 상급', stats: { atk: 16, def: 7 },           desc: '살쾡이 가죽 위에 쇠판을 덧댄 권갑.' },
+  t2_spear: { slot: 'weapon', wtype: 'spear',  name: '청풍 수련창',   hanja: '淸風修鍊槍', rarity: 1, rank: '삼류 상급', stats: { atk: 20, con: 1 },             desc: '흑목 자루가 긴 수련창. 휘두를수록 몸이 단단해진다.' },
+  t2_hidden:{ slot: 'weapon', wtype: 'hidden', name: '청풍 철표',     hanja: '淸風鐵鏢',   rarity: 1, rank: '삼류 상급', stats: { atk: 18, crit: 2 },            desc: '수액으로 담금질한 쇠 표창.' },
+  t2_armor: { slot: 'armor',                   name: '청풍 도포',     hanja: '淸風道袍',   rarity: 1, rank: '삼류 상급', stats: { def: 8, maxHp: 30 },           desc: '가죽을 수액으로 무두질해 지은 수련 도포.' },
+  // ── 3재료 조합 ──
+  c_sword:  { slot: 'weapon', wtype: 'sword',  name: '청강검',        hanja: '靑鋼劍',     rarity: 2, rank: '이류', stats: { atk: 28, crit: 3, agi: 2 },          desc: '푸른빛이 도는 강철 검. 날이 쉽게 무뎌지지 않는다.' },
+  c_blade:  { slot: 'weapon', wtype: 'blade',  name: '혈문도',        hanja: '血紋刀',     rarity: 2, rank: '이류', stats: { atk: 32, bleed: 20, str: 2 },        desc: '핏빛 무늬가 새겨진 도. 베인 상처가 쉬이 아물지 않는다 (출혈).' },
+  c_spear:  { slot: 'weapon', wtype: 'spear',  name: '벽파 삼지창',   hanja: '碧波三枝槍', rarity: 2, rank: '이류', stats: { atk: 30, pierce: 5, con: 2 },        desc: '물결을 가르는 세 갈래 창. 갑옷 틈을 꿰뚫는다 (관통).' },
+  c_hidden: { slot: 'weapon', wtype: 'hidden', name: '칠성 투골정',   hanja: '七星透骨釘', rarity: 2, rank: '이류', stats: { atk: 26, spd: 2, acc: 8, agi: 2 },   desc: '북두칠성처럼 흩어져 날아가는 일곱 개의 쇠못.' },
+  c_armor:  { slot: 'armor',                   name: '청강 사슬갑',   hanja: '靑鋼鎖子甲', rarity: 2, rank: '이류', stats: { def: 15, maxHp: 80, con: 2 },        desc: '청강 고리를 촘촘히 엮은 사슬갑.' },
+  c_jade:   { slot: 'jade',                    name: '수정 영옥대',   hanja: '水晶靈玉帶', rarity: 2, rank: '이류', stats: { qiPct: 6, elemRes: 5, int: 2 },      desc: '수정과 영옥을 박은 띠. 기공이 맑게 돌고 상극의 기운을 누그러뜨린다.' },
+  t3_sword: { slot: 'weapon', wtype: 'sword',  name: '청풍비검',      hanja: '淸風飛劍',   rarity: 2, rank: '이류', stats: { atk: 28, crit: 5, agi: 2 },          desc: '정련 철괴에 흑목 자루, 수액 담금질까지 거친 청풍문 정품 검.' },
+  t3_blade: { slot: 'weapon', wtype: 'blade',  name: '청풍벽력도',    hanja: '淸風霹靂刀', rarity: 2, rank: '이류', stats: { atk: 32, pierce: 6, str: 2 },        desc: '멧돼지 어금니를 갈아 날에 박은 벼락 같은 도.' },
+  t3_fist:  { slot: 'weapon', wtype: 'fist',   name: '청풍유운권갑',  hanja: '淸風流雲拳匣', rarity: 2, rank: '이류', stats: { atk: 25, def: 12, counter: 4 },   desc: '독사 비늘을 겹친 권갑. 맞받아치기 좋다.' },
+  t3_spear: { slot: 'weapon', wtype: 'spear',  name: '청풍선풍창',    hanja: '淸風旋風槍', rarity: 2, rank: '이류', stats: { atk: 30, armorPen: 5, con: 2 },      desc: '회오리처럼 파고드는 장창. 적의 방어를 흘려 넘긴다.' },
+  t3_hidden:{ slot: 'weapon', wtype: 'hidden', name: '청풍유엽표',    hanja: '淸風柳葉鏢', rarity: 2, rank: '이류', stats: { atk: 26, bleed: 10, agi: 2 },        desc: '독사 독낭을 먹인 버들잎 비표. 상처가 곪아 든다.' },
+  t3_jade:  { slot: 'jade',                    name: '청풍보옥대',    hanja: '淸風寶玉帶', rarity: 2, rank: '이류', stats: { def: 10, maxMp: 40, maxHp: 40 },     desc: '가죽 띠에 수액으로 굳힌 옥을 박은 청풍문 정품 옥대.' },
 };
+
 
 /* 기예 (캐릭터 생성 때 주력 하나): 단조·단약 모두 9품에서 시작하고, 주력 기예에만 고유 효과가 붙는다.
    rate: 주력 기예 성공률 +%p · slag: 단조 실패 시 찌꺼기 개수 · pill: 단약 섭취 효과 배율 보너스.

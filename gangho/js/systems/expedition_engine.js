@@ -66,12 +66,13 @@ function openVault(Z) {
   for (const x of VAULTS) { r -= x.w; if (r < 0) { v = x; break; } }
   log(`🔓 금고를 열자 ${v.icon} ${hlItem(v.name)}${jo(v.name, '이가')} 나왔습니다.`, 'good');
   const t = Z.tier;
-  if (v.name === '은자 궤') giveSilver(rint(15, 35) * t);
+  const R = EXPEDITION.rewardMult;
+  if (v.name === '은자 궤') giveSilver(Math.max(1, Math.round(rint(15, 35) * t * R)));
   if (v.name === '약재 궤') {                         // 연단 재료 다량
-    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) give(id, rint(2, 4));
+    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) if (Math.random() < EXPEDITION.dropMult * 5) give(id, 1);   // 1개씩, 드물게
   }
   if (v.name === '철물 궤') {                         // 주조 재료 다량
-    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4));
+    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) if (Math.random() < EXPEDITION.dropMult * 5) give(id, 1);
   }
   if (v.name === '비급/장비 궤') {                    // 희귀: 아직 익히지 않은 삼류 비급(공양 비급 목록), 없으면 장비
     const books = GACHA.books.filter(id => !S.manuals[id] && !has('bk_' + id));
@@ -103,7 +104,7 @@ function stepGimmick(Z) {
   const st = calcStats(), g = Z.gimmick;
   if (st[g.stat] < g.need) { log(`${g.name}: ${g.fail}`, 'muted'); return { t: `⚙️ ${g.name} — 힘이 모자라 지나쳤습니다`, cls: 'muted' }; }
   log(`${g.name}: ${g.text}`, 'good');
-  for (const [id, a, b] of g.reward) { const n = rint(a, b); if (id === 'silver') giveSilver(n); else give(id, n); }
+  for (const [id, a, b] of g.reward) { if (id === 'silver') giveSilver(Math.max(1, Math.round(rint(a, b) * EXPEDITION.rewardMult))); else if (Math.random() < EXPEDITION.dropMult * 5) give(id, 1); }
   return { t: `⚙️ ${g.name} — 숨겨진 것을 찾아냈습니다`, cls: 'good' };
 }
 /* 기연: 제자가 조건을 채운 선택지 가운데 하나를 스스로 고른다 */

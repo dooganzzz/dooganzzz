@@ -278,11 +278,12 @@ function winBattle(b) {
   bLine(`🏆 ${josa(E.name, '을를')} 쓰러뜨렸습니다!`, 'win');
   if (b.sim) return;                                        // 심상수련장: 보상 없음
   S.bestiary[b.eid].kills++;
-  if (E.xp) { b.exp = expGain(E.xp, b.st); S.exp += b.exp; bLine(`경험치 +${fmt(b.exp)}`, 'loot'); }
-  b.silver = rint(...E.silver); S.silver += b.silver;
-  bLine(`${hlSilver(b.silver)} 획득`, 'loot');
+  const R = EXPEDITION.rewardMult;                           // 원정 보상 배율 (1/10)
+  if (E.xp) { b.exp = Math.round(expGain(E.xp, b.st) * R); S.exp += b.exp; if (b.exp) bLine(`경험치 +${fmt(b.exp)}`, 'loot'); }
+  b.silver = Math.round(rint(...E.silver) * R); S.silver += b.silver;
+  if (b.silver) bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다
-  for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < p) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
+  for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < (E.boss ? p : p * EXPEDITION.dropMult)) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
   if (E.gear && Math.random() < E.gear[1]) {
     const it = dropGear(E.gear[0], rollDropRarity(!!E.boss));
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');

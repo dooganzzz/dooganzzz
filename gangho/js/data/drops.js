@@ -6,7 +6,7 @@ const DROPS = {
   // 청풍산: 야생 삼채 · 단단한 흑목 · 멧돼지 어금니 · 살쾡이 가죽 · 청령목 수액 · 거친 철광석
   rabbit:   [['wildGinseng', 0.5], ['wildcatHide', 0.2]],
   wildcat:  [['wildcatHide', 0.7], ['wildGinseng', 0.2]],
-  viper:    [['wildGinseng', 0.5], ['treeSap', 0.2]],
+  viper:    [['wildGinseng', 0.5], ['treeSap', 0.2], ['viperScale', 0.5], ['viperSac', 0.3]],
   scout:    [['roughOre', 0.5], ['blackwood', 0.3]],
   slinger:  [['roughOre', 0.6], ['wildGinseng', 0.2]],
   boar:     [['boarMolar', 0.7], ['wildcatHide', 0.2]],
