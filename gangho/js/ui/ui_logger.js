@@ -1,33 +1,12 @@
-/* [화면] 견문록: 곁의 작은 견문록(최신이 맨 위), 견문록 탭(크게·날짜별·걸음 상세), 본문 높이 맞춤 */
+/* [화면] 견문록: 견문록 탭 하나에 모든 기록 (크게·날짜별·분류·걸음 상세). 옆 보조 견문록은 없앴다 */
 
-/* 새 기록은 맨 위에 붙인다 (최신이 항상 위) */
-Bus.on('log', entry => {
-  const el = $('#log'); if (!el) return;
-  const p = document.createElement('p');
-  p.className = entry.cls; p.innerHTML = entry.text; p.dataset.time = hhmm(entry.t);
-  el.prepend(p);
-  while (el.children.length > 60) el.lastElementChild.remove();
-  el.scrollTop = 0;
+/* 기록은 견문록 탭 한 곳에만 쌓인다. 견문록 탭을 보고 있으면 새 기록이 들어올 때 다시 그린다 (한 프레임에 한 번) */
+let chronPending = false;
+Bus.on('log', () => {
+  if (typeof ui === 'undefined' || ui.tab !== 'chronicle' || chronPending) return;
+  chronPending = true;
+  requestAnimationFrame(() => { chronPending = false; if (ui.tab === 'chronicle') render(); });
 });
-
-function renderLog() {
-  const el = $('#log'); if (!el || !S) return;
-  el.innerHTML = S.log.slice(-60).reverse().map(l => `<p class="${l.cls}" data-time="${hhmm(l.t)}">${l.text}</p>`).join('');
-  el.scrollTop = 0;
-}
-
-/* 견문록 높이를 왼쪽 본문 패널과 1:1로 맞춘다 (넓은 화면에서만) */
-function syncSide() {
-  const main = $('#main'), side = $('.side');
-  const apply = () => {
-    if (innerWidth <= 960) { side.style.height = ''; return; }
-    side.style.height = Math.max(320, main.offsetHeight) + 'px';
-    const el = $('#log'); if (el) el.scrollTop = 0;
-  };
-  if (window.ResizeObserver) new ResizeObserver(apply).observe(main);
-  addEventListener('resize', apply);
-  apply();
-}
 
 /* ───────── 견문록 탭: 크게, 날짜별로, 걸음마다 상세를 펼쳐 본다 ───────── */
 const CHRON_FILTERS = [['all', '전체'], ['exp', '탐험'], ['battle', '전투'], ['loot', '획득'], ['npc', '인물'], ['warn', '경고']];
@@ -48,7 +27,7 @@ function chronDetail(e) {
   if (!rec) return '<small class="muted chron-gone">오래된 탐험이라 상세 기록은 지워졌습니다.</small>';
   if (e.ref.s === undefined) {
     const g = rec.gain, part = (o, f) => Object.entries(o || {}).map(([id, n]) => `${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`).join(' · ') || f;
-    return `<details class="chron-more"><summary>결산 보기</summary><dl class="chron-gain">
+    return `<details class="chron-more" ${ui.chronOpen === rec.id ? 'open' : ''}><summary>결산 보기</summary><dl class="chron-gain">
       <dt>전투</dt><dd>${rec.wins}승 ${rec.losses}패 (걸음 ${rec.steps.length}${rec.defeats ? ` · 쓰러짐 ${rec.defeats}` : ''}${rec.villages ? ` · 마을 치료 ${rec.villages}` : ''})</dd>
       <dt>은자</dt><dd>${g.silver >= 0 ? '+' : ''}${fmt(g.silver)}</dd>
       <dt>경험치</dt><dd>+${fmt(g.exp)}</dd>
@@ -67,7 +46,7 @@ function viewChronicle() {
   const rows = list.map(e => {
     const dl = dayLabel(e.t), sep = dl !== day ? `<li class="chron-day">${dl}</li>` : '';
     day = dl;
-    return `${sep}<li class="chron-row ${e.cls}"><time>${hhmm(e.t)}</time><div class="chron-body"><div class="chron-text">${e.text}</div>${chronDetail(e)}</div></li>`;
+    return `${sep}<li class="chron-row ${e.cls}${e.ref && e.ref.s === undefined && e.ref.r === ui.chronOpen ? ' chron-open' : ''}"><time>${hhmm(e.t)}</time><div class="chron-body"><div class="chron-text">${e.text}</div>${chronDetail(e)}</div></li>`;
   }).join('');
   return `<section class="panel chronicle">
     ${head('견문록', '見聞錄', `<span class="num muted">${list.length} / ${S.log.length}줄 · 최근 ${LOG_MAX}줄까지 남습니다</span>`)}

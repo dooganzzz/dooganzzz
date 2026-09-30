@@ -73,7 +73,8 @@ h4 { font-size: .8rem; font-weight: 700; letter-spacing: .08em; color: var(--sil
 .tab.on { color: var(--ink); border-bottom-color: var(--gold); }
 .tab.on .hj { color: var(--gold); }
 .tab:disabled { opacity: .3; cursor: not-allowed; }
-.body { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+.body { display: block; }
+.footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 24px; padding: 12px 0 4px; border-top: 1px solid var(--line); font-size: .8rem; }
 .main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .side { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
 .side h2 { font-size: 1.1rem; }
@@ -609,3 +610,22 @@ body {
 .recipe-row.unknown .r-out { font-weight: 900; letter-spacing: .2em; }
 @media (max-width: 560px) { .recipe-row { grid-template-columns: 1fr; } .recipe-row .r-eff { grid-column: 1; } }
 .blog .log-stance-result.dot { color: #9fd18a; font-size: .9em; }
+
+/* ───────── 기예 2종 · 재확인 창 · 장비/무공 칸 창 · 견문록 바로가기 · 도감 완성 ───────── */
+.talents { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.talents .talent-sub { font-style: normal; font-size: .8rem; color: var(--jade); }
+.confirm-sheet { max-width: 420px; }
+.confirm-sheet .btns { justify-content: flex-end; }
+.equip-sheet .gears, .mcard-list { display: grid; gap: 8px; }
+.equip-sheet h4, .artslot-sheet h4 { margin-top: 12px; }
+.mcard-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
+.mcard-row.worn { border-color: var(--gold); }
+.mcard-row small { display: block; }
+.mslot[data-artslot], .dslot { cursor: pointer; }
+.dslot { position: relative; }
+.dslot .slot-n { position: absolute; top: 3px; right: 5px; font-style: normal; font-size: .68rem; font-weight: 700; color: var(--jade); }
+.slot-help { font-size: .8rem; }
+.chron-row.chron-open { outline: 1px solid var(--gold); background: rgba(212, 175, 55, .08); }
+.codex-col.complete { border-color: var(--gold); }
+.codex-done { border-color: var(--gold); color: var(--gold-2); }
+.codex-bonus { font-size: .82rem; color: var(--gold-2); }

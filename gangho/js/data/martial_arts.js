@@ -55,7 +55,7 @@ const STAR_EXP = [60, 90, 130, 180, 260, 340, 430, 540, 660, 800, 1200];
 
 /* 종합 전투력 가중치: 최대 활력·내력, 공격력·방어력(장비·무공·무신상·버프 합계),
    장착 무공 4종마다 등급 계수(GRADES.mult) × 현재 성 × art */
-const CP_WEIGHTS = { maxHp: 1.0, maxMp: 1.5, atk: 5.0, def: 3.0, art: 10 };
+const CP_WEIGHTS = { maxHp: 1.0, maxMp: 1.5, atk: 5.0, def: 3.0, art: 10, agi: 8 };
 
 /* ───────── 3대 상성 ───────── */
 /* 오행(五行): 장착 기공의 오행과 적의 오행. 극(剋)하는 쪽이 피해 +25%, 극당하는 쪽이 -25%. 상생(相生)은 보정 없음.
@@ -94,10 +94,14 @@ const WEAPON_ADV = {
    terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 */
 const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terrainMatch: 0.8, terrainMiss: 1.2 };
 
-/* 3대 기본 스탯 (캐릭터 생성 때 배분). ATTR_BASE를 기준으로 한 점마다 per만큼 더하거나 뺀다. per.elem: 오행 극 보정 %p */
+/* 4대 기본 스탯 (캐릭터 생성 때 배분).
+   per: ATTR_BASE를 기준으로 한 점마다 더하거나 뺀다 (per.elem: 오행 극 보정 %p)
+   abs: 수치 그대로 곱해 더한다 — 민첩: 회피율 민첩×0.5% · 치명타율 민첩×0.4% · 탐험 기력 소모 민첩×1% 감소.
+        선공은 '속도 + 민첩'과 요수의 속도를 비교한다. 전투력에는 민첩×CP_WEIGHTS.agi */
 const ATTRS = {
   str: { name: '근력', hanja: '筋力', desc: '공격력 · 적재량', per: { atk: 2, bag: 6 } },
   con: { name: '체력', hanja: '體力', desc: '생명력 · 방어', per: { maxHp: 12, def: 0.8 } },
+  agi: { name: '민첩', hanja: '敏捷', desc: '회피 · 치명타 · 경공 효율', per: {}, abs: { eva: 0.5, crit: 0.4, staSave: 1 } },
   int: { name: '지력', hanja: '智力', desc: '내력 · 오행술 위력', per: { maxMp: 6, elem: 2 } },
 };
-const ATTR_BASE = 6, ATTR_MIN = 3, ATTR_MAX = 10, ATTR_TOTAL = 18;
+const ATTR_BASE = 6, ATTR_MIN = 3, ATTR_MAX = 10, ATTR_TOTAL = 24;

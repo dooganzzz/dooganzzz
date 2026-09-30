@@ -65,6 +65,60 @@ function fillPot(rid) {
   ui.craft = r.craft; ui.pot = { ...r.in }; goTab('sect', 'forge'); ui.modal = null; render();
 }
 
+/* ───────── 상태 › 무장: 장비 칸을 누르면 그 부위 장비 목록 (장착·교체·해제·강화) ───────── */
+function equipModal(slot) {
+  const cur = S.equip[slot], list = S.gear.filter(g => g.slot === slot);
+  const mw = S.active.mugong && MANUALS[S.active.mugong].weapon;
+  const card = (it, btns) => `<div class="gear r${it.rarity}"><div class="gtop"><span class="grade r${it.rarity}">${RARITY[it.rarity].name}</span><b>${gearName(it)}</b>${it.wtype ? `<small class="muted">${WEAPON_SHORT[it.wtype]}</small>` : ''}</div>
+    <small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}${slot === 'weapon' && mw && it.wtype !== mw ? `<small class="warn">장착 무공은 ${WEAPON_TYPES[mw]} 무공이라 초식이 나가지 않습니다</small>` : ''}
+    <div class="btns">${btns}</div></div>`;
+  const curHtml = cur ? card(cur, `<button class="btn sm" data-enhance="${slot}" ${(cur.enh || 0) >= ENH_MAX || S.silver < enhCost(cur) ? 'disabled' : ''}>🔨 ${(cur.enh || 0) >= ENH_MAX ? '강화 완료' : `강화 +${(cur.enh || 0) + 1} · ${hlSilver(enhCost(cur))} · ${enhChance(cur)}%`}</button><button class="btn ghost sm" data-unequip="${slot}">해제</button>`) : '<p class="muted">비어 있습니다.</p>';
+  const rows = list.map(it => card(it, `<button class="btn primary sm" data-equip="${it.uid}">${cur ? '교체' : '장착'}</button>`)).join('');
+  return `<div class="sheet equip-sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><div><small class="muted">무장 武裝</small><h2>${SLOTS[slot].name} <small class="muted">${SLOTS[slot].desc}</small></h2></div></div>
+    <h4>착용 중</h4>${curHtml}
+    <h4>행낭의 ${SLOTS[slot].name} <span class="num muted">${list.length}점</span></h4>
+    ${rows ? `<div class="gears">${rows}</div>` : '<p class="muted">행낭에 이 부위에 맞는 장비가 없습니다.</p>'}
+    <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div>
+  </div>`;
+}
+
+/* ───────── 상태 › 무공: 무공 칸을 누르면 그 계열의 익힌 무공 목록 (장착·교체·해제·상세) ───────── */
+function artSlotModal(cat) {
+  const cur = S.active[cat], C = CATS[cat];
+  const list = Object.keys(S.manuals).filter(id => MANUALS[id].cat === cat && id !== cur);
+  const card = (id, btns) => { const M = MANUALS[id], m = S.manuals[id];
+    return `<div class="mcard-row ${cur === id ? 'worn' : ''}"><div><b>《${M.name}》</b>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''} ${realmTag(m.star)} <span class="num muted">${m.star}성 · ${M.grade}</span>
+      ${M.weapon && M.weapon !== weaponType() ? `<small class="warn">지금 병기로는 초식이 나가지 않습니다 (${WEAPON_TYPES[M.weapon]})</small>` : ''}</div><div class="btns">${btns}</div></div>`; };
+  const curHtml = cur ? card(cur, `<button class="btn ghost sm" data-mart="${cur}">상세·성급</button><button class="btn ghost sm" data-unequipm="${cat}">해제</button>`) : '<p class="muted">비어 있습니다.</p>';
+  const rows = list.map(id => card(id, `<button class="btn ghost sm" data-mart="${id}">상세·성급</button><button class="btn primary sm" data-equipm="${id}">${cur ? '교체' : '장착'}</button>`)).join('');
+  return `<div class="sheet artslot-sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><div><small class="muted">무공 武功</small><h2>${label(C.name, C.hanja)} <small class="muted">${C.desc}</small></h2></div></div>
+    <h4>운용 중</h4>${curHtml}
+    <h4>익힌 ${C.name}</h4>
+    ${rows ? `<div class="mcard-list">${rows}</div>` : `<p class="muted">장착할 수 있는 다른 ${C.name}이(가) 없습니다. 비급을 익히면 여기에 나타납니다.</p>`}
+    <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div>
+  </div>`;
+}
+
+/* ───────── 공통 재확인 창: 판매·휴식처럼 실수로 누르면 곤란한 행동 앞에 ─────────
+   showConfirmModal({ title, message, confirmText, cancelText, onConfirm }) */
+let confirmCb = null;
+function showConfirmModal({ title = '확인', message = '정말 진행하시겠습니까?', confirmText = '확인', cancelText = '취소', onConfirm } = {}) {
+  confirmCb = typeof onConfirm === 'function' ? onConfirm : null;
+  ui.confirm = { title, message, confirmText, cancelText };
+  ui.modal = 'confirm'; renderModal();
+}
+function confirmModal() {
+  const c = ui.confirm || {};
+  return `<div class="sheet confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h2 id="confirmTitle">${esc(c.title)}</h2>
+    <p class="story">${c.message}</p>
+    <div class="btns"><button class="btn primary" data-act="confirmok">${esc(c.confirmText)}</button><button class="btn ghost" data-act="closemodal">${esc(c.cancelText)}</button></div>
+  </div>`;
+}
+function confirmAccept() { const cb = confirmCb; confirmCb = null; ui.modal = null; render(); if (cb) cb(); }
+
 function renderModal() {
   const m = $('#modal');
   if (!ui.modal) { if (!m.dataset.intro) m.hidden = true; return; }
@@ -72,6 +126,9 @@ function renderModal() {
   if (ui.modal.startsWith('manual:')) m.innerHTML = S.active[ui.modal.slice(7)] ? manualModal(ui.modal.slice(7)) : (ui.modal = null, '');
   if (ui.modal && ui.modal.startsWith('mart:')) m.innerHTML = martialModal(ui.modal.slice(5));
   if (!ui.modal) { m.hidden = true; return; }
+  if (ui.modal === 'confirm') m.innerHTML = confirmModal();
+  if (ui.modal.startsWith('equip:')) m.innerHTML = equipModal(ui.modal.slice(6));
+  if (ui.modal.startsWith('artslot:')) m.innerHTML = artSlotModal(ui.modal.slice(8));
   if (ui.modal.startsWith('recipe:')) m.innerHTML = recipeModal(ui.modal.slice(7));
   if (ui.modal.startsWith('settle:')) { const h = settleModal(ui.modal.slice(7).split(',').map(Number)); if (!h) { ui.modal = null; m.hidden = true; return; } m.innerHTML = h; }
   if (ui.modal.startsWith('replay:')) {
@@ -108,11 +165,12 @@ const PROLOGUE = [
   '움직일 수 없는 나 대신, 이 제자가 강호를 걷는다. 나는 원작을 안다. 이 아이는 모른다.',
 ];
 function showIntro() {
-  let chosen = 'samjaeGeom', talent = 'gather';
+  let chosen = 'samjaeGeom', talent = 'forge';
   const attr = Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';
   const left = () => ATTR_TOTAL - Object.values(attr).reduce((a, b) => a + b, 0);
   const eff = k => { const d = attr[k] - ATTR_BASE, P = ATTRS[k].per, sg = v => (v > 0 ? '+' : '') + (Math.round(v * 10) / 10);
+    if (ATTRS[k].abs) return Object.entries(ATTRS[k].abs).map(([s, v]) => `${STAT_NAMES[s] || s} ${sg(v * attr[k])}%`).join(' · ');   // 민첩: 수치 그대로
     return d === 0 ? '기본' : Object.entries(P).map(([s, v]) => `${s === 'elem' ? '오행 극' : STAT_NAMES[s] || s} ${sg(v * d)}${s === 'elem' ? '%p' : ''}`).join(' · '); };
   const draw = () => {
     const name = $('#pname') ? $('#pname').value : '이름 없는 제자';
@@ -123,7 +181,7 @@ function showIntro() {
       <h3 class="intro-h">제자 만들기</h3>
       <label class="field-l" for="pname">제자의 이름</label>
       <input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off">
-      <p class="field-l">3대 기본 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
+      <p class="field-l">4대 기본 스탯 <small class="muted">4대 기본 스탯 합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
       <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
         <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
         <button class="btn sm ghost" data-attr="${k}" data-d="-1" ${attr[k] <= ATTR_MIN ? 'disabled' : ''} aria-label="${A.name} 내리기">−</button>
@@ -132,8 +190,8 @@ function showIntro() {
         <small class="attr-eff">${eff(k)}</small></div>`).join('')}</div>
       <p class="field-l">입문 무공</p>
       <div class="starters">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}"><b>${M.name}</b><small>[${WEAPON_SHORT[M.weapon]}]</small></button>`; }).join('')}</div>
-      <p class="field-l">보조 기예</p>
-      <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><b>${T.name} <small>${T.hanja}</small></b><small>${T.desc}</small></button>`).join('')}</div>
+      <p class="field-l">기예 <small class="muted">(技藝)</small></p>
+      <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><b>${T.name} <small>${T.hanja}</small></b><em class="talent-sub">${T.sub}</em><small>${T.desc}</small></button>`).join('')}</div>
       <p class="muted">${left() ? `남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.` : '병기 상성: 권장 › 검/도 › 창·암기 › 권장 … 입문 무공이 곧 첫 병기입니다.'}</p>
       <button class="btn primary big" id="begin" ${left() ? 'disabled' : ''}>제자에게 말을 건다</button>
     </div>`;

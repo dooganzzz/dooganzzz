@@ -194,8 +194,8 @@ const STARTER_GEAR = { fist: 'g_hideTosu', sword: 'g_dullSword', blade: 'g_ironS
 /* 신분패·탈것 (구매) */
 const SHOP_GEAR = [
   { id: 'badge1', slot: 'badge', name: '청풍문 제자패',     rarity: 0, stats: { train: 10 } },
-  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 30 }, cost: 120 },
-  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 60 }, cost: 400 },
+  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 5 }, cost: 120, desc: '신분패 · 경험치 획득 +5%' },
+  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 10 }, cost: 400, desc: '신분패 · 경험치 획득 +10%' },
   { id: 'mount1', slot: 'mount', name: '늙은 나귀', rarity: 0, stats: { maxSta: 30 },  boss: 'boss1' },
   { id: 'mount2', slot: 'mount', name: '조랑말',   rarity: 1, stats: { maxSta: 70 },  boss: 'boss2' },
   { id: 'mount3', slot: 'mount', name: '청총마',   rarity: 3, stats: { maxSta: 120 }, boss: 'boss3' },
@@ -232,11 +232,13 @@ const CRAFT_GEAR = {
   c_jade:   { slot: 'jade',                    name: '수정 영옥대',   hanja: '水晶靈玉帶', stats: { qiPct: 6, elemRes: 5 },       desc: '수정과 영옥을 박은 띠. 기공이 맑게 돌고 상극의 기운을 누그러뜨린다.' },
 };
 
-/* 보조 기예 (캐릭터 생성 때 하나): craft의 솜씨가 lv부터 시작하고 고유 효과가 붙는다 */
+/* 기예 (캐릭터 생성 때 주력 하나): 단조·단약 모두 9품에서 시작하고, 주력 기예에만 고유 효과가 붙는다.
+   rate: 주력 기예 성공률 +%p · slag: 단조 실패 시 찌꺼기 개수 · pill: 단약 섭취 효과 배율 보너스.
+   솜씨 품계: 솜씨 단계(lv) 1 = 9품, 올라갈수록 8품 … 1품 (CRAFT_GRADE_TOP 단계 이상은 1품) */
+const CRAFT_GRADE_TOP = 9;
 const TALENTS = {
-  gather: { name: '채집', hanja: '採集', desc: '요수의 재료를 떨굴 확률 +15%p · 금고 재료 +1', drop: 0.15, vault: 1 },
-  smelt:  { name: '제련', hanja: '製鍊', desc: '단조 솜씨 3단계로 시작 · 단조 성공률 +5%', craft: 'forge', lv: 3, rate: 5 },
-  medic:  { name: '의술', hanja: '醫術', desc: '단약 솜씨 3단계로 시작 · 생혈고 회복량 +30%', craft: 'alchemy', lv: 3, potion: 0.3 },
+  forge:   { name: '단조', hanja: '鍛造', sub: '장비 제작 · 제련 특화', desc: '단조 9품에서 시작 · 장비 제작 성공률 +10% · 단조 시 검게 탄 찌꺼기 획득량 2배', craft: 'forge', rate: 10, slag: 2 },
+  alchemy: { name: '단약', hanja: '丹藥', sub: '영약 제조 · 연단 특화', desc: '단약 9품에서 시작 · 단약 제작 성공률 +10% · 단약 섭취 효과 +15%', craft: 'alchemy', rate: 10, pill: 0.15 },
 };
 
 /* 무신상 공양 (가챠): 검게 탄 찌꺼기 cost개를 바칠 때마다 표에서 하나. 기대값은 일부러 낮다 (조합 실패를 노리지 않도록).

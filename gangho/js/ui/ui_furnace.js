@@ -15,7 +15,7 @@ function viewFurnace() {
   const res = ui.craftResult;
   const known = RECIPES.filter(r => r.craft === ui.craft), found = known.filter(r => S.codex.includes(r.id)).length;
   return `<section class="panel furnace">
-    ${head('화로', '火爐', `<span class="num muted">${C.name} 솜씨 ${lv.lv}단계 · 비법 ${found}/${known.length}</span>`)}
+    ${head('화로', '火爐', `<span class="num muted">${C.name} ${craftGrade(lv.lv)}${S.talent === ui.craft ? ' · 주력' : ''} · 비법 ${found}/${known.length}</span>`)}
     ${furnaceTabs()}
     <p class="muted furnace-desc">${C.desc} 조합식은 알려져 있지 않습니다. 성공하면 도감에 적힙니다.</p>
     <div class="forge">

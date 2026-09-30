@@ -3,22 +3,21 @@
 /* 자동 탐험: 매시 정각(현지 시각)마다, 제자가 고른 구역으로 나가 기력을 모두 쓸 때까지 사냥한다.
    기력은 숨겨진 능력치. 조우·패배·마을 치료가 모두 기력을 깎고, 기력이 바닥나야 돌아온다.
    interval: 탐험 간격(ms) · maxQueue: 자리를 비운 동안 쌓이는 최대 횟수 · keep: 보관하는 탐험 기록 수
-   weights: 한 걸음마다 무엇을 만날지 · bossFrom: 기력을 이만큼 쓴 뒤부터 두목이 나올 수 있음
+   weights: 한 걸음마다 무엇을 만날지
+   bossChance: 전투 조우 한 번이 두목일 확률 (히든 강적) · bossPity: 두목을 만나지 못한 탐험마다 더해지는 확률 (천장, 만나면 초기화) · bossMax: 확률 상한
    potionAt: 활력이 이 비율 아래면 생혈고를 바름 · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율
    villageAt: 생혈고가 없고 활력이 이 비율 아래면 마을로 내려가 치료 (기력 villageSta 소모, 활력·내력 회복 후 다시 사냥)
    defeatSta: 쓰러지면 잃는 기력 (활력·내력을 회복하고 다시 사냥)
-   bossAvoid: 두목의 기척 비율(senseRatio)이 이보다 낮으면 제자가 피한다 — 낮을수록 무모하게 덤빈다
    battles · vaults: 탐험 한 번의 전투 조우 · 금고 횟수 [최소, 최대]. 출발 때 이 안에서 정하고, 다 겪으면 돌아온다.
      기력이 먼저 바닥나도 최소 횟수는 지친 몸으로 채운다. 두목·기연 전투도 전투 1회 · extras: 함정·기관·기연을 합친 최대 횟수 */
 const EXPEDITION = {
   interval: 3600000, maxQueue: 8, keep: 8,
   weights: { beast: 55, vault: 25, event: 6, trap: 7, gimmick: 7 }, battles: [3, 5], vaults: [1, 3], extras: 2,
-  bossFrom: 0.5, bossChance: 0.35, potionAt: 0.35, breathe: 0.06, villageAt: 0.3, villageSta: 12, defeatSta: 25, bossAvoid: 0.3, minStamina: 3, maxRounds: 60,
+  bossChance: 0.025, bossPity: 0.03, bossMax: 0.5, potionAt: 0.35, breathe: 0.06, villageAt: 0.3, villageSta: 12, defeatSta: 25, minStamina: 3, maxRounds: 60,
 };
 /* 탐험 중 조우 문구 */
 const EXP_TEXT = {
   depart: ['짐을 꾸려 산문을 나섭니다.', '새벽 안개를 헤치고 길을 떠납니다.', '조운 사형의 배웅을 받으며 출발합니다.'],
-  avoid: '멀리서 느껴지는 기척이 너무 무겁습니다. 몸을 낮춰 조용히 물러났습니다.',
   tired: '기력이 다해 발걸음을 돌립니다.',
   village: '상처가 깊고 생혈고도 떨어졌습니다. 산 아래 마을로 내려가 상처를 싸매고 다시 오릅니다.',
   defeat: '눈앞이 캄캄해집니다… 지나던 약초꾼의 오두막에서 정신을 차리고, 비틀거리며 다시 길을 나섭니다.',

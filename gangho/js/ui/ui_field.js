@@ -113,14 +113,15 @@ function settleModal(ids) {
       ${terrainLine(r) ? `<small class="muted tr-line">⛰ ${terrainLine(r)}</small>` : ''}
       <div class="settle-watch">${r.battles.map((b, i) => `<button class="watch ${b.win ? '' : 'lost'} ${b.boss ? 'boss' : ''}" data-watch="${r.id}:${i}" title="${b.name} — ${b.win ? '승리' : '패배'}">${b.boss ? '👹' : ''}${sealChar(b.name)}</button>`).join('')}</div>
     </li>`; }).join('')}</ol>
-    <p class="muted">전투마다 견문록의 [관찰하기]로 다시 볼 수 있습니다. 경험치로 상태 › 무공에서 성급을 올리십시오.</p>
-    <div class="btns"><button class="btn primary" data-act="closemodal">확인</button><button class="btn ghost" data-tab="status" data-sub="martial">성급 올리러 가기</button></div>
+    <p class="muted">전투마다 견문록의 [관찰하기]로 상세 전투 과정을 복기할 수 있습니다.</p>
+    <div class="btns"><button class="btn primary" data-act="closemodal">확인</button><button class="btn ghost" data-act="gochron" data-rec="${recs[recs.length - 1].id}">견문록 보기</button></div>
   </div>`;
 }
 
 /* ───────── 관찰하기: 기록해 둔 전투를 합 단위로 다시 튼다 ───────── */
 const RP = { key: null, i: -1, timer: null, speed: 1, playing: true };
-const RP_MS = 900;
+/* 관찰하기 한 합의 간격: 1× 3초 · 2× 1.5초 · 4× 0.75초 */
+const RP_MS = 3000;
 function replayData(key) {
   if (key === 'sim') return ui.sim && ui.sim.b ? { rec: null, b: ui.sim.b } : null;   // 심상수련장
   const [rid, bi] = key.split(':').map(Number), rec = findExpedition(rid);

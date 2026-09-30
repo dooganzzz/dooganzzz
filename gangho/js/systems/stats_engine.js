@@ -4,7 +4,11 @@
 function calcStats() {
   const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0 };
   // 3대 기본 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다
-  for (const [a, D] of Object.entries(ATTRS)) { const d = attrOf(a) - ATTR_BASE; for (const [k, v] of Object.entries(D.per)) s[k] += v * d; }
+  for (const [a, D] of Object.entries(ATTRS)) {
+    const d = attrOf(a) - ATTR_BASE; for (const [k, v] of Object.entries(D.per)) s[k] += v * d;
+    for (const [k, v] of Object.entries(D.abs || {})) s[k] += v * attrOf(a);       // 민첩: 수치 그대로
+  }
+  for (const [k, v] of Object.entries(codexBonus().stats)) s[k] = (s[k] || 0) + v;   // 지역 도감 완성 보상
   // 옥대의 기공 위력(qiPct)은 기공 능력치에 곱하므로 먼저 모은다
   const qi = SLOT_ORDER.reduce((a, slot) => a + ((S.equip[slot] && S.equip[slot].stats.qiPct) || 0), 0);
   for (const cat of CAT_ORDER) {
@@ -66,9 +70,20 @@ function clampVitals() {
   S.hp = clamp(S.hp, 0, st.maxHp); S.mp = clamp(S.mp, 0, st.maxMp); S.stamina = Math.max(0, S.stamina);
 }
 
-function attrOf(a) { return (S.attr && S.attr[a]) || ATTR_BASE; }
+/* 기본 스탯: 배분한 값 + 지역 도감 완성 보상 */
+function attrOf(a) { return ((S.attr && S.attr[a]) || ATTR_BASE) + (codexBonus().attr[a] || 0); }
+/* 받은 지역 도감 완성 보상의 합 */
+function codexBonus() {
+  const out = { attr: {}, stats: {} };
+  for (const z of Object.keys((S && S.codexRewards) || {})) { const R = CODEX_REWARDS[z]; if (!R) continue;
+    for (const [k, v] of Object.entries(R.attr)) out.attr[k] = (out.attr[k] || 0) + v;
+    for (const [k, v] of Object.entries(R.stats)) out.stats[k] = (out.stats[k] || 0) + v; }
+  return out;
+}
+/* 기예 솜씨 품계: 1단계 = 9품 … CRAFT_GRADE_TOP단계 이상 = 1품 */
+const craftGrade = lv => `${Math.max(1, CRAFT_GRADE_TOP + 1 - lv)}품`;
 const talentOf = () => (S.talent && TALENTS[S.talent]) || {};
-/* 캐릭터 생성 배분이 규칙에 맞는지 (합계·범위) */
+/* 캐릭터 생성 배분이 규칙에 맞는지 (4대 스탯 합계 ATTR_TOTAL · 한 스탯 ATTR_MIN~ATTR_MAX) */
 function validAttr(A) { return !!A && Object.keys(ATTRS).every(k => Number.isInteger(A[k]) && A[k] >= ATTR_MIN && A[k] <= ATTR_MAX) && Object.keys(ATTRS).reduce((a, k) => a + A[k], 0) === ATTR_TOTAL; }
 
 function weaponType() { return S.equip.weapon ? S.equip.weapon.wtype : 'fist'; }

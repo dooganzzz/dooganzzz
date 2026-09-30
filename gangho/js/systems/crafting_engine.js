@@ -28,7 +28,7 @@ function doCraft(craft, pot) {
   const chance = Math.min(98, 78 + lvl.lv * 3 + st.craft + (talentOf().craft === craft ? talentOf().rate || 0 : 0));
   const ok = recipe && Math.random() * 100 < chance;
   lvl.xp += ok ? 10 : 6;
-  while (lvl.xp >= lvl.lv * 30) { lvl.xp -= lvl.lv * 30; lvl.lv++; log(`${C.name} 솜씨가 한 단계 늘었습니다.`, 'good'); }
+  while (lvl.xp >= lvl.lv * 30) { lvl.xp -= lvl.lv * 30; lvl.lv++; log(`${C.name} 솜씨가 ${craftGrade(lvl.lv)}으로 올랐습니다.`, 'good'); }
   let result;
   if (ok) {
     const first = !S.codex.includes(recipe.id);
@@ -43,9 +43,9 @@ function doCraft(craft, pot) {
     }
     log(`${C.name} 성공: ${hlItem(result.text)}${first ? ` — 도감 › ${C.name} 비법에 새로 기록!` : ''}`, 'good');
   } else {
-    const fail = C.fail;
-    S.inv[fail] = (S.inv[fail] || 0) + 1;
-    result = { ok: false, text: `${ITEMS[fail].icon} ${ITEMS[fail].name}`, sub: recipe ? '불길이 한순간 크게 일렁였습니다. 조합은 맞았던 것 같습니다…' : '재료들이 서로 어울리지 못하고 엉겨 붙었습니다.' };
+    const fail = C.fail, nFail = craft === 'forge' ? (talentOf().slag || 1) : 1;   // 기예 단조: 찌꺼기 2배
+    S.inv[fail] = (S.inv[fail] || 0) + nFail;
+    result = { ok: false, text: `${ITEMS[fail].icon} ${ITEMS[fail].name}${nFail > 1 ? ` ×${nFail}` : ''}`, sub: recipe ? '불길이 한순간 크게 일렁였습니다. 조합은 맞았던 것 같습니다…' : '재료들이 서로 어울리지 못하고 엉겨 붙었습니다.' };
     log(`${C.name} 실패… ${ITEMS[fail].name}${jo(ITEMS[fail].name, '이가')} 남았습니다.`, 'bad');
   }
   noteCraft(craft, pot, recipe, ok);

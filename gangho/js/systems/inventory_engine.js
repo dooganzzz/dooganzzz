@@ -95,12 +95,13 @@ function useItem(id) {
   const st = calcStats();
   take(id, 1);
   const parts = [];
-  if (u.hp) { const v = Math.round(st.maxHp * u.hp); S.hp = Math.min(st.maxHp, S.hp + v); parts.push(`활력 +${v}`); }
-  if (u.mp) { const v = Math.round(st.maxMp * u.mp); S.mp = Math.min(st.maxMp, S.mp + v); parts.push(`내력 +${v}`); }
+  const boost = I.kind === '단약' ? 1 + (talentOf().pill || 0) : 1;     // 기예 단약: 단약 섭취 효과 +15%
+  if (u.hp) { const v = Math.round(st.maxHp * u.hp * boost); S.hp = Math.min(st.maxHp, S.hp + v); parts.push(`활력 +${v}`); }
+  if (u.mp) { const v = Math.round(st.maxMp * u.mp * boost); S.mp = Math.min(st.maxMp, S.mp + v); parts.push(`내력 +${v}`); }
   if (u.perm) { for (const [k, v] of Object.entries(u.perm)) { S.perm[k] += v; parts.push(`${STAT_NAMES[k]} 영구 +${v}`); } }
   if (u.buff) {
     S.buffs = S.buffs.filter(b => b.key !== u.buff.key);
-    S.buffs.push({ key: u.buff.key, val: u.buff.val, name: u.buff.name });
+    S.buffs.push({ key: u.buff.key, val: Math.round(u.buff.val * boost * 1000) / 1000, name: u.buff.name });
     parts.push(`${u.buff.name} (다음 탐험 동안)`);
   }
   log(`${I.icon} ${I.name} — ${parts.join(', ')}`, 'good');

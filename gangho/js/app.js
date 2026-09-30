@@ -12,7 +12,7 @@ const LOG_MAX = 400;
 
 const DEFAULT_ATTR = () => Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
 
-/* opts.attr: 3대 스탯 배분 {str, con, int} · opts.talent: 보조 기예 (TALENTS) */
+/* opts.attr: 4대 스탯 배분 {str, con, agi, int} · opts.talent: 주력 기예 'forge'(단조) | 'alchemy'(단약) (TALENTS) */
 function newState(name, mugongId, opts = {}) {
   const st = {
     v: 8, name, created: now(), lastTick: now(),
@@ -26,11 +26,9 @@ function newState(name, mugongId, opts = {}) {
     perm: { maxHp: 0, maxMp: 0 },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
-    buffs: [], missions: [], arin: {}, supplyDay: '', uid: 1,
+    buffs: [], missions: [], arin: {}, supplyDay: '', uid: 1, bossPity: {}, codexRewards: {},
     kills: 0, log: [],
   };
-  const T = st.talent && TALENTS[st.talent];
-  if (T && T.craft) st.crafts[T.craft].lv = T.lv;
   st.equip.badge = shopGear('badge1', st);
   return st;
 }
@@ -57,7 +55,7 @@ function log(text, cls = '', t = now(), ref) {
   Bus.emit('log', entry);
 }
 
-/* 새 게임: 프롤로그 뒤 제자 설정(이름·3대 스탯·입문 무공·보조 기예)을 마치면 부른다 */
+/* 새 게임: 프롤로그 뒤 제자 설정(이름·4대 스탯·입문 무공·기예)을 마치면 부른다 */
 function startNewGame(name, mugongId, opts = {}) {
   S = newState(name, mugongId, opts);
   const wt = MANUALS[mugongId].weapon;
@@ -66,7 +64,7 @@ function startNewGame(name, mugongId, opts = {}) {
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
   ensureMissions();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
-  if (S.talent) log(`보조 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
+  if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·포철삭·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
   log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 강호에 나가 부딪혀라."', 'npc');
   log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
@@ -137,6 +135,11 @@ function migrate(st) {
   }
   if (st.crafts) delete st.crafts.cook;
   if (st.talent === 'chef') st.talent = null;
+  // 4대 스탯 · 기예 2종 · 신분패 하향 · 두목 천장 · 도감 보상
+  if (st.attr && st.attr.agi === undefined) st.attr.agi = ATTR_BASE;                 // 민첩은 기본 6 (합계 24)
+  st.talent = { smelt: 'forge', medic: 'alchemy', forge: 'forge', alchemy: 'alchemy' }[st.talent] || null;   // 채집은 주력 없음
+  for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && (it.shop === 'badge2' || it.shop === 'badge3')) it.stats = { ...SHOP_GEAR.find(g => g.id === it.shop).stats };
+  st.bossPity = st.bossPity || {}; st.codexRewards = st.codexRewards || {};
   delete st.restCd;
   if (st.codex) st.codex = st.codex.filter(id => RECIPES.some(r => r.id === id));
   const outOk = o => !o || (o.startsWith('gear:') ? !!CRAFT_GEAR[o.slice(5)] : !!ITEMS[o]);
@@ -190,12 +193,12 @@ function boot() {
       delete S.migratedExp;
     }
     ensureMissions();
+    for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
     // 자리를 비운 동안의 탐험을 한꺼번에 결산하고 (최대 8번) 결산 창을 띄운다
     const recs = settleExpeditions();
     if (recs.length) notify.view({ modal: 'settle:' + recs.map(r => r.id).join(',') });
     notify.refresh();
   }
-  syncSide();
   lastFrame = now();
   setInterval(tick, 1000);
   setInterval(save, 10000);

@@ -55,6 +55,7 @@ function cpCard() {
       <span title="최대 활력 × ${W.maxHp} + 최대 내력 × ${W.maxMp}">체력·내력 <b>${fmt(p.base)}</b></span>
       <span title="공격력 × ${W.atk} + 방어력 × ${W.def}">공격·방어 <b>${fmt(p.gear)}</b></span>
       <span title="장착 무공 4종: 등급 계수 × 성 × ${W.art}">무공 <b>${fmt(p.arts)}</b></span>
+      <span title="민첩 × ${W.agi}">민첩 <b>${fmt(p.agi)}</b></span>
     </div>
     <div class="cp-attr">${Object.entries(ATTRS).map(([k, A]) => `<span title="${A.desc}">${A.name} <b>${attrOf(k)}</b></span>`).join('')}${S.talent ? `<span title="${TALENTS[S.talent].desc}">기예 <b>${TALENTS[S.talent].name}</b></span>` : ''}</div>
   </section>`;
@@ -64,9 +65,9 @@ function cpCard() {
 function viewMartial() {
   const slots = CAT_ORDER.map(cat => {
     const id = S.active[cat], C = CATS[cat];
-    if (!id) return `<div class="mslot empty"><div class="mslot-cat">${label(C.name, C.hanja)}</div><small class="muted">${C.desc}</small><p class="muted">비어 있음</p></div>`;
+    if (!id) return `<div class="mslot empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><div class="mslot-cat">${label(C.name, C.hanja)}</div><small class="muted">${C.desc}</small><p class="muted">비어 있음 · 눌러서 장착</p></div>`;
     const M = MANUALS[id], m = S.manuals[id];
-    return `<div class="mslot" data-mart="${id}" role="button" tabindex="0">
+    return `<div class="mslot" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog">
       <div class="mslot-cat">${label(C.name, C.hanja)}</div>
       <b class="mslot-name">《${M.name}》${manualAffTag(id)}</b>${realmTag(m.star)}
       <span class="art-star">${m.star}<small>성</small></span>
@@ -246,13 +247,13 @@ function viewGear() {
   const st = calcStats();
   const slot = s => {
     const it = S.equip[s];
-    return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}</button>`;
+    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" style="grid-area:${s}" aria-haspopup="dialog"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
   };
   const acc = s => {
     const it = S.equip[s];
-    return `<button class="dslot ${ui.slotSel === s ? 'sel' : ''} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}</button>`;
+    return `<button class="dslot ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog"><small>${SLOTS[s].name}</small>${it ? `<b>${gearName(it)}</b>` : ''}${slotCount(s)}</button>`;
   };
-  const sel = ui.slotSel && S.equip[ui.slotSel];
+  const slotCount = s => { const n = S.gear.filter(g => g.slot === s).length; return n ? `<em class="slot-n" title="행낭에 이 부위 장비 ${n}점">+${n}</em>` : ''; };
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
   return `<section class="panel">
     ${head('무장', '武裝')}
@@ -265,8 +266,7 @@ function viewGear() {
         <div class="acc-row">${['boots', 'belt', 'ring', 'badge', 'mount'].map(acc).join('')}</div>
       </div>
       <div class="side-col">
-        ${sel ? `<div class="gear r${sel.rarity}"><div class="gtop"><span class="grade r${sel.rarity}">${RARITY[sel.rarity].name}</span><b>${gearName(sel)}</b></div><small>${statLine(sel)}</small>${sel.unique ? `<small class="uniq">✦ ${sel.unique.text}</small>` : ''}
-          <div class="btns"><button class="btn sm" data-enhance="${sel.slot}" ${(sel.enh || 0) >= ENH_MAX || S.zone || S.silver < enhCost(sel) ? 'disabled' : ''}>🔨 ${(sel.enh || 0) >= ENH_MAX ? '강화 완료' : `강화 +${(sel.enh || 0) + 1} · ${hlSilver(enhCost(sel))} · ${enhChance(sel)}%`}</button><button class="btn ghost sm" data-unequip="${sel.slot}">해제</button></div></div>` : ''}
+        <p class="muted slot-help">장비 칸을 누르면 그 부위에 맞는 행낭 장비가 떠서 바로 장착·교체·해제·강화할 수 있습니다.</p>
         <div class="statsheet">${statList}</div>
       </div>
     </div>

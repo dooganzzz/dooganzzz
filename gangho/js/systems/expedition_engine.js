@@ -10,6 +10,9 @@ function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags
 function myTerrain() { const id = S.active.gyeonggong; return (id && MANUALS[id] && MANUALS[id].terrain) || null; }
 function terrainMult(zid) { const t = myTerrain(), Z = ZONES[zid]; if (!t || !Z || !Z.terrain) return 1; return Z.terrain.includes(t) ? AFFINITY.terrainMatch : AFFINITY.terrainMiss; }
 
+/* 이번 탐험에서 전투 조우 한 번이 두목일 확률 */
+function bossChanceNow(zid) { const W = EXPEDITION; return Math.min(W.bossMax, W.bossChance + ((S.bossPity || {})[zid] || 0) * W.bossPity); }
+
 function weighted(table) {
   let r = Math.random() * Object.values(table).reduce((a, b) => a + b, 0);
   for (const [k, w] of Object.entries(table)) { r -= w; if (r < 0) return k; }
@@ -66,10 +69,10 @@ function openVault(Z) {
   const t = Z.tier;
   if (v.name === '은자 궤') giveSilver(rint(15, 35) * t);
   if (v.name === '약재 궤') {                         // 연단 재료 다량
-    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) give(id, rint(2, 4) + (talentOf().vault || 0));
+    for (const id of Z.herb.map(r => r[0]).filter(id => ITEMS[id].craftType === 'alchemy')) give(id, rint(2, 4));
   }
   if (v.name === '철물 궤') {                         // 주조 재료 다량
-    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4) + (talentOf().vault || 0));
+    for (const id of Z.mine.map(r => r[0]).filter(id => ITEMS[id].craftType === 'forge')) give(id, rint(2, 4));
   }
   if (v.name === '비급/장비 궤') {                    // 희귀: 아직 익히지 않은 삼류 비급(공양 비급 목록), 없으면 장비
     const books = GACHA.books.filter(id => !S.manuals[id] && !has('bk_' + id));
@@ -159,13 +162,6 @@ function runExpedition(at = now()) {
         rec.defeats++; spend(W.defeatSta); recover();
         rec.steps[rec.steps.length - 1].d.push({ text: EXP_TEXT.defeat, cls: 'bad' });
       };
-      if (Z.boss && !doneB && !tired && !bossSeen && depth >= W.bossFrom && Math.random() < W.bossChance) {
-        bossSeen = true;
-        if (senseRatio(Z.boss) < W.bossAvoid) { step('avoid', () => { log(EXP_TEXT.avoid, 'muted'); return { t: `🌫️ ${ENEMIES[Z.boss].name}의 기척 — 너무 무거워 물러났습니다`, cls: 'muted' }; }); continue; }
-        spend(STAMINA_COST.boss);
-        if (step('boss', () => stepBattle(rec, Z.boss)).lost) lost();
-        continue;
-      }
       let k;
       if (tired) k = needB ? 'beast' : 'vault';                   // 지친 몸으로 최소 횟수만 채운다
       else {
@@ -178,6 +174,13 @@ function runExpedition(at = now()) {
           if (!needB && !needV) break;
           k = needB ? 'beast' : 'vault';
         }
+      }
+      // 두목(히든 강적): 전투 조우 한 번마다 낮은 확률. 못 만난 탐험이 쌓일수록 조금씩 오른다 (천장). 만나면 피하지 않고 싸운다
+      if (k === 'beast' && Z.boss && !bossSeen && Math.random() < bossChanceNow(zid)) {
+        bossSeen = true;
+        spend(STAMINA_COST.boss);
+        if (step('boss', () => stepBattle(rec, Z.boss)).lost) lost();
+        continue;
       }
       if (k === 'vault') vaults++; else if (k !== 'beast') extras++;
       spend(COST[k]);
@@ -193,6 +196,8 @@ function runExpedition(at = now()) {
     if (d > 0) g.items[id] = d; else if (d < 0) g.used[id] = -d;
   }
   rec.gain = g;
+  S.bossPity = S.bossPity || {};
+  S.bossPity[zid] = bossSeen ? 0 : (S.bossPity[zid] || 0) + 1;       // 두목 천장: 만나면 초기화
   rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
   rec.wins = rec.battles.filter(b => b.win).length; rec.losses = rec.battles.filter(b => !b.win && !b.fled).length;
   S.stamina = 0;                                            // 남은 기력은 다음 탐험 전까지 다시 찬다
@@ -202,7 +207,6 @@ function runExpedition(at = now()) {
   zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = at;
   zl.defeats += rec.defeats; zl.retreats += rec.villages;
   for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }
-  if (rec.steps.some(st => st.k === 'avoid')) zl.bossMet++;
   S.expeditions.push(rec);
   while (S.expeditions.length > W.keep) S.expeditions.shift();   // 오래된 기록부터 지운다
   writeExpeditionLog(rec);

@@ -8,14 +8,15 @@ function reaction(dmg, maxHp) { const r = dmg / maxHp; return HIT_TEXT.find(([t]
 /* 종합 전투력 (정수). 능력치는 calcStats 합계를 쓰므로 장비·무공·무신상·영약·버프가 모두 반영된다.
    player는 저장 상태 S (관리자 창에서는 받은 복사본). 다른 객체를 넘기면 그 상태로 잠시 바꿔 계산한다. */
 function combatPowerParts(player = S) {
-  if (!player) return { base: 0, gear: 0, arts: 0, total: 0 };
+  if (!player) return { base: 0, gear: 0, arts: 0, agi: 0, total: 0 };
   const prev = S; S = player;
   try {
     const st = calcStats(), W = CP_WEIGHTS;
     const base = st.maxHp * W.maxHp + st.maxMp * W.maxMp;
     const gear = st.atk * W.atk + st.def * W.def;
     const arts = CAT_ORDER.reduce((a, c) => { const id = S.active[c], m = id && S.manuals[id]; return a + (m ? GRADES[MANUALS[id].grade].mult * m.star * W.art : 0); }, 0);
-    return { base: Math.round(base), gear: Math.round(gear), arts: Math.round(arts), total: Math.round(base + gear + arts) };
+    const agi = attrOf('agi') * W.agi;                       // 민첩 × 8
+    return { base: Math.round(base), gear: Math.round(gear), arts: Math.round(arts), agi: Math.round(agi), total: Math.round(base + gear + arts + agi) };
   } finally { S = prev; }
 }
 function calculateCombatPower(player = S) { return combatPowerParts(player).total; }
@@ -65,7 +66,7 @@ function fight(eid, opts = {}) {
   const b = { eid, name: E.name, boss: !!E.boss, e: { ...E, hpNow: E.hp }, over: false, win: false, round: 0, st, lines: [], fx: [], bonus: opts.bonus || null,
     start: { me: { hp: S.hp, mp: S.mp, maxHp: st.maxHp, maxMp: st.maxMp }, foe: { hp: E.hp, maxHp: E.hp } }, rounds: [], exp: 0, silver: 0, sim: !!opts.sim, pots: opts.sim ? { hp: count('saenghyeol'), mp: count('potionMp') } : null, aff: affinity(eid, st), dot: { me: [], foe: [] } };
   RT.battle = b;
-  if (!b.sim) { const bs = S.bestiary = S.bestiary || {}; (bs[eid] = bs[eid] || { met: 0, kills: 0 }).met++; }   // 요수 도감
+  if (!b.sim) { const bs = S.bestiary = S.bestiary || {}, first = !bs[eid]; (bs[eid] = bs[eid] || { met: 0, kills: 0 }).met++; if (first) checkAreaEncyclopediaCompletion(zoneOfEnemy(eid)); }   // 요수 도감 (처음 만나면 지역 도감 완성 확인)
   notify.trace('battle', `조우: ${eid} (${E.name}) · 활력 ${Math.round(S.hp)}`);
   bLine(`⚔️ ${josa(E.name, '이가')} 모습을 드러냈습니다!`, 'head');
   const [, stext, scls] = sense(eid);
@@ -100,7 +101,7 @@ function battleRound(b) {
   tickDots(b); checkEnd(b);
   if (b.over) { b.rounds.push({ lines: b.lines, fx: b.fx, me: { hp: Math.round(S.hp), mp: Math.round(S.mp) }, foe: Math.round(b.e.hpNow) }); return; }
   autoPotion(b);
-  const order = b.st.spd >= b.e.spd ? ['me', 'foe'] : ['foe', 'me'];
+  const order = b.st.spd + attrOf('agi') >= b.e.spd ? ['me', 'foe'] : ['foe', 'me'];   // 선공: 내 속도 + 민첩 vs 요수 속도
   for (const who of order) {
     if (b.over) break;
     if (who === 'me') playerAttack(b); else enemyTurn(b);
@@ -114,13 +115,13 @@ function battleRound(b) {
 function autoPotion(b) {
   const use = (id, k) => { if (b.sim) { if (b.pots[k] <= 0) return false; b.pots[k]--; return true; } if (!has(id)) return false; take(id, 1); return true; };
   if (S.hp < b.st.maxHp * EXPEDITION.potionAt && use('saenghyeol', 'hp')) {
-    const v = Math.round(b.st.maxHp * ITEMS.saenghyeol.use.hp * (1 + (talentOf().potion || 0)));   // 의술: 생혈고 회복 +30%
+    const v = Math.round(b.st.maxHp * ITEMS.saenghyeol.use.hp * (1 + (talentOf().pill || 0)));   // 기예 단약: 단약 효과 +15%
     S.hp = Math.min(b.st.maxHp, S.hp + v);
     bLine(`🩸 숨을 고르며 상처에 생혈고를 발랐습니다. <span class="heal">활력 +${fmt(v)}</span>`, 'good');
     b.fx.push({ side: 'me', t: `+${fmt(v)}`, k: 'heal' });
   }
   if (S.active.mugong && S.mp < b.st.maxMp * 0.2 && use('potionMp', 'mp')) {
-    const v = Math.round(b.st.maxMp * ITEMS.potionMp.use.mp);
+    const v = Math.round(b.st.maxMp * ITEMS.potionMp.use.mp * (1 + (talentOf().pill || 0)));
     S.mp = Math.min(b.st.maxMp, S.mp + v);
     bLine(`💧 소환단을 삼켜 흐트러진 내력을 추슬렀습니다. <span class="heal">내력 +${fmt(v)}</span>`, 'good');
   }
@@ -265,7 +266,7 @@ function winBattle(b) {
   b.silver = rint(...E.silver); S.silver += b.silver;
   bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다
-  for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < p + (talentOf().drop || 0)) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
+  for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < p) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
   if (E.gear && Math.random() < E.gear[1]) {
     const it = dropGear(E.gear[0], rollDropRarity(!!E.boss));
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
