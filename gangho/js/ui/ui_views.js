@@ -42,7 +42,7 @@ function portrait(who, seal, name) {
    무공 등급(삼류·이류)은 가까운 아이템 등급 색을 빌린다 */
 const GRADE_CLASS_MAP = { '하급': 'grade-low', '중급': 'grade-mid', '상급': 'grade-high', '진품': 'grade-rare', '명품': 'grade-epic', '극품': 'grade-legend', '삼류': 'grade-low', '이류': 'grade-mid', '일류': 'grade-high' };
 const gradeClass = g => GRADE_CLASS_MAP[g] || 'grade-low';
-const gradeBadge = g => `<div class="item-grade-badge" title="${g}">${[...g].map(c => `<span>${c}</span>`).join('')}</div>`;
+const gradeBadge = g => `<span class="item-grade-badge">${g}</span>`;
 /* 카드 머리: 이름(등급 색)과 등급 원형 뱃지를 양 끝에 */
 const itemCardHead = (name, g) => `<div class="item-card-header"><b class="item-name">${name}</b>${gradeBadge(g)}</div>`;
 
@@ -88,18 +88,27 @@ function viewMartial() {
   const slots = `${card('simbeop')}${card('mugong')}<div class="meditation-center-frame" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)</div></div>${card('gigong')}${card('gyeonggong')}`;
   const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat));
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급');
-  const cards = learned.map(id => {
+  // 습득 비급: [무공] [심법] [경공] [기공] 탭으로 거른다 (카드를 누르면 상세·성급 창)
+  const SKILL_TABS = [['attack', 'mugong', '무공'], ['heart', 'simbeop', '심법'], ['agility', 'gyeonggong', '경공'], ['aura', 'gigong', '기공']];
+  const tab = SKILL_TABS.find(t => t[0] === ui.skillTab) || SKILL_TABS[0];
+  const shown = learned.filter(id => MANUALS[id].cat === tab[1]);
+  const cards = shown.map(id => {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
-    return `<button class="mcard ${worn ? 'worn' : ''}" data-mart="${id}"><small>${CATS[M.cat].name} · ${M.grade}</small><b>《${M.name}》${manualAffTag(id)}</b>${realmTag(m.star)}<span class="art-star">${m.star}<small>성</small></span>${worn ? '<span class="pill">운용 중</span>' : ''}</button>`;
+    return `<button class="mcard skill-item-card ${worn ? 'worn is-equipped' : ''}" data-mart="${id}"><small class="card-meta">${CATS[M.cat].name} · ${M.grade}</small><b class="card-title">《${M.name}》${manualAffTag(id)}</b><span class="card-stage">${realmTag(m.star)}<span class="art-star skill-level">${m.star}<small>성</small></span></span><span class="card-status-tag ${worn ? 'active' : ''}">${worn ? '운용 중' : '미운용'}</span></button>`;
   }).join('');
+  const skillTabs = `<div class="skill-category-tabs" role="tablist" aria-label="습득 비급 분류">${SKILL_TABS.map(([k, , n]) => `<button class="tab-btn ${tab[0] === k ? 'active' : ''}" role="tab" aria-selected="${tab[0] === k}" data-skilltab="${k}">${n} <small>${learned.filter(id => MANUALS[id].cat === SKILL_TABS.find(t => t[0] === k)[1]).length}</small></button>`).join('')}</div>`;
   return `<section class="panel martial-slots">
     ${head('무공', '武功', `<span class="exp-purse" title="탐험에서 적을 쓰러뜨려 모은 수련치">수련치 <b>${fmt(S.exp)}</b></span>`)}
     <p class="muted exp-help">탐험에서 모은 수련치로 원하는 무공의 성급을 올립니다. 5→6성(소성)·11→12성(대성)에는 돌파단도 듭니다.</p>
     <div class="mslots martial-arts-core-layout">${slots}</div>
   </section>
-  <section class="panel martial-learned">
-    ${head('익힌 무공', '習得', `<span class="num muted">${learned.length}종</span>`)}
-    ${learned.length ? `<div class="mcards">${cards}</div>` : `<p class="story">아직 익힌 무공이 없습니다. ${books.length ? `비급 ${books.length}권을 가지고 있습니다. 아래에서 [ 익히기 ] 하십시오.` : ''}</p>`}
+  <section class="panel martial-learned acquired-skills-section">
+    <div class="section-header-row">
+      <div class="section-title-wrap"><h3 class="section-title">${label('습득 비급', '習得秘笈')}</h3><span class="total-count-badge" id="total-acquired-count">${learned.length}종</span></div>
+      ${skillTabs}
+    </div>
+    ${!learned.length ? `<p class="story">아직 익힌 비급이 없습니다. ${books.length ? `비급 ${books.length}권을 가지고 있습니다. 아래에서 [ 익히기 ] 하십시오.` : ''}</p>`
+      : shown.length ? `<div class="mcards acquired-cards-grid" id="acquired-cards-container">${cards}</div>` : '<div class="empty-notice">해당 계열에 익힌 비급이 없습니다.</div>'}
     ${books.length ? `<div class="chips">${books.map(k => `<button class="chip" data-use="${k}">📘 ${ITEMS[k].name} 익히기</button>`).join('')}</div>` : ''}
   </section>`;
 }

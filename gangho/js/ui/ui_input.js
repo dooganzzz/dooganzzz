@@ -54,6 +54,7 @@ function onClick(e) {
   if (d.buybadge) { const g = SHOP_GEAR.find(x => x.id === d.buybadge); return askContrib(g.name, g.cost, () => buyBadge(d.buybadge), '신분패는 행낭에 들어갑니다. 무장에서 착용하십시오.'); }
   if (d.buylib) { const G = LIBRARY_GEAR[d.buylib]; return askContrib(`이류 장비 ${G.name}`, G.cost, () => buyLibraryGear(d.buylib), bonusText(G.stats)); }
   if (d.libtab) { ui.libTab = d.libtab; return render(); }
+  if (d.skilltab) { ui.skillTab = d.skilltab; return render(); }
   if (d.slot) { ui.modal = 'equip:' + d.slot; return renderModal(); }   // 장비 칸 → 그 부위 장비 목록
   if (d.equip) return equipItem(+d.equip, d.to);
   if (d.unequip) return unequip(d.unequip);
