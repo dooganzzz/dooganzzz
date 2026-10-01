@@ -7,6 +7,7 @@ const ASSET_KIND = {
   hero:     { dir: 'sprites/hero_', ext: 'webp' },   // 병기별 제자 전투 시트
   foe:      { dir: 'sprites/foe_', ext: 'webp' },    // 요수 숨쉬기 시트 (공격 시트는 이름_atk)
   run:      { dir: 'sprites/run_', ext: 'webp' },    // 병기별 달리기 16컷 (강호행)
+  walk:     { dir: 'sprites/walk_', ext: 'webp' },   // 병기별 걷기 16컷 (기력이 다해 걸을 때)
   stage:    { dir: 'stages/', ext: 'jpg' },
   travel:   { dir: 'travel/', ext: 'jpg' },
   ground:   { dir: 'travel/ground_', ext: 'webp' },  // 강호행 앞 겹: 산길 그림의 땅만 (윗선은 둔덕 모양, 위는 투명)

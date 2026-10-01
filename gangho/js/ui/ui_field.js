@@ -22,7 +22,7 @@ Bus.on('tick', () => {
 
 /* ───────── 실시간 강호행: 산길을 걷는 제자와 견문록 ───────── */
 let lastLiveSig = '';
-function liveSig() { const X = S && S.expedition; return S ? S.expeditions.map(r => `${r.id}:${r.steps.length}${r.live ? `L${r.stage}.${r.kills}` : ''}${r.claimed ? 'c' : ''}${r.battles.filter(b => b.seen !== false).length}`).join(',') + `|${X.zone || ''}|${X.stage}|${X.auto}|${stageCleared(X.zone)}|${count('saenghyeol')}` : ''; }
+function liveSig() { const X = S && S.expedition; return S ? `${Math.round(S.stamina)}${(activeRun() || {}).mode || ''}${count('gigeokdan')}|` + S.expeditions.map(r => `${r.id}:${r.steps.length}${r.live ? `L${r.stage}.${r.kills}` : ''}${r.claimed ? 'c' : ''}${r.battles.filter(b => b.seen !== false).length}`).join(',') + `|${X.zone || ''}|${X.stage}|${X.auto}|${stageCleared(X.zone)}|${count('saenghyeol')}` : ''; }
 /* 단계 줄: 1~10단계 (돌파 ✔ · 지금 · 잠김). 강호행 전에는 출발 단계를 고르고, 강호행 중에는 그 단계로 옮겨 간다 */
 function stageStrip() {
   const X = S.expedition, zid = X.zone; if (!zid) return '';
@@ -58,7 +58,9 @@ function liveSide() {
   const state = run || held ? `강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${shown} · 전투 ${nb}${cl}`
     : r.end === 'dead' ? `<b class="warn">${nm}에서 쓰러져 강호행이 끝났습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`
     : `<b>${nm}에서 돌아왔습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`;
-  return `${stageStrip()}${run || held ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span class="live-vit-hp">활력 ${fmt(Math.round(hpNow))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>` : ''}
+  return `${stageStrip()}${run || held ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span class="live-vit-hp">활력 ${fmt(Math.round(hpNow))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>
+    <div class="live-prog sta" title="기력"><span style="width:${clamp(S.stamina / (st.maxSta || 100) * 100, 0, 100).toFixed(1)}%"></span></div>
+    <p class="live-vit"><span>기력 ${Math.round(S.stamina / (st.maxSta || 100) * 100)}% · ${r.mode === 'walk' ? '🚶 걷는 중 — 기력이 차면 다시 달립니다' : '🏃 달리는 중'}</span><button class="chip sm" data-act="gigeok" ${count('gigeokdan') ? '' : 'disabled'} title="기력을 가득 채워 곧바로 다시 달립니다 (전방 50냥)">기력단 ${count('gigeokdan')}</button></p>` : ''}
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">

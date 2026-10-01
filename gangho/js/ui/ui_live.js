@@ -5,7 +5,13 @@
    강호행이 끝나면 멈춰 서서 숨을 고르며 초식을 연습한다 (대기 시트). 전투 걸음이 일어나면 그 전투 기록을 무대에서 그대로 재생한다 (견문록에는 결과와 [관찰]) */
 const RUN_G = { sword: .759, blade: 1.047, spear: 2.172, fist: 2.006, hidden: .909 }, RUN_SPEED = 1.25, RUN_FAST = { k: 1.3, grades: ['일류', '절정'] };
 function runFast() { const id = S.active.gyeonggong, g = id && MANUALS[id] && MANUALS[id].grade; return RUN_FAST.grades.includes(g); }
-function walkMeta(w) { const g = RUN_G[w] || RUN_G.sword, k = runFast() ? RUN_FAST.k : 1; return { n: 16, g, ms: g / RUN_SPEED * 1000 / k }; }
+/* 걷기 시트(기력이 다했을 때): 주기와 g는 걷는 영상에서 잰 값 */
+const WALK_META = { sword: { ms: 1375, g: .64 }, blade: { ms: 1500, g: .631 }, spear: { ms: 1417, g: .592 }, fist: { ms: 1333, g: .587 }, hidden: { ms: 1167, g: .764 } };
+const liveMode = () => { const r = typeof activeRun === 'function' && activeRun(); return r && r.mode === 'walk' ? 'walk' : 'run'; };
+function walkMeta(w, mode = 'run') {
+  if (mode === 'walk') return { n: 16, ...(WALK_META[w] || WALK_META.sword) };
+  const g = RUN_G[w] || RUN_G.sword, k = runFast() ? RUN_FAST.k : 1; return { n: 16, g, ms: g / RUN_SPEED * 1000 / k };
+}
 /* 구도: 관찰 창 무대와 같다 — 제자는 왼쪽 10%, 요수는 오른쪽 10%, 베러 들어갈 때 38%.
    크기는 관찰 창(2.36:1)과 무대 높이 대비 같게 1.18배 (제자 폭 31.8%, 요수 21.2% × 크기).
    달릴 때 · 쉴 때도 제자는 같은 자리 */
@@ -270,7 +276,12 @@ function liveLoop(ts) {
     return;
   }
   // 걷기: 시트 칸을 걸음 주기에 고르게 나눠 넘긴다
-  const W = walkMeta(walker && walker.dataset.w), N = W.n;
+  const mode = liveMode();                            // 기력이 다하면 걷기 시트로, 차오르면 다시 달리기 시트로
+  if (walker && walker._md !== mode) {                 // (다시 그려도 시트 그림은 남으므로 요소에 기억한 값으로 비교)
+    walker._md = mode; walker.dataset.mode = mode; walker.classList.toggle('walking', mode === 'walk');
+    for (const e of walker.querySelectorAll('.walk-spr')) e.style.backgroundImage = `url('${ASSET[mode](walker.dataset.w)}')`;
+  }
+  const W = walkMeta(walker && walker.dataset.w, mode), N = W.n;
   // 멀미 줄이기: 출발은 천천히 붙고, 요수 앞에서는 미리 늦춘다 (걸음 칸과 산길이 같은 v로 움직여 발은 미끄러지지 않는다)
   const sh0 = liveAnim.show, app = sh0 && sh0.phase === 'approach', near = app && parseFloat((sc.querySelector('.live-foe') || {}).style?.left) < ((sh0 && sh0.foeX) || 70) + 14;
   // 요수가 다가오는 동안은 천천히 달려 오른쪽 끝에서부터 다가오는 모습이 보이게, 코앞에서는 더 늦춘다
@@ -283,7 +294,7 @@ function liveLoop(ts) {
     const gh = walker.querySelectorAll('.walk-ghost');                // 경공 잔상: 조금 전 칸을 뒤에 흐리게
     if (gh.length) { (liveAnim.hist = liveAnim.hist || []).unshift(fr); liveAnim.hist.length = 9; gh.forEach((g, i) => { g.style.backgroundPositionX = ((liveAnim.hist[(i + 1) * 4] ?? fr) * 100 / (N - 1)) + '%'; }); }
   }
-  if (walker && walker.dataset.fast && (liveAnim.windMs = (liveAnim.windMs || 0) + dt) > 160) {   // 바람 줄기
+  if (walker && walker.dataset.fast && mode === 'run' && (liveAnim.windMs = (liveAnim.windMs || 0) + dt) > 160) {   // 바람 줄기
     liveAnim.windMs = 0; const l = document.createElement('i'); l.className = 'live-wind';
     l.style.left = (30 + Math.random() * 40) + '%'; l.style.top = (30 + Math.random() * 45) + '%'; l.style.width = (8 + Math.random() * 10) + '%';
     sc.appendChild(l); setTimeout(() => l.remove(), 550);
@@ -303,14 +314,14 @@ function liveLoop(ts) {
 }
 function liveScene(r) {
   const zid = (r && r.zone) || S.expedition.zone || 'cheongpung', w = weaponType(), N = walkMeta(w).n, fast = runFast();
-  const spr = cls => `<div class="${cls}" data-anim style="background-image:url('${ASSET.run(w)}');background-size:${N * 100}% 100%"></div>`;
+  const md = liveMode(), spr = cls => `<div class="${cls}" data-anim style="background-image:url('${ASSET[md](w)}');background-size:${N * 100}% 100%"></div>`;
   const img = () => `<img src="${ASSET.travel(zid)}" alt="">`, gnd = () => `<img src="${ASSET.ground(zid)}" alt="">`;   // 먼 겹 = 산길 전체, 앞 겹 = 땅만 (같은 크기라 이음매 없이 되풀이)   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
   return `<div class="live-scene ${liveDone(r) && !liveHeld(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}">
     <div class="live-world far"><div class="live-strip" data-far="1" data-anim>${img()}${img()}</div></div>
     <div class="live-world near"><div class="live-strip" data-anim>${gnd()}${gnd()}</div></div>
     <i class="live-mist"></i>
-    <div class="sp-fighter live-walker ${fast ? 'fast' : ''}" id="liveWalker_${w}${fast ? '_f' : ''}" data-w="${w}" ${fast ? 'data-fast="1"' : ''}>${fast ? spr('walk-spr walk-ghost g1') + spr('walk-spr walk-ghost g2') : ''}<i class="sp-shadow"></i>${spr('walk-spr')}</div>
+    <div class="sp-fighter live-walker ${fast ? 'fast' : ''} ${md === 'walk' ? 'walking' : ''}" id="liveWalker_${w}${fast ? '_f' : ''}" data-w="${w}" data-mode="${md}" ${fast ? 'data-fast="1"' : ''}>${fast ? spr('walk-spr walk-ghost g1') + spr('walk-spr walk-ghost g2') : ''}<i class="sp-shadow"></i>${spr('walk-spr')}</div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0" data-w="${w}" data-anim><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
     <div class="live-hp me" data-anim><span class="lh-face" style="background-image:url('${ASSET.portrait('hero')}')"></span><div class="lh-body"><b>${esc(S.name)}</b><span class="lh-bar"><i></i></span><em></em></div></div>

@@ -135,7 +135,7 @@ function stepEvent(rec, zid, used) {
 /* ───────── 강호행: [강호행 시작]을 누르면 쓰러지거나 귀환할 때까지 쭉 이어진다 ─────────
    걸음은 EXPEDITION.stepMs마다 하나(전투 · 금고 · 기연 · 덫 · 장치). 활력은 걸음 사이에 차지 않는다 —
    이기면 숨을 조금 고르고(breathe), 위급하면 생혈고를 스스로 바른다. 전투에서 지면 쓰러지고 강호행은 거기서 끝난다.
-   기력이 바닥나면 쉬어 가는 걸음(EXPEDITION.restMs)으로 기력만 되찾는다 (경공 지형 상성이 쉬는 횟수를 정한다).
+   기력은 달리는 동안 닳고(EXPEDITION.run, 경공 지형 상성 · 기력 소모 감소 반영), 다 닳으면 걸으며 차오른다 — 걷는 동안은 걸음이 느리다. 기력단을 먹으면 곧바로 다시 달린다.
    자리를 비워도 이어지고(최대 EXPEDITION.catchUp만큼 따라잡음), 얻은 것은 보관했다가 끝난 뒤 [최종보상확인]으로 받는다.
    전투는 실시간 강호행 무대에서 기록 그대로 재생되고, 견문록에는 결과와 [관찰](전투 장면 · 합 로그)이 남는다 */
 const findExpedition = id => S.expeditions.find(r => r.id === id);
@@ -159,7 +159,7 @@ function startRun(t = now()) {
   const zid = X.zone, Z = ZONES[zid], st = calcStats(), tm = terrainMult(zid);
   S.hp = st.maxHp; S.mp = st.maxMp; S.stamina = st.maxSta;      // 몸을 추스르고 출발
   const stage = clamp(X.stage || 1, 1, stageMax(zid));
-  const rec = { id: S.uid++, at: t, zone: zid, stage, startStage: stage, kills: 0, live: true, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [],
+  const rec = { id: S.uid++, at: t, zone: zid, stage, startStage: stage, kills: 0, live: true, mode: 'run', staAt: t, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [],
     gain: { silver: 0, exp: 0, contrib: 0, items: {}, used: {}, gear: [] }, pend: { silver: 0, exp: 0, contrib: 0, items: {}, gear: [] },
     defeats: 0, villages: 0, rests: 0, wins: 0, losses: 0,
     terrain: { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(tm * (1 - (st.staSave || 0) / 100) * 1000) / 1000, extra: 0 } };
@@ -173,21 +173,14 @@ function startRun(t = now()) {
 function runStep(rec, t) {
   const W = EXPEDITION, zid = rec.zone, Z = ZONES[zid], st0 = calcStats();
   const mult = terrainMult(zid) * (1 - (st0.staSave || 0) / 100);
-  const spend = base => { const c = base * mult; S.stamina = Math.max(0, S.stamina - c); rec.terrain.extra += c - base; };
-  const COST = { beast: STAMINA_COST.battle, vault: STAMINA_COST.chest, event: STAMINA_COST.battle, trap: 0, gimmick: STAMINA_COST.gimmick };
   const b = runSnap(); let k, r;
   RT.journal = [];
   try {
-    if (S.stamina < W.minStamina) {                               // 기력이 바닥났다: 쉬어 가며 기력만 되찾는다
-      k = 'rest'; S.stamina = calcStats().maxSta; rec.rests++;
-      log(EXP_TEXT.rest, 'muted', t);
-      r = { t: '🏕️ 바위 그늘에서 숨을 고르며 기력을 되찾았습니다', cls: 'muted' };
-    } else if (rec.stage >= STAGE.count) {                         // 10단계: 두목과 맞선다
-      k = 'boss'; spend(STAGE_BOSS_STA);
+    if (rec.stage >= STAGE.count) {                                // 10단계: 두목과 맞선다
+      k = 'boss';
       r = stepBattle(rec, Z.boss);
     } else {
       k = weighted(W.weights);
-      spend(COST[k]);
       if (k === 'event') { const used = new Set(rec.used); r = stepEvent(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
       else r = k === 'beast' ? stepBattle(rec, pickStageFoe(zid, rec.stage)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
     }
@@ -205,7 +198,6 @@ function runStep(rec, t) {
   return s;
 }
 /* 단계 돌파: 처음이면 보상 · 다음 단계가 열린다. 자동 진행이면 올라가고, 아니면 머물며 계속 사냥한다 */
-const STAGE_BOSS_STA = 25;
 function stageClear(rec, t) {
   const zid = rec.zone, n = rec.stage, Z = ZONES[zid], first = n > stageCleared(zid);
   rec.kills = 0; rec.cleared = rec.cleared || []; rec.cleared.push(n);
@@ -250,11 +242,30 @@ function endRun(rec, t, why) {
 }
 function recallRun(t = now()) { const rec = activeRun(); if (rec) endRun(rec, t, 'recall'); return rec; }
 /* 시각 t까지 밀린 걸음을 차례로 치른다 (자리를 비운 시간은 EXPEDITION.catchUp까지만 따라잡는다) */
+/* 기력: 달리는 동안 닳고(지형 · 기력 소모 감소 반영), 다 닳으면 걷기로 바뀌어 차오르고, 가득 차면 다시 달린다 */
+function staTick(rec, t) {
+  if (rec.staAt === undefined) { rec.staAt = t; rec.mode = rec.mode || 'run'; }
+  let dt = t - rec.staAt; if (dt <= 0) return; rec.staAt = t;
+  const st = calcStats(), max = st.maxSta || 100, R = EXPEDITION.run, mult = terrainMult(rec.zone) * (1 - (st.staSave || 0) / 100);
+  for (let g = 0; dt > 0 && g < 100; g++) {
+    if (rec.mode !== 'walk') {
+      const rate = max / R.drainMs * mult, need = S.stamina / rate;
+      if (dt < need) { S.stamina -= dt * rate; dt = 0; } else { dt -= need; S.stamina = 0; rec.mode = 'walk'; rec.walks = (rec.walks || 0) + 1; log('🚶 기력이 다해 걸음을 늦춥니다. 기력이 차면 다시 달립니다.', 'muted', t - dt); }
+    } else {
+      const rate = max / R.regenMs, need = (max - S.stamina) / rate;
+      if (dt < need) { S.stamina += dt * rate; dt = 0; } else { dt -= need; S.stamina = max; rec.mode = 'run'; log('🏃 기력이 돌아와 다시 달립니다.', 'muted', t - dt); }
+    }
+  }
+}
 function advanceRun(t = now()) {
   const rec = activeRun(); if (!rec) return null;
   const W = EXPEDITION; let n = 0;
   if (t - rec.next > W.catchUp) { log(`⌛ 자리를 오래 비워 ${Math.round((t - rec.next - W.catchUp) / 3600000)}시간 남짓은 그냥 흘러갔습니다. (최대 ${W.catchUp / 3600000}시간까지 이어집니다)`, 'muted', rec.next); rec.next = t - W.catchUp; }
-  while (rec.live && rec.next <= t && n++ < 5000) { const at = rec.next, s = runStep(rec, at); if (rec.live) rec.next = at + (s.k === 'rest' ? W.restMs : stepMsNow()); }
+  while (rec.live && rec.next <= t && n++ < 5000) {
+    const at = rec.next; staTick(rec, at); runStep(rec, at);
+    if (rec.live) rec.next = at + stepMsNow() * (rec.mode === 'walk' ? W.run.walkStep : 1);   // 걷는 동안은 걸음이 느리다
+  }
+  if (rec.live) staTick(rec, t);
   if (n) { notify.refresh(); notify.save(); }
   return n ? rec : null;
 }

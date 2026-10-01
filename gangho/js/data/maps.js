@@ -1,16 +1,18 @@
 /* [데이터] 탐험 규칙 · 조우 가중치 · 금고 보상 풀 · 사건(기연) 표 — 순수 정적 데이터 (로직 없음) */
 
 /* 강호행: [강호행 시작]을 누르면 제자가 고른 탐험지의 고른 단계(스테이지)에서, 쓰러지거나 귀환할 때까지 걸음을 이어 간다.
-   stepMs: 걸음 하나의 간격(ms) · firstMs: 출발 뒤 첫 걸음까지 · restMs: 기력이 바닥나 쉬어 가는 걸음의 길이
+   stepMs: 걸음 하나의 간격(ms) · firstMs: 출발 뒤 첫 걸음까지
    catchUp: 자리를 비운 동안 따라잡아 치르는 최대 시간 · keep: 보관하는 강호행 기록 수
    weights: 한 걸음마다 무엇을 만날지 (금고는 전리품이 크므로 드물게)
    potionAt: 활력이 이 비율 아래면 생혈고를 바름 (한 전투에 potionPerFight개까지) · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율 (걸음 사이에 활력은 차지 않는다)
-   minStamina: 기력이 이만큼 아래면 쉬어 가는 걸음 (기력만 가득 찬다) · 전투에서 지면 쓰러지고 강호행은 끝난다 */
+   run: 기력(달리기 · 걷기) · 전투에서 지면 쓰러지고 강호행은 끝난다 */
 const EXPEDITION = {
   stepMs: 30000, firstMs: 3000,
-  stepGrade: { '삼류': 0.95, '이류': 0.9, '일류': 0.85, '절정': 0.8 },   // 장착 경공 경지가 높을수록 걸음 간격이 짧아져 요수를 조금 더 빨리 만난다 restMs: 60000, catchUp: 8 * 3600000, keep: 8,
+  // 기력: 달리면 drainMs에 걸쳐 다 닳고, 다 닳으면 걸으며 regenMs에 걸쳐 차오른다. 걷는 동안은 걸음 간격이 walkStep배
+  run: { drainMs: 20 * 60000, regenMs: 10 * 60000, walkStep: 2 },
+  stepGrade: { '삼류': 0.95, '이류': 0.9, '일류': 0.85, '절정': 0.8 },   // 장착 경공 경지가 높을수록 걸음 간격이 짧아져 요수를 조금 더 빨리 만난다 catchUp: 8 * 3600000, keep: 8,
   weights: { beast: 70, vault: 8, event: 6, trap: 8, gimmick: 8 },
-  potionAt: 0.35, potionPerFight: 3, breathe: 0.06, minStamina: 3, maxRounds: 60,
+  potionAt: 0.35, potionPerFight: 3, breathe: 0.06, maxRounds: 60,
   rewardMult: 0.1,   // 원정 은자 획득 배율 (인플레이션 억제, 반올림)
   expMult: 0.2,      // 원정 수련치 획득 배율 (무공 성급이 강호행 진행을 따라가도록 은자보다 후하게)
   dropMult: 0.1,     // 요수 전리품·채집 재료 드랍 확률 배율 (1회 1개). 두목의 확정 드랍은 그대로
@@ -43,7 +45,6 @@ const VAULTS = [
 const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.08 };
 
 /* 걸음마다 드는 기력 (기력은 숨겨진 능력치. 출발 때와 쉬어 가는 걸음에서 가득 차고, 아이템으로는 회복되지 않는다) */
-const STAMINA_COST = { battle: 17, chest: 10, gimmick: 10, boss: 25 };
 
 /* ───────── 사냥터 사건 (기연 奇緣) ─────────
    zones: 나오는 지역 ('all'이면 어디서나). 선택지 req는 조건(부족하면 고를 수 없음),
