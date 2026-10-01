@@ -15,6 +15,11 @@ function npcTalk(who, fn) {
 function bindInput() {
   document.addEventListener('click', onClick);
   document.addEventListener('change', onChange);
+  document.addEventListener('input', e => {                          // 슬라이더: 대량 구매 개수 · 설정 값
+    const t = e.target;
+    if (t.dataset.buyqty) { ui.buyQty = +t.value; const w = t.closest('.buy-qty'); w.querySelector('.qty-n').textContent = `${t.value}개`; w.querySelector('.qty-sum').textContent = fmt(t.value * t.dataset.buyqty); }
+    if (t.dataset.setting === 'potionAt') { const v = +t.value; S.settings = { ...(S.settings || {}), potionAt: v / 100 }; t.parentElement.querySelector('.set-val').textContent = `활력 ${v}% 이하`; notify.save(); }
+  });
   document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual], [data-mart], [data-artslot], [data-fold]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (c.dataset.fold) return toggleFold(c.dataset.fold); if (c.dataset.artslot) { ui.modal = 'artslot:' + c.dataset.artslot; return renderModal(); } ui.modal = c.dataset.mart ? 'mart:' + c.dataset.mart : 'manual:' + c.dataset.manual; renderModal(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.modal && ui.modal !== 'ending') { ui.modal = null; render(); } });
 }
@@ -114,7 +119,10 @@ function askStarUp(id) {
 }
 function askBuy(id) {
   const row = SHOP_STOCK.find(r => r[0] === id); if (!row || S.silver < row[1]) return buyItem(id);
-  requestActionConfirm({ title: '구매', description: `${ITEMS[id].icon} <b>${esc(ITEMS[id].name)}</b> 1개를 삽니다.`, details: [`은자 -${row[1]}냥`], confirmText: '구매', onConfirm: () => buyItem(id) });
+  const max = clamp(Math.floor(S.silver / row[1]), 1, 20); ui.buyQty = 1;   // 1~20개 (가진 은자만큼까지)
+  requestActionConfirm({ title: '구매', description: `${ITEMS[id].icon} <b>${esc(ITEMS[id].name)}</b>을(를) 몇 개 살까요?
+    <label class="buy-qty"><input type="range" min="1" max="${max}" value="1" data-buyqty="${row[1]}" aria-label="살 개수"><span><b class="qty-n">1개</b> · 은자 <b class="qty-sum">${row[1]}</b>냥</span></label>`,
+    details: [`가진 은자 ${fmt(S.silver)}냥 · 한 번에 최대 ${max}개`], confirmText: '구매', onConfirm: () => buyItem(id, ui.buyQty || 1) });
 }
 function askBuyGear(base, tier) {
   const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row || S.silver < row[2]) return buyGear(base, tier);

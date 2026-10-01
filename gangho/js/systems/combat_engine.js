@@ -115,7 +115,7 @@ function battleRound(b) {
 function autoPotion(b) {
   const use = (id, k) => { if (b.sim) { if (b.pots[k] <= 0) return false; b.pots[k]--; return true; } if (!has(id)) return false; take(id, 1); return true; };
   // 한 전투에 생혈고는 EXPEDITION.potionPerFight개까지 (이길 수 없는 상대에게 가진 것을 다 쏟아붓지 않는다)
-  if (S.hp < b.st.maxHp * EXPEDITION.potionAt && (b.potHp || 0) < EXPEDITION.potionPerFight && use('saenghyeol', 'hp')) {
+  if (S.hp < b.st.maxHp * ((S.settings && S.settings.potionAt != null) ? S.settings.potionAt : EXPEDITION.potionAt) && (b.potHp || 0) < EXPEDITION.potionPerFight && use('saenghyeol', 'hp')) {
     b.potHp = (b.potHp || 0) + 1;
     const v = Math.round(b.st.maxHp * ITEMS.saenghyeol.use.hp * (1 + (talentOf().pill || 0)));   // 기예 단약: 단약 효과 +15%
     S.hp = Math.min(b.st.maxHp, S.hp + v);

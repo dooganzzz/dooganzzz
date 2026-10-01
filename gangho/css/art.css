@@ -599,4 +599,5 @@
 /* 기력: 패널 막대 · 걷는 동안은 경공 잔상을 숨긴다 */
 .live-prog.sta span { background: linear-gradient(90deg, #2c5a8a, #5ab0e0); }
 .live-walker.walking .walk-ghost { display: none; }
-
+/* 암기 비표 */
+.live-proj { position: absolute; z-index: 5; width: 7%; pointer-events: none; transform-origin: 50% 50%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .5)); }

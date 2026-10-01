@@ -407,7 +407,7 @@ body {
 }
 /* 좁은 화면: 1차 탭 5개를 한 줄 격자로 모두 보이게 (가로 스크롤 없음). 한자는 한글 아래 작게 */
 @media (max-width: 640px) {
-  .tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; overflow: visible; padding-block: 4px 8px; }
+  .tabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; overflow: visible; padding-block: 4px 8px; }
   .tab { flex-direction: column; align-items: center; gap: 1px; padding: 7px 2px 8px; font-size: .95rem; min-width: 0; }
   .tab .hj { margin-left: 0; font-size: .6em; letter-spacing: .12em; }
 }

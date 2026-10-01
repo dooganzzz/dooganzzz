@@ -232,3 +232,11 @@ small { font-size: .82rem; }
 .tab .alert-dot, .subtab .alert-dot { position: absolute; top: 4px; right: 10%; margin: 0; }
 @keyframes alertPulse { 50% { transform: scale(1.25); } }
 @media (prefers-reduced-motion: reduce) { .alert-dot { animation: none; } }
+/* 설정 탭 · 대량 구매 슬라이더 */
+.settings-panel .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid rgba(212, 175, 55, .15); }
+.set-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.set-range, .buy-qty { display: flex; align-items: center; gap: 10px; flex: 1 1 220px; }
+.buy-qty { margin-top: 12px; flex-wrap: wrap; }
+.set-range input, .buy-qty input { flex: 1; min-width: 140px; accent-color: #d4af37; height: 28px; }
+.set-val, .buy-qty span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+

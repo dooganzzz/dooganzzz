@@ -157,9 +157,9 @@ function holdStep(rec, b) {
 function startRun(t = now()) {
   const X = S.expedition; if (!X.zone || !zoneUnlocked(X.zone) || activeRun()) return null;
   const zid = X.zone, Z = ZONES[zid], st = calcStats(), tm = terrainMult(zid);
-  S.hp = st.maxHp; S.mp = st.maxMp; S.stamina = st.maxSta;      // 몸을 추스르고 출발
+  if (S.hp <= 0) S.hp = st.maxHp;                                  // 출발할 때 따로 채우지 않는다 (쓰러졌다 오면 반만 회복한 채로)
   const stage = clamp(X.stage || 1, 1, stageMax(zid));
-  const rec = { id: S.uid++, at: t, zone: zid, stage, startStage: stage, kills: 0, live: true, mode: 'run', staAt: t, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [],
+  const rec = { id: S.uid++, at: t, zone: zid, stage, startStage: stage, kills: 0, live: true, mode: S.stamina > 0 ? 'run' : 'walk', staAt: t, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [],
     gain: { silver: 0, exp: 0, contrib: 0, items: {}, used: {}, gear: [] }, pend: { silver: 0, exp: 0, contrib: 0, items: {}, gear: [] },
     defeats: 0, villages: 0, rests: 0, wins: 0, losses: 0,
     terrain: { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(tm * (1 - (st.staSave || 0) / 100) * 1000) / 1000, extra: 0 } };
@@ -227,8 +227,9 @@ function endRun(rec, t, why) {
   rec.wins = rec.battles.filter(b => b.win).length; rec.losses = rec.battles.filter(b => !b.win && !b.fled).length;
   rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
   if (S.expedition.run === rec.id) S.expedition.run = null;
-  S.stamina = 0; S.buffs = [];                                     // 증강 단약 효과는 이번 강호행으로 끝
-  { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; }   // 산문에 돌아오면 몸을 추스른다 (쓰러졌어도 실려 와 치료받는다)
+  S.buffs = []; S.staAt = t;                                       // 증강 단약 효과는 이번 강호행으로 끝 · 기력은 그대로 (산문에서 천천히 찬다)
+  { const st = calcStats(), k = why === 'dead' ? .5 : 1;          // 귀환하면 몸을 추스르고, 쓰러지면 실려 와 반만 회복한다
+    S.hp = Math.max(1, Math.round(st.maxHp * k)); S.mp = Math.round(st.maxMp * k); }
   // 쓰러지면 다음 출발 단계를 한 단계 낮춘다 (아래에서 토벌 임무를 채우며 생혈고 · 은자를 모으고 다시 오르도록)
   if (why === 'dead' && S.expedition.zone === rec.zone) { const back = Math.max(1, rec.stage - 1); S.expedition.stage = back; rec.backTo = back; }
   const zid = rec.zone, zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
@@ -257,8 +258,13 @@ function staTick(rec, t) {
     }
   }
 }
+/* 강호행 중이 아닐 때: 산문에서 기력이 걷기와 같은 빠르기(EXPEDITION.run.regenMs)로 차오른다 */
+function restTick(t) {
+  const max = calcStats().maxSta || 100, from = S.staAt || t; S.staAt = t;
+  if (t > from && S.stamina < max) S.stamina = Math.min(max, S.stamina + (t - from) * max / EXPEDITION.run.regenMs);
+}
 function advanceRun(t = now()) {
-  const rec = activeRun(); if (!rec) return null;
+  const rec = activeRun(); if (!rec) { restTick(t); return null; }
   const W = EXPEDITION; let n = 0;
   if (t - rec.next > W.catchUp) { log(`⌛ 자리를 오래 비워 ${Math.round((t - rec.next - W.catchUp) / 3600000)}시간 남짓은 그냥 흘러갔습니다. (최대 ${W.catchUp / 3600000}시간까지 이어집니다)`, 'muted', rec.next); rec.next = t - W.catchUp; }
   while (rec.live && rec.next <= t && n++ < 5000) {

@@ -37,6 +37,8 @@ function liveShown(r) { const h = liveAnim.hold; return r && h && h.rid === r.id
 function liveHeld(r) { return !!r && liveShown(r) < r.steps.length; }
 function liveRelease() {
   if (!liveAnim.hold) return; liveAnim.hold = null;
+  const q = liveAnim.gimQ; liveAnim.gimQ = null;             // 기다리던 기믹이 있으면 이어서 (그 결과는 다시 가린다)
+  if (q && now() - q.at < 60000) { const r = findExpedition(q.rid); if (r && r.steps[q.si]) liveGimQueue(r, q.si); }
   const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
   const sc = document.getElementById('liveScene'), lr = liveRec(); if (sc) sc.classList.toggle('rest', liveDone(lr));
   if (typeof renderTabs === 'function') renderTabs();
@@ -57,7 +59,11 @@ function liveShowPlan(sh, w) {
   const heroAtk = (t0, ev) => {
     if (!ranged) { q.push({ at: t0, k: 'hx', x: LIVE_POS.lunge }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1); }
     const s = ranged ? t0 : t0 + T(330);
-    heroF(s, 4); heroF(s + T(120), 5); q.push({ ...ev, at: s + T(150) }); heroF(s + T(300), 6);
+    // 암기: 손을 떠난 비표가 날아가 꽂힌 뒤에 맞는다 (날아가는 시간 T(260))
+    const hitAt = ranged ? s + T(380) : s + T(150);
+    heroF(s, 4); heroF(s + T(120), 5);
+    if (ranged) q.push({ at: s + T(120), k: 'proj', dur: hitAt - (s + T(120)) });
+    q.push({ ...ev, at: hitAt }); heroF(s + T(300), 6);
     if (!ranged) q.push({ at: s + T(520), k: 'hx', x: LIVE_POS.hero });
     heroF(s + T(560), 0);
     return s + T(700);
@@ -101,6 +107,15 @@ function liveNum(sc, t, left, cls) {
   const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.textContent = t; n.style.left = (left - 4 + Math.random() * 8) + '%';
   sc.appendChild(n); setTimeout(() => n.remove(), 1000);
 }
+/* 날아가는 비표: 제자 손에서 요수 몸통까지 살짝 휘어 날아간다 */
+function liveProj(sc, sh, dur) {
+  const el = document.createElement('img'); el.className = 'live-proj'; el.src = ASSET.fx('dart'); el.alt = '';
+  const x0 = LIVE_POS.hero + 18, y0 = 30, x1 = sh.foeX + LIVE_POS.foeW * sh.size * .45, y1 = 7.4 + LIVE_POS.foeW * sh.size * .8;
+  el.style.left = x0 + '%'; el.style.bottom = y0 + '%'; sc.appendChild(el);
+  const W = sc.offsetWidth || 1, H = sc.offsetHeight || 1, dx = (x1 - x0) / 100 * W, dy = -(y1 - y0) / 100 * H;
+  if (el.animate) el.animate([{ transform: 'translate(0,0) rotate(-4deg)', opacity: 1 }, { transform: `translate(${dx * .5}px,${dy * .5 - H * .04}px) rotate(0deg)`, opacity: 1 }, { transform: `translate(${dx}px,${dy}px) rotate(5deg)`, opacity: 1 }], { duration: Math.max(120, dur), easing: 'linear', fill: 'forwards' });
+  setTimeout(() => el.remove(), Math.max(120, dur) + 60);
+}
 function liveVfx(sc, name, left, cls) {
   const v = document.createElement('img'); v.className = `live-vfx ${cls || ''}`; v.src = SPRITE_SRC.fx(name); v.alt = ''; v.style.left = left + '%';
   sc.appendChild(v); setTimeout(() => v.remove(), 650);
@@ -110,7 +125,7 @@ function liveShowStart(sc, sh) {
   const n = FOE_SHEET[sh.eid] || 6, size = Math.max(.8, foeSize(sh.eid));   // 작은 요수도 폰에서 보이게 0.8배 이상
   foe.className = 'sp-fighter sp-foe flip fsheet live-foe';
   foe.style.width = (LIVE_POS.foeW * size).toFixed(1) + '%'; foe.style.left = '104%';
-  sh.foeX = 100 - LIVE_POS.foeR - LIVE_POS.foeW * size;   // 맞붙는 자리 (왼쪽 끝 %)
+  sh.foeX = 100 - LIVE_POS.foeR - LIVE_POS.foeW * size;  sh.size = size;   // 맞붙는 자리 (왼쪽 끝 %)
   const spr = foe.querySelector('.sp-fspr'), atk = foe.querySelector('.sp-fatk');
   spr.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid)}')`; spr.style.backgroundSize = `${n * 100}% 100%`;
   atk.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid, 1)}')`; atk.style.backgroundSize = '300% 100%';
@@ -120,12 +135,13 @@ function liveShowStart(sc, sh) {
   for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) preloadImgs([SPRITE_SRC.fx(`${f.mid}_${Math.min(2, f.n)}`)]);
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1);
   liveHp(sc, 'foe', sh.rec ? sh.rec.start.foe.hp : 1, sh.rec ? sh.rec.start.foe.maxHp : 1, ENEMIES[sh.eid].name);
-  const ff = sc.querySelector('.live-hp.foe .lh-face'); if (ff) ff.style.backgroundImage = `url('${ASSET.beast(sh.eid)}')`;
+  liveAnim.hpm.foe.face = `url('${ASSET.beast(sh.eid)}')`; const ff = sc.querySelector('.live-hp.foe .lh-face'); if (ff) ff.style.backgroundImage = liveAnim.hpm.foe.face;
   Object.assign(sh, { n, skill: sk, heavy: sh.boss || size >= 1.05, base: Math.max(4, Math.round(calculateCombatPower(S) / 12)), phase: 'approach', x0: liveAnim.x, t0: 0, q: null, bf: 0, bt: 0 });
   sc.classList.add('approach');
   return sh;
 }
 function liveShowStep(sc, sh, ts, dt) {
+  for (const w of ['me', 'foe']) { const M = liveAnim.hpm && liveAnim.hpm[w], em = sc.querySelector(`.live-hp.${w} em`); if (M && em && !em.textContent) liveHp(sc, w, M.hp); }   // 다시 그려졌으면 체력패를 되살린다
   const foe = sc.querySelector('.live-foe'), hero = document.getElementById('liveHero');
   if (!foe || !hero) return true;
   sh.bt += dt; if (sh.bt > 170) { sh.bt = 0; foe.querySelector('.sp-fspr').style.backgroundPositionX = (sh.bf++ % sh.n) * 100 / (sh.n - 1) + '%'; }   // 요수 숨쉬기
@@ -151,6 +167,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'fx') foe.style.left = (sh.foeX + e.x * LIVE_POS.k) + '%';
     else if (e.k === 'fa') foe.classList.toggle('striking', e.f >= 0), e.f >= 0 && (foe.querySelector('.sp-fatk').style.backgroundPositionX = e.f * 50 + '%');
     else if (e.k === 'skill') liveSkill(sc, e.sk);
+    else if (e.k === 'proj') liveProj(sc, sh, e.dur);
     else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 치명타 · 빗나감
       const f = e.f;
       if (f.k === 'miss') liveNum(sc, '빗나감', sh.foeX + 9, 'miss');
@@ -174,8 +191,10 @@ function liveShowStep(sc, sh, ts, dt) {
 /* 무대 위 활력 막대 (맞붙는 동안만): who = me · foe */
 function liveHp(sc, who, hp, max, name) {
   const el = sc.querySelector(`.live-hp.${who}`); if (!el) return;
-  if (max) { el.dataset.max = max; if (name !== undefined) el.querySelector('b').textContent = name; }
-  const m = +el.dataset.max || 1, r = clamp(hp / m, 0, 1);
+  const M = (liveAnim.hpm = liveAnim.hpm || {})[who] = { ...(liveAnim.hpm[who] || {}), ...(max ? { max, name } : {}), hp };   // 다시 그려져도 이름 · 최대치를 잃지 않게 기억
+  if (M.name !== undefined) { const b = el.querySelector('b'); if (b && b.textContent !== M.name) b.textContent = M.name; }
+  if (M.face) { const f = el.querySelector('.lh-face'); if (f && !f.style.backgroundImage) f.style.backgroundImage = M.face; }
+  const m = M.max || 1, r = clamp(hp / m, 0, 1);
   el.querySelector('i').style.width = (r * 100).toFixed(1) + '%'; el.classList.toggle('low', r < .3);
   const n = el.querySelector('em'); if (n) n.textContent = `${fmt(Math.max(0, Math.round(hp)))} / ${fmt(m)}`;
   if (who === 'me' && liveAnim.hold) {                // 옆 패널 활력 막대도 무대와 같이
@@ -213,7 +232,8 @@ function liveProps(sc, walker, dt) {
 const LIVE_GIM = { trap: 'gim_trap', vault: 'gim_vault', gimmick: 'gim_gimmick', event: 'gim_event' };   // props/ 아래 기믹 전용 그림
 function liveGimQueue(rec, si) {
   const st = rec.steps[si], sc = document.getElementById('liveScene');
-  if (!sc || !LIVE_GIM[st.k] || liveAnim.show || liveAnim.queued || liveAnim.gim || reduceMotion()) return;
+  if (!sc || !LIVE_GIM[st.k] || reduceMotion()) return;
+  if (liveAnim.show || liveAnim.queued || liveAnim.gim) { liveAnim.gimQ = { rid: rec.id, si, at: now() }; return; }   // 무대가 바쁘면 맞붙기가 끝난 뒤에
   const el = document.createElement('img'); el.className = `live-gim ${st.k}`; el.src = ASSET.prop(LIVE_GIM[st.k]); el.alt = ''; el.style.left = '104%';
   sc.appendChild(el);
   liveAnim.gim = { el, st, x0: liveAnim.x, fired: 0 };

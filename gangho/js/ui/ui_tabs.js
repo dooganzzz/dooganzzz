@@ -69,6 +69,7 @@ const TABS = [
   ['field', '강호행', '江湖行'],
   ['chronicle', '견문록', '見聞錄'],
   ['codex', '도감', '圖鑑'],
+  ['settings', '설정', '設定'],
 ];
 /* 2차 탭 (청풍문 시설 · 상태) */
 const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
@@ -164,7 +165,7 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  setHTML(main, bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex })[scr]());
+  setHTML(main, bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex, settings: viewSettings })[scr]());
   renderModal();
   typewriteAll();
   wireImages();

@@ -179,13 +179,13 @@ function shopPoor(price, name) {
   log(`🚫 은자가 부족해 ${name}${jo(name, '을를')} 살 수 없습니다. (필요 ${fmt(price)}냥 · 소지 ${fmt(S.silver)}냥) 왕 가: ${MERCHANT.poor}`, 'bad');
   notify.refresh();
 }
-function buyItem(id) {
+function buyItem(id, n = 1) {
   const row = SHOP_STOCK.find(r => r[0] === id); if (!row) return false;
-  const [, price] = row, name = ITEMS[id].name;
+  n = Math.max(1, Math.floor(n)); const price = row[1] * n, name = ITEMS[id].name;
   if (S.silver < price) { shopPoor(price, name); return false; }
-  if (!give(id, 1, true)) { notify.refresh(); return false; }
+  if (!give(id, n, true)) { notify.refresh(); return false; }
   S.silver -= price;
-  log(`🛒 전방에서 ${hlItem(name)}${jo(name, '을를')} ${hlSilver(price)}에 샀습니다. 왕 가: ${pick(MERCHANT.buyLines)}`, 'loot');
+  log(`🛒 전방에서 ${hlItem(name)}${n > 1 ? ` ${n}개` : ''}${jo(n > 1 ? '개' : name, '을를')} ${hlSilver(price)}에 샀습니다. 왕 가: ${pick(MERCHANT.buyLines)}`, 'loot');
   notify.refresh();
   return true;
 }
