@@ -42,6 +42,7 @@ function reqFail(req) {
   if (!req) return '';
   if (req.item && !has(req.item[0], req.item[1])) return `${ITEMS[req.item[0]].name} ${req.item[1]}개 필요`;
   if (req.silver && S.silver < req.silver) return `은자 ${req.silver}냥 필요`;
+  if (req.bag && bagUsed() >= bagCap()) return '행낭이 가득 참';
   if (req.stamina && S.stamina < req.stamina) return `기력 ${req.stamina} 필요`;
   if (req.stat && calcStats()[req.stat[0]] < req.stat[1]) return `${STAT_NAMES[req.stat[0]]} ${req.stat[1]} 이상`;
   if (req.star && bestMugongStar() < req.star) return `무공 ${req.star}성 이상`;
@@ -55,6 +56,7 @@ function applyFx(fx) {
   const out = [], st = calcStats();
   if (fx.silver) { S.silver = Math.max(0, S.silver + fx.silver); out.push(`${fx.silver > 0 ? '+' : ''}은자 ${fx.silver}냥`); }
   for (const [id, n] of Object.entries(fx.items || {})) if (give(id, n, true)) out.push(`${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`);
+  if (fx.named && giveGear(makeNamedGear(fx.named), true)) out.push(`[하급] ${GEAR_DB[fx.named].name}`);
   if (fx.hpPct) { const d = Math.round(st.maxHp * fx.hpPct); S.hp = clamp(S.hp + d, 1, st.maxHp); out.push(`활력 ${d > 0 ? '+' : ''}${d}`); }
   if (fx.stamina < 0) S.stamina = Math.max(0, S.stamina + fx.stamina);   // 기력은 숨겨진 능력치: 깎이기만 하고 회복되지 않는다
   if (fx.contrib) { S.contrib += fx.contrib; out.push(`문파 공헌도 +${fx.contrib}`); }
@@ -123,19 +125,37 @@ function stepEncounter(rec, zid, used) {
   used.add(ev.id);
   S.encounters = (S.encounters || []).filter(e => e.done || encLeft(e) > 0);   // 기한이 지난 기연은 지나갔다
   const at = rec.next || now();
-  S.encounters.push({ uid: S.uid++, ev: ev.id, zone: zid, at });
+  S.encounters.push({ uid: S.uid++, ev: ev.id, zone: zid, at, wares: ev.wares ? peddlerRoll() : undefined });
   S.encNext = at + rnd(EXPEDITION.encounterGap[0], EXPEDITION.encounterGap[1]);
   const wait = encountersWaiting();
   if (wait.length > ENCOUNTER_KEEP) S.encounters.splice(S.encounters.indexOf(wait[0]), 1);   // 너무 쌓이면 가장 오래된 것은 지나간다
   log(`📜 기연 「${ev.title}」 — ${ev.text}`, 'npc');
   return { t: `📜 기연 「${ev.title}」 — 기연 탭에 쌓였습니다`, cls: 'npc' };
 }
+/* 약장수 등짐: 비급(익혔거나 가진 것 빼고) · 소성 돌파단 · 하급 장비 가운데 몇 가지를 골라 싸게 */
+function peddlerRoll() {
+  const W = PEDDLER_WARES, pool = [
+    ...W.items.filter(([id]) => { const u = ITEMS[id].use; return !(u && u.learn && (S.manuals[u.learn] || count(id))); }).map(([id, pr]) => ({ id, pr })),
+    ...W.gear.map(([id, pr]) => ({ id, pr, gear: 1 }))];
+  const out = [];
+  while (out.length < W.pick && pool.length) { const w = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; out.push({ ...w, pr: Math.round(w.pr * (1 - W.off)), list: w.pr }); }
+  return out;
+}
+/* 기연의 선택지: 약장수는 등짐 물건을 [손사래] 앞에 끼운다 */
+function encChoices(E) {
+  const ev = EVENTS.find(x => x.id === E.ev); if (!ev) return [];
+  if (!E.wares || !E.wares.length) return ev.choices;
+  const sell = E.wares.map(w => { const name = w.gear ? GEAR_DB[w.id].name : ITEMS[w.id].name;
+    return { label: `${name}${jo(name, '을를')} ${w.pr}냥에 산다 (정가 ${w.list}냥)`, req: { silver: w.pr, bag: 1 }, take: true,
+      out: [{ w: 1, text: `약장수가 등짐에서 ${name}${jo(name, '을를')} 꺼내 건넵니다.`, fx: w.gear ? { named: w.id } : { items: { [w.id]: 1 } } }] }; });
+  return [...ev.choices.slice(0, -1), ...sell, ev.choices[ev.choices.length - 1]];
+}
 const encountersWaiting = () => (S.encounters || []).filter(e => !e.done && encLeft(e) > 0);
 /* 기연 고르기: 조건 확인 → 값 치르기 → 결과(확률) → 효과 · 싸움. 얻고 잃은 것을 기록해 기연 탭에 남긴다 */
 function resolveEncounter(uid, ci) {
   const E = (S.encounters || []).find(e => e.uid === uid && !e.done); if (!E) return null;
   if (encLeft(E) <= 0) return { fail: '기한이 지나 기연이 사라졌습니다' };
-  const ev = EVENTS.find(x => x.id === E.ev), ch = ev && ev.choices[ci]; if (!ch) return null;
+  const ev = EVENTS.find(x => x.id === E.ev), ch = encChoices(E)[ci]; if (!ch) return null;
   const why = reqFail(ch.req); if (why) return { fail: why };
   const b = { silver: S.silver, inv: { ...S.inv }, hp: S.hp };
   if (ch.take && ch.req) { if (ch.req.item) take(ch.req.item[0], ch.req.item[1]); if (ch.req.silver) S.silver -= ch.req.silver; }
@@ -146,7 +166,7 @@ function resolveEncounter(uid, ci) {
   let fightRes = null;
   if (out.fight) { const f = fight(out.fight, { bonus: out.bonus }); if (S.hp < 1) S.hp = 1; fightRes = `${josa(f.name, '과와')} 싸워 ${f.win ? '이겼습니다' : '졌습니다'}`; }
   const items = {}; for (const id of new Set([...Object.keys(S.inv), ...Object.keys(b.inv)])) { const d = (S.inv[id] || 0) - (b.inv[id] || 0); if (d) items[id] = d; }
-  E.done = { ci, label: ch.label, text: out.text, fight: fightRes, silver: S.silver - b.silver, hp: Math.round(S.hp - b.hp), items, at: now() };
+  E.done = { ci, label: ch.label, text: out.text, fight: fightRes, gear: out.fx && out.fx.named ? GEAR_DB[out.fx.named].name : '', silver: S.silver - b.silver, hp: Math.round(S.hp - b.hp), items, at: now() };
   const doneList = S.encounters.filter(e => e.done); while (doneList.length > ENCOUNTER_LOG) S.encounters.splice(S.encounters.indexOf(doneList.shift()), 1);
   notify.refresh(); notify.save();
   return E.done;

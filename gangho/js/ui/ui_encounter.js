@@ -3,6 +3,7 @@ function encGainText(D) {
   const parts = [];
   if (D.silver) parts.push(`은자 ${D.silver > 0 ? '+' : ''}${fmt(D.silver)}`);
   for (const [id, n] of Object.entries(D.items || {})) parts.push(`${ITEMS[id] ? ITEMS[id].name : id} ${n > 0 ? '+' : ''}${n}`);
+  if (D.gear) parts.push(`[하급] ${D.gear} +1`);
   if (D.hp) parts.push(`활력 ${D.hp > 0 ? '+' : ''}${D.hp}`);
   return parts.join(' · ');
 }
@@ -10,7 +11,7 @@ function viewEncounters() {
   const all = S.encounters || [], wait = encountersWaiting(), done = all.filter(e => e.done).reverse();
   const card = E => {
     const ev = EVENTS.find(x => x.id === E.ev); if (!ev) return '';
-    const btns = ev.choices.map((c, i) => { const why = reqFail(c.req);
+    const btns = encChoices(E).map((c, i) => { const why = reqFail(c.req);
       return `<button class="btn ${why ? 'ghost' : c.req ? 'primary' : ''} sm enc-choice" data-encpick="${E.uid}:${i}" ${why ? 'disabled' : ''}>${esc(c.label)}${c.req ? ` <small>(${reqLabel(c.req)})</small>` : ''}${why ? ` <small class="warn">— ${why}</small>` : ''}</button>`; }).join('');
     return `<div class="enc-card"><div class="enc-top"><b>「${ev.title}」</b><small class="muted">${ZONES[E.zone] ? ZONES[E.zone].name : ''} · ${hhmm(E.at)} · <span class="warn">남은 시간 ${fmtDur(Math.ceil(encLeft(E) / 1000))}</span></small></div>
       <p class="story">${ev.text}</p><div class="enc-btns">${btns}</div></div>`;

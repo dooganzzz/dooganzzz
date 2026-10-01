@@ -52,9 +52,34 @@ const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.0
 /* ───────── 사냥터 사건 (기연 奇緣) ─────────
    zones: 나오는 지역 ('all'이면 어디서나). 선택지 req는 조건(부족하면 고를 수 없음),
    take: true면 조건으로 건 아이템·은자를 소모. out은 가중치(w)로 하나를 고른다.
-   fx 효과: silver, items, hpPct, stamina, contrib, exp, buff, perm, book, gear:[tier, rarity]
+   fx 효과: silver, items, hpPct, stamina, contrib, exp, buff, perm, book, gear:[tier, rarity], named: 하급 장비 id
    자동 탐험에서는 제자가 조건을 채운 선택지 중 하나를 스스로 고른다
    fight: 적 id → 전투, bonus: 이기면 추가로 받는 fx */
+
+/* 떠돌이 약장수의 등짐: 만날 때마다 이 가운데 pick개를 골라 정가에서 off만큼 싸게 판다 (제작 장비는 없다)
+   [아이템 또는 하급 장비 id, 정가(냥)] · 이미 익힌 비급 · 가진 비급은 내놓지 않는다 */
+const PEDDLER_WARES = {
+  pick: 2, off: 0.2,
+  items: [
+    ['pillLow', 80],
+    ['bk_samjaeGwon', 60], ['bk_samjaeGeom', 60], ['bk_samjaeDo', 60], ['bk_samjaeChang', 60], ['bk_samjaePyo', 60], ['bk_tonap', 150],
+    ['bk_pocheolsak', 150], ['bk_cheolpo', 150], ['bk_paseok', 150], ['bk_swaegol', 150], ['bk_yeonhwan', 150], ['bk_cpGeombeop', 150],
+    ['bk_nakyeop', 150], ['bk_chupung', 150], ['bk_ohodanmun', 150], ['bk_byeokryeok', 150], ['bk_dansu', 150], ['bk_yukhap', 150],
+    ['bk_cheolgi', 150], ['bk_pungun', 150], ['bk_biyeon', 150], ['bk_sanhwa', 150], ['bk_tugol', 150], ['bk_chosangbi', 150],
+    ['bk_dapsu', 150], ['bk_jihaeng', 150], ['bk_deungsu', 150], ['bk_mijong', 150], ['bk_mokryeong', 150], ['bk_byeokhwa', 150],
+    ['bk_huto', 150], ['bk_baekgeum', 150], ['bk_yusu', 150],
+  ],
+  gear: [
+    ['g_bandage', 30], ['g_hideTosu', 35], ['g_woodFist', 35], ['g_copperGlove', 40], ['g_studFist', 40], ['g_rustySword', 30],
+    ['g_mapleSword', 35], ['g_dullSword', 35], ['g_bronzeRapier', 40], ['g_straightSword', 45], ['g_chippedBlade', 35], ['g_shortBlade', 40],
+    ['g_ironSaber', 45], ['g_axeBlade', 50], ['g_blackSaber', 50], ['g_bambooSpear', 30], ['g_flailSpear', 40], ['g_waxSpear', 45],
+    ['g_trident', 45], ['g_needleSpear', 50], ['g_pebbles', 30], ['g_dullStar', 30], ['g_rustyKnife', 35], ['g_woodNeedle', 40],
+    ['g_caltrops', 40], ['g_hempRobe', 25], ['g_hunterCoat', 55], ['g_cpRobe', 60], ['g_ironRing', 40], ['g_bronzeRing', 35],
+    ['g_hornRing', 40], ['g_hempBelt', 20], ['g_leatherBelt', 45], ['g_silkBelt', 45], ['g_whiteJade', 50], ['g_dullJade', 45],
+    ['g_cloudJade', 50],
+  ],
+};
+
 const EVENTS = [
   { id: 'herbalist', zones: ['cheongpung'], title: '부상당한 약초꾼',
     text: '비탈 아래에서 신음 소리가 들립니다. 바구니를 쏟은 약초꾼이 발목을 부여잡고 있습니다. "젊은이… 약이 있으면 좀…"',
@@ -165,8 +190,8 @@ const EVENTS = [
         { w: 1, text: '궤짝을 잡는 순간 향주의 칼등이 등을 후려칩니다!', fx: { hpPct: -0.3 } }] },
       { label: '못 들은 척한다', out: [{ w: 1, text: '"겁쟁이 같으니." 향주가 코웃음을 칩니다.', fx: {} }] },
     ] },
-  { id: 'peddler', zones: 'all', title: '떠돌이 약장수',
-    // 행상인: 전방 물건을 20% 싸게 판다 (기력단 50 → 40냥, 생혈고 5통 25 → 20냥)
+  { id: 'peddler', zones: 'all', title: '떠돌이 약장수', wares: true,
+    // 행상인: 전방 물건을 20% 싸게 판다 (기력단 50 → 40냥, 생혈고 5통 25 → 20냥) + 등짐(PEDDLER_WARES)에서 고른 물건 2가지
     text: '등짐을 멘 약장수가 손짓합니다. "청풍문 도령! 전방보다 두 푼 싸게 드리리다. 산길엔 이게 제일이오!"',
     choices: [
       { label: '기력단을 40냥에 산다 (전방가 50냥)', req: { silver: 40 }, take: true, out: [{ w: 1, text: '약장수가 기력단 한 알을 종이에 싸 건넵니다.', fx: { items: { gigeokdan: 1 } } }] },
