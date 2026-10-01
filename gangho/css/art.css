@@ -664,11 +664,30 @@
 .map-spot { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; cursor: pointer; z-index: 2; }
 .map-spot:focus-visible { outline: none; }
 /* 황금 기둥: 손을 댄 사냥터 밑동에서 금빛 기둥이 아래부터 솟아오르고, 솟은 뒤에는 천천히 일렁인다 (열린 곳만) */
-.map-box > .map-pillar { position: absolute; z-index: 2; width: 13%; height: auto; border-radius: 0; object-fit: contain; pointer-events: none; transform: translate(-50%, -96%); transform-origin: 50% 100%; opacity: 0; clip-path: inset(100% 0 0 0); }
+.map-box > .map-pillar { position: absolute; z-index: 2; width: 13%; pointer-events: none; transform: translate(-50%, -96%); }
+.map-pillar > img { display: block; width: 100%; height: auto; border-radius: 0; opacity: 0; transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(to top, #000 40%, transparent 60%); mask-image: linear-gradient(to top, #000 40%, transparent 60%);
+  -webkit-mask-size: 100% 250%; mask-size: 100% 250%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: 0 0; mask-position: 0 0; }
 .map-box > .map-pillar.locked { display: none; }
-.map-spot:hover + .map-pillar, .map-spot:focus-visible + .map-pillar { animation: mapPillarRise .75s cubic-bezier(.2, .8, .3, 1) forwards, mapPillarShimmer 2.2s ease-in-out .75s infinite alternate; }
-@keyframes mapPillarRise { 0% { opacity: 0; clip-path: inset(100% 0 0 0); transform: translate(-50%, -96%) scaleY(.35); } 35% { opacity: 1; } 100% { opacity: 1; clip-path: inset(0 0 0 0); transform: translate(-50%, -96%) scaleY(1); } }
-@keyframes mapPillarShimmer { from { opacity: 1; clip-path: inset(0 0 0 0); transform: translate(-50%, -96%) scaleY(1); filter: brightness(1); } to { opacity: .88; clip-path: inset(0 0 0 0); transform: translate(-50%, -96%) scaleY(1.03); filter: brightness(1.18); } }
+/* 솟기: 밑동부터 부드러운 끝자락으로 서서히 드러나며(1.4초) 투명에서 차오르고, 다 솟으면 천천히 일렁인다 */
+.map-spot:hover + .map-pillar > img, .map-spot:focus-visible + .map-pillar > img { animation: mapPillarRise 1.4s cubic-bezier(.25, .7, .3, 1) forwards, mapPillarShimmer 2.4s ease-in-out 1.4s infinite alternate; }
+@keyframes mapPillarRise { 0% { opacity: 0; transform: scaleY(.55); -webkit-mask-position: 0 0; mask-position: 0 0; } 30% { opacity: .55; } 100% { opacity: 1; transform: scaleY(1); -webkit-mask-position: 0 100%; mask-position: 0 100%; } }
+@keyframes mapPillarShimmer { from { opacity: 1; transform: scaleY(1); filter: brightness(1); -webkit-mask-position: 0 100%; mask-position: 0 100%; } to { opacity: .86; transform: scaleY(1.03); filter: brightness(1.2); -webkit-mask-position: 0 100%; mask-position: 0 100%; } }
+/* 별가루: 꼭대기에서 흩어져 살짝 떠올랐다가 반짝이며 흩날려 내린다 */
+.map-dust { position: absolute; left: 50%; top: 14%; width: 0; height: 0; }
+.map-dust > i { position: absolute; left: 0; top: 0; width: calc(var(--z) * .45); height: calc(var(--z) * .45); border-radius: 50%; background: #fff3c4; opacity: 0;
+  box-shadow: 0 0 4px 1px rgba(255, 214, 110, .95), 0 0 9px 2px rgba(255, 190, 60, .55); }
+.map-dust > i.st { width: auto; height: auto; background: none; box-shadow: none; border-radius: 0; font-size: var(--z); line-height: 1; color: #ffe9a6; text-shadow: 0 0 4px #ffd65e, 0 0 9px rgba(255, 186, 50, .85); }
+.map-dust > i.st::before { content: '✦'; }
+.map-spot:hover + .map-pillar .map-dust > i, .map-spot:focus-visible + .map-pillar .map-dust > i { animation: mapDust 2.6s ease-out infinite; }
+@keyframes mapDust {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(0); }
+  15% { opacity: 1; }
+  40% { opacity: 1; transform: translate(calc(-50% + var(--dx) * .55), calc(-50% - 14px)) scale(1) rotate(90deg); }
+  70% { opacity: .5; }
+  80% { opacity: .95; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.5) rotate(200deg); } }
+@media (prefers-reduced-motion: reduce) { .map-spot:hover + .map-pillar > img { animation: none; opacity: 1; -webkit-mask: none; mask: none; } .map-dust { display: none; } }
 .map-spot.locked { cursor: not-allowed; }
 /* 지도 글씨: 붓글씨 그림(ui/map_*)만 — 작게, 배경 · 테두리 없이 먹이 종이에 스며든 듯(곱하기), 각 그림의 머리 위쪽에 */
 .map-box > .map-word { position: absolute; z-index: 3; border-radius: 0; object-fit: contain; transform: translate(-50%, -50%); width: 10%; height: auto; pointer-events: none; mix-blend-mode: multiply; opacity: 1; transition: opacity .2s, filter .2s; }

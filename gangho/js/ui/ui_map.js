@@ -8,6 +8,8 @@ const MAP_HIT = {
   yeomhwa: { px: 78, py: 40, poly: '65% 42%,65.5% 33%,66.3% 31%,67.5% 32%,69.5% 28%,70.6% 28%,71.5% 26%,72% 21.5%,73.2% 21%,74% 19.5%,75% 17.5%,75.5% 15.5%,76.2% 17%,78% 18.5%,79.5% 18.5%,80% 14%,80.6% 14.5%,81% 19%,82.3% 20%,83% 23.5%,84.5% 26%,86.3% 27%,87.5% 27%,88% 29%,89.2% 29%,89.7% 31%,90.5% 34%,91.5% 37%,92% 41%,91% 45%,88% 48%,84% 50%,78% 51%,72% 51%,68% 48.5%,66% 45.5%' },
   suryong: { px: 58, py: 86, poly: '24% 80%,27% 76%,31% 73%,36% 72%,41% 73%,46% 74%,50% 72%,54% 70.5%,58% 72%,61% 76%,66% 78%,70% 82%,71% 88%,67% 92%,60% 95%,52% 96%,44% 95.5%,36% 94%,30% 92%,26% 88%,23.5% 84%' },
 };
+/* 기둥 꼭대기에서 휘날리는 별가루: [가로 · 세로 이동(px), 지연(s), 크기(px), 별 모양?] — 자리를 고정해 다시 그려도 튀지 않게 */
+const MAP_DUST = [[47, 67, 1.12, 12, 1], [-23, 69, 1.23, 12, 1], [-18, 46, 0.73, 7, 0], [-50, 43, 2.32, 12, 1], [-51, 18, 2.0, 7, 1], [-14, 30, 2.11, 12, 0], [-41, 38, 1.06, 8, 1], [-52, 36, 1.2, 7, 1], [53, 35, 0.98, 12, 0], [-57, 34, 0.76, 8, 1], [13, 22, 1.35, 7, 1], [18, 36, 0.93, 7, 0], [-25, 31, 2.22, 7, 1], [36, 63, 0.95, 7, 1]];
 /* 붓글씨 이름 자리(%): 각 그림의 머리 위쪽 */
 const MAP_LABELS = { cheongpung: { x: 19, y: 20 }, yeomhwa: { x: 88, y: 20 }, suryong: { x: 50, y: 79 }, home: { x: 51, y: 27 } };
 function mapModal() {
@@ -16,7 +18,8 @@ function mapModal() {
     const L = MAP_LABELS[zid];
     const M = MAP_HIT[zid];
     return `<button class="map-spot ${open ? '' : 'locked'}" style="clip-path:polygon(${M.poly})" data-mapzone="${zid}" aria-label="${Z.name}" ${open ? '' : 'aria-disabled="true"'}></button>`
-      + `<img class="map-pillar ${open ? '' : 'locked'}" style="left:${M.px}%;top:${M.py}%" src="${ASSET.fx('gold_pillar')}" alt="">`
+      + `<span class="map-pillar ${open ? '' : 'locked'}" style="left:${M.px}%;top:${M.py}%"><img src="${ASSET.fx('gold_pillar')}" alt="">`
+      + `<i class="map-dust">${MAP_DUST.map(([x, y, d, z, st]) => `<i class="${st ? 'st' : ''}" style="--dx:${x}px;--dy:${y}px;--z:${z}px;animation-delay:${d + 1}s"></i>`).join('')}</i></span>`
       + `<img class="map-word ${open ? '' : 'locked'}" style="left:${L.x}%;top:${L.y}%" src="${ASSET.ui('map_' + zid)}" alt="">`;
   }).join('');
   return `<div class="sheet map-sheet">
