@@ -456,8 +456,8 @@
 .live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; will-change: transform; }
 .live-strip img { height: 100%; width: auto; flex: none; display: block; }
 .live-hero.sp-hero { left: 10%; bottom: 9%; width: 31.8%; transition: none; }   /* 관찰 창 무대와 같은 구도 (ui_live.js LIVE_POS) */
-.live-where { position: absolute; right: 2%; top: 4%; z-index: 6; display: flex; align-items: center; gap: .6%; height: 11%; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; pointer-events: none; }
-.live-where img { height: 100%; width: auto; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .9)) drop-shadow(0 0 4px rgba(0, 0, 0, .6)); }
+.live-where { display: inline-flex; align-items: center; gap: .25em; height: 1.05em; margin-left: .45em; vertical-align: -.12em; color: var(--silver, #ccc); pointer-events: none; }
+.live-where img { height: 100%; width: auto; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .8)); }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .live-speed { flex-wrap: wrap; }
 .live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
@@ -563,8 +563,8 @@
   -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent); mask-image: linear-gradient(180deg, #000 40%, transparent); }
 .live-sky::before { content: ''; position: absolute; inset: 0; background: radial-gradient(1.5px 1.5px at 7.9% 20.3%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 37.9% 57.8%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 94.6% 55.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 47.5% 12.2%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 48.8% 88.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 48.1% 29.4%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 15.1% 68.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 73.6% 44.1%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 68.8% 47.4%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 21.1% 85.8%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 36.5% 62.7%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 90.6% 68.7%, rgba(255, 250, 225, .95), transparent); animation: liveTwinkle 3.2s ease-in-out infinite alternate; }
 @keyframes liveTwinkle { from { opacity: .15; } to { opacity: 1; } }
-/* 달: 무대 왼쪽 위(지역 이름과 겹치지 않게). 그림자 원을 덧칠하지 않고, 가려진 쪽을 오려 내 빛나는 모양만 남긴다 (--moonx = 가림 원 자리) */
-.live-moon { position: absolute; left: 16%; top: 10%; width: 6.5%; aspect-ratio: 1; opacity: calc(.3 + var(--moonlit, 1) * .7);
+/* 달: 무대 오른쪽 위. 그림자 원을 덧칠하지 않고, 가려진 쪽을 오려 내 빛나는 모양만 남긴다 (--moonx = 가림 원 자리) */
+.live-moon { position: absolute; right: 9%; top: 9%; width: 6.5%; aspect-ratio: 1; opacity: calc(.3 + var(--moonlit, 1) * .7);
   filter: drop-shadow(0 0 5px rgba(255, 244, 205, .6)) drop-shadow(0 0 14px rgba(255, 240, 200, .25)); }
 .live-moon .moon-shade { position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 70% 60%, rgba(150, 140, 110, .25) 0 10%, transparent 11%), radial-gradient(circle at 40% 70%, rgba(150, 140, 110, .2) 0 7%, transparent 8%), radial-gradient(circle at 38% 36%, #fffbe8, #f3e6bd 55%, #d8c99c);
@@ -620,7 +620,6 @@
 .live-hp.me { left: 8px; }
 .live-hp.foe { right: 8px; flex-direction: row-reverse; padding: 4px 4px 4px 8px; border-radius: 10px 999px 999px 10px; background: linear-gradient(270deg, rgba(18, 16, 14, .78), rgba(18, 16, 14, .5)); }
 .live-scene.fight .live-hp { display: flex; }
-.live-scene.fight .live-where { opacity: 0; }
 .lh-face { flex: none; width: 30px; height: 30px; border-radius: 50%; background: #2a241c center 18% / cover no-repeat; box-shadow: 0 0 0 1.5px #d4af37, 0 0 6px rgba(212, 175, 55, .45); }
 .live-hp.foe .lh-face { background-size: contain; background-position: center; background-color: #e8e0cc; }
 .lh-body { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 6px; row-gap: 2px; }

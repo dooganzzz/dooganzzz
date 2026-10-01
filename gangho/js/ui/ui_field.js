@@ -15,7 +15,7 @@ Bus.on('tick', () => {
   const sc = $('#liveScene'), lr = liveRec();
   if (sc) {
     sc.classList.toggle('rest', liveDone(lr) && !liveHeld(lr));
-    const wh = sc.querySelector('.live-where'), X = S.expedition; const wz = lr ? lr.zone : X.zone, wn = lr && lr.live ? lr.stage : X.stage || 1;
+    const wh = document.querySelector('.live-panel .live-where'), X = S.expedition; const wz = lr ? lr.zone : X.zone, wn = lr && lr.live ? lr.stage : X.stage || 1;
     if (wh && wz && wh.dataset.k !== wz + wn) wh.outerHTML = liveWhere(wz, wn);   // 지역 이름 붓글씨 (단계가 바뀔 때만)
   }
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
@@ -73,7 +73,7 @@ function livePanel() {
   const r = liveRec(), run = activeRun();
   lastLiveSig = liveSig();
   return `<section class="panel live-panel ${ui.enterAt && now() - ui.enterAt < 1200 ? 'enter' : ''}">
-    ${head('실시간 강호행', '江湖行 觀', `<span class="pill">${run ? '강호행 중' : '대기'}</span>`)}
+    <div class="panel-head"><h2>${label('강호행', '江湖行')}${(r || S.expedition).zone ? liveWhere((r || S.expedition).zone, r && r.live ? r.stage : S.expedition.stage || 1) : ''}</h2><span class="pill">${run ? '강호행 중' : '대기'}</span></div>
     <div class="live-wrap">${liveScene(r)}<div class="live-side" id="liveSide">${liveSide()}</div></div>
   </section>`;
 }
