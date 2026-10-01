@@ -669,22 +669,22 @@
   -webkit-mask-image: linear-gradient(to top, #000 40%, transparent 60%); mask-image: linear-gradient(to top, #000 40%, transparent 60%);
   -webkit-mask-size: 100% 250%; mask-size: 100% 250%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: 0 0; mask-position: 0 0; }
 .map-box > .map-pillar.locked { display: none; }
-/* 솟기: 밑동부터 부드러운 끝자락으로 서서히 드러나며(1.4초) 투명에서 차오르고, 다 솟으면 천천히 일렁인다 */
-.map-spot:hover + .map-pillar > img, .map-spot:focus-visible + .map-pillar > img { animation: mapPillarRise 1.4s cubic-bezier(.25, .7, .3, 1) forwards, mapPillarShimmer 2.4s ease-in-out 1.4s infinite alternate; }
+/* 솟기: 밑동부터 부드러운 끝자락으로 서서히 드러나며(0.8초) 투명에서 차오르고, 다 솟으면 천천히 일렁인다 */
+.map-spot:hover + .map-pillar > img, .map-spot:focus-visible + .map-pillar > img { animation: mapPillarRise .8s cubic-bezier(.25, .7, .3, 1) forwards, mapPillarShimmer 2.4s ease-in-out .8s infinite alternate; }
 @keyframes mapPillarRise { 0% { opacity: 0; transform: scaleY(.55); -webkit-mask-position: 0 0; mask-position: 0 0; } 30% { opacity: .55; } 100% { opacity: 1; transform: scaleY(1); -webkit-mask-position: 0 100%; mask-position: 0 100%; } }
 @keyframes mapPillarShimmer { from { opacity: 1; transform: scaleY(1); filter: brightness(1); -webkit-mask-position: 0 100%; mask-position: 0 100%; } to { opacity: .86; transform: scaleY(1.03); filter: brightness(1.2); -webkit-mask-position: 0 100%; mask-position: 0 100%; } }
 /* 임팩트: 기둥이 다 솟는 순간 꼭대기에 금빛 섬광, 밑동에 빛의 고리가 퍼지고 기둥 전체가 한 번 환해진다 */
-.map-spot:hover + .map-pillar, .map-spot:focus-visible + .map-pillar { animation: mapPillarFlash .9s ease-out 1.25s both; }
+.map-spot:hover + .map-pillar, .map-spot:focus-visible + .map-pillar { animation: mapPillarFlash .55s ease-out .7s both; }
 @keyframes mapPillarFlash { 0% { filter: brightness(1); } 25% { filter: brightness(1.75) drop-shadow(0 0 10px rgba(255, 214, 120, .9)); } 100% { filter: brightness(1); } }
 .map-flash { position: absolute; left: 50%; top: 12%; width: 120%; aspect-ratio: 1; border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(.2);
   background: radial-gradient(circle, rgba(255, 250, 225, .95) 0, rgba(255, 220, 130, .6) 22%, rgba(255, 190, 70, .18) 48%, transparent 68%); }
 .map-ring { position: absolute; left: 50%; bottom: 1%; width: 90%; height: 16%; border-radius: 50%; opacity: 0; transform: translate(-50%, 50%) scale(.2);
   box-shadow: 0 0 0 2px rgba(255, 226, 150, .85), 0 0 14px 4px rgba(255, 196, 80, .6), inset 0 0 10px 2px rgba(255, 220, 140, .5); }
-.map-spot:hover + .map-pillar .map-flash, .map-spot:focus-visible + .map-pillar .map-flash { animation: mapFlash .9s cubic-bezier(.2, .8, .3, 1) 1.25s both; }
-.map-spot:hover + .map-pillar .map-ring, .map-spot:focus-visible + .map-pillar .map-ring { animation: mapRing 1.1s cubic-bezier(.15, .8, .3, 1) 1.2s both; }
+.map-spot:hover + .map-pillar .map-flash, .map-spot:focus-visible + .map-pillar .map-flash { animation: mapFlash .55s cubic-bezier(.2, .8, .3, 1) .7s both; }
+.map-spot:hover + .map-pillar .map-ring, .map-spot:focus-visible + .map-pillar .map-ring { animation: mapRing .7s cubic-bezier(.15, .8, .3, 1) .66s both; }
 @keyframes mapFlash { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.2); } 18% { opacity: 1; transform: translate(-50%, -50%) scale(.9); } 45% { opacity: .65; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.7); } }
 @keyframes mapRing { 0% { opacity: 0; transform: translate(-50%, 50%) scale(.2); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 50%) scale(2.4, 1.8); } }
-/* 별가루: 임팩트와 함께 꼭대기 쪽에서 포근하게 튀어올랐다가 포물선으로 천천히 내려앉는다 (11컷) */
+/* 별가루: 임팩트와 함께 기둥 가운데쯤에서 곁으로 포근하게 튀어올랐다가 포물선으로 천천히 내려앉는다 (11컷) */
 .map-dust { position: absolute; inset: 0; }
 .map-dust > i { position: absolute; left: 50%; top: 50%; width: calc(var(--z) * .55); height: calc(var(--z) * .55); border-radius: 50%; opacity: 0;
   background: radial-gradient(circle, #fffaf0 0, #ffe6a8 45%, rgba(255, 205, 120, .7) 70%, transparent 100%);
