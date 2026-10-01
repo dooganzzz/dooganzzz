@@ -79,3 +79,8 @@ body.gm-standalone .gm-box { width: 100%; max-width: none; height: 100vh; border
 .gm-notes li { display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); }
 .gm-notes time { flex: none; width: 80px; opacity: .6; }
 body.gm-locked #gmToggle, body.gm-locked #gmPanel { display: none !important; }
+/* claude.ai 밖에서 GM 열기: 운영자 암호 확인 */
+.gm-unlock { position: fixed; z-index: 10001; left: 50%; top: 30%; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: calc(100vw - 32px);
+  padding: 14px 16px; border-radius: 10px; background: #15171c; color: #e8e2d4; border: 1px solid #5a4a2a; box-shadow: 0 10px 40px rgba(0, 0, 0, .6); font-size: 14px; }
+.gm-unlock input { padding: 6px 8px; border-radius: 6px; border: 1px solid #444; background: #0d0e11; color: inherit; min-width: 0; }
+.gm-unlock small { flex-basis: 100%; color: #c9a86a; }

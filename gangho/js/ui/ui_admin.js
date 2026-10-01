@@ -287,7 +287,7 @@ function gmInit() {
   // 단축키: 게임 입력칸에 글자를 치는 중이면 ` ~ 는 무시한다. 캡처 단계에서 먼저 받아 게임의 Esc 처리와 겹치지 않게 한다.
   window.addEventListener('keydown', e => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
-    if (e.key === 'F1' || (!typing && (e.key === '`' || e.key === '~'))) { e.preventDefault(); e.stopPropagation(); gmToggle(); return; }
+    if (e.key === 'F1' || (!typing && (e.key === '`' || e.key === '~'))) { e.preventDefault(); e.stopPropagation(); if (gmLocked()) { if (typeof gmUnlockAsk === 'function' && supaOn()) gmUnlockAsk(); return; } gmToggle(); return; }   // 잠긴 곳(claude.ai 밖)에서는 운영자 암호부터
     if (e.key === 'Escape' && GM.open) { e.stopPropagation(); gmToggle(false); }
   }, true);
   gmBindGameTrace();
