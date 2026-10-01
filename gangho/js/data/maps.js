@@ -56,13 +56,18 @@ const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.0
    자동 탐험에서는 제자가 조건을 채운 선택지 중 하나를 스스로 고른다
    fight: 적 id → 전투, bonus: 이기면 추가로 받는 fx */
 
-/* 떠돌이 약장수의 등짐: 만날 때마다 이 가운데 pick개를 골라 정가에서 off만큼 싸게 판다 (제작 장비는 없다)
-   비쌀수록 드물다: 뽑힐 무게 = (rare / 정가)^2
-   [아이템 또는 하급 장비 id, 정가(냥)] · 이미 익힌 비급 · 가진 비급은 내놓지 않는다 */
+/* 떠돌이 약장수의 등짐: 만날 때마다 물건 1가지를 정가에서 off만큼 싸게 판다 (제작 장비는 없다)
+   kinds: 종류별 확률(w, 합 100) · list: [아이템 id, 개수, 정가] · rare: 비급 · 장비(books · gear) 가운데서 고름
+   비급 · 장비는 비쌀수록 드물다: 뽑힐 무게 = (rare / 정가)^2 · 이미 익힌 비급 · 가진 비급은 내놓지 않는다 */
 const PEDDLER_WARES = {
-  pick: 1, off: 0.2, rare: 100,
-  items: [
-    ['pillLow', 80],
+  off: 0.2, rare: 100,
+  kinds: [
+    { w: 60, name: '회복약', list: [['saenghyeol', 5, 25], ['potionMp', 1, 20]] },
+    { w: 25, name: '기력단', list: [['gigeokdan', 1, 50]] },
+    { w: 10, name: '비급 · 장비', rare: true },
+    { w: 5, name: '소성 돌파단', list: [['pillLow', 1, 80]] },
+  ],
+  books: [
     ['bk_samjaeGwon', 60], ['bk_samjaeGeom', 60], ['bk_samjaeDo', 60], ['bk_samjaeChang', 60], ['bk_samjaePyo', 60], ['bk_tonap', 150],
     ['bk_pocheolsak', 150], ['bk_cheolpo', 150], ['bk_paseok', 150], ['bk_swaegol', 150], ['bk_yeonhwan', 150], ['bk_cpGeombeop', 150],
     ['bk_nakyeop', 150], ['bk_chupung', 150], ['bk_ohodanmun', 150], ['bk_byeokryeok', 150], ['bk_dansu', 150], ['bk_yukhap', 150],
@@ -192,11 +197,9 @@ const EVENTS = [
       { label: '못 들은 척한다', out: [{ w: 1, text: '"겁쟁이 같으니." 향주가 코웃음을 칩니다.', fx: {} }] },
     ] },
   { id: 'peddler', zones: 'all', title: '떠돌이 약장수', wares: true,
-    // 행상인: 전방 물건을 20% 싸게 판다 (기력단 50 → 40냥, 생혈고 5통 25 → 20냥) + 등짐(PEDDLER_WARES)에서 고른 물건 2가지
-    text: '등짐을 멘 약장수가 손짓합니다. "청풍문 도령! 전방보다 두 푼 싸게 드리리다. 산길엔 이게 제일이오!"',
+    // 행상인: 등짐(PEDDLER_WARES)에서 물건 1가지를 꺼내 정가보다 20% 싸게 판다
+    text: '등짐을 멘 약장수가 손짓합니다. "청풍문 도령! 전방보다 두 푼 싸게 드리리다. 오늘 들고 온 건 이것 하나뿐이오!"',
     choices: [
-      { label: '기력단을 40냥에 산다 (전방가 50냥)', req: { silver: 40 }, take: true, out: [{ w: 1, text: '약장수가 기력단 한 알을 종이에 싸 건넵니다.', fx: { items: { gigeokdan: 1 } } }] },
-      { label: '생혈고 다섯 통을 20냥에 산다 (전방가 25냥)', req: { silver: 20 }, take: true, out: [{ w: 1, text: '약장수가 생혈고 다섯 통을 끈으로 묶어 줍니다.', fx: { items: { saenghyeol: 5 } } }] },
       { label: '손사래 친다', out: [{ w: 1, text: '"후회할 거요!" 약장수가 투덜대며 멀어집니다.', fx: {} }] },
     ] },
   { id: 'monk', zones: 'all', title: '행각승의 수수께끼',

@@ -132,26 +132,25 @@ function stepEncounter(rec, zid, used) {
   log(`📜 기연 「${ev.title}」 — ${ev.text}`, 'npc');
   return { t: `📜 기연 「${ev.title}」 — 기연 탭에 쌓였습니다`, cls: 'npc' };
 }
-/* 약장수 등짐: 비급(익혔거나 가진 것 빼고) · 소성 돌파단 · 하급 장비 가운데 몇 가지를 골라 싸게 */
+/* 약장수 등짐: 종류를 확률로 고르고(kinds), 그 안에서 1가지 — 비급 · 장비는 비쌀수록 드물게, 익혔거나 가진 비급은 빼고 */
 function peddlerRoll() {
-  const W = PEDDLER_WARES, pool = [
-    ...W.items.filter(([id]) => { const u = ITEMS[id].use; return !(u && u.learn && (S.manuals[u.learn] || count(id))); }).map(([id, pr]) => ({ id, pr })),
-    ...W.gear.map(([id, pr]) => ({ id, pr, gear: 1 }))];
-  const out = [];
-  while (out.length < W.pick && pool.length) {                    // 비쌀수록 드물게
-    const wt = pool.map(w => (W.rare / w.pr) ** 2); let r = Math.random() * wt.reduce((a, b) => a + b, 0), i = 0;
-    while (i < pool.length - 1 && (r -= wt[i]) >= 0) i++;
-    const w = pool.splice(i, 1)[0]; out.push({ ...w, pr: Math.round(w.pr * (1 - W.off)), list: w.pr });
-  }
-  return out;
+  const W = PEDDLER_WARES, wpick = (arr, wf) => { const wt = arr.map(wf); let r = Math.random() * wt.reduce((a, b) => a + b, 0), i = 0; while (i < arr.length - 1 && (r -= wt[i]) >= 0) i++; return arr[i]; };
+  const K = wpick(W.kinds, k => k.w);
+  let w;
+  if (K.rare) {
+    const pool = [...W.books.filter(([id]) => { const u = ITEMS[id].use; return !(S.manuals[u.learn] || count(id)); }).map(([id, pr]) => ({ id, n: 1, pr })),
+      ...W.gear.map(([id, pr]) => ({ id, n: 1, pr, gear: 1 }))];
+    w = wpick(pool, x => (W.rare / x.pr) ** 2);
+  } else { const [id, n, pr] = pick(K.list); w = { id, n, pr }; }
+  return [{ ...w, pr: Math.round(w.pr * (1 - W.off)), list: w.pr }];
 }
 /* 기연의 선택지: 약장수는 등짐 물건을 [손사래] 앞에 끼운다 */
 function encChoices(E) {
   const ev = EVENTS.find(x => x.id === E.ev); if (!ev) return [];
   if (!E.wares || !E.wares.length) return ev.choices;
-  const sell = E.wares.map(w => { const name = w.gear ? GEAR_DB[w.id].name : ITEMS[w.id].name;
-    return { label: `${name}${jo(name, '을를')} ${w.pr}냥에 산다 (정가 ${w.list}냥)`, req: { silver: w.pr, bag: 1 }, take: true,
-      out: [{ w: 1, text: `약장수가 등짐에서 ${name}${jo(name, '을를')} 꺼내 건넵니다.`, fx: w.gear ? { named: w.id } : { items: { [w.id]: 1 } } }] }; });
+  const sell = E.wares.map(w => { const name = w.gear ? GEAR_DB[w.id].name : ITEMS[w.id].name, n = w.n || 1, what = n > 1 ? `${name} ${n}개` : `${name}${jo(name, '을를')}`;
+    return { label: `${what} ${w.pr}냥에 산다 (정가 ${w.list}냥)`, req: { silver: w.pr, bag: 1 }, take: true,
+      out: [{ w: 1, text: `약장수가 등짐에서 ${n > 1 ? `${name} ${n}개를` : what} 꺼내 건넵니다.`, fx: w.gear ? { named: w.id } : { items: { [w.id]: n } } }] }; });
   return [...ev.choices.slice(0, -1), ...sell, ev.choices[ev.choices.length - 1]];
 }
 const encountersWaiting = () => (S.encounters || []).filter(e => !e.done && encLeft(e) > 0);
