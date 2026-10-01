@@ -26,10 +26,6 @@ function claimSubq(zid, n) {
   notify.refresh();
   return true;
 }
-/* 예전 이름 (다른 곳에서 부르던 것) */
-function ensureMissions() { S.missions = []; }
-/* 자정 기록만 남긴다 (예전 문파 임무 초기화는 없어졌다) */
-function checkDailyMidnightReset(t = now()) { const d = new Date(t).toLocaleDateString('ko-KR'); if (S.lastQuestResetDate === d) return false; S.lastQuestResetDate = d; return true; }
 
 /* ───────── 인물 ───────── */
 function jounSupply() {

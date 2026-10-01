@@ -210,7 +210,7 @@ function showIntro() {
   const step = (n, html) => stage >= n ? `<section class="intro-step ${fresh === n ? 'reveal' : ''}" data-step="${n}">${html}</section>` : '';
   // 입문 무공은 그 비급의 표지 그대로 (삼류: 회색 · 낡은 책)
   const starterIco = id => manualIco(id, 'starter-ico');
-  const TALENT_ICO = { forge: ASSET.ui('c_hammer'), alchemy: ART_SRC.cauldron() };
+  const TALENT_ICO = { forge: ASSET.ui('c_hammer'), alchemy: ASSET.ui('c_cauldron') };
   const draw = () => {
     const name = $('#pname') ? $('#pname').value : '이름 없는 제자';
     m.innerHTML = `<div class="sheet intro stage-${stage}">

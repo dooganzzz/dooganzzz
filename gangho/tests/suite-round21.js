@@ -142,9 +142,9 @@ module.exports = async (b) => {
       old.missions = [{ type: 'kill', target: 'dog', n: 3, prog: 0 }, { type: 'kill', target: 'rabbit', n: 3, prog: 0 }];
       old.bestiary = { dog: { met: 2, kills: 2 }, rabbit: { met: 1, kills: 1 } };
       const st = migrate(old);
-      return { star: st.manuals.gi1c && st.manuals.gi1c.star, active: st.active.gigong, book: st.inv.bk_gi1c, old: 'yeolhwa' in st.manuals || 'bk_suryu' in st.inv, missions: st.missions.map(m => m.target).join(), best: Object.keys(st.bestiary).join() };
+      return { star: st.manuals.gi1c && st.manuals.gi1c.star, active: st.active.gigong, book: st.inv.bk_gi1c, old: 'yeolhwa' in st.manuals || 'bk_suryu' in st.inv, missions: 'missions' in st, best: Object.keys(st.bestiary).join() };
     });
-    ok('6 이전 저장: 옛 공양 비급(열화·수류) → 새 비급(성급 유지) · 들개 임무/도감 정리', mig.star === 4 && mig.active === 'gi1c' && mig.book === 1 && !mig.old && mig.missions === 'rabbit' && mig.best === 'rabbit', JSON.stringify(mig));
+    ok('6 이전 저장: 옛 공양 비급(열화·수류) → 새 비급(성급 유지) · 옛 임무 · 들개 도감 정리', mig.star === 4 && mig.active === 'gi1c' && mig.book === 1 && !mig.old && !mig.missions && mig.best === 'rabbit', JSON.stringify(mig));
 
     ok('오류/가로스크롤 없음', !errs.length && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(';'));
     await p.close();

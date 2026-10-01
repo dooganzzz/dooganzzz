@@ -10,7 +10,6 @@ const ART_SRC = {
   meditation: () => ASSET.scene('meditation'),
   shrineAwake: () => ASSET.scene('shrine_awake'),
   forgeScene: () => ASSET.scene('forge_scene'),
-  cauldron: () => ASSET.scene('alchemy_cauldron'),
   alchemyScene: () => ASSET.scene('alchemy_scene'),
 };
 const brokenArt = new Set();

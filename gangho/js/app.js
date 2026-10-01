@@ -26,8 +26,8 @@ function newState(name, mugongId, opts = {}) {
     perm: { maxHp: 0, maxMp: 0, attr: {} },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
-    buffs: [], missions: [], arin: {}, supplyDay: '', uid: 1, codexRewards: {},
-    questRefreshCount: 0, lastQuestResetDate: '', statueResidueCount: 0,
+    buffs: [], arin: {}, supplyDay: '', uid: 1, codexRewards: {},
+    statueResidueCount: 0,
     kills: 0, log: [],
   };
   st.equip.badge = shopGear('badge1', st);
@@ -139,7 +139,6 @@ function startNewGame(name, mugongId, opts = {}) {
   S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
   S.mainQ = 0;                                       // 장문인에게 말을 걸어야 첫 가르침이 드러난다
-  ensureMissions(); checkDailyMidnightReset();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
   if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·초상비·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
@@ -212,16 +211,13 @@ function migrate(st) {
   if (st.shrine && st.shrine.pulls === undefined) st.shrine.pulls = 0;
   // 청풍산 요수 교체: 들개·외눈 멧돼지왕은 사라졌다 (도감·임무에서 정리)
   for (const gone of ['dog', 'boarKing']) { if (st.bestiary) delete st.bestiary[gone]; for (const z of Object.values(st.zoneLog || {})) if (z.seen) delete z.seen[gone]; }
-  if (st.missions) st.missions = st.missions.filter(m => m.type !== 'kill' || ENEMIES[m.target]);
   // 3대 사냥터 개편: 적룡방 → 수룡방, 염화채·수룡방 요수 교체 (사라진 요수는 도감·임무에서 정리)
   const zmap = z => z === 'jeokryong' ? 'suryong' : z;
   if (st.expedition) st.expedition.zone = st.expedition.zone && zmap(st.expedition.zone);
   if (st.zoneLog && st.zoneLog.jeokryong) { st.zoneLog.suryong = st.zoneLog.jeokryong; delete st.zoneLog.jeokryong; }
   for (const r of st.expeditions || []) r.zone = zmap(r.zone);
-  for (const m of st.missions || []) m.zone = zmap(m.zone);
   if (st.bestiary) for (const e of Object.keys(st.bestiary)) if (!ENEMIES[e]) delete st.bestiary[e];
   for (const z of Object.values(st.zoneLog || {})) for (const e of Object.keys(z.seen || {})) if (!ENEMIES[e]) delete z.seen[e];
-  if (st.missions) st.missions = st.missions.filter(m => (m.type !== 'kill' || ENEMIES[m.target]) && (m.type !== 'deliver' || ITEMS[m.target]));
   // 화로 개편(단조·단약): 조리·음식·기력 아이템과 옛 제작 재료는 사라졌다. 금창약은 생혈고로, 나머지는 전방 값만큼 은자로 돌려준다
   if (st.inv) {
     if (st.inv.potionHp) { st.inv.saenghyeol = (st.inv.saenghyeol || 0) + st.inv.potionHp; delete st.inv.potionHp; }
@@ -237,9 +233,8 @@ function migrate(st) {
   for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && (it.shop === 'badge2' || it.shop === 'badge3')) it.stats = { ...SHOP_GEAR.find(g => g.id === it.shop).stats };
   st.codexRewards = st.codexRewards || {};
   delete st.restCd;
-  // 문파 임무는 토벌만 · 비급/무신상 영구 보너스
-  if (st.missions) st.missions = st.missions.filter(m => m.type === 'kill');
-  st.questRefreshCount = st.questRefreshCount || 0; if (st.lastQuestResetDate === undefined) st.lastQuestResetDate = '';
+  // 예전 문파 임무(토벌 · 배달 · 갱신비)는 없어졌다 — 장문인 토벌 임무(subq)로 바뀜
+  delete st.missions; delete st.questRefreshCount; delete st.lastQuestResetDate;
   // 장경각 장비 이름 정리 (단조 장비와 이름이 겹치지 않게)
   for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && it.shop && LIBRARY_GEAR[it.shop]) it.name = LIBRARY_GEAR[it.shop].name;
   // 장비 위계 재조정: 하급 장비 37종·단조 장비는 지금 데이터 수치로 맞춘다 (강화 단계는 유지)
@@ -280,7 +275,6 @@ function tick() {
   const t = now(); lastFrame = t;
   const r = advanceRun(t);
   if (r && !r.live) notify.toast(r.end === 'dead' ? `💀 제자가 ${ZONES[r.zone].name}에서 쓰러져 강호행이 끝났습니다 — 강호행 탭에서 보상을 받으십시오` : `🏯 강호행을 마쳤습니다`);
-  checkDailyMidnightReset(t);
   Bus.emit('tick');
 }
 
@@ -345,7 +339,6 @@ function startGame(st) {
     log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 강호로 나가 경험을 쌓습니다. 그동안의 수련은 수련치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
     delete S.migratedExp;
   }
-  ensureMissions(); checkDailyMidnightReset();
   // 메인 퀘스트 개편: 예전 저장은 이미 이룬 가르침까지를 지난 것으로 (보상 없이)
   if (S.mainQ === undefined) { let i = 0; while (i < QUESTS.length - 1 && QUESTS[i].done()) i++; S.mainQ = i; delete S.tutorShown; }
   for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상

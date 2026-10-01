@@ -136,7 +136,6 @@ function aiRun(days, patternKey = 'life') {
       CLOCK.shift = -(hours - h) * AI_HOUR;
       const t = now(), hr = new Date(t).getHours(), di = Math.min(days - 1, Math.floor(h / 24));
       if (!day || day.i !== di) { if (day) { tally(day); report.daily.push({ ...day, end: aiSnapshot() }); } day = { i: di, label: `${di + 1}일째`, runs: 0, wins: 0, losses: 0, defeats: 0, bosses: 0 }; }
-      checkDailyMidnightReset(t);
       if (!P.on(hr) && h < hours) continue;           // 자는 동안은 밀렸다가, 깨면 한꺼번에 (최대 8시간) 따라잡는다
       advanceRun(t);
       tally(day);

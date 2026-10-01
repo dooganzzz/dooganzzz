@@ -47,9 +47,14 @@ js/
     ui_furnace.js        화로: [ 단조 ] | [ 단약 ] 탭, 재료 슬롯, 연구 노트
     ui_encyclopedia.js   도감: [ 강적 ] | [ 비급 ] | [ 단조 비법 ] | [ 연단 비법 ]
     ui_field.js          강호행(출정 준비·탐험지·다음 출발·탐험 기록), 결산 창, 관찰하기(전투 리플레이)
+    ui_live.js           강호행 무대 (걷기 · 길가 소품 · 발자국 · 기믹 걸음 · 무대 루프)
+    ui_live_sky.js       무대 하늘 (서울 시각 하루의 빛 · 달 · 날씨 · 반딧불이)
+    ui_live_fight.js     무대 실시간 전투 (기록 그대로 재생 · 피해 숫자 · 활력 막대)
+    ui_ougi.js           오의 연출 (병기별)
     ui_modals.js         무공 상세·기연 사건·레시피·처음부터 다시·시작 화면 창
     ui_input.js          클릭·변경·키보드 → 시스템 함수 연결
-    ui_admin.js          운영자 통합 디버그 콘솔 (GM_ENABLED로 켜고 끔)
+    ui_admin.js          운영자 통합 디버그 콘솔 뼈대 · 명령 · 별도 창 연결 (GM_ENABLED로 켜고 끔)
+    ui_admin_views.js    GM 콘솔 탭 화면 (유저 상태 · 추적 · 아이템 · 조합법 · 치트 · 유저 · AI · 게임 DB)
   app.js                 초기화, 저장 상태 S와 런타임 상태 RT, 저장/불러오기, 저장 이전, 1초 틱
 assets/                  무장 실루엣과 NPC 초상화. 없는 파일은 대체 그림으로 표시 (assets/README.md)
 ```

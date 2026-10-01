@@ -25,7 +25,7 @@
 - data/: 순수 데이터만. systems/: 규칙, DOM 금지. ui/: 화면, localStorage 금지. app.js: 상태 · 저장 · 틱.
 - 그림 경로는 `js/data/assets.js`(목록) + `js/ui/ui_assets.js`(`ASSET.종류(이름)`)에서만. 그 밖에 'assets/' 직접 쓰기 금지.
   새 그림은 `assets/art/<종류>/`에 넣고(작은 그림 · 투명 스프라이트 PNG는 무손실 WebP로, 큰 배경 · 장면 그림은 가로 1280 손실 WebP 품질 80대로 줄여서. 이미 손실 WebP · JPG인 것은 다시 압축하지 않음), 안 쓰는 그림은 `node gangho/tools/assets-check.js`로 찾는다.
-- 강호행 화면: ui_field.js(패널 · 기록) · ui_live.js(무대 · 걷기 · 실시간 전투) · ui_replay.js(관찰 창).
+- 강호행 화면: ui_field.js(패널 · 기록) · ui_live.js(무대 · 걷기 · 소품 · 기믹) · ui_live_sky.js(하루의 빛 · 날씨) · ui_live_fight.js(실시간 전투) · ui_ougi.js(오의) · ui_replay.js(관찰 창).
 
 ## 배포 순서
 1. `node gangho/tools/stamp.js` (?v= 버전 · version.json 갱신)
