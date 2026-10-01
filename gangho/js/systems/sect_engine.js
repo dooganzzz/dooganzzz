@@ -1,47 +1,30 @@
 /* [시스템] 청풍문: 문파 임무·인물(조운·아린·장문인)·장경각·창고·하산 (DOM 조작 금지) */
 
-/* ───────── 문파 임무: 토벌만. 해금된 사냥터의 요수를 3~6마리 (강한 요수일수록 적게) ─────────
-   공헌 보상은 예전 계산값의 절반. 새 임무 갱신은 10냥부터 한 번 할 때마다 10냥씩 오르고, 매일 자정에 초기화된다 */
-const MISSION_N = { 1: [5, 6], 2: [4, 5], 3: [3, 4], 4: [3, 3] };
-function genMission() {
-  const zid = pick(ZONE_ORDER.filter(zoneUnlocked)), Z = ZONES[zid];
-  const eid = pick(Z.enemies), E = ENEMIES[eid], [lo, hi] = MISSION_N[E.tier || 2], n = rint(lo, hi);
-  return { type: 'kill', target: eid, n, prog: 0, contrib: Math.floor((E.xp * n * 0.4 + 10) * 0.5), silver: Math.round(E.xp * n * 0.3), zone: zid };
-}
-
-function ensureMissions() { while (S.missions.length < 3) S.missions.push(genMission()); }
-function progressMission(target) { for (const m of S.missions) if (m.type === 'kill' && m.target === target && m.prog < m.n) m.prog++; }
-function missionReady(m) { return m.prog >= m.n; }
-
-function completeMission(i) {
-  const m = S.missions[i]; if (!m || !missionReady(m)) return;
-  S.contrib += m.contrib; S.silver += m.silver;
-  log(`문파 임무 완료! ${hlContrib('+' + m.contrib)}, ${hlSilver(m.silver)}`, 'good');
-  S.missions.splice(i, 1); ensureMissions(); notify.refresh();
-}
-
-const questDay = (t = now()) => new Date(t).toLocaleDateString('ko-KR');
-/* 오늘 새 임무를 받는 값: 10냥 + 오늘 갱신한 횟수 × 10냥 */
-function getQuestRefreshCost() { return 10 + (S.questRefreshCount || 0) * 10; }
-function rerollMissions() {
-  const cost = getQuestRefreshCost();
-  if (S.silver < cost) { notify.toast(`은자가 부족합니다. (새 임무 ${cost}냥)`); return; }
-  S.silver -= cost; S.questRefreshCount = (S.questRefreshCount || 0) + 1;
-  S.missions = []; ensureMissions();
-  log(`노벽송이 하품을 하며 새 토벌 임무 두루마리를 던져줍니다. ${hlSilver(-cost)} (다음 갱신 ${getQuestRefreshCost()}냥)`, 'npc'); notify.refresh();
-}
-/* 자정이 지나면 토벌 임무 3종을 새로 받고 갱신 비용이 10냥으로 돌아간다 */
-function checkDailyMidnightReset(t = now()) {
-  const today = questDay(t);
-  if (S.lastQuestResetDate === today) return false;
-  const first = !S.lastQuestResetDate;
-  S.lastQuestResetDate = today; S.questRefreshCount = 0;
-  if (first) return false;                                   // 처음 기록할 때는 지금 임무를 그대로 둔다
-  S.missions = []; ensureMissions();
-  log('[문파] 자정이 지나 문파 토벌 임무와 갱신 비용이 초기화되었습니다.', 'npc');
+/* ───────── 서브 퀘스트: 단계별 토벌 (반복) ─────────
+   열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'. 다 채우면 정청에서 보상을 받고, 진행은 처음부터 다시 쌓인다 (몇 번이고).
+   보상: 공헌도 · 은자 · 생혈고 (단계 × 탐험지 티어에 비례). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
+const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, pot: 1 };
+const subqKey = (zid, n) => `${zid}:${n}`;
+function subqReward(zid, n) { const t = ZONES[zid].tier; return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), pot: SUBQ.pot }; }
+function subqProg(zid, n) { return ((S.subq || {})[subqKey(zid, n)]) || 0; }
+function subqAdd(zid, n) { S.subq = S.subq || {}; const k = subqKey(zid, n); S.subq[k] = Math.min(SUBQ.kills, (S.subq[k] || 0) + 1); }
+const subqReady = (zid, n) => subqProg(zid, n) >= SUBQ.kills;
+/* 지금 받을 수 있는 서브 퀘스트 목록: 열린 탐험지의 열린 단계 */
+function subqList() { const out = []; for (const z of ZONE_ORDER) if (zoneUnlocked(z)) for (let n = 1; n <= stageMax(z); n++) out.push({ zid: z, n }); return out; }
+function subqReadyCount() { return subqList().filter(q => subqReady(q.zid, q.n)).length; }
+function claimSubq(zid, n) {
+  if (!ZONES[zid] || !subqReady(zid, n)) return false;
+  const r = subqReward(zid, n);
+  S.subq[subqKey(zid, n)] = 0; S.contrib += r.contrib; S.silver += r.silver; give('saenghyeol', r.pot, true);
+  S.subqDone = (S.subqDone || 0) + 1;
+  log(`📜 토벌 임무 완료 — ${stageName(zid, n)}: ${hlContrib('+' + r.contrib)}, ${hlSilver(r.silver)}, 생혈고 ${r.pot}`, 'good');
   notify.refresh();
   return true;
 }
+/* 예전 이름 (다른 곳에서 부르던 것) */
+function ensureMissions() { S.missions = []; }
+/* 자정 기록만 남긴다 (예전 문파 임무 초기화는 없어졌다) */
+function checkDailyMidnightReset(t = now()) { const d = new Date(t).toLocaleDateString('ko-KR'); if (S.lastQuestResetDate === d) return false; S.lastQuestResetDate = d; return true; }
 
 /* ───────── 인물 ───────── */
 function jounSupply() {
@@ -87,15 +70,15 @@ function rest() {
 function jounGuide() {
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').length;
   const emptySlot = CAT_ORDER.some(c => !S.active[c]) && Object.keys(S.manuals).length;
-  const ready = S.missions.filter(missionReady).length;
+  const ready = subqReadyCount();
   const tips = [
     [books, `비급이 ${books}권 있구나. 상태 탭의 무공에서 [ 익히기 ] 해라. 읽기만 해선 소용없다.`],
     [emptySlot, '익힌 무공은 상태 › 무공에서 장착해야 몸에 붙는다. 빈 자리가 있다.'],
     [!(S.expedition && S.expedition.zone), '아직 탐험지를 안 정했구나. 강호행에서 갈 곳을 정하고 [강호행 시작]을 눌러라. 쓰러질 때까지 알아서 나아간다.'],
     [Object.keys(S.manuals).some(id => !starUpBlock(id)), '수련치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
     [!has('saenghyeol', 3), '생혈고가 떨어져 간다. 탐험 중에 위급하면 그걸 바르니, 화로에서 달이든 전방에서 사든 넉넉히 챙겨라.'],
-    [ready, `문파 임무 ${ready}건은 바로 완료할 수 있다. 정청 문파 임무에서 공헌도를 받아 가라.`],
-    [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].defeats, '지난 탐험에서 쓰러졌다지? 쓰러질 때마다 기력이 크게 샌다. 탐험지를 낮추든지, 무공과 장비를 더 올려라.'],
+    [ready, `토벌 임무 ${ready}건을 채웠구나. 정청 토벌 임무에서 보상을 받아 가라.`],
+    [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].defeats, '지난 강호행에서 쓰러졌다지? 한 단계 아래에서 토벌 임무를 채우며 생혈고와 은자를 모으고, 무공과 장비를 올린 뒤 다시 올라가라.'],
     [S.gear.length >= 3, '행낭에 안 쓰는 장비가 쌓였다. 청풍전방 왕 가에게 가면 은자로 바꿔 준다.'],
     [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],
   ];
@@ -105,7 +88,7 @@ function jounGuide() {
 }
 function masterHint() {
   const gated = Object.entries(S.manuals).find(([, m]) => GATES[m.star] && !has(GATES[m.star]));   // 돌파단이 필요한 성에 이르렀는데 없을 때
-  const pill = gated ? GATES[gated[1].star] : QUESTS[questIndex()] && QUESTS[questIndex()][0].includes('소성 돌파단') ? 'pillLow' : null;
+  const pill = gated ? GATES[gated[1].star] : QUESTS[questIndex()] && QUESTS[questIndex()].pill || null;
   const r = pill && RECIPES.find(x => x.out === pill);
   if (r && !S.codex.includes(r.id)) { addHint(r); notify.refresh(); return; }
   log(`노벽송: "${pick([
@@ -160,50 +143,84 @@ function doHasan() {
 }
 
 
-/* ───────── 순차 가이드 ───────── */
+/* ───────── 메인 퀘스트: 장문인의 가르침 ─────────
+   한 줄로 이어진다. 지금 가르침을 이루면 장문인에게 [보상 받기] — 장비 · 비급 · 은자 · 생혈고를 받고 다음 가르침이 드러난다.
+   S.mainQ = 보상까지 받은 가르침 수. 병기에 맞는 무기 · 비급은 받을 때의 병기로 정한다 */
+const CP_BOOK = { fist: 'cpGwon', sword: 'cpGeom', blade: 'cpDo', spear: 'cpChang', hidden: 'cpPyo' };
+const st10 = (z, n) => () => stageCleared(z) >= n;
 const QUESTS = [
-  ['비급 익히고 무공 장착하기', () => CAT_ORDER.every(c => S.active[c]), '상태 탭의 무공에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.'],
-  ['강호행 떠나기', () => !!(S.expedition && S.expedition.zone && S.expeditions.length), '강호행 탭에서 청풍산을 탐험지로 정하고 [강호행 시작]을 누르십시오. 제자가 쓰러지거나 귀환할 때까지 쭉 나아갑니다.'],
-  ['수련치로 무공 성급 올리기', () => Object.values(S.manuals).some(m => m.star >= 2), '탐험에서 모은 수련치로 상태 › 무공에서 [ 성급 올리기 ]를 누르십시오.'],
-  ['조운 대사형에게 오늘의 보급품 받기', () => !!S.flags.supplied, '정청의 조운에게 보급품을 받으십시오.'],
-  ['화로에서 소성 돌파단 달이기', () => S.codex.includes('a_low') || bestMugongStar() >= 6, '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.'],
-  ['청풍산 두목 적염 호랑이 토벌', () => !!S.flags.boss1, '두목은 좀처럼 모습을 드러내지 않는 강적입니다. 마주치면 피하지 않고 맞서니, 쓰러져도 강해진 뒤 다시 보내십시오.'],
-  ['염화채주 적패천 토벌', () => !!S.flags.boss2, '탐험지를 염화채로 바꾸십시오. 산적 연합의 소굴 깊은 곳에 채주가 있습니다.'],
-  ['무공 6성 — 소성(小成) 돌파', () => bestMugongStar() >= 6, '5성 무공을 수련치와 소성 돌파단으로 올리십시오.'],
-  ['수룡방주 벽해룡 토벌', () => !!S.flags.boss3, '탐험지를 수룡방으로 바꾸십시오.'],
-  ['무공 12성 — 대성(大成) 돌파', () => bestMugongStar() >= 12, '11성 무공을 수련치와 대성 돌파단으로 올리십시오.'],
-  ['장문인에게 하산령 받기', () => !!S.flags.hasan, '장문인을 찾아가십시오.'],
+  { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '상태 탭의 무공에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.',
+    talk: '비급은 읽기만 해선 소용없다. 행낭의 비급 네 권을 익히고, 상태 › 무공에서 네 자리에 모두 걸어라.', reward: { silver: 30, items: { saenghyeol: 5 } } },
+  { t: '청풍산 초입 돌파', done: st10('cheongpung', 1), hint: '강호행 탭에서 청풍산을 정하고 [강호행 시작]. 1단계에서 5번 이기면 돌파합니다.',
+    talk: '몸에 걸었으면 강호에 나가 부딪혀야지. 청풍산 초입부터 하나씩 꺾어 올라가거라. 생혈고를 넉넉히 챙기고.', reward: { gear: ['helmet', 1, 1] } },
+  { t: '수련치로 무공 성급 올리기', done: () => Object.values(S.manuals).some(m => m.star >= 2), hint: '탐험에서 모은 수련치로 상태 › 무공에서 [ 성급 올리기 ]를 누르십시오.',
+    talk: '싸우고 돌아오면 수련치가 쌓인다. 그걸로 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.', reward: { silver: 50, items: { saenghyeol: 5 } } },
+  { t: '조운 대사형에게 오늘의 보급품 받기', done: () => !!S.flags.supplied, hint: '정청의 조운에게 보급품을 받으십시오.',
+    talk: '조운이 녀석이 보급품을 챙겨 뒀을 게다. 가서 받아 오너라. 하루에 한 번이다.', reward: { items: { saenghyeol: 3, potionMp: 2 } } },
+  { t: '청풍산 약초 비탈 돌파 (4단계)', done: st10('cheongpung', 4), hint: '청풍산 4단계 「약초 비탈」을 돌파하십시오. 막히면 아래 단계에서 토벌 임무를 채우며 힘을 기르십시오.',
+    talk: '약초 비탈 너머부터는 흑풍채 놈들이 어슬렁댄다. 발이 가벼워야 산다.', reward: { gear: ['boots', 1, 1] } },
+  { t: '청풍산 흑풍채 초소 돌파 (5단계)', done: st10('cheongpung', 5), hint: '청풍산 5단계 「흑풍채 초소」를 돌파하십시오.',
+    talk: '흑풍채 초소를 깨면 청풍문의 진짜 무공을 내주마. 네 병기에 맞는 것으로.', reward: { book: 'weapon' } },
+  { t: '화로에서 소성 돌파단 달이기', done: () => S.codex.includes('a_low') || bestMugongStar() >= 6, hint: '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.',
+    talk: '5성에 이르면 벽에 막힌다. 소성 돌파단이 있어야 넘는다. 화로에서 직접 달여 보거라.', reward: { silver: 80 }, pill: 'pillLow' },
+  { t: '청풍산 안개 골짜기 돌파 (8단계)', done: st10('cheongpung', 8), hint: '청풍산 8단계 「안개 골짜기」를 돌파하십시오.',
+    talk: '안개 골짜기에서는 갑옷이 목숨이다. 돌파하면 쓸 만한 걸 내주마.', reward: { gear: ['armor', 1, 2] } },
+  { t: '청풍산 두목 적염 호랑이 토벌 (10단계)', done: st10('cheongpung', 10), hint: '청풍산 10단계 「적염호 굴」에서 두목을 쓰러뜨리십시오.',
+    talk: '청풍산 가장 깊은 굴에 적염 호랑이가 산다. 잡아 오면 청풍문의 병기를 내주마.', reward: { lib: 'weapon', silver: 150 } },
+  { t: '무공 6성 — 소성(小成) 돌파', done: () => bestMugongStar() >= 6, hint: '5성 무공을 수련치와 소성 돌파단으로 올리십시오.',
+    talk: '6성, 소성(小成)의 문턱을 넘어라. 수련치와 돌파단, 둘 다 필요하다.', reward: { book: 'cpSim' } },
+  { t: '염화채 벌목장 돌파 (5단계)', done: st10('yeomhwa', 5), hint: '탐험지를 염화채로 바꾸고 5단계 「벌목장」을 돌파하십시오.',
+    talk: '호랑이를 잡았다니 대견하구나. 이제 염화채다. 불길 속에선 도포가 너를 지킨다.', reward: { lib: 'lg_armor' } },
+  { t: '염화채주 적패천 토벌 (10단계)', done: st10('yeomhwa', 10), hint: '염화채 10단계 「채주의 대청」에서 적패천을 쓰러뜨리십시오.',
+    talk: '산적 연합의 채주 적패천을 꺾어라. 꺾으면 청풍문 기공의 정수를 주마.', reward: { book: 'cpGi', lib: 'lg_jade' } },
+  { t: '수룡방 강습대 초소 돌파 (3단계)', done: st10('suryong', 3), hint: '탐험지를 수룡방으로 바꾸고 3단계를 돌파하십시오.',
+    talk: '물 위의 놈들은 빠르다. 바람을 타는 보법이 필요하다.', reward: { book: 'cpGyeong', gear: ['ring', 2, 2] } },
+  { t: '수룡방주 벽해룡 토벌 (10단계)', done: st10('suryong', 10), hint: '수룡방 10단계 「수룡방 본채」에서 벽해룡을 쓰러뜨리십시오.',
+    talk: '수룡방주 벽해룡. 물 위의 용이다. 꺾으면 한철로 벼린 병기를 내주마.', reward: { gear: ['weapon', 3, 2], silver: 500 } },
+  { t: '무공 12성 — 대성(大成) 돌파', done: () => bestMugongStar() >= 12, hint: '11성 무공을 수련치와 대성 돌파단으로 올리십시오.',
+    talk: '12성, 대성(大成)이다. 대성 돌파단은 피와 물과 불, 셋이 서로를 다스려야 빚어진다.', reward: { silver: 300 }, pill: 'pillHigh' },
+  { t: '장문인에게 하산령 받기', done: () => !!S.flags.hasan, hint: '장문인을 찾아가십시오.', talk: '… 여기까지 왔구나. 나를 찾아와라. 하산을 허하마.', reward: null },
 ];
-
-function questIndex() { const i = QUESTS.findIndex(q => !q[1]()); return i < 0 ? QUESTS.length : i; }
-
-/* 장문인의 가르침(튜토리얼): 장문인에게 말을 걸어야 다음 할 일이 드러난다.
-   S.tutorShown = 지금까지 드러난 할 일 수. 지금 할 일을 이루면 말 걸기 단추가 다시 켜진다 */
-const QUEST_TALK = [
-  '비급은 읽기만 해선 소용없다. 행낭의 비급 네 권을 익히고, 상태 › 무공에서 네 자리에 모두 걸어라.',
-  '몸에 걸었으면 강호에 나가 부딪혀야지. 강호행에서 청풍산을 탐험지로 정하고 길을 떠나거라. 생혈고를 넉넉히 챙기고.',
-  '싸우고 돌아오면 수련치가 쌓인다. 그걸로 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.',
-  '조운이 녀석이 보급품을 챙겨 뒀을 게다. 가서 받아 오너라. 하루에 한 번이다.',
-  '5성에 이르면 벽에 막힌다. 소성 돌파단이 있어야 넘는다. 화로에서 직접 달여 보거라.',
-  '청풍산 깊은 곳에 적염 호랑이가 산다. 두목이다. 만나면 피하지 말고, 지면 강해져서 다시 가라.',
-  '호랑이를 잡았다니 대견하구나. 이제 염화채다. 산적 연합의 채주 적패천을 꺾어라.',
-  '6성, 소성(小成)의 문턱을 넘어라. 수련치와 돌파단, 둘 다 필요하다.',
-  '수룡방주 벽해룡. 물 위의 용이다. 탐험지를 수룡방으로 바꾸어라.',
-  '12성, 대성(大成)이다. 대성 돌파단은 피와 물과 불, 셋이 서로를 다스려야 빚어진다.',
-  '… 여기까지 왔구나. 나를 찾아와라. 하산을 허하마.',
-];
-const tutorShown = () => S.tutorShown === undefined ? questIndex() + 1 : S.tutorShown;
-/* 장문인에게 새로 들을 가르침이 있는가 (지금 할 일이 아직 드러나지 않았으면) */
-function tutorReady() { const qi = questIndex(); return qi < QUESTS.length && tutorShown() <= qi; }
+/* 지금 가르침 번호 (보상까지 받은 수) */
+function questIndex() { return Math.min(S.mainQ || 0, QUESTS.length); }
+/* 보상 미리보기 문장 */
+function questRewardText(q) {
+  const R = q && q.reward; if (!R) return '';
+  const w = weaponType(), out = [];
+  if (R.gear) { const [b, t, r] = R.gear, base = b === 'weapon' ? w : b; out.push(`[${RARITY[r].name}] ${EQUIP_BASES[base].names[t - 1]}`); }
+  if (R.lib) { const id = R.lib === 'weapon' ? `lg_${w}` : R.lib; out.push(`[이류] ${LIBRARY_GEAR[id].name}`); }
+  if (R.book) { const id = R.book === 'weapon' ? CP_BOOK[w] : R.book; out.push(`《${MANUALS[id].name}》 비급`); }
+  for (const [id, n] of Object.entries(R.items || {})) out.push(`${ITEMS[id].name} ${n}`);
+  if (R.silver) out.push(`은자 ${R.silver}냥`);
+  return out.join(' · ');
+}
+function giveQuestReward(q) {
+  const R = q.reward; if (!R) return;
+  const w = weaponType();
+  if (R.gear) { const [b, t, r] = R.gear; giveGear(makeGear(b === 'weapon' ? w : b, t, r, false)); }
+  if (R.lib) { const id = R.lib === 'weapon' ? `lg_${w}` : R.lib; if (ownsShop(id)) S.silver += LIBRARY_GEAR[id].cost; else giveGear(libraryGear(id)); }
+  if (R.book) { const id = R.book === 'weapon' ? CP_BOOK[w] : R.book; if (S.manuals[id] || has('bk_' + id)) S.contrib += MANUALS[id].cost || 0; else give('bk_' + id, 1); }
+  for (const [id, n] of Object.entries(R.items || {})) give(id, n, true);
+  if (R.silver) S.silver += R.silver;
+}
+/* 장문인: 지금 가르침을 이루었으면 보상 받기, 아니면 가르침 · 귀띔 */
+function tutorReady() { const q = QUESTS[questIndex()]; return !!(q && q.reward && q.done()); }
 function masterTalk() {
-  const qi = questIndex();
-  if (!tutorReady()) return masterHint();
-  if (qi > 0 && tutorShown() === qi) log(`노벽송: "${pick(['잘했다.', '제법이구나.', '허허, 벌써 해냈느냐.'])} 다음 가르침을 주마."`, 'npc');
-  S.tutorShown = qi + 1;
-  log(`노벽송: "${QUEST_TALK[qi]}"`, 'npc');
-  log(`[장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${QUESTS[qi][0]}`, 'gold');
-  const pill = /소성 돌파단/.test(QUESTS[qi][0]) ? 'pillLow' : /대성/.test(QUESTS[qi][0]) ? 'pillHigh' : null;
-  const r = pill && RECIPES.find(x => x.out === pill);
-  if (r && !S.codex.includes(r.id)) addHint(r);
+  const qi = questIndex(), q = QUESTS[qi];
+  if (!q) return masterHint();
+  if (!tutorReady()) {
+    log(`노벽송: "${q.talk}"`, 'npc');
+    log(`[장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${q.t}`, 'gold');
+    const r = q.pill && RECIPES.find(x => x.out === q.pill);
+    if (r && !S.codex.includes(r.id)) addHint(r);
+    notify.refresh(); return;
+  }
+  const txt = questRewardText(q);
+  giveQuestReward(q);
+  S.mainQ = qi + 1;
+  log(`노벽송: "${pick(['잘했다.', '제법이구나.', '허허, 벌써 해냈느냐.'])} 받아라."`, 'npc');
+  log(`🏆 [장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${q.t} — 보상: ${hlItem(txt)}`, 'gold');
+  const nx = QUESTS[qi + 1];
+  if (nx) { log(`노벽송: "${nx.talk}"`, 'npc'); const r = nx.pill && RECIPES.find(x => x.out === nx.pill); if (r && !S.codex.includes(r.id)) addHint(r); }
   notify.refresh();
 }

@@ -193,7 +193,7 @@ function runStep(rec, t) {
   const si = rec.steps.length - 1, s = rec.steps[si];
   s.stage = rec.stage;
   log(`${stepText(rec, s)}`, `exp-step ${s.b !== undefined ? '' : s.cls}`, t, { r: rec.id, s: si });
-  if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { rec.kills++; if (rec.kills >= stageNeed(rec.stage)) stageClear(rec, t); }
+  if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { subqAdd(zid, rec.stage); rec.kills++; if (rec.kills >= stageNeed(rec.stage)) stageClear(rec, t); }   // 서브 퀘스트(단계 토벌) 진행
   if (r.lost) { rec.defeats = 1; s.d.push({ text: EXP_TEXT.defeat, cls: 'bad' }); endRun(rec, t, 'dead'); }
   return s;
 }
@@ -228,11 +228,14 @@ function endRun(rec, t, why) {
   if (S.expedition.run === rec.id) S.expedition.run = null;
   S.stamina = 0; S.buffs = [];                                     // 증강 단약 효과는 이번 강호행으로 끝
   { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; }   // 산문에 돌아오면 몸을 추스른다 (쓰러졌어도 실려 와 치료받는다)
+  // 쓰러지면 다음 출발 단계를 한 단계 낮춘다 (아래에서 토벌 임무를 채우며 생혈고 · 은자를 모으고 다시 오르도록)
+  if (why === 'dead' && S.expedition.zone === rec.zone) { const back = Math.max(1, rec.stage - 1); S.expedition.stage = back; rec.backTo = back; }
   const zid = rec.zone, zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
   zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = t; zl.defeats += rec.defeats;
   for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }
   const g = rec.gain, items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
   log(`${why === 'dead' ? '💀' : '🏯'} ${stageName(zid, rec.stage)}에서 ${why === 'dead' ? '쓰러져 실려 돌아왔습니다' : '스스로 돌아왔습니다'}${rec.cleared && rec.cleared.length ? ` · 돌파 ${rec.cleared.length}번` : ''} · ${rec.wins}승 ${rec.losses}패 · ${hlSilver(Math.max(0, rec.pend.silver))}${rec.pend.exp ? ` · 수련치 +${fmt(rec.pend.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}`, 'exp-head', t, { r: rec.id });
+  if (rec.backTo && rec.backTo < rec.stage) log(`↳ 다음 강호행은 한 단계 아래 ${stageName(zid, rec.backTo)}에서 시작합니다. 토벌 임무를 채우며 생혈고와 은자를 모으고 다시 오르십시오. (강호행 탭 단계 줄에서 바꿀 수 있습니다)`, 'muted', t);
   notify.trace('sys', `강호행 ${zid} 끝(${why}): ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${rec.pend.silver} · 수련치 ${rec.pend.exp}`);
   notify.refresh(); notify.save();
 }

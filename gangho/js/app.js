@@ -138,7 +138,7 @@ function startNewGame(name, mugongId, opts = {}) {
   S.equip.weapon = makeNamedGear(STARTER_GEAR[wt]);
   S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
-  S.tutorShown = 0;                                  // 장문인에게 말을 걸어야 첫 가르침이 드러난다
+  S.mainQ = 0;                                       // 장문인에게 말을 걸어야 첫 가르침이 드러난다
   ensureMissions(); checkDailyMidnightReset();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
   if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
@@ -326,6 +326,8 @@ function startGame(st) {
     delete S.migratedExp;
   }
   ensureMissions(); checkDailyMidnightReset();
+  // 메인 퀘스트 개편: 예전 저장은 이미 이룬 가르침까지를 지난 것으로 (보상 없이)
+  if (S.mainQ === undefined) { let i = 0; while (i < QUESTS.length - 1 && QUESTS[i].done()) i++; S.mainQ = i; delete S.tutorShown; }
   for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
   if (S.migratedPot) { log('📜 강호행이 바뀌었습니다. 이제 정각마다 떠나지 않고, [강호행 시작]을 누르면 쓰러질 때까지 쭉 이어집니다. 조운이 생혈고 10개를 챙겨 주었습니다.', 'gold'); delete S.migratedPot; }
   // 자리를 비운 동안에도 강호행은 이어졌다 (최대 8시간). 새 버전이 배포되었으면 그 강호행은 여기서 마친다

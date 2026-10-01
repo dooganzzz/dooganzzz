@@ -219,3 +219,10 @@ small { font-size: .82rem; }
 .auth-note { font-size: .85rem; }
 .auth-busy { margin: 18px 0; }
 .auth-foot { display: inline-flex; align-items: center; gap: 6px; }
+
+/* 메인 퀘스트 보상 · 토벌 임무 */
+.quest-reward { margin: 4px 0 0; font-size: .88rem; color: var(--silver); }
+.quest-reward b { color: #e2bb62; }
+.main-quest.ready { box-shadow: inset 3px 0 0 #e2bb62; }
+.missions li.ready { box-shadow: inset 3px 0 0 #6aa84f; }
+.subq-note { margin: 0 0 6px; font-size: .85rem; }

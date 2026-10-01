@@ -33,7 +33,7 @@ function aiAct(note) {
   // 4. 장비: 전투력이 오르면 갈아 끼우고, 행낭이 차면 못 쓰는 장비를 판다
   aiPickGear(note);
   // 5. 문파 임무 · 무신상 공양
-  for (let i = S.missions.length - 1; i >= 0; i--) if (missionReady(S.missions[i])) completeMission(i);
+  for (const q of subqList()) if (subqReady(q.zid, q.n)) claimSubq(q.zid, q.n);
   if (count('slag') >= GACHA.cost) pray(Math.floor(count('slag') / GACHA.cost));
   // 6. 돌파단 · 생혈고
   aiPills(note);

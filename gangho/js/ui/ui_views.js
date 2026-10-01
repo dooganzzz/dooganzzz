@@ -175,23 +175,24 @@ function viewHall() {
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();
   const hq = `
-    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint" ${!tutorReady() && q ? 'disabled title="지금 가르침을 먼저 이루십시오"' : ''}>${tutorReady() ? '말 걸기 <small>새 가르침</small>' : q ? '수행 중' : '말 걸기'}</button></div>
-    <div class="quest ${tutorReady() ? 'locked' : ''}">
+    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint">${tutorReady() ? '보상 받기 <small>가르침을 이룸</small>' : '말 걸기'}</button></div>
+    <div class="quest main-quest ${tutorReady() ? 'ready' : ''}">
       ${!q ? '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'
-        : tutorReady() ? `<small class="muted">장문인의 가르침 · ${qi + 1}/${QUESTS.length}</small><b>${qi > 0 ? '가르침을 이루었습니다!' : '장문인께 인사드리기'}</b><p class="story">장문인에게 [ 말 걸기 ]를 눌러 ${qi > 0 ? '다음 가르침을 받으십시오.' : '첫 가르침을 받으십시오.'}</p>`
-        : `<small class="muted">장문인의 가르침 · ${qi + 1}/${QUESTS.length}</small><b>${q[0]}</b><p class="story">${q[2]}</p>`}
+        : `<small class="muted">메인 퀘스트 · 장문인의 가르침 ${qi + 1}/${QUESTS.length}</small><b>${q.t}${tutorReady() ? ' <span class="good">— 이룸!</span>' : ''}</b><p class="story">${tutorReady() ? '장문인에게 [ 보상 받기 ]를 누르십시오.' : q.hint}</p>${q.reward ? `<p class="quest-reward">보상: <b>${questRewardText(q)}</b></p>` : ''}`}
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
       <div class="npc-acts"><button class="btn talk-btn" data-act="jounguide">문파 안내</button><button class="btn talk-btn ${supplied ? '' : 'ready'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 배고프죠? 죽 끓여 놨어요!"</p></div>
       <div class="npc-acts"><button class="btn talk-btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'ready' : ''}" data-act="talk" title="죽 한 그릇 · 활력·내력 모두 회복">말 걸기 <small>(${arinFree() ? '오늘 첫 죽 무료' : `죽 은자 ${ARIN_CARE}냥`})</small></button></div></div>`;
+  // 서브 퀘스트: 열린 단계마다 반복 토벌 (지금 탐험지가 먼저, 받을 수 있는 것이 위로)
+  const sq = subqList().sort((a, b) => (subqReady(b.zid, b.n) - subqReady(a.zid, a.n)) || ((b.zid === S.expedition.zone) - (a.zid === S.expedition.zone)) || ZONE_ORDER.indexOf(a.zid) - ZONE_ORDER.indexOf(b.zid) || a.n - b.n);
   const missions = `
-    <div class="btns"><button class="btn talk-btn" data-act="reroll">새 임무 (은자 ${getQuestRefreshCost()}냥)</button><small class="muted">갱신할 때마다 10냥씩 오르고, 매일 자정에 10냥으로 돌아갑니다.</small></div>
-    <ul class="missions">${S.missions.map((m, i) => {
-      const tname = ENEMIES[m.target].name, prog = m.prog;
-      return `<li><div><b>토벌</b> ${tname} ${m.n}마리 <small class="muted">${ZONES[m.zone].name}</small></div><div class="mprog"><span style="width:${prog / m.n * 100}%"></span></div><span class="num">${prog}/${m.n}</span><span class="reward">공헌 ${m.contrib}</span><button class="btn sm" data-mission="${i}" ${missionReady(m) ? '' : 'disabled'}>완료</button></li>`;
-    }).join('')}</ul>`;
+    <p class="muted subq-note">열린 단계마다 반복 토벌 임무가 있습니다. 그 단계에서 ${SUBQ.kills}번 이기면 보상을 받고, 몇 번이고 다시 할 수 있습니다.</p>
+    <ul class="missions">${sq.map(({ zid, n }) => {
+      const p = subqProg(zid, n), R = subqReward(zid, n), ok = subqReady(zid, n);
+      return `<li class="${ok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(zid, n)} <small class="muted">${n >= STAGE.count ? '두목' : `${n}단계`}</small></div><div class="mprog"><span style="width:${p / SUBQ.kills * 100}%"></span></div><span class="num">${p}/${SUBQ.kills}</span><span class="reward">공헌 ${R.contrib} · 은자 ${R.silver} · 생혈고 ${R.pot}</span><button class="btn sm ${ok ? 'primary' : ''}" data-subq="${zid}:${n}" ${ok ? '' : 'disabled'}>보상</button></li>`;
+    }).join('') || '<li class="muted">강호행에서 탐험지를 정하면 토벌 임무가 열립니다.</li>'}</ul>`;
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
   const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌']];
   const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';
@@ -205,7 +206,7 @@ function viewHall() {
     <div class="subtabs lib-tabs" role="tablist" aria-label="장경각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
     <div class="shop lib-grid">${libItems.join('')}</div>`;
   return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳')}${foldBody('hq', hq)}</section>
-  <section class="panel fold">${foldHead('missions', '문파 임무', '門派任務', `<span class="num muted">${S.missions.filter(missionReady).length}건 완료 가능</span>`)}${foldBody('missions', missions)}</section>
+  <section class="panel fold">${foldHead('missions', '토벌 임무', '討伐任務', `<span class="num ${subqReadyCount() ? 'gold' : 'muted'}">${subqReadyCount()}건 완료 가능</span>`)}${foldBody('missions', missions)}</section>
   <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 

@@ -293,7 +293,6 @@ function winBattle(b) {
   }
   if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); for (const g of applyFx(b.bonus.fx || {})) bLine(`↳ ${hlItem(g)}`, 'loot'); }
   S.kills++;
-  progressMission(b.eid);
   if (E.boss && !S.flags[E.boss]) {
     S.flags[E.boss] = true;
     const reward = { boss1: 100, boss2: 200, boss3: 300 }[E.boss];
