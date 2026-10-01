@@ -3,7 +3,7 @@
 const MAP_SPOTS = { cheongpung: { x: 25, y: 33 }, yeomhwa: { x: 76, y: 33 }, suryong: { x: 45, y: 74 } };   // 지도 그림 위 자리(%)
 const MAP_HOME = { x: 50, y: 52 };
 /* 붓글씨 이름 자리(%): 각 그림의 머리 위쪽 */
-const MAP_LABELS = { cheongpung: { x: 19, y: 20 }, yeomhwa: { x: 71, y: 15 }, suryong: { x: 50, y: 79 }, home: { x: 51, y: 27 } };
+const MAP_LABELS = { cheongpung: { x: 19, y: 20 }, yeomhwa: { x: 88, y: 20 }, suryong: { x: 50, y: 79 }, home: { x: 51, y: 27 } };
 function mapModal() {
   const spots = Object.entries(MAP_SPOTS).filter(([z]) => ZONES[z]).map(([zid, p]) => {
     const Z = ZONES[zid], open = zoneUnlocked(zid);   // 자세한 정보는 다녀오며 알아 간다 — 지도에는 붓글씨 이름만
