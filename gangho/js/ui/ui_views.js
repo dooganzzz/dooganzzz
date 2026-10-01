@@ -39,7 +39,7 @@ function portrait(who, seal, name) {
 
 /* ───────── 등급 표기: 6단계 등급(하급·중급·상급·진품·명품·극품)마다 고유 색 (회·초·파·노·보·빨) ─────────
    무공 등급(삼류·이류)은 가까운 아이템 등급 색을 빌린다 */
-const GRADE_CLASS_MAP = { '하급': 'grade-low', '중급': 'grade-mid', '상급': 'grade-high', '진품': 'grade-rare', '명품': 'grade-epic', '극품': 'grade-legend', '삼류': 'grade-low', '이류': 'grade-mid', '일류': 'grade-high' };
+const GRADE_CLASS_MAP = { '하급': 'grade-low', '중급': 'grade-mid', '상급': 'grade-high', '진품': 'grade-rare', '명품': 'grade-epic', '극품': 'grade-legend', '삼류': 'grade-low', '이류': 'grade-mid', '일류': 'grade-high', '절정': 'grade-rare', '초절정': 'grade-epic' };
 const gradeClass = g => GRADE_CLASS_MAP[g] || 'grade-low';
 const gradeBadge = g => `<span class="item-grade-badge">${g}</span>`;
 /* 카드 머리: 이름(등급 색)과 등급 원형 뱃지를 양 끝에 */

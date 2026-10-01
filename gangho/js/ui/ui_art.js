@@ -157,7 +157,7 @@ function slotIcon(slot) {
    장비는 부위(무기는 병기 종류)마다 한 장. 비급은 등급별 표지 위에 분류 문양을 얹는다
    (무공은 병기 문양 · 심법 · 경공 두 발 · 기공 가부좌와 보호막) */
 const ITEM_ART = ASSET.item;
-const BOOK_COVER = { '삼류': 'book_g3', '이류': 'book_g2', '일류': 'book_g1' };
+const BOOK_COVER = { '삼류': 'book_g3', '이류': 'book_g2', '일류': 'book_g1', '절정': 'book_g1', '초절정': 'book_g1' };
 function icoFail(im) { brokenArt.add(im.getAttribute('src')); const s = im.closest('.item-ico'); if (s) { s.classList.add('fb'); s.textContent = s.dataset.fb || ''; } }
 const icoImg = (src, cls = '') => `<img class="${cls}" src="${src}" alt="" loading="lazy" onerror="icoFail(this)">`;
 function icoWrap(srcs, fb, cls) {

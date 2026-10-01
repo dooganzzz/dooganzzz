@@ -10,7 +10,7 @@ const EXPEDITION = {
   stepMs: 30000, firstMs: 3000,
   // 기력: 달리면 drainMs에 걸쳐 다 닳고, 다 닳으면 걸으며 regenMs에 걸쳐 차오른다. 걷는 동안은 걸음 간격이 walkStep배
   run: { drainMs: 20 * 60000, regenMs: 10 * 60000, walkStep: 2 },
-  stepGrade: { '삼류': 0.95, '이류': 0.9, '일류': 0.85, '절정': 0.8 },   // 장착 경공 경지가 높을수록 걸음 간격이 짧아져 요수를 조금 더 빨리 만난다
+  stepGrade: { '삼류': 0.95, '이류': 0.9, '일류': 0.85, '절정': 0.8, '초절정': 0.75 },   // 장착 경공 경지가 높을수록 걸음 간격이 짧아져 요수를 조금 더 빨리 만난다
   catchUp: 8 * 3600000, keep: 8,
   weights: { beast: 70, vault: 8, event: 6, trap: 8, gimmick: 8 },
   // 기연은 하루 1~2번: 기연을 만나면 다음 기연까지 encounterGap(ms) 사이의 시간이 지나야 다시 만난다
@@ -69,12 +69,10 @@ const PEDDLER_WARES = {
     { w: 5, name: '소성 돌파단', list: [['pillLow', 1, 80]] },
   ],
   books: [
-    ['bk_samjaeGwon', 60], ['bk_samjaeGeom', 60], ['bk_samjaeDo', 60], ['bk_samjaeChang', 60], ['bk_samjaePyo', 60], ['bk_tonap', 150],
-    ['bk_pocheolsak', 150], ['bk_cheolpo', 150], ['bk_paseok', 150], ['bk_swaegol', 150], ['bk_yeonhwan', 150], ['bk_cpGeombeop', 150],
-    ['bk_nakyeop', 150], ['bk_chupung', 150], ['bk_ohodanmun', 150], ['bk_byeokryeok', 150], ['bk_dansu', 150], ['bk_yukhap', 150],
-    ['bk_cheolgi', 150], ['bk_pungun', 150], ['bk_biyeon', 150], ['bk_sanhwa', 150], ['bk_tugol', 150], ['bk_chosangbi', 150],
-    ['bk_dapsu', 150], ['bk_jihaeng', 150], ['bk_deungsu', 150], ['bk_mijong', 150], ['bk_mokryeong', 150], ['bk_byeokhwa', 150],
-    ['bk_huto', 150], ['bk_baekgeum', 150], ['bk_yusu', 150],
+    ['bk_sw1a', 60], ['bk_sw1b', 150], ['bk_sw1c', 150], ['bk_bd1a', 60], ['bk_bd1b', 150], ['bk_bd1c', 150],
+    ['bk_sp1a', 60], ['bk_sp1b', 150], ['bk_sp1c', 150], ['bk_fs1a', 60], ['bk_fs1b', 150], ['bk_fs1c', 150],
+    ['bk_hd1a', 60], ['bk_hd1b', 150], ['bk_hd1c', 150], ['bk_gy1a', 150], ['bk_gy1b', 150], ['bk_gy1c', 150],
+    ['bk_gi1a', 150], ['bk_gi1b', 150], ['bk_gi1c', 150], ['bk_sm1a', 150], ['bk_sm1b', 150], ['bk_sm1c', 150],
   ],
   gear: [
     ['g_bandage', 30], ['g_hideTosu', 35], ['g_woodFist', 35], ['g_copperGlove', 40], ['g_studFist', 40], ['g_rustySword', 30],

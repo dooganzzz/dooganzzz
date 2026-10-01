@@ -1,5 +1,10 @@
 /* [화면] 창(모달): 무공 상세·기연 사건·도감 레시피·처음부터 다시·시작 화면 */
 
+/* 비급에 실린 과거 시: 검법은 비급마다 한 편, 나머지 갈래는 등급에 맞는 갈래 시 (짧은 시 · 보통 시 · 긴 시) */
+function manualPoemHtml(id) {
+  const M = MANUALS[id], key = M.weapon || M.cat, P = M.poem || (CAT_POEMS[key] && { title: '', lines: CAT_POEMS[key][{ '삼류': 0, '이류': 0, '일류': 1, '절정': 1, '초절정': 2 }[M.grade] || 0] });
+  return P ? `<blockquote class="manual-poem">${P.title ? `<b>${P.title}</b>` : ''}${P.lines.map(l => `<span>${l}</span>`).join('')}</blockquote>` : '';
+}
 function manualModal(cat) {
   return martialModal(S.active[cat]);
 }
@@ -23,6 +28,7 @@ function martialModal(id) {
     <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
     <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 수련치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
     <p class="story">${M.desc}</p>
+    ${manualPoemHtml(id)}
     ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja}) — ${ELEMENTS[ELEM_BEATS[M.elem]].hanja} 속성 적에게 피해 +25%, ${ELEMENTS[Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem)].hanja} 속성 적에게는 -25%</p>` : ''}
     ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}
     <h4>보너스 효과 (장착 시)</h4>${bonus}
@@ -196,7 +202,7 @@ const PROLOGUE = [
 const INTRO_STEPS = 4;
 const STARTER_LABEL = { fist: '권장법', sword: '검법', blade: '도법', spear: '창법', hidden: '암기술' };
 function showIntro() {
-  let chosen = 'samjaeGeom', talent = 'forge';
+  let chosen = 'sw1a', talent = 'forge';
   let stage = navigator.webdriver ? INTRO_STEPS : 0, fresh = 0;   // fresh: 방금 드러난 단계 (그 단계만 번지며 나타난다)
   const attr = Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';

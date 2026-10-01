@@ -2,7 +2,8 @@
    제자는 병기별 스프라이트시트 12칸, 요수는 숨쉬기 시트(제자리) + 공격 시트 3칸(움츠림 · 공격 · 마무리).
    사냥터 셋(청풍산 · 염화채 · 수룡방) 무대와 요수 31종, 병기 5종 모두에서 켠다 */
 const SPRITE_STAGES = new Set(['cheongpung', 'yeomhwa', 'suryong']);
-const SPRITE_SRC = ASSET;   // 그림 경로는 data/assets.js
+const SPRITE_SRC = ASSET;
+const manualFx = id => (MANUALS[id] && MANUALS[id].fx) || id;   // 비급의 초식 그림 (새 비급은 옛 그림을 이어 씀)   // 그림 경로는 data/assets.js
 /* 그림 미리 풀기: 한 번 푼 그림은 기억해 두어 다음엔 곧바로 (Image 객체를 붙들어 브라우저가 풀어 둔 그림을 버리지 않게) */
 const IMG_CACHE = new Map();
 function preloadImgs(urls) {
@@ -133,7 +134,7 @@ async function spHeroAttack(f, stance, gap) {
   const skill = () => {
     if (!tier) return;
     if (stance.t) playFx([stance]);
-    if (stance.mid) spVfx(`${stance.mid}_${tier}`, `n${tier}`, tier === 2 ? 1300 : 1000);
+    if (stance.mid) spVfx(`${manualFx(stance.mid)}_${tier}`, `n${tier}`, tier === 2 ? 1300 : 1000);
     if (tier === 2) { spShake(); setTimeout(spShake, 260 * k); }
   };
   if (w === 'sword' && !tier) {                          // 검 평타: 힘껏 찌르기

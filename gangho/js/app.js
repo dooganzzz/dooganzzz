@@ -20,7 +20,7 @@ function newState(name, mugongId, opts = {}) {
     attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), talent: TALENTS[opts.talent] ? opts.talent : null,
     expedition: { zone: null, run: null, stage: 1, auto: true }, stages: {}, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
-    inv: { saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
+    inv: { saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_sm1a: 1, bk_gy1a: 1, bk_gi1a: 1 },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
     perm: { maxHp: 0, maxMp: 0, attr: {} },
@@ -142,7 +142,7 @@ function startNewGame(name, mugongId, opts = {}) {
   ensureMissions(); checkDailyMidnightReset();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
   if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
-  log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·팔보간섬·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
+  log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·초상비·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
   log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 강호에 나가 부딪혀라."', 'npc');
   log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
   log('아린: "새 사형이다! 비급부터 익혀요. 상태 탭의 무공에 있어요!"', 'npc');
@@ -160,6 +160,16 @@ const OLD_ITEM_PRICE = {
 /* 예전 저장을 지금 규칙에 맞게 옮긴다.
    v8: 지도·연무장·비급별 수련/실전 수련치가 사라졌다. 쌓아 둔 진행 비율만큼 수련치 주머니(S.exp)로 돌려준다. */
 /* 장비 이름을 지금 데이터의 이름으로 맞춘다 (이름을 고쳐도 예전에 얻은 장비가 옛 이름으로 남지 않게) */
+/* 비급 120종 개편 (10월 1일): 옛 비급 id → 새 비급 id. 둘이 한 비급으로 모이면 성급 · 수련치가 높은 쪽을 남긴다 */
+const OLD_MANUAL = { samjaeGwon: 'fs1a', paseok: 'fs1b', swaegol: 'fs1c', yeonhwan: 'fs1c', cpGwon: 'fs2a', samjaeGeom: 'sw1a', cpGeombeop: 'sw1b', nakyeop: 'sw1c', chupung: 'sw1c', cpGeom: 'sw2a', samjaeDo: 'bd1a', ohodanmun: 'bd1b', byeokryeok: 'bd1c', dansu: 'bd1c', cpDo: 'bd2a', samjaeChang: 'sp1a', yukhap: 'sp1b', cheolgi: 'sp1c', pungun: 'sp1c', cpChang: 'sp2a', samjaePyo: 'hd1a', biyeon: 'hd1b', sanhwa: 'hd1c', tugol: 'hd1c', cpPyo: 'hd2a', tonap: 'sm1a', cpSim: 'sm2a', pocheolsak: 'gy1a', chosangbi: 'gy1a', mijong: 'gy1b', dapsu: 'gy1b', jihaeng: 'gy1c', deungsu: 'gy1c', cpGyeong: 'gy2a', cheolpo: 'gi1a', baekgeum: 'gi1a', huto: 'gi1b', mokryeong: 'gi1c', byeokhwa: 'gi1c', yusu: 'gi1c', cpGi: 'gi2a' };
+function migrateManuals(st) {
+  const nu = {};
+  for (const [id, m] of Object.entries(st.manuals || {})) { const to = OLD_MANUAL[id] || id; if (!MANUALS[to]) continue; const a = nu[to]; if (!a || (m.star || 0) > (a.star || 0)) nu[to] = m; }
+  st.manuals = nu;
+  for (const [c, id] of Object.entries(st.active || {})) if (id && OLD_MANUAL[id]) st.active[c] = OLD_MANUAL[id];
+  for (const [c, id] of Object.entries(st.active || {})) if (id && !MANUALS[id]) st.active[c] = null;
+  for (const k of Object.keys(st.inv || {})) { const id = k.startsWith('bk_') && k.slice(3); if (id && OLD_MANUAL[id]) { st.inv['bk_' + OLD_MANUAL[id]] = (st.inv['bk_' + OLD_MANUAL[id]] || 0) + st.inv[k]; delete st.inv[k]; } }
+}
 function gearNameNow(it) {
   if (!it) return;
   const G = it.named && (GEAR_DB[it.named] || CRAFT_GEAR[it.named] || LIBRARY_GEAR[it.named]);
@@ -169,6 +179,7 @@ function gearNameNow(it) {
 }
 function migrate(st) {
   if (!st) return null;
+  migrateManuals(st);   // 비급 120종 개편: 옛 비급 → 같은 갈래 · 등급의 새 비급 (성급은 높은 쪽)
   if ((st.v || 0) < 8) {
     let exp = 0;
     for (const [id, m] of Object.entries(st.manuals || {})) {

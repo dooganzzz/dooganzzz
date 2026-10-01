@@ -249,3 +249,7 @@ small { font-size: .82rem; }
 .enc-choice { text-align: left; justify-content: flex-start; white-space: normal; }
 .enc-log { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 
+/* 비급에 실린 과거 시 (ui_modals manualPoemHtml) */
+.manual-poem { margin: 8px 0 12px; padding: 8px 14px; border-left: 3px solid rgba(226, 181, 74, .55); background: rgba(226, 181, 74, .06); border-radius: 0 8px 8px 0;
+  font-family: var(--serif, serif); font-size: 14px; line-height: 1.75; color: inherit; display: grid; gap: 1px; }
+.manual-poem b { font-size: 13px; color: var(--gold, #c9a24a); letter-spacing: .06em; margin-bottom: 2px; }
