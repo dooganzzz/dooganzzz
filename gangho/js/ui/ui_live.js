@@ -227,21 +227,38 @@ function liveProps(sc, walker, dt) {
   im.style.height = (h * LIVE_PROPS[k]).toFixed(0) + 'px'; im.dataset.x0 = W + 10; im.dataset.at = liveAnim.x;
   im.style.transform = `translate3d(${W + 10}px,0,0)`; sc.appendChild(im);
 }
-/* 발자국: 발이 땅에 닿을 때마다(걸음 주기의 반) 발밑에 찍고, 땅과 같은 빠르기로 뒤로 흘러가며 옅어진다 */
+/* 발자국: 시트에서 발이 땅에 닿는 칸(잰 값)에, 그 발 밑창 자리에 찍는다. 땅과 같은 빠르기로 뒤로 흘러가며 옅어진다.
+   STEP_CONTACT[모드][병기] = [[칸, 발 가운데 x(400px 칸 기준)], ...] · 발바닥 높이 STEP_SOLE_Y(380px 칸 기준) */
+const STEP_CONTACT = {
+  run: { sword: [[0, 220], [8, 217]], blade: [[4, 262], [12, 252]], spear: [[1, 201], [5, 201], [9, 211], [13, 195]], fist: [[2, 189], [5, 232], [10, 207], [14, 178]], hidden: [[2, 236], [10, 222]] },
+  walk: { sword: [[11, 255], [3, 255]], blade: [[4, 269], [14, 241]], spear: [[13, 227], [5, 227]], fist: [[4, 242], [12, 242]], hidden: [[0, 227], [7, 244]] },
+}, STEP_SOLE_Y = 371;
 function liveSteps(sc, walker, W, mode) {
   for (const p of sc.querySelectorAll('.live-step')) {
     const x = +p.dataset.x0 - (liveAnim.x - +p.dataset.at);
     if (x < -30) p.remove(); else p.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
   }
   if (!walker || liveAnim.v < .2) return;
-  const half = Math.floor(liveAnim.acc / (W.ms / 2));
-  if (half === liveAnim.stepHalf) return;
-  liveAnim.stepHalf = half;
-  const el = document.createElement('i'); el.className = `live-step ${mode} ${half ? 'r' : 'l'}`; el.dataset.live = 1;
-  const x0 = walker.offsetLeft + walker.offsetWidth * .46;
+  const fr = liveAnim.f, list = (STEP_CONTACT[mode] || STEP_CONTACT.run)[walker.dataset.w] || STEP_CONTACT.run.sword, hit = list.find(c => c[0] === fr);
+  if (!hit) { liveAnim.stepF = -1; return; }
+  if (liveAnim.stepF === fr) return;
+  liveAnim.stepF = fr;
+  const el = document.createElement('i'); el.className = `live-step ${mode}`; el.dataset.live = 1;
+  el.style.backgroundImage = `url('${ASSET.fx('footprint_' + (sc.dataset.zone || 'cheongpung'))}')`;   // 헝겊신 밑창 자국 (탐험지 흙빛)
+  sc.appendChild(el);
+  const fw = el.offsetWidth, fh = el.offsetHeight;
+  const fx = walker.offsetLeft + walker.offsetWidth * hit[1] / 400, fy = walker.offsetTop + walker.offsetHeight * STEP_SOLE_Y / 380;
+  const x0 = fx - fw / 2;
+  el.style.top = (fy - fh / 2).toFixed(1) + 'px';
   el.dataset.x0 = x0; el.dataset.at = liveAnim.x; el.style.transform = `translate3d(${x0.toFixed(1)}px,0,0)`;
   el.addEventListener('animationend', () => el.remove());
-  sc.appendChild(el);
+  for (let i = 0; i < (mode === 'run' ? 4 : 2); i++) {              // 흙먼지: 발이 닿는 자리에서 뒤로 살짝 튄다
+    const d = document.createElement('i'); d.className = 'live-dust'; d.dataset.live = 1;
+    d.style.left = (fx - 6 + Math.random() * 10).toFixed(1) + 'px'; d.style.top = (fy - 4).toFixed(1) + 'px';
+    d.style.setProperty('--dx', (-12 - Math.random() * 18).toFixed(0) + 'px'); d.style.setProperty('--dy', (-5 - Math.random() * 12).toFixed(0) + 'px');
+    d.style.animationDelay = (i * 25) + 'ms';
+    sc.appendChild(d); setTimeout(() => d.remove(), 700);
+  }
 }
 /* 기믹 걸음(덫 · 금고 · 장치 · 기연)도 무대에: 오른쪽 끝에서 땅과 같이 다가와 제자에게 닿으면 이펙트와 얻은 것('+1')을 띄운다.
    닿기 전까지 견문록에는 그 걸음을 아직 안 띄운다 (맞붙기와 같은 hold) */
