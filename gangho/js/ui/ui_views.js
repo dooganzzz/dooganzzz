@@ -240,20 +240,16 @@ function viewShop() {
   const price = n => `<span class="price">${fmt(n)}<small>냥</small></span>`;
   let body;
   if (mode === 'buy') {
-    const isBook = id => ITEMS[id].kind === '비급';
-    const bookRow = ([id, pr]) => { const I = ITEMS[id], mid = I.use.learn, M = MANUALS[mid], got = S.manuals[mid] ? '익힘' : count(id) ? '행낭에 있음' : '';
-      return `<div class="ware"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num muted">${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}${got ? ` · <span class="gold">${got}</span>` : ''}</span><small>${M.desc}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buy="${id}" ${got ? 'disabled' : ''}>사기</button></div>`; };
-    const wares = SHOP_STOCK.filter(([id]) => !isBook(id)).map(([id, pr]) => { const I = ITEMS[id]; return `<div class="ware"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num muted">보유 ${count(id)}</span><small>${I.desc}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buy="${id}">사기</button></div>`; }).join('');
+    const wares = SHOP_STOCK.map(([id, pr]) => { const I = ITEMS[id]; return `<div class="ware"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num muted">보유 ${count(id)}</span><small>${I.desc}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buy="${id}">사기</button></div>`; }).join('');
     const gearRow = ([base, t, pr]) => { const B = gearSpec(base, t); const st = Object.entries(B.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
       return `<div class="ware"><span class="icon">${gearIco(B)}</span><div><b class="item-name grade-low">${B.name}</b> ${gradeBadge(RARITY[0].name)} <span class="num muted">${SLOTS[B.slot].name}${B.wtype ? ' · ' + WEAPON_SHORT[B.wtype] : ''}</span><small>${st}${B.desc ? ` — ${B.desc}` : ''}</small></div>${price(pr)}<button class="btn sm ${S.silver < pr ? 'short' : ''}" data-buygear="${base}:${t}">사기</button></div>`; };
     // 구매: [소모품] | [장비] → 장비는 [무기] | [갑옷] | [장신구]
     const tabs = (key, cur, list, cls) => `<div class="subtabs ${cls}" role="tablist" style="--n:${list.length}">${list.map(([id, ko, hj]) => `<button class="subtab ${cur === id ? 'on' : ''}" role="tab" aria-selected="${cur === id}" data-${key}="${id}">${label(ko, hj)}</button>`).join('')}</div>`;
-    const bt = ['gear', 'books'].includes(ui.shopBuy) ? ui.shopBuy : 'items';
+    const bt = ui.shopBuy === 'gear' ? 'gear' : 'items';
     const gt = SHOP_GEAR_TABS[ui.shopGear] ? ui.shopGear : 'weapon';
     const gearRows = SHOP_GEAR_STOCK.filter(([base, t]) => SHOP_GEAR_TABS[gt].slots.includes(gearSpec(base, t).slot)).map(gearRow).join('');
-    body = tabs('shopbuy', bt, [['items', '소모품', '消耗品'], ['gear', '장비', '裝備'], ['books', '비급', '祕笈']], 'shop-buy-tabs')
+    body = tabs('shopbuy', bt, [['items', '소모품', '消耗品'], ['gear', '장비', '裝備']], 'shop-buy-tabs')
       + (bt === 'items' ? `<div class="wares">${wares}</div>`
-        : bt === 'books' ? `<div class="wares">${SHOP_STOCK.filter(([id]) => isBook(id)).map(bookRow).join('')}</div>`
         : tabs('shopgear', gt, Object.entries(SHOP_GEAR_TABS).map(([id, g]) => [id, g.ko, g.hj]), 'shop-gear-tabs') + (gearRows ? `<div class="wares">${gearRows}</div>` : '<p class="story muted">지금은 들여놓은 물건이 없소.</p>'));
   } else {
     const items = Object.keys(S.inv).filter(id => itemSellPrice(id) > 0);

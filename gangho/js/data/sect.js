@@ -17,28 +17,13 @@ const MERCHANT = {
 /* 전방 진열: [아이템, 은자] — 단약·재료 */
 const SHOP_STOCK = [
   ['saenghyeol', 5], ['gigeokdan', 50], ['potionMp', 20], ['herb', 6], ['wildGinseng', 6],
-  ['blackwood', 6], ['roughOre', 5], ['wildcatHide', 8], ['pillLow', 80],
-  // 삼류 비급 (전방 [비급] 탭) — 입문 삼재 무공은 싸게
-  ['bk_samjaeGwon', 60], ['bk_samjaeGeom', 60], ['bk_samjaeDo', 60], ['bk_samjaeChang', 60], ['bk_samjaePyo', 60], ['bk_tonap', 150],
-  ['bk_pocheolsak', 150], ['bk_cheolpo', 150], ['bk_paseok', 150], ['bk_swaegol', 150], ['bk_yeonhwan', 150], ['bk_cpGeombeop', 150],
-  ['bk_nakyeop', 150], ['bk_chupung', 150], ['bk_ohodanmun', 150], ['bk_byeokryeok', 150], ['bk_dansu', 150], ['bk_yukhap', 150],
-  ['bk_cheolgi', 150], ['bk_pungun', 150], ['bk_biyeon', 150], ['bk_sanhwa', 150], ['bk_tugol', 150], ['bk_chosangbi', 150],
-  ['bk_dapsu', 150], ['bk_jihaeng', 150], ['bk_deungsu', 150], ['bk_mijong', 150], ['bk_mokryeong', 150], ['bk_byeokhwa', 150],
-  ['bk_huto', 150], ['bk_baekgeum', 150], ['bk_yusu', 150],
+  ['blackwood', 6], ['roughOre', 5], ['wildcatHide', 8],
 ];
 /* 전방 진열: [하급 장비 id(GEAR_DB) 또는 기본형(EQUIP_BASES), 티어, 은자] */
 const SHOP_GEAR_STOCK = [
-  // 무기 (하급 이름 있는 장비 전부 · 단조 장비는 팔지 않는다)
-  ['g_bandage', 1, 30], ['g_hideTosu', 1, 35], ['g_woodFist', 1, 35], ['g_copperGlove', 1, 40], ['g_studFist', 1, 40],
-  ['g_rustySword', 1, 30], ['g_mapleSword', 1, 35], ['g_dullSword', 1, 35], ['g_bronzeRapier', 1, 40], ['g_straightSword', 1, 45],
-  ['g_chippedBlade', 1, 35], ['g_shortBlade', 1, 40], ['g_ironSaber', 1, 45], ['g_axeBlade', 1, 50], ['g_blackSaber', 1, 50],
-  ['g_bambooSpear', 1, 30], ['g_flailSpear', 1, 40], ['g_waxSpear', 1, 45], ['g_trident', 1, 45], ['g_needleSpear', 1, 50],
-  ['g_pebbles', 1, 30], ['g_dullStar', 1, 30], ['g_rustyKnife', 1, 35], ['g_woodNeedle', 1, 40], ['g_caltrops', 1, 40],
-  // 갑옷
-  ['g_hempRobe', 1, 25], ['g_hunterCoat', 1, 55], ['g_cpRobe', 1, 60], ['helmet', 1, 35], ['boots', 1, 30],
-  // 장신구
-  ['g_ironRing', 1, 40], ['g_bronzeRing', 1, 35], ['g_hornRing', 1, 40], ['g_hempBelt', 1, 20], ['g_leatherBelt', 1, 45],
-  ['g_silkBelt', 1, 45], ['g_whiteJade', 1, 50], ['g_dullJade', 1, 45], ['g_cloudJade', 1, 50],
+  ['g_studFist', 1, 40], ['g_straightSword', 1, 45], ['g_blackSaber', 1, 50], ['g_trident', 1, 45], ['g_caltrops', 1, 40],
+  ['g_hunterCoat', 1, 55], ['g_cpRobe', 1, 60], ['helmet', 1, 35], ['boots', 1, 30],
+  ['g_ironRing', 1, 40], ['g_hempBelt', 1, 20], ['g_leatherBelt', 1, 45], ['g_whiteJade', 1, 50],
 ];
 /* 장비 되팔기: 티어별 기본값 × 희귀도 배율 × (1 + 강화 × 0.15) */
 const GEAR_SELL = { tier: [8, 25, 60], enh: 0.15 };
