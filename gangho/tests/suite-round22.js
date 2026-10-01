@@ -64,11 +64,11 @@ module.exports = async (b) => {
       r.pillsKept = ['pillLow', 'pillHigh'].every(id => RECIPES.some(x => x.out === id));
       // 단조 성공: 중급 장비, 도감 등재
       S.crafts.forge.lv = 99; const rc = RECIPES.find(x => x.id === 'f_c_sword');
-      for (let i = 0; i < 20 && !S.codex.includes('f_c_sword'); i++) { for (const [id, n] of Object.entries(rc.in)) S.inv[id] = (S.inv[id] || 0) + n; doCraft('forge', { ...rc.in }); }
+      for (let i = 0; i < 20 && !S.codex.includes('f_c_sword'); i++) { for (const [id, n] of Object.entries(rc.in)) S.inv[id] = (S.inv[id] || 0) + n; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)('forge', { ...rc.in }); }
       const it = S.gear.find(g => g.named === 'c_sword');
       r.made = !!it && RARITY[it.rarity].name === '상급' && S.codex.includes('f_c_sword');   // 3재료 조합은 상급(이류)
       // 실패 → 찌꺼기
-      const s0 = count('slag'); S.inv.roughOre = (S.inv.roughOre || 0) + 1; doCraft('forge', { roughOre: 1 }); r.slag = count('slag') === s0 + (talentOf().slag || 1);
+      const s0 = count('slag'); S.inv.roughOre = (S.inv.roughOre || 0) + 1; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)('forge', { roughOre: 1 }); r.slag = count('slag') === s0 + (talentOf().slag || 1);
       r.saeng = Object.keys(RECIPES.find(x => x.out === 'saenghyeol').in).every(id => ZONES.cheongpung.mats.includes(id));   // 건의: 생혈고는 청풍산 재료만
       r.fistName = EQUIP_BASES.fist.names[1];                                                                              // 건의: 이름 겹침 해소
       return r;

@@ -13,7 +13,7 @@ module.exports = async (b) => {
     // 2. 단서 없음: 성공해도 다른 조합식의 재료를 알려 주지 않는다
     const clue = await p.evaluate(() => {
       S.crafts.alchemy.lv = 99; ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy';
-      for (let i = 0; i < 20 && !S.codex.includes('a_sohwan'); i++) { Object.assign(S.inv, { wildGinseng: 2, treeSap: 1 }); ui.pot = { wildGinseng: 2, treeSap: 1 }; doCraft(ui.craft, ui.pot); }   // 성공률 상한 98%
+      for (let i = 0; i < 20 && !S.codex.includes('a_sohwan'); i++) { Object.assign(S.inv, { wildGinseng: 2, treeSap: 1 }); ui.pot = { wildGinseng: 2, treeSap: 1 }; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(ui.craft, ui.pot); }   // 성공률 상한 98%
       ui.tab = 'codex'; ui.codexTab = 'alchemy'; render();
       return { known: 'knownMats' in S, clues: document.querySelectorAll('.ctile.clue, .hidden-mat').length, crafted: S.codex.includes('a_sohwan'), note: (S.craftNotes || []).some(n => n.ok && n.out === 'potionMp') };
     });

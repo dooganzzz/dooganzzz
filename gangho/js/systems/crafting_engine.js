@@ -19,24 +19,19 @@ function getFilteredMaterials(craft) {
 
 function potTotal(pot) { return Object.values(pot).reduce((a, b) => a + b, 0); }
 
-function fireText(craft) {
-  const lv = S.crafts[craft].lv;
-  const t = {
-    forge: ['풀무질이 서툴러 불길이 들쭉날쭉합니다.', '쇳물이 제법 붉게 달아오릅니다.', '불꽃이 하얗게 달아 망치 소리가 맑습니다.', '쇠가 먼저 제 모양을 알려 줍니다.'],
-    alchemy: ['약탕 아래 불이 이리저리 흔들립니다.', '약향이 고르게 피어오릅니다.', '푸른 불꽃이 안정적으로 넘실댑니다.', '단로의 불이 손끝처럼 말을 듣습니다.'],
-  }[craft];
-  return t[lv >= 8 ? 3 : lv >= 5 ? 2 : lv >= 2 ? 1 : 0];
-}
+/* 한 번 만들 때 드는 값: 단조는 최대 체력의 10%, 연단은 최대 내력의 10% */
+function craftCost(craft, st = calcStats()) { return Math.ceil((craft === 'forge' ? st.maxHp : st.maxMp) * 0.1); }
 
 /* craft: 고른 기예, pot: 화로에 넣은 재료 {itemId: 개수}. 결과는 화면에 신호로 넘긴다 */
 function doCraft(craft, pot) {
   const total = potTotal(pot);
   if (!total) { notify.toast('화로에 재료를 넣으십시오.'); return; }
   for (const [id, n] of Object.entries(pot)) if (!has(id, n)) { notify.toast('재료가 부족합니다.'); return; }
-  const C = CRAFTS[craft], lvl = S.crafts[craft];
+  const C = CRAFTS[craft], lvl = S.crafts[craft], st = calcStats(), cost = craftCost(craft, st);
+  if (craft === 'forge' ? S.hp <= cost : S.mp < cost) { notify.toast(craft === 'forge' ? '체력이 모자라 망치를 들 수 없습니다.' : '내력이 모자라 단로에 주입할 수 없습니다.'); return; }
+  if (craft === 'forge') S.hp -= cost; else S.mp -= cost;
   for (const [id, n] of Object.entries(pot)) take(id, n);
   const recipe = RECIPE_BY_KEY[craft + ':' + potKey(pot)];
-  const st = calcStats();
   const chance = Math.min(98, 78 + lvl.lv * 3 + st.craft + (talentOf().craft === craft ? talentOf().rate || 0 : 0));
   const ok = recipe && Math.random() * 100 < chance;
   lvl.xp += ok ? 10 : 6;

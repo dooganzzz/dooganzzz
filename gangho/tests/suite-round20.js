@@ -122,7 +122,7 @@ module.exports = async (b) => {
       const r = {};
       r.fails = [...new Set(Object.values(CRAFTS).map(c => c.fail))].join();
       r.old = ['twistedIron', 'burntAsh', 'dregs'].some(k => ITEMS[k]);
-      S.inv.slag = 0; for (const c of Object.keys(CRAFTS)) { S.inv.herb = (S.inv.herb || 0) + 3; doCraft(c, { herb: 3 }); }
+      S.inv.slag = 0; for (const c of Object.keys(CRAFTS)) { S.inv.herb = (S.inv.herb || 0) + 3; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(c, { herb: 3 }); }
       r.slag = count('slag');
       S.inv.slag = 2; r.none = pray(1);
       S.inv.slag = 14; const p0 = S.shrine.pulls || 0;

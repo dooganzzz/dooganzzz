@@ -159,9 +159,9 @@ function askPray(times) {
 }
 function askCraft() {
   const flat = Object.entries(ui.pot).filter(([, n]) => n > 0); if (!flat.length) return doCraft(ui.craft, ui.pot);
-  const C = CRAFTS[ui.craft];
-  requestActionConfirm({ title: `${C.name} 시도`, description: '화로에 불을 지핍니다. 조합이 맞으면 완성품이 나오고, 틀리면 재료가 모두 타 버립니다.',
-    details: [flat.map(([id, n]) => `${ITEMS[id].name} ×${n}`).join(' + ') + ' 소모', `실패 시 검게 탄 찌꺼기 ${talentOf().craft === 'forge' && ui.craft === 'forge' ? 2 : 1}개`], confirmText: '불을 지핀다', onConfirm: () => doCraft(ui.craft, ui.pot) });
+  const C = CRAFTS[ui.craft], forge = ui.craft === 'forge', cost = craftCost(ui.craft);
+  requestActionConfirm({ title: `${C.name} 시도`, description: '조합이 맞으면 완성품이 나오고, 틀리면 재료가 모두 타 버립니다.',
+    details: [flat.map(([id, n]) => `${ITEMS[id].name} ×${n}`).join(' + ') + ' 소모', `${forge ? '체력' : '내력'} -${fmt(cost)} (최대의 10%)`, `실패 시 검게 탄 찌꺼기 ${talentOf().craft === 'forge' && ui.craft === 'forge' ? 2 : 1}개`], confirmText: forge ? '두드린다' : '내력을 주입한다', onConfirm: () => doCraft(ui.craft, ui.pot) });
 }
 function askContrib(name, cost, fn, note = '') {
   if (S.contrib < cost) return fn();

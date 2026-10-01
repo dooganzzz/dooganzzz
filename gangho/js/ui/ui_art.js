@@ -11,6 +11,7 @@ const ART_SRC = {
   shrineAwake: () => ASSET.scene('shrine_awake'),
   forgeScene: () => ASSET.scene('forge_scene'),
   cauldron: () => ASSET.scene('alchemy_cauldron'),
+  alchemyScene: () => ASSET.scene('alchemy_scene'),
 };
 const brokenArt = new Set();
 function artFail(im) { brokenArt.add(im.getAttribute('src')); im.remove(); }

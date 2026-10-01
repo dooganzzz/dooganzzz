@@ -195,16 +195,9 @@
 .furnace-stage .stage-bg .art-frame > img { object-fit: cover; object-position: 50% 45%; }
 .furnace-stage .stage-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 40%, rgba(10, 8, 6, .8) 100%), linear-gradient(to bottom, transparent 45%, rgba(10, 8, 6, .82) 100%); }
 /* 연단: 옅은 먹 번짐 바탕 + 뒤의 둥근 광배 */
-.furnace-stage .stage-bg.ink { background: radial-gradient(circle at 50% 36%, rgba(170, 190, 180, .16), transparent 55%), radial-gradient(ellipse at 20% 80%, rgba(120, 130, 128, .12), transparent 50%), radial-gradient(ellipse at 85% 20%, rgba(120, 130, 128, .1), transparent 45%), #121513; }
-.furnace-stage .cauldron-wrap { position: absolute; left: 50%; top: 12px; width: 380px; max-width: 86%; aspect-ratio: 1; transform: translateX(-50%); pointer-events: none; }
-.furnace-stage .cauldron-wrap::before { content: ''; position: absolute; inset: 6%; border-radius: 50%; border: 10px solid rgba(215, 230, 220, .08); box-shadow: 0 0 40px rgba(160, 220, 200, .08), inset 0 0 30px rgba(160, 220, 200, .06); }
-.furnace-stage .cauldron-art { width: 100%; height: 100%; }
-.furnace-stage .cauldron-art > img { object-fit: contain; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, .7)); }
-.furnace-stage.alchemy { min-height: 640px; }
-.furnace-stage.alchemy .stage-ui { margin-top: 384px; padding-top: 0; }
 .furnace-stage.alchemy .furnace-fire { margin: 0 0 4px; }
 .furnace-stage .stage-ui { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 16px 18px; }
-.furnace-stage.forge .stage-ui { margin-top: auto; }
+.furnace-stage .stage-ui { margin-top: auto; }
 /* 재료 칸: 모서리에 마름모 장식이 달린 네모 칸 */
 .furnace-stage .pot-slots { width: min(380px, 100%); grid-template-columns: repeat(5, 1fr); gap: 10px; }
 .furnace-stage .slot { position: relative; border-radius: 6px; border: 1.5px solid rgba(232, 222, 198, .5); background: rgba(22, 18, 14, .62); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .35), 0 2px 6px rgba(0, 0, 0, .5); backdrop-filter: blur(1px); }
@@ -213,7 +206,6 @@
 .furnace-stage .slot.full { border-color: var(--gold-2); background: rgba(58, 44, 24, .7); }
 .furnace-stage .slot-hint { color: rgba(232, 222, 198, .7); font-style: italic; }
 .furnace-stage.alchemy .slot { border-color: rgba(220, 235, 228, .55); background: rgba(236, 240, 236, .1); }
-.furnace-stage .flame { margin: 0; text-align: center; font-size: .9rem; color: #e9dcc0; text-shadow: 0 1px 4px rgba(0, 0, 0, .95); }
 .furnace-stage .furnace-fire { width: 160px; height: 40px; margin: -4px 0; }
 /* 명패 버튼: 단조는 나무·청동 명패, 연단은 옥빛 알약 */
 .btn.plaque { display: inline-flex; justify-content: center; align-items: center; text-align: center; min-width: 180px; padding: 11px 26px; font-family: var(--serif, serif); font-size: 1.02rem; font-weight: 700; letter-spacing: .12em; color: #f3e2b8; border: 2px solid #9c7432; border-radius: 6px; background: linear-gradient(180deg, #6a4a27 0%, #4a3219 55%, #3a2713 100%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 220, 160, .25), 0 4px 10px rgba(0, 0, 0, .6); text-shadow: 0 1px 2px #000; }
@@ -225,9 +217,6 @@
 .furnace-stage .note-warn, .furnace-stage .result { position: relative; z-index: 1; margin: 0 16px 16px; }
 @media (max-width: 640px) {
   .pot.furnace-stage { min-height: 380px; }
-  .furnace-stage .cauldron-wrap { width: 280px; }
-  .furnace-stage.alchemy { min-height: 520px; }
-  .furnace-stage.alchemy .stage-ui { margin-top: 288px; }
   .furnace-stage .pot-slots { gap: 7px; }
   .btn.plaque { min-width: 130px; padding: 9px 16px; }
 }

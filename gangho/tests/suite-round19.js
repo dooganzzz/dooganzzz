@@ -72,10 +72,10 @@ module.exports = async (b) => {
       const r = {};
       S.crafts.alchemy.lv = 1; S.craftNotes = []; goTab('sect', 'forge'); ui.craft = 'alchemy';
       const rec = RECIPES.find(x => x.craft === 'alchemy'), wrong = { herb: 2 };
-      Object.assign(S.inv, { herb: 5 }); doCraft('alchemy', wrong);
+      Object.assign(S.inv, { herb: 5 }); (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)('alchemy', wrong);
       for (const [id, n] of Object.entries(rec.in)) S.inv[id] = (S.inv[id] || 0) + n * 30;
-      for (let i = 0; i < 25 && !(S.craftNotes.find(n => n.ok)); i++) doCraft('alchemy', { ...rec.in });
-      Object.assign(S.inv, { herb: 5 }); doCraft('alchemy', wrong);           // 같은 조합 다시 → 한 줄만
+      for (let i = 0; i < 25 && !(S.craftNotes.find(n => n.ok)); i++) (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)('alchemy', { ...rec.in });
+      Object.assign(S.inv, { herb: 5 }); (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)('alchemy', wrong);           // 같은 조합 다시 → 한 줄만
       r.notes = S.craftNotes.map(n => `${n.ok ? 'ok' : n.near ? 'near' : 'fail'}:${Object.keys(n.mats).join('+')}`);
       r.okOut = (S.craftNotes.find(n => n.ok) || {}).out === rec.out;
       r.nomats = !('knownMats' in S);
@@ -92,7 +92,7 @@ module.exports = async (b) => {
     const near = await p.evaluate(() => {
       const rec = RECIPES.find(x => x.craft === 'forge' && !S.codex.includes(x.id)) || RECIPES[RECIPES.length - 1];
       for (const [id, n] of Object.entries(rec.in)) S.inv[id] = (S.inv[id] || 0) + n * 2;
-      const R = Math.random; Math.random = () => 0.999; doCraft(rec.craft, { ...rec.in }); Math.random = R;   // 맞는 조합인데 운이 없어 실패
+      const R = Math.random; Math.random = () => 0.999; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(rec.craft, { ...rec.in }); Math.random = R;   // 맞는 조합인데 운이 없어 실패
       const n = craftNoteFor(rec.craft, rec.in), wrongN = craftNoteFor('alchemy', { herb: 2 });
       return { near: n && n.near && !n.ok, wrong: wrongN && !wrongN.near, codex: S.codex.includes(rec.id) };
     });

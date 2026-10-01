@@ -20,7 +20,7 @@ const ASSET_KIND = {
   ui:       { dir: 'ui/', ext: 'webp' },
   font:     { dir: 'fonts/', ext: 'woff' },           // 붓글씨 폰트 gangho_brush (지역 이름 90글자, tools/brush-font.py로 만듦)
   portrait: { dir: 'portraits/', ext: 'webp' },
-  scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_cauldron
+  scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_cauldron · alchemy_scene
 };
 /* 확장자가 기본과 다른 파일 (종류:이름) */
 const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg' };
