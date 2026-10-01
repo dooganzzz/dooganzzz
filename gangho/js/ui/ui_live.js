@@ -421,11 +421,10 @@ function liveLoop(ts) {
   const q = liveAnim.queued;
   if (q && imgsReady([SPRITE_SRC.foe(q.eid), SPRITE_SRC.foe(q.eid, 1)])) { liveAnim.queued = null; liveAnim.show = liveShowStart(sc, { ...q }); }
 }
-/* 강호행 제목 옆 지역 이름: 지도와 같은 무협 붓글씨를 한 글자씩 모아 짠 그림(탐험지 이름 + 단계 이름, 글자 간격 · 띄어쓰기 맞춤). 그림이 없는 단계는 글자로 */
+/* 강호행 제목 옆 지역 이름: 붓글씨 폰트(Gangho Brush, 90글자)로 쓴다. 폰트에 없는 글자는 기본 글씨로 */
+if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush', `url(${ASSET.font('gangho_brush')})`).load().then(f => document.fonts.add(f)).catch(() => {});
 function liveWhere(zid, n) {
-  const has = STAGE_NAMES[zid] && STAGE_NAMES[zid][n - 1];
-  return `<span class="live-where" data-k="${zid}${n}" aria-label="${esc(stageName(zid, n))}">${has
-    ? `<img src="${ASSET.stageword(zid + '_' + n)}" alt="">` : esc(stageName(zid, n))}</span>`;
+  return `<span class="live-where" data-k="${zid}${n}">${esc(stageName(zid, n))}</span>`;
 }
 function liveScene(r) {
   const zid = (r && r.zone) || S.expedition.zone || 'cheongpung', w = weaponType(), N = walkMeta(w).n, fast = runFast();

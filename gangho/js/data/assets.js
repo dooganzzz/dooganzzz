@@ -17,7 +17,7 @@ const ASSET_KIND = {
   beast:    { dir: 'beasts/', ext: 'webp' },
   item:     { dir: 'items/', ext: 'webp' },
   ui:       { dir: 'ui/', ext: 'webp' },
-  stageword:{ dir: 'ui/stage/', ext: 'webp' },        // 강호행 제목 옆 지역 이름 붓글씨: 탐험지_n = '탐험지 n단계' 한 줄
+  font:     { dir: 'fonts/', ext: 'woff' },           // 붓글씨 폰트 gangho_brush (지역 이름 90글자, tools/brush-font.py로 만듦)
   portrait: { dir: 'portraits/', ext: 'webp' },
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_cauldron
 };
