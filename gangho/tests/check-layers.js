@@ -57,7 +57,7 @@ for (const f of uiFiles) {
 }
 // index.html 읽는 순서: core → data → systems → ui → app
 const html = fs.readFileSync(path.join(JS, '..', 'index.html'), 'utf8');
-const order = [...html.matchAll(/<script src="js\/([^"]+)"/g)].map(m => m[1]);
+const order = [...html.matchAll(/<script src="js\/([^"?]+)/g)].map(m => m[1]);
 const rank = f => f === 'core.js' ? 0 : f.startsWith('data/') ? 1 : f.startsWith('systems/') ? 2 : f.startsWith('ui/') ? 3 : f === 'app.js' ? 4 : 9;
 if (order.some((f, i) => i && rank(f) < rank(order[i - 1]))) bad.push('index.html 스크립트 순서가 core → data → systems → ui → app 이 아님');
 const all = ['core.js', ...dataFiles, ...sysFiles, ...uiFiles, 'app.js'];
