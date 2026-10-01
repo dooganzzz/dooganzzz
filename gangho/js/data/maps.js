@@ -57,14 +57,15 @@ const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.0
    fight: 적 id → 전투, bonus: 이기면 추가로 받는 fx */
 
 /* 떠돌이 약장수의 등짐: 만날 때마다 물건 1가지를 정가에서 off만큼 싸게 판다 (제작 장비는 없다)
-   kinds: 종류별 확률(w, 합 100) · list: [아이템 id, 개수, 정가] · rare: 비급 · 장비(books · gear) 가운데서 고름
+   kinds: 종류별 확률(w, 합 100) · list: [아이템 id, 개수, 정가] · rare: books(비급) · gear(하급 장비) 목록에서 고름
    비급 · 장비는 비쌀수록 드물다: 뽑힐 무게 = (rare / 정가)^2 · 이미 익힌 비급 · 가진 비급은 내놓지 않는다 */
 const PEDDLER_WARES = {
   off: 0.2, rare: 100,
   kinds: [
     { w: 60, name: '회복약', list: [['saenghyeol', 5, 25], ['potionMp', 1, 20]] },
     { w: 25, name: '기력단', list: [['gigeokdan', 1, 50]] },
-    { w: 10, name: '비급 · 장비', rare: true },
+    { w: 7, name: '하급 장비', rare: 'gear' },
+    { w: 3, name: '비급', rare: 'books' },
     { w: 5, name: '소성 돌파단', list: [['pillLow', 1, 80]] },
   ],
   books: [

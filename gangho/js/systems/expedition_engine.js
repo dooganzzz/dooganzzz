@@ -138,8 +138,8 @@ function peddlerRoll() {
   const K = wpick(W.kinds, k => k.w);
   let w;
   if (K.rare) {
-    const pool = [...W.books.filter(([id]) => { const u = ITEMS[id].use; return !(S.manuals[u.learn] || count(id)); }).map(([id, pr]) => ({ id, n: 1, pr })),
-      ...W.gear.map(([id, pr]) => ({ id, n: 1, pr, gear: 1 }))];
+    let pool = K.rare === 'books' ? W.books.filter(([id]) => { const u = ITEMS[id].use; return !(S.manuals[u.learn] || count(id)); }).map(([id, pr]) => ({ id, n: 1, pr })) : [];
+    if (!pool.length) pool = W.gear.map(([id, pr]) => ({ id, n: 1, pr, gear: 1 }));   // 비급을 다 익혔으면 장비로
     w = wpick(pool, x => (W.rare / x.pr) ** 2);
   } else { const [id, n, pr] = pick(K.list); w = { id, n, pr }; }
   return [{ ...w, pr: Math.round(w.pr * (1 - W.off)), list: w.pr }];
