@@ -202,6 +202,49 @@ function liveProps(sc, walker, dt) {
   im.style.height = (h * LIVE_PROPS[k]).toFixed(0) + 'px'; im.dataset.x0 = W + 10; im.dataset.at = liveAnim.x;
   im.style.transform = `translate3d(${W + 10}px,0,0)`; sc.appendChild(im);
 }
+/* 기믹 걸음(덫 · 금고 · 장치 · 기연)도 무대에: 오른쪽 끝에서 땅과 같이 다가와 제자에게 닿으면 이펙트와 얻은 것('+1')을 띄운다.
+   닿기 전까지 견문록에는 그 걸음을 아직 안 띄운다 (맞붙기와 같은 hold) */
+const LIVE_GIM = { trap: 'c_trap', vault: 'c_chest', gimmick: 'c_explore', event: 'c_star' };
+function liveGimQueue(rec, si) {
+  const st = rec.steps[si], sc = document.getElementById('liveScene');
+  if (!sc || !LIVE_GIM[st.k] || liveAnim.show || liveAnim.queued || liveAnim.gim || reduceMotion()) return;
+  const el = document.createElement('img'); el.className = `live-gim ${st.k}`; el.src = ASSET.ui(LIVE_GIM[st.k]); el.alt = ''; el.style.left = '104%';
+  sc.appendChild(el);
+  liveAnim.gim = { el, st, x0: liveAnim.x, fired: 0 };
+  liveAnim.hold = { rid: rec.id, i: si, until: now() + 25000 };
+  const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
+}
+/* 얻은 것 · 잃은 것을 제자 머리 위로 차례로 띄운다 */
+function liveGain(sc, text, ico, cls, delay) {
+  setTimeout(() => {
+    const g = document.createElement('div'); g.className = `live-gain ${cls || ''}`;
+    g.innerHTML = `${ico ? `<img src="${ico}" alt="">` : ''}<span>${esc(text)}</span>`;
+    sc.appendChild(g); setTimeout(() => g.remove(), 1900);
+  }, delay || 0);
+}
+function liveGimFire(sc, G) {
+  const st = G.st, walker = sc.querySelector('.live-walker'); G.el.classList.add('hit');
+  let d = 0;
+  if (st.k === 'trap') { liveVfx(sc, 'hit', 24, 'small'); if (walker) spFlash(walker); liveShake(sc); liveGain(sc, `활력 ${st.dh || ''}`.trim(), '', 'bad', 0); d = 1; }
+  else if (st.k === 'event') { liveVfx(sc, 'crit', 26, 'small kata'); liveGain(sc, (st.t || '기연').replace(/^\S+\s/, '').split(' — ')[0], ASSET.ui('c_star'), 'npc', 0); d = 1; }
+  else liveVfx(sc, 'crit', 26, 'small kata');
+  const g = st.g;
+  if (g) {
+    for (const [id, n] of Object.entries(g.items || {})) liveGain(sc, `${ITEMS[id] ? ITEMS[id].name : id} +${n}`, ASSET.item(id), 'good', d++ * 420);
+    if (g.silver) liveGain(sc, `은자 +${fmt(g.silver)}`, ASSET.ui('h_silver'), 'good', d++ * 420);
+    if (g.gear) liveGain(sc, `장비 +${g.gear}`, ASSET.ui('c_trophy'), 'good', d++ * 420);
+  } else if (st.k !== 'trap' && st.k !== 'event') liveGain(sc, st.cls === 'muted' ? '그냥 지나쳤습니다' : '빈손', '', 'muted', 0);
+  G.release = now() + 900 + d * 420;
+}
+function liveGimStep(sc, walker) {
+  const G = liveAnim.gim; if (!G) return;
+  if (!G.el.isConnected) { liveAnim.gim = null; liveRelease(); return; }
+  const W = sc.offsetWidth || 1, left = 104 - (liveAnim.x - G.x0) / W * 100;
+  G.el.style.left = left.toFixed(2) + '%';
+  if (!G.fired && left <= 27) { G.fired = 1; liveGimFire(sc, G); }
+  if (G.release && now() >= G.release) { G.release = 0; liveRelease(); }
+  if (left < -20) { G.el.remove(); liveAnim.gim = null; liveRelease(); }
+}
 function liveLoop(ts) {
   liveAnim.raf = requestAnimationFrame(liveLoop);
   const sc = document.getElementById('liveScene'); if (!sc) { cancelAnimationFrame(liveAnim.raf); liveAnim.raf = 0; liveAnim.show = null; return; }
@@ -229,8 +272,9 @@ function liveLoop(ts) {
   // 걷기: 시트 칸을 걸음 주기에 고르게 나눠 넘긴다
   const W = walkMeta(walker && walker.dataset.w), N = W.n;
   // 멀미 줄이기: 출발은 천천히 붙고, 요수 앞에서는 미리 늦춘다 (걸음 칸과 산길이 같은 v로 움직여 발은 미끄러지지 않는다)
-  const sh0 = liveAnim.show, near = sh0 && sh0.phase === 'approach' && parseFloat((sc.querySelector('.live-foe') || {}).style?.left) < ((sh0 && sh0.foeX) || 70) + 14;
-  liveAnim.v = (liveAnim.v || 0) + ((near ? .35 : 1) - (liveAnim.v || 0)) * Math.min(1, dt / 450);
+  const sh0 = liveAnim.show, app = sh0 && sh0.phase === 'approach', near = app && parseFloat((sc.querySelector('.live-foe') || {}).style?.left) < ((sh0 && sh0.foeX) || 70) + 14;
+  // 요수가 다가오는 동안은 천천히 달려 오른쪽 끝에서부터 다가오는 모습이 보이게, 코앞에서는 더 늦춘다
+  liveAnim.v = (liveAnim.v || 0) + ((near ? .3 : app ? .55 : 1) - (liveAnim.v || 0)) * Math.min(1, dt / 450);
   const vdt = dt * liveAnim.v;
   liveAnim.acc = (liveAnim.acc + vdt) % W.ms;
   const fr = Math.floor(liveAnim.acc / (W.ms / N)) % N;
@@ -251,6 +295,7 @@ function liveLoop(ts) {
     if (wImg) for (const s of strips) s.style.transform = `translate3d(${-((liveAnim.x * (s.dataset.far ? LIVE_FAR : 1)) % wImg).toFixed(2)}px,0,0)`;
   }
   liveProps(sc, walker, vdt);
+  liveGimStep(sc, walker);
   // 맞붙는 모습: 전투 걸음이 드러나면 그 요수로
   if (liveAnim.show) { liveShowStep(sc, liveAnim.show, ts, dt); return; }
   const q = liveAnim.queued;

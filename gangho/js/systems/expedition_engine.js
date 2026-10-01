@@ -140,18 +140,19 @@ function stepEvent(rec, zid, used) {
    전투는 실시간 강호행 무대에서 기록 그대로 재생되고, 견문록에는 결과와 [관찰](전투 장면 · 합 로그)이 남는다 */
 const findExpedition = id => S.expeditions.find(r => r.id === id);
 function activeRun() { const id = S.expedition && S.expedition.run, r = id != null ? findExpedition(id) : null; return r && r.live ? r : null; }
-const runSnap = () => ({ silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length });
+const runSnap = () => ({ silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length, hp: S.hp });
 /* 한 걸음에서 얻은 것은 보관함(pend)으로 옮기고, 쓴 것(생혈고 등)은 쓴 채로 둔다 */
 function holdStep(rec, b) {
-  const g = rec.gain, P = rec.pend;
-  for (const k of ['silver', 'exp', 'contrib']) { const d = S[k] - b[k]; if (d > 0) { S[k] -= d; P[k] += d; } g[k] += d; }
+  const g = rec.gain, P = rec.pend, one = { items: {} };       // one = 이 걸음에서 얻은 것 (무대에 '+1'로 띄움)
+  for (const k of ['silver', 'exp', 'contrib']) { const d = S[k] - b[k]; if (d > 0) { S[k] -= d; P[k] += d; if (k === 'silver') one.silver = d; } g[k] += d; }
   for (const id of new Set([...Object.keys(S.inv), ...Object.keys(b.inv)])) {
     const d = (S.inv[id] || 0) - (b.inv[id] || 0);
-    if (d > 0) { take(id, d); P.items[id] = (P.items[id] || 0) + d; g.items[id] = (g.items[id] || 0) + d; }
+    if (d > 0) { take(id, d); P.items[id] = (P.items[id] || 0) + d; g.items[id] = (g.items[id] || 0) + d; one.items[id] = d; }
     else if (d < 0) g.used[id] = (g.used[id] || 0) - d;
   }
   const ng = S.gear.slice(b.gear);
-  if (ng.length) { S.gear = S.gear.slice(0, b.gear); P.gear.push(...ng); g.gear.push(...ng.map(it => `[${RARITY[it.rarity].name}] ${it.name}`)); }
+  if (ng.length) { S.gear = S.gear.slice(0, b.gear); P.gear.push(...ng); g.gear.push(...ng.map(it => `[${RARITY[it.rarity].name}] ${it.name}`)); one.gear = ng.length; }
+  return one;
 }
 function startRun(t = now()) {
   const X = S.expedition; if (!X.zone || !zoneUnlocked(X.zone) || activeRun()) return null;
@@ -191,9 +192,13 @@ function runStep(rec, t) {
       else r = k === 'beast' ? stepBattle(rec, pickStageFoe(zid, rec.stage)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
     }
   } finally { r = r || {}; rec.steps.push({ k, at: t, t: r.t, enc: r.enc, cls: r.cls || '', b: r.b, d: RT.journal || [] }); RT.journal = null; }
-  holdStep(rec, b);
+  const one = holdStep(rec, b);
   const si = rec.steps.length - 1, s = rec.steps[si];
   s.stage = rec.stage;
+  if (s.b === undefined) {                                     // 기믹 걸음: 무대에 보일 얻은 것 · 잃은 활력
+    if (Object.keys(one.items).length || one.silver || one.gear) s.g = one;
+    const dh = Math.round(S.hp - b.hp); if (dh < 0) s.dh = dh;
+  }
   log(`${stepText(rec, s)}`, `exp-step ${s.b !== undefined ? '' : s.cls}`, t, { r: rec.id, s: si });
   if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { subqAdd(zid, rec.stage); rec.kills++; if (rec.kills >= stageNeed(rec.stage)) stageClear(rec, t); }   // 서브 퀘스트(단계 토벌) 진행
   if (r.lost) { rec.defeats = 1; s.d.push({ text: EXP_TEXT.defeat, cls: 'bad' }); endRun(rec, t, 'dead'); }

@@ -579,3 +579,21 @@
 .live-hp.low .lh-bar i { animation: lhLow 1s ease-in-out infinite; }
 @keyframes lhLow { 50% { filter: brightness(1.5); } }
 .sp-num.heal { color: #7ee08a; }
+/* 강호행 기믹: 땅 위 물건(덫 · 궤짝 · 장치 · 기연)과 얻은 것 띄우기 */
+.live-gim { position: absolute; bottom: 9%; z-index: 1; width: 9%; pointer-events: none; filter: drop-shadow(0 3px 3px rgba(40, 25, 10, .45)) saturate(.9); transform-origin: 50% 100%; }
+.live-gim.vault { width: 11%; } .live-gim.event { width: 8%; bottom: 22%; filter: drop-shadow(0 0 8px rgba(255, 220, 120, .8)); animation: gimFloat 1.6s ease-in-out infinite; }
+@keyframes gimFloat { 50% { transform: translateY(-6px); } }
+.live-gim.hit { animation: gimHit .5s ease-out forwards; }
+.live-gim.trap.hit { animation: gimSnap .35s ease-out forwards; }
+.live-gim.vault.hit { animation: gimOpen .6s ease-out forwards; }
+@keyframes gimHit { 40% { transform: scale(1.25); filter: brightness(1.6) drop-shadow(0 0 10px rgba(255, 220, 120, .9)); } to { transform: scale(1); opacity: .85; } }
+@keyframes gimSnap { 30% { transform: scale(1.15, .8); filter: brightness(1.3) sepia(1) hue-rotate(-30deg) saturate(3); } to { transform: none; opacity: .8; } }
+@keyframes gimOpen { 30% { transform: translateY(-14%) scale(1.15); filter: brightness(1.5) drop-shadow(0 0 12px rgba(255, 210, 90, .95)); } to { transform: none; } }
+.live-gain { position: absolute; left: 14%; top: 38%; z-index: 7; display: flex; align-items: center; gap: 5px; padding: 3px 9px 3px 4px; border-radius: 999px; pointer-events: none;
+  background: rgba(18, 16, 14, .72); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .55); color: #f3e6c4; font: 700 12px/1.2 serif; white-space: nowrap; animation: liveGain 1.9s ease-out forwards; }
+.live-gain img { width: 22px; height: 22px; object-fit: contain; }
+.live-gain.good span { color: #ffe08a; } .live-gain.bad span { color: #ff8a70; } .live-gain.muted span { color: #cfc6b2; } .live-gain.npc span { color: #b9e0ff; }
+.live-gain.bad { padding-left: 9px; }
+@keyframes liveGain { from { opacity: 0; transform: translateY(10px) scale(.9); } 15% { opacity: 1; transform: none; } 75% { opacity: 1; } to { opacity: 0; transform: translateY(-28px); } }
+@media (prefers-reduced-motion: reduce) { .live-gim, .live-gain { animation: none; } }
+

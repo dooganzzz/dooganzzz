@@ -8,6 +8,8 @@ Bus.on('tick', () => {
   { const lr = liveRec(), st = lr && lr.steps.length ? lr.steps[lr.steps.length - 1] : null, key = st && st.b !== undefined ? `${lr.id}:${st.b}` : null;
     if (scn && key && key !== liveAnim.lastBattle && now() - stepAt(lr, lr.steps.length - 1) < 6000) { liveAnim.lastBattle = key; const bt = lr.battles[st.b]; liveShowQueue(bt.eid, true, bt.boss, { rid: lr.id, bi: st.b, si: lr.steps.length - 1 }); } }
   if (liveAnim.hold && now() >= liveAnim.hold.until) liveRelease();   // 맞붙기를 못 보여 줬으면 결과를 바로
+  { const lr = liveRec(), i = lr ? lr.steps.length - 1 : -1, st = i >= 0 ? lr.steps[i] : null, key = st ? `${lr.id}:${i}` : null;   // 기믹 걸음도 무대에
+    if (scn && st && st.b === undefined && key !== liveAnim.lastGim && now() - stepAt(lr, i) < 6000) { liveAnim.lastGim = key; liveGimQueue(lr, i); } }
   const sig = liveSig(); if (sig === lastLiveSig) return; lastLiveSig = sig;   // 새 걸음이 드러났을 때만
   const box = $('#liveSide'); if (box) setHTML(box, liveSide());
   const sc = $('#liveScene'), lr = liveRec();
@@ -47,7 +49,8 @@ function liveSide() {
   if (!r) return `${stageStrip()}<p class="muted live-empty">${X.zone ? `${josa(stageName(X.zone, X.stage || 1), '으로')} 떠날 준비가 되었습니다. [강호행 시작]을 누르면 단계를 하나씩 돌파하며, 쓰러질 때까지 쭉 나아갑니다. (${pots})` : '아래 탐험지에서 갈 곳을 먼저 정하십시오.'}</p><div class="btns live-btns">${startBtn}</div>`;
   const rows = [], shown = liveShown(r), held = shown < r.steps.length;   // 맞붙는 중인 전투의 결과는 끝난 뒤에
   for (let i = shown - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
-  if (held) rows.unshift(`<li class="enc fresh"><time>${hhmm(stepAt(r, shown))}</time><span>요수와 맞붙었습니다…</span></li>`);
+  const HELD = { trap: '발밑이 수상합니다…', vault: '길가에 궤짝이 보입니다…', gimmick: '무언가 눈에 띕니다…', event: '기이한 기운이 느껴집니다…' }, hs = held && r.steps[shown];
+  if (held) rows.unshift(`<li class="enc fresh"><time>${hhmm(stepAt(r, shown))}</time><span>${hs && hs.b === undefined && HELD[hs.k] || '요수와 맞붙었습니다…'}</span></li>`);
   const nb = r.steps.slice(0, shown).filter(s => s.b !== undefined).length;
   const hpNow = held && liveAnim.hold.hp != null ? liveAnim.hold.hp : S.hp;   // 맞붙는 동안은 무대의 활력
   const unseen = r.battles.filter(b => b.seen === false).length, st = calcStats(), hpP = clamp(hpNow / st.maxHp * 100, 0, 100);
