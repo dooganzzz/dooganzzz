@@ -32,6 +32,12 @@ function morphNode(a, b) {
   if (a.tagName !== 'TEXTAREA') morphChildren(a, b);
 }
 function morphChildren(a, b) {
+  const live = [...a.children].filter(c => c.dataset && c.dataset.live);   // 무대에 실시간으로 붙인 것(기믹 · 숫자 · 이펙트 · 소품)은 다시 그려도 그대로
+  for (const c of live) c.remove();
+  morphChildrenCore(a, b);
+  for (const c of live) a.appendChild(c);
+}
+function morphChildrenCore(a, b) {
   const keyed = new Map();
   for (const c of a.childNodes) { const k = morphKey(c); if (k) keyed.set(k, c); }
   let cur = a.firstChild;

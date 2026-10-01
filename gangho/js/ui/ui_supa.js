@@ -24,6 +24,7 @@ const accountLogin = (id, pass) => supaRpc('gangho_login', { p_id: id, p_pass: p
 const accountLoad = (id, token) => supaRpc('gangho_load', { p_id: id, p_token: token });
 const accountSave = (id, token, save) => supaRpc('gangho_save', { p_id: id, p_token: token, p_save: save });
 const accountLogoutAll = pass => supaRpc('gangho_logout_all', { p_pass: pass });
+const accountResetPass = (pass, id, np) => supaRpc('gangho_reset_pass', { p_pass: pass, p_id: id, p_new: np });   // 운영자: 유저 비밀번호를 임시 비밀번호로
 
 /* 게임 → 기록 (index.html에서만) */
 async function supaSync() {
@@ -68,6 +69,7 @@ function gmSupaSection() {
   return `<h4 class="gm-h">웹 유저 (Supabase) ${L ? `· 접속 중 ${L.filter(online).length}명 / 전체 ${L.length}명` : ''}</h4>
     <form class="gm-bar" data-gmform="supa"><input type="password" name="pass" placeholder="운영자 암호" value="${esc(SUPA_ST.pass)}" autocomplete="current-password" aria-label="운영자 암호"><button class="gm-btn primary" type="submit">${SUPA_ST.loading ? '불러오는 중…' : '[목록 불러오기]'}</button>
       <button class="gm-btn" type="button" data-gmlogoutall title="모든 계정의 접속 토큰을 무효로 만든다 (새 버전 배포 때는 자동)">[전체 로그아웃]</button>
+      <span class="gm-reset"><input name="rid" placeholder="유저 아이디" autocomplete="off" aria-label="비밀번호를 초기화할 아이디"><input name="rpw" placeholder="임시 비밀번호 (4자 이상)" autocomplete="off" aria-label="임시 비밀번호"><button class="gm-btn" type="button" data-gmresetpass title="그 아이디의 비밀번호를 임시 비밀번호로 바꾸고 접속을 끊는다">[비밀번호 초기화]</button></span>
       <small class="gm-muted">${SUPA_ST.listErr ? esc(SUPA_ST.listErr) : `내 기록: ${SUPA_ST.syncedAt ? since(SUPA_ST.syncedAt) : '아직'}${SUPA_ST.err ? ` · 오류 ${esc(SUPA_ST.err)}` : ''}`}</small></form>
     ${L ? `<table class="gm-table"><thead><tr><th>#</th><th>ID</th><th>캐릭터</th><th>전투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>IP</th><th>기기</th><th>접속 경로</th><th>마지막 접속</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="13" class="gm-muted">아직 기록이 없습니다.</td></tr>'}</tbody></table>` : ''}`;
 }

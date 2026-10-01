@@ -97,19 +97,19 @@ function liveSkillOf() {
   return { mid: id, tier, name: M.stances[tier - 1].name };
 }
 function liveSkill(sc, sk) {
-  const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}`; lab.textContent = `「${sk.name}」`;
-  const v = document.createElement('img'); v.className = `live-skill n${sk.tier}`; v.src = SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`); v.alt = '';
+  const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}`; lab.dataset.live = 1; lab.textContent = `「${sk.name}」`;
+  const v = document.createElement('img'); v.className = `live-skill n${sk.tier}`; v.dataset.live = 1; v.src = SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`); v.alt = '';
   sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
   if (sk.tier === 2) liveShake(sc);
 }
 function liveShake(sc) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); clearTimeout(sc._shakeT); sc._shakeT = setTimeout(() => sc.classList.remove('shake'), 650); }
 function liveNum(sc, t, left, cls) {
-  const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.textContent = t; n.style.left = (left - 4 + Math.random() * 8) + '%';
+  const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.dataset.live = 1; n.textContent = t; n.style.left = (left - 4 + Math.random() * 8) + '%';
   sc.appendChild(n); setTimeout(() => n.remove(), 1000);
 }
 /* 날아가는 비표: 제자 손에서 요수 몸통까지 살짝 휘어 날아간다 */
 function liveProj(sc, sh, dur) {
-  const el = document.createElement('img'); el.className = 'live-proj'; el.src = ASSET.fx('dart'); el.alt = '';
+  const el = document.createElement('img'); el.className = 'live-proj'; el.dataset.live = 1; el.src = ASSET.fx('dart'); el.alt = '';
   const x0 = LIVE_POS.hero + 18, y0 = 30, x1 = sh.foeX + LIVE_POS.foeW * sh.size * .45, y1 = 7.4 + LIVE_POS.foeW * sh.size * .8;
   el.style.left = x0 + '%'; el.style.bottom = y0 + '%'; sc.appendChild(el);
   const W = sc.offsetWidth || 1, H = sc.offsetHeight || 1, dx = (x1 - x0) / 100 * W, dy = -(y1 - y0) / 100 * H;
@@ -117,7 +117,7 @@ function liveProj(sc, sh, dur) {
   setTimeout(() => el.remove(), Math.max(120, dur) + 60);
 }
 function liveVfx(sc, name, left, cls) {
-  const v = document.createElement('img'); v.className = `live-vfx ${cls || ''}`; v.src = SPRITE_SRC.fx(name); v.alt = ''; v.style.left = left + '%';
+  const v = document.createElement('img'); v.className = `live-vfx ${cls || ''}`; v.dataset.live = 1; v.src = SPRITE_SRC.fx(name); v.alt = ''; v.style.left = left + '%';
   sc.appendChild(v); setTimeout(() => v.remove(), 650);
 }
 function liveShowStart(sc, sh) {
@@ -223,7 +223,7 @@ function liveProps(sc, walker, dt) {
   if (liveAnim.propMs < liveAnim.nextProp) return;
   liveAnim.propMs = 0; liveAnim.nextProp = 9000 + Math.random() * 12000;
   const pool = LIVE_PROP_ZONE[sc.dataset.zone] || LIVE_PROP_ZONE.cheongpung, k = pool[Math.floor(Math.random() * pool.length)];
-  const im = document.createElement('img'); im.className = 'live-prop'; im.src = ASSET.prop(k); im.alt = '';
+  const im = document.createElement('img'); im.className = 'live-prop'; im.dataset.live = 1; im.src = ASSET.prop(k); im.alt = '';
   im.style.height = (h * LIVE_PROPS[k]).toFixed(0) + 'px'; im.dataset.x0 = W + 10; im.dataset.at = liveAnim.x;
   im.style.transform = `translate3d(${W + 10}px,0,0)`; sc.appendChild(im);
 }
@@ -234,7 +234,7 @@ function liveGimQueue(rec, si) {
   const st = rec.steps[si], sc = document.getElementById('liveScene');
   if (!sc || !LIVE_GIM[st.k] || reduceMotion()) return;
   if (liveAnim.show || liveAnim.queued || liveAnim.gim) { liveAnim.gimQ = { rid: rec.id, si, at: now() }; return; }   // 무대가 바쁘면 맞붙기가 끝난 뒤에
-  const el = document.createElement('img'); el.className = `live-gim ${st.k}`; el.src = ASSET.prop(LIVE_GIM[st.k]); el.alt = ''; el.style.left = '104%';
+  const el = document.createElement('img'); el.className = `live-gim ${st.k}`; el.dataset.live = 1; el.src = ASSET.prop(LIVE_GIM[st.k]); el.alt = ''; el.style.left = '104%';
   sc.appendChild(el);
   liveAnim.gim = { el, st, x0: liveAnim.x, fired: 0 };
   liveAnim.hold = { rid: rec.id, i: si, until: now() + 25000 };
@@ -243,7 +243,7 @@ function liveGimQueue(rec, si) {
 /* 얻은 것 · 잃은 것을 제자 머리 위로 차례로 띄운다 */
 function liveGain(sc, text, ico, cls, delay) {
   setTimeout(() => {
-    const g = document.createElement('div'); g.className = `live-gain ${cls || ''}`;
+    const g = document.createElement('div'); g.className = `live-gain ${cls || ''}`; g.dataset.live = 1;
     g.innerHTML = `${ico ? `<img src="${ico}" alt="">` : ''}<span>${esc(text)}</span>`;
     sc.appendChild(g); setTimeout(() => g.remove(), 1900);
   }, delay || 0);
@@ -315,7 +315,7 @@ function liveLoop(ts) {
     if (gh.length) { (liveAnim.hist = liveAnim.hist || []).unshift(fr); liveAnim.hist.length = 9; gh.forEach((g, i) => { g.style.backgroundPositionX = ((liveAnim.hist[(i + 1) * 4] ?? fr) * 100 / (N - 1)) + '%'; }); }
   }
   if (walker && walker.dataset.fast && mode === 'run' && (liveAnim.windMs = (liveAnim.windMs || 0) + dt) > 160) {   // 바람 줄기
-    liveAnim.windMs = 0; const l = document.createElement('i'); l.className = 'live-wind';
+    liveAnim.windMs = 0; const l = document.createElement('i'); l.className = 'live-wind'; l.dataset.live = 1;
     l.style.left = (30 + Math.random() * 40) + '%'; l.style.top = (30 + Math.random() * 45) + '%'; l.style.width = (8 + Math.random() * 10) + '%';
     sc.appendChild(l); setTimeout(() => l.remove(), 550);
   }

@@ -310,6 +310,14 @@ function gmBindPanel(panel) {
     if (d.gmaipat) { GM.aiPattern = d.gmaipat; return gmRender(); }
     if (d.gmdbtab) { GM.dbTab = d.gmdbtab; return gmRender(); }
     if (d.gmimport) return gmDo('importplayer', d.gmimport);
+    if (t.closest('[data-gmresetpass]')) {                 // 운영자: 유저 비밀번호 초기화 (임시 비밀번호를 유저에게 따로 알려 준다)
+      const f = t.closest('form'), id = (f.rid.value || '').trim().toLowerCase(), np = f.rpw.value || '';
+      if (!SUPA_ST.pass) { gmTrace('warn', '운영자 암호를 먼저 넣으십시오'); return; }
+      if (!id || np.length < 4) { gmTrace('warn', '아이디와 4자 이상의 임시 비밀번호를 넣으십시오'); return; }
+      accountResetPass(SUPA_ST.pass, id, np).then(() => { gmTrace('gm', `${id} 비밀번호를 임시 비밀번호로 바꿨습니다 — 그 계정은 로그아웃됨`); f.rpw.value = ''; },
+        e => gmTrace('warn', `초기화 실패: ${/no such id/.test(e.message) ? '없는 아이디' : /denied/.test(e.message) ? '운영자 암호가 틀림' : e.message}`));
+      return;
+    }
     if (t.closest('[data-gmlogoutall]')) { if (!SUPA_ST.pass) { gmTrace('warn', '운영자 암호를 먼저 넣으십시오'); return; } accountLogoutAll(SUPA_ST.pass).then(n => gmTrace('gm', `전체 로그아웃 (차수 ${n}) — 모든 유저가 다시 로그인해야 합니다`), e => gmTrace('warn', `전체 로그아웃 실패: ${e.message}`)); return; }
     if (d.gmsupa) { supaPlayerSave(d.gmsupa).then(st => st ? gmDo('importobj', st) : gmTrace('warn', '저장이 비어 있습니다'), e => gmTrace('warn', `저장을 받지 못했습니다: ${e.message}`)); return; }
     if (d.gm === 'airestore' || d.gm === 'importundo') return gmDo(d.gm);
