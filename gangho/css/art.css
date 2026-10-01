@@ -673,18 +673,19 @@
 .map-spot:hover + .map-pillar > img, .map-spot:focus-visible + .map-pillar > img { animation: mapPillarRise 1.4s cubic-bezier(.25, .7, .3, 1) forwards, mapPillarShimmer 2.4s ease-in-out 1.4s infinite alternate; }
 @keyframes mapPillarRise { 0% { opacity: 0; transform: scaleY(.55); -webkit-mask-position: 0 0; mask-position: 0 0; } 30% { opacity: .55; } 100% { opacity: 1; transform: scaleY(1); -webkit-mask-position: 0 100%; mask-position: 0 100%; } }
 @keyframes mapPillarShimmer { from { opacity: 1; transform: scaleY(1); filter: brightness(1); -webkit-mask-position: 0 100%; mask-position: 0 100%; } to { opacity: .86; transform: scaleY(1.03); filter: brightness(1.2); -webkit-mask-position: 0 100%; mask-position: 0 100%; } }
-/* 별가루: 기둥이 솟는 동안 끝자락이 지나는 높이마다 둘레로 흩뿌려져, 반짝이며 옆으로 날아가 옅어진다 (솟을 때 한 번) */
+/* 별가루: 기둥 둘레를 은은하게 감싼다 — 작고 옅은 빛가루가 기둥 곁에서 천천히 떠오르며 살랑이고 반짝이다 사라지기를 되풀이 */
 .map-dust { position: absolute; inset: 0; }
-.map-dust > i { position: absolute; left: 50%; top: 50%; width: calc(var(--z) * .45); height: calc(var(--z) * .45); border-radius: 50%; background: #fff3c4; opacity: 0;
-  box-shadow: 0 0 4px 1px rgba(255, 214, 110, .95), 0 0 9px 2px rgba(255, 190, 60, .55); }
-.map-dust > i.st { width: auto; height: auto; background: none; box-shadow: none; border-radius: 0; font-size: var(--z); line-height: 1; color: #ffe9a6; text-shadow: 0 0 4px #ffd65e, 0 0 9px rgba(255, 186, 50, .85); }
+.map-dust > i { position: absolute; left: 50%; top: 50%; width: calc(var(--z) * .5); height: calc(var(--z) * .5); border-radius: 50%; background: #fff6d6; opacity: 0;
+  box-shadow: 0 0 3px 1px rgba(255, 220, 130, .8), 0 0 7px 2px rgba(255, 196, 80, .35); }
+.map-dust > i.st { width: auto; height: auto; background: none; box-shadow: none; border-radius: 0; font-size: calc(var(--z) * 1.3); line-height: 1; color: #fff0bf; text-shadow: 0 0 3px #ffd970, 0 0 7px rgba(255, 190, 60, .6); }
 .map-dust > i.st::before { content: '✦'; }
-.map-spot:hover + .map-pillar .map-dust > i, .map-spot:focus-visible + .map-pillar .map-dust > i { animation: mapDust 1.5s cubic-bezier(.2, .7, .4, 1) both; }
+.map-spot:hover + .map-pillar .map-dust > i, .map-spot:focus-visible + .map-pillar .map-dust > i { animation-name: mapDust; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-fill-mode: both; }
 @keyframes mapDust {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(0); }
-  12% { opacity: 1; }
-  55% { opacity: .95; }
-  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.55) rotate(180deg); } }
+  0% { opacity: 0; transform: translate(calc(-50% + var(--sx)), -50%) scale(.6); }
+  25% { opacity: .75; }
+  50% { opacity: .4; transform: translate(calc(-50% + var(--sx) + var(--sw)), calc(-50% - var(--up) * .5)) scale(1); }
+  70% { opacity: .8; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--sx)), calc(-50% - var(--up))) scale(.7); } }
 @media (prefers-reduced-motion: reduce) { .map-spot:hover + .map-pillar > img { animation: none; opacity: 1; -webkit-mask: none; mask: none; } .map-dust { display: none; } }
 .map-spot.locked { cursor: not-allowed; }
 /* 지도 글씨: 붓글씨 그림(ui/map_*)만 — 작게, 배경 · 테두리 없이 먹이 종이에 스며든 듯(곱하기), 각 그림의 머리 위쪽에 */
