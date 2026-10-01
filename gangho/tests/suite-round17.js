@@ -42,15 +42,15 @@ module.exports = async (b) => {
 
     // 2. 상단 헤더 · 변화량
     const hd = await p.evaluate(() => { const el = document.querySelector('#status .status-chip.combat-power'); return { badge: el.querySelector('.chip-badge').textContent, value: el.querySelector('#header-cp').textContent, title: el.title, cp: fmt(calculateCombatPower(S)) }; });
-    ok('2 헤더 상시 표기 ([전투력] 한글 뱃지)', hd.badge === '전투력' && hd.value === hd.cp && hd.title.startsWith('종합 전투력'), JSON.stringify(hd));
-    const dl = await p.evaluate(() => { unequip('weapon'); const d = document.querySelector('#status .cp-delta'); const r = { down: d && d.classList.contains('down') && d.textContent.startsWith('▼') }; equipItem(S.gear[S.gear.length - 1].uid); const u = document.querySelector('#status .cp-delta'); r.up = u && u.classList.contains('up'); return r; });
-    ok('2 전투력이 바뀌면 ▲/▼ 변화량 잠깐 표시', dl.down && dl.up, JSON.stringify(dl));
+    ok('2 헤더 상시 표기 ([투력] 한글 뱃지)', hd.badge === '투력' && hd.value === hd.cp && hd.title.startsWith('투력'), JSON.stringify(hd));
+    const dl = await p.evaluate(async () => { const tick = () => new Promise(r => setTimeout(r, 0)); unequip('weapon'); await tick(); const d = document.querySelector('#status .cp-delta'); const r = { down: d && d.classList.contains('down') && d.textContent.startsWith('▼') }; equipItem(S.gear[S.gear.length - 1].uid); await tick(); const u = document.querySelector('#status .cp-delta'); r.up = u && u.classList.contains('up'); return r; });   // 다시 그리기는 마이크로태스크로 모아서 한다
+    ok('2 투력이 바뀌면 ▲/▼ 변화량 잠깐 표시', dl.down && dl.up, JSON.stringify(dl));
     ok('2 변화량은 잠시 뒤 사라짐 (2.5초)', await p.waitForFunction(() => !document.querySelector('#status .cp-delta'), null, { timeout: 4500 }).then(() => true, () => false));
 
     // 2. 상태 탭 맨 위 카드
     await p.click('[data-tab="status"]');
     const card = await p.evaluate(() => { const c = document.querySelector('#main > .cp-card'); return c && { first: document.querySelector('#main').firstElementChild === c, value: c.querySelector('.cp-value').textContent, cp: fmt(calculateCombatPower(S)), parts: c.querySelectorAll('.cp-parts span').length, label: c.querySelector('.cp-label .ko').textContent }; });
-    ok('2 상태 탭 최상단 전투력 카드 (내역 4가지: 민첩 포함)', card && card.first && card.value === card.cp && card.parts === 4 && card.label === '전투력', JSON.stringify(card));
+    ok('2 상태 탭 최상단 투력 카드 (공세 · 수세 같은 내역은 보여 주지 않음)', card && card.first && card.value === card.cp && card.parts === 0 && card.label === '투력', JSON.stringify(card));
     await p.click('[data-sub="martial"]');
     ok('2 무공 하위 탭에서도 카드 유지', await p.evaluate(() => document.querySelector('#main').firstElementChild.classList.contains('cp-card')));
     await p.click('[data-tab="bag"]');

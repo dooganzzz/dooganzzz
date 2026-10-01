@@ -21,12 +21,12 @@ module.exports = async (b) => {
     const db = await p.evaluate(({ MUGONG, GYEONG, GIGONG }) => {
       const byName = n => Object.entries(MANUALS).find(([, M]) => M.name === n);
       const r = { missing: [], bad: [] };
-      for (const [wt, names] of Object.entries(MUGONG)) for (const n of names) { const e = byName(n); if (!e) { r.missing.push(n); continue; } const [id, M] = e; if (M.cat !== 'mugong' || M.weapon !== wt || M.grade !== '삼류' || M.stances.length !== 2 || !M.stances.every(s => s.name && /\{attacker\}/.test(s.desc)) || !ITEMS['bk_' + id] || !GACHA.books.includes(id)) r.bad.push(n); }
+      for (const [wt, names] of Object.entries(MUGONG)) for (const n of names) { const e = byName(n); if (!e) { r.missing.push(n); continue; } const [id, M] = e; if (M.cat !== 'mugong' || M.weapon !== wt || M.grade !== '삼류' || M.stances.length !== 3 || !M.stances.every(s => s.name && /\{attacker\}/.test(s.desc)) || !ITEMS['bk_' + id] || !GACHA.books.includes(id)) r.bad.push(n); }
       for (const [t, n] of Object.entries(GYEONG)) { const e = byName(n); if (!e) { r.missing.push(n); continue; } const [id, M] = e; if (M.cat !== 'gyeonggong' || M.terrain !== t || !M.stances.length || !ITEMS['bk_' + id] || !GACHA.books.includes(id)) r.bad.push(n); }
       for (const [el, n] of Object.entries(GIGONG)) { const e = byName(n); if (!e) { r.missing.push(n); continue; } const [id, M] = e; if (M.cat !== 'gigong' || M.elem !== el || !M.stances.length || !ITEMS['bk_' + id] || !GACHA.books.includes(id)) r.bad.push(n); }
       r.src = [...document.scripts].some(s => /skills\.js/.test(s.src)) || typeof STANCE_DEFAULT === 'object';
       r.old = ['yeolhwa', 'suryu', 'hwangto', 'deungpyeong'].some(k => MANUALS[k]);
-      r.starters = STARTERS.every(id => MANUALS[id].stances.length === 2);
+      r.starters = STARTERS.every(id => MANUALS[id].stances.length === 3);
       return r;
     }, { MUGONG, GYEONG, GIGONG });
     ok('1 삼류 무공 25종 (권장·검·도·창·암기 각 3 · 경공 5대 지형 · 기공 오행 5)', !db.missing.length && !db.bad.length, JSON.stringify(db));
