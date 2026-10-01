@@ -227,6 +227,22 @@ function liveProps(sc, walker, dt) {
   im.style.height = (h * LIVE_PROPS[k]).toFixed(0) + 'px'; im.dataset.x0 = W + 10; im.dataset.at = liveAnim.x;
   im.style.transform = `translate3d(${W + 10}px,0,0)`; sc.appendChild(im);
 }
+/* 발자국: 발이 땅에 닿을 때마다(걸음 주기의 반) 발밑에 찍고, 땅과 같은 빠르기로 뒤로 흘러가며 옅어진다 */
+function liveSteps(sc, walker, W, mode) {
+  for (const p of sc.querySelectorAll('.live-step')) {
+    const x = +p.dataset.x0 - (liveAnim.x - +p.dataset.at);
+    if (x < -30) p.remove(); else p.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+  }
+  if (!walker || liveAnim.v < .2) return;
+  const half = Math.floor(liveAnim.acc / (W.ms / 2));
+  if (half === liveAnim.stepHalf) return;
+  liveAnim.stepHalf = half;
+  const el = document.createElement('i'); el.className = `live-step ${mode} ${half ? 'r' : 'l'}`; el.dataset.live = 1;
+  const x0 = walker.offsetLeft + walker.offsetWidth * .46;
+  el.dataset.x0 = x0; el.dataset.at = liveAnim.x; el.style.transform = `translate3d(${x0.toFixed(1)}px,0,0)`;
+  el.addEventListener('animationend', () => el.remove());
+  sc.appendChild(el);
+}
 /* 기믹 걸음(덫 · 금고 · 장치 · 기연)도 무대에: 오른쪽 끝에서 땅과 같이 다가와 제자에게 닿으면 이펙트와 얻은 것('+1')을 띄운다.
    닿기 전까지 견문록에는 그 걸음을 아직 안 띄운다 (맞붙기와 같은 hold) */
 const LIVE_GIM = { trap: 'gim_trap', vault: 'gim_vault', gimmick: 'gim_gimmick', event: 'gim_event' };   // props/ 아래 기믹 전용 그림
@@ -333,6 +349,7 @@ function liveLoop(ts) {
     if (wImg) for (const s of strips) s.style.transform = `translate3d(${-((liveAnim.x * (s.dataset.far ? LIVE_FAR : 1)) % wImg).toFixed(2)}px,0,0)`;
   }
   liveProps(sc, walker, vdt);
+  liveSteps(sc, walker, W, mode);
   liveGimStep(sc, walker);
   // 맞붙는 모습: 전투 걸음이 드러나면 그 요수로
   if (liveAnim.show) { liveShowStep(sc, liveAnim.show, ts, dt); return; }
