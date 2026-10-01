@@ -73,7 +73,7 @@ function equipModal(slot) {
     <small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}${slot === 'weapon' && mw && it.wtype !== mw ? `<small class="warn">장착 무공은 ${WEAPON_TYPES[mw]} 무공이라 초식이 나가지 않습니다</small>` : ''}
     <div class="btns">${btns}</div></div>`;
   const curHtml = cur ? card(cur, `<button class="btn sm" data-enhance="${slot}" ${(cur.enh || 0) >= ENH_MAX || S.silver < enhCost(cur) ? 'disabled' : ''}>🔨 ${(cur.enh || 0) >= ENH_MAX ? '강화 완료' : `강화 +${(cur.enh || 0) + 1} · ${hlSilver(enhCost(cur))} · ${enhChance(cur)}%`}</button><button class="btn ghost sm" data-unequip="${slot}">해제</button>`) : '<p class="muted">비어 있습니다.</p>';
-  const rows = list.map(it => card(it, `<button class="btn primary sm" data-equip="${it.uid}" data-to="${slot}">${cur ? '교체' : '장착'}</button>`)).join('');
+  const rows = list.map(it => card(it, `${cpDiffTag(it, slot)}<button class="btn primary sm" data-equip="${it.uid}" data-to="${slot}">${cur ? '교체' : '장착'}</button>`)).join('');
   return `<div class="sheet equip-sheet" role="dialog" aria-modal="true">
     <div class="sheet-head"><div><small class="muted">무장 武裝</small><h2>${SLOTS[slot].name} <small class="muted">${SLOTS[slot].desc}</small></h2></div></div>
     <h4>착용 중</h4>${curHtml}

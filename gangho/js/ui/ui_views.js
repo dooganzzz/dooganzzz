@@ -53,9 +53,9 @@ const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_
 
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 
-/* 상태 탭 맨 위: 투력과 내역. 내역은 가운데 기준 상대(염화채 정예)와 겨뤘을 때의 기대값 */
+/* 상태 탭 맨 위: 투력과 내역. 내역은 지금 탐험지의 기준 상대와 겨뤘을 때의 기대값 */
 function cpCard() {
-  const p = combatPowerParts(S), pct = v => `${Math.round(v * 100)}%`, R = CP_REF[1];
+  const p = combatPowerParts(S), pct = v => `${Math.round(v * 100)}%`, R = CP_REF[p.ref];
   const vsTip = p.vs.map((v, i) => `${CP_REF[i].name}: 공세 ${v.offense.toFixed(1)} × 수세 ${v.rounds.toFixed(1)}합`).join('\n');
   return `<section class="cp-card" aria-label="투력">
     <div class="cp-main" title="기준 상대 셋과 겨뤄 쓰러지기 전까지 넣는 피해(공세 × 수세)를 기하평균한 지수.\n${vsTip}"><span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(p.total)}</b></div>
@@ -69,6 +69,7 @@ function cpCard() {
       <span title="선공: 속도 + 민첩이 기준 상대보다 빠르면 먼저 친다">선공 <b>${p.first ? '우세' : '열세'}</b></span>
     </div>
     <div class="cp-attr">${Object.entries(ATTRS).map(([k, A]) => `<span title="${A.desc}">${A.name} <b>${attrOf(k)}</b></span>`).join('')}${S.talent ? `<span title="${TALENTS[S.talent].desc}">기예 <b>${TALENTS[S.talent].name}</b></span>` : ''}</div>
+    <p class="cp-advice">${cpAdvice(p).map(a => `<span class="adv-${a.k}">${a.t}</span>`).join('')}</p>
   </section>`;
 }
 
@@ -213,6 +214,13 @@ function viewHall() {
   <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 
+/* 장비를 끼면 투력이 어떻게 바뀌는지 (▲ 오름 · ▼ 내림, 공세 · 수세 방향도) */
+function cpDiffTag(it, slot) {
+  const d = cpTryGear(it, slot), arrow = v => Math.abs(v) < 0.05 ? '' : v > 0 ? '▲' : '▼';
+  const parts = [arrow(d.off) && `공세 ${arrow(d.off)}`, arrow(d.rounds) && `수세 ${arrow(d.rounds)}`].filter(Boolean).join(' · ');
+  return `<small class="cp-diff ${d.cp > 0 ? 'up' : d.cp < 0 ? 'down' : ''}">끼면 투력 ${d.cp > 0 ? '▲' : d.cp < 0 ? '▼' : ''}${fmt(Math.abs(d.cp))}${parts ? ` (${parts})` : ''}</small>`;
+}
+
 /* 무장 · 행낭 */
 function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · '); }
 
@@ -309,7 +317,7 @@ function viewBag() {
   const items = Object.keys(S.inv).filter(id => ui.bagFilter === 'all' || ITEMS[id].kind === ui.bagFilter);
   return `<section class="panel">
     ${head('행낭', '行囊', `<span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
-    ${S.gear.length ? `<div class="gears">${S.gear.map(it => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(it.name, RARITY[it.rarity].name, gearIco(it, 'card'))}<small class="muted item-category">${SLOTS[it.slot].name}${it.wtype ? ' · ' + WEAPON_SHORT[it.wtype] : ''}</small><small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}<div class="btns"><button class="btn sm" data-equip="${it.uid}">착용</button><button class="btn ghost sm" data-discard="${it.uid}">버리기</button></div></div>`).join('')}</div>` : ''}
+    ${S.gear.length ? `<div class="gears">${S.gear.map(it => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(it.name, RARITY[it.rarity].name, gearIco(it, 'card'))}<small class="muted item-category">${SLOTS[it.slot].name}${it.wtype ? ' · ' + WEAPON_SHORT[it.wtype] : ''}</small><small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}${cpDiffTag(it)}<div class="btns"><button class="btn sm" data-equip="${it.uid}">착용</button><button class="btn ghost sm" data-discard="${it.uid}">버리기</button></div></div>`).join('')}</div>` : ''}
     <div class="chips">${kinds.map(k => `<button class="chip ${ui.bagFilter === k ? 'on' : ''}" data-filter="${k}">${k === 'all' ? '전체' : k}</button>`).join('')}</div>
     <div class="items">${items.map(id => { const I = ITEMS[id]; return `<div class="item"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num">×${count(id)}</span><small>${I.desc}</small></div>${I.use ? `<button class="btn sm" data-use="${id}">${I.kind === '비급' ? '익히기' : '사용'}</button>` : '<span></span>'}</div>`; }).join('')}</div>
   </section>`;

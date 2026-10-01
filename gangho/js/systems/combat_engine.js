@@ -39,7 +39,7 @@ function cpVersus(st, R, art) {
   return { offense, rounds, hit, critF, skill, sustain, counter, first, value: offense * Math.max(0.5, rounds + first) };
 }
 function combatPowerParts(player = S) {
-  if (!player) return { total: 0, offense: 0, rounds: 0, hit: 0, crit: 0, skill: 1, sustain: 1, counter: 0, vs: [] };
+  if (!player) return { total: 0, ref: 0, offense: 0, rounds: 0, hit: 0, crit: 0, skill: 1, sustain: 1, counter: 0, vs: [] };
   const prev = S; S = player;
   try {
     const st = calcStats(), id = S.active.mugong, M = id && MANUALS[id], m = id && S.manuals[id];
@@ -52,11 +52,34 @@ function combatPowerParts(player = S) {
     }
     const vs = CP_REF.map(R => cpVersus(st, R, art));
     const total = Math.round(CP_SCALE * Math.exp(vs.reduce((a, v) => a + Math.log(Math.max(1e-6, v.value)), 0) / vs.length));
-    const mid = vs[1];                                                        // 내역은 가운데 기준 상대(염화채 정예)로 보여 준다
-    return { total, offense: mid.offense, rounds: mid.rounds, hit: mid.hit, crit: mid.critF, skill: mid.skill, sustain: mid.sustain, counter: mid.counter, first: mid.first > 0, vs };
+    const ref = Math.max(0, Math.min(CP_REF.length - 1, ZONE_ORDER.indexOf(S.expedition.zone)));   // 내역은 지금 탐험지의 기준 상대로 보여 준다
+    const mid = vs[ref];
+    return { total, ref, offense: mid.offense, rounds: mid.rounds, hit: mid.hit, crit: mid.critF, skill: mid.skill, sustain: mid.sustain, counter: mid.counter, first: mid.first > 0, vs };
   } finally { S = prev; }
 }
 function calculateCombatPower(player = S) { return combatPowerParts(player).total; }
+/* 장비를 잠깐 끼워 보고 투력 · 공세 · 수세가 얼마나 바뀌는지 (slot을 안 주면 그 장비가 들어갈 칸 중 가장 나은 칸) */
+function cpTryGear(it, slot) {
+  const base = combatPowerParts(S), slots = slot ? [slot] : SLOT_ORDER.filter(s => slotAccepts(s) === it.slot);
+  let best = null;
+  for (const s of slots) {
+    const had = Object.prototype.hasOwnProperty.call(S.equip, s), prev = S.equip[s];
+    S.equip[s] = it;
+    try { const p = combatPowerParts(S); if (!best || p.total > best.total) best = p; }
+    finally { if (had) S.equip[s] = prev; else delete S.equip[s]; }
+  }
+  return best ? { cp: best.total - base.total, off: best.offense - base.offense, rounds: best.rounds - base.rounds } : { cp: 0, off: 0, rounds: 0 };
+}
+/* 투력의 약한 쪽: 지금 탐험지의 기준 상대를 쓰러뜨리는 데 드는 합 수와 내가 버티는 합 수를 견주고, 명중 · 내력도 살핀다 */
+function cpAdvice(p = combatPowerParts(S)) {
+  const R = CP_REF[p.ref], kill = R.hp / Math.max(1, p.offense), out = [];
+  if (p.rounds < kill) out.push({ k: 'def', t: `수세가 모자랍니다 — ${josa(R.name, '을를')} 쓰러뜨리는 데 ${kill.toFixed(1)}합이 드는데 ${p.rounds.toFixed(1)}합만 버팁니다. 방어 · 활력 · 회피를 올리면 효율이 큽니다.` });
+  else if (p.rounds > kill * 2.5) out.push({ k: 'off', t: `공세가 모자랍니다 — ${p.rounds.toFixed(1)}합을 버티지만 쓰러뜨리는 데 ${kill.toFixed(1)}합이 듭니다. 공격력 · 치명 · 초식을 올리면 효율이 큽니다.` });
+  else out.push({ k: 'ok', t: `공수 균형이 좋습니다 — ${kill.toFixed(1)}합에 쓰러뜨리고 ${p.rounds.toFixed(1)}합을 버팁니다.` });
+  if (p.hit < 0.8) out.push({ k: 'hit', t: `명중이 ${Math.round(p.hit * 100)}%입니다. 명중을 올리면 평타 · 초식이 모두 더 들어갑니다.` });
+  if (p.sustain < 0.8) out.push({ k: 'mp', t: `한 판 동안 내력이 ${Math.round(p.sustain * 100)}%만 버팁니다. 최대 내력 · 내력 회복 · 소모 감소를 올리십시오.` });
+  return out;
+}
 
 /* ───────── 3대 상성 (오행 · 병기) ───────── */
 function myElem() { const id = S.active.gigong; return (id && MANUALS[id] && MANUALS[id].elem) || null; }

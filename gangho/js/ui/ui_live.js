@@ -441,7 +441,7 @@ function liveScene(r) {
     <i class="live-mist"></i>
     <div class="sp-fighter live-walker ${fast ? 'fast' : ''} ${md === 'walk' ? 'walking' : ''}" id="liveWalker_${w}${fast ? '_f' : ''}" data-w="${w}" data-mode="${md}" ${fast ? 'data-fast="1"' : ''}>${fast ? spr('walk-spr walk-ghost g1') + spr('walk-spr walk-ghost g2') : ''}<i class="sp-shadow"></i>${spr('walk-spr')}</div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0" data-w="${w}" data-anim><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
-    <div class="live-fallen" aria-hidden="true"><i class="sp-shadow"></i><img class="lf-body" src="${ASSET.hero('fallen')}" alt="">${w === 'fist' ? '' : `<img class="lf-weapon w-${w}" src="${ASSET.item('w_' + w)}" alt="">`}</div>
+    <div class="live-fallen" aria-hidden="true"><i class="sp-shadow"></i><img class="lf-body" src="${ASSET.hero('fallen')}" alt="">${w === 'fist' ? '' : `<img class="lf-weapon w-${w}" src="${w === 'spear' ? ASSET.hero('fallen_spear') : ASSET.item('w_' + w)}" alt="">`}</div>
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
     <div class="live-hp me" data-anim><span class="lh-face" style="background-image:url('${ASSET.portrait('hero')}')"></span><div class="lh-body"><b>${esc(S.name)}</b><span class="lh-bar"><i></i></span><em></em></div></div>
     <div class="live-hp foe" data-anim><span class="lh-face"></span><div class="lh-body"><b></b><span class="lh-bar"><i></i></span><em></em></div></div>
