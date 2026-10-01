@@ -115,22 +115,24 @@ function stepGimmick(Z) {
   for (const [id, a, b] of g.reward) { if (id === 'silver') giveSilver(Math.max(1, Math.round(rint(a, b) * EXPEDITION.rewardMult))); else if (Math.random() < EXPEDITION.dropMult * 5) give(id, 1); }
   return { t: `⚙️ ${g.name} — 숨겨진 것을 찾아냈습니다`, cls: 'good' };
 }
-/* 기연: 만나면 바로 정하지 않고 기연 탭에 쌓아 둔다 — 유저가 나중에 직접 고른다 (S.encounters, 기다리는 것은 ENCOUNTER_KEEP개까지) */
-const ENCOUNTER_KEEP = 10, ENCOUNTER_LOG = 10;
+/* 기연: 만나면 바로 정하지 않고 기연 탭에 쌓아 둔다 — 유저가 나중에 직접 고른다 (S.encounters, 기다리는 것은 ENCOUNTER_KEEP개까지 · ENCOUNTER_TTL이 지나면 사라짐) */
+const ENCOUNTER_KEEP = 10, ENCOUNTER_LOG = 10, ENCOUNTER_TTL = 24 * 3600000;
+const encLeft = E => E.at + ENCOUNTER_TTL - now();
 function stepEncounter(rec, zid, used) {
   const pool = eventPool(zid).filter(e => !used.has(e.id)), ev = pick(pool.length ? pool : eventPool(zid));
   used.add(ev.id);
-  S.encounters = S.encounters || [];
+  S.encounters = (S.encounters || []).filter(e => e.done || encLeft(e) > 0);   // 기한이 지난 기연은 지나갔다
   S.encounters.push({ uid: S.uid++, ev: ev.id, zone: zid, at: rec.next || now() });
-  const wait = S.encounters.filter(e => !e.done);
+  const wait = encountersWaiting();
   if (wait.length > ENCOUNTER_KEEP) S.encounters.splice(S.encounters.indexOf(wait[0]), 1);   // 너무 쌓이면 가장 오래된 것은 지나간다
   log(`📜 기연 「${ev.title}」 — ${ev.text}`, 'npc');
   return { t: `📜 기연 「${ev.title}」 — 기연 탭에 쌓였습니다`, cls: 'npc' };
 }
-const encountersWaiting = () => (S.encounters || []).filter(e => !e.done);
+const encountersWaiting = () => (S.encounters || []).filter(e => !e.done && encLeft(e) > 0);
 /* 기연 고르기: 조건 확인 → 값 치르기 → 결과(확률) → 효과 · 싸움. 얻고 잃은 것을 기록해 기연 탭에 남긴다 */
 function resolveEncounter(uid, ci) {
   const E = (S.encounters || []).find(e => e.uid === uid && !e.done); if (!E) return null;
+  if (encLeft(E) <= 0) return { fail: '기한이 지나 기연이 사라졌습니다' };
   const ev = EVENTS.find(x => x.id === E.ev), ch = ev && ev.choices[ci]; if (!ch) return null;
   const why = reqFail(ch.req); if (why) return { fail: why };
   const b = { silver: S.silver, inv: { ...S.inv }, hp: S.hp };
