@@ -10,8 +10,11 @@ const EXPEDITION = {
   stepMs: 30000, firstMs: 3000,
   // 기력: 달리면 drainMs에 걸쳐 다 닳고, 다 닳으면 걸으며 regenMs에 걸쳐 차오른다. 걷는 동안은 걸음 간격이 walkStep배
   run: { drainMs: 20 * 60000, regenMs: 10 * 60000, walkStep: 2 },
-  stepGrade: { '삼류': 0.95, '이류': 0.9, '일류': 0.85, '절정': 0.8 },   // 장착 경공 경지가 높을수록 걸음 간격이 짧아져 요수를 조금 더 빨리 만난다 catchUp: 8 * 3600000, keep: 8,
+  stepGrade: { '삼류': 0.95, '이류': 0.9, '일류': 0.85, '절정': 0.8 },   // 장착 경공 경지가 높을수록 걸음 간격이 짧아져 요수를 조금 더 빨리 만난다
+  catchUp: 8 * 3600000, keep: 8,
   weights: { beast: 70, vault: 8, event: 6, trap: 8, gimmick: 8 },
+  // 기연은 하루 1~2번: 기연을 만나면 다음 기연까지 encounterGap(ms) 사이의 시간이 지나야 다시 만난다
+  encounterGap: [12 * 3600000, 24 * 3600000],
   potionAt: 0.35, potionPerFight: 3, breathe: 0.06, maxRounds: 60,
   rewardMult: 0.1,   // 원정 은자 획득 배율 (인플레이션 억제, 반올림)
   expMult: 0.2,      // 원정 수련치 획득 배율 (무공 성급이 강호행 진행을 따라가도록 은자보다 후하게)

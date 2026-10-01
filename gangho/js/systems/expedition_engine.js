@@ -122,7 +122,9 @@ function stepEncounter(rec, zid, used) {
   const pool = eventPool(zid).filter(e => !used.has(e.id)), ev = pick(pool.length ? pool : eventPool(zid));
   used.add(ev.id);
   S.encounters = (S.encounters || []).filter(e => e.done || encLeft(e) > 0);   // 기한이 지난 기연은 지나갔다
-  S.encounters.push({ uid: S.uid++, ev: ev.id, zone: zid, at: rec.next || now() });
+  const at = rec.next || now();
+  S.encounters.push({ uid: S.uid++, ev: ev.id, zone: zid, at });
+  S.encNext = at + rnd(EXPEDITION.encounterGap[0], EXPEDITION.encounterGap[1]);
   const wait = encountersWaiting();
   if (wait.length > ENCOUNTER_KEEP) S.encounters.splice(S.encounters.indexOf(wait[0]), 1);   // 너무 쌓이면 가장 오래된 것은 지나간다
   log(`📜 기연 「${ev.title}」 — ${ev.text}`, 'npc');
@@ -214,7 +216,7 @@ function runStep(rec, t) {
       k = 'boss';
       r = stepBattle(rec, Z.boss);
     } else {
-      k = weighted(W.weights);
+      k = weighted(t < (S.encNext || 0) ? { ...W.weights, event: 0 } : W.weights);   // 기연은 하루 1~2번
       if (k === 'event') { const used = new Set(rec.used); r = stepEncounter(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
       else r = k === 'beast' ? stepBattle(rec, pickStageFoe(zid, rec.stage)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
     }

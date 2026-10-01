@@ -258,7 +258,6 @@ function liveGimFire(sc, G) {
     liveGain(sc, m ? `기연 「${m[1]}」` : '기연', ASSET.ui('c_star'), 'npc', 0); d = 1;
     if (m) liveGain(sc, `▸ ${m[2].trim()}`, '', 'npc', d++ * 420);
     if (st.ds) liveGain(sc, `은자 ${fmt(st.ds)}`, ASSET.ui('h_silver'), 'bad', d++ * 420);
-    toast(`📜 기연${m ? ` 「${m[1]}」` : ''} — 기연 탭에서 ${ENCOUNTER_TTL / 3600000}시간 안에 고르십시오`);
   }
   else liveVfx(sc, 'crit', 26, 'small kata');
   const g = st.g;
