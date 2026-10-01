@@ -7,7 +7,8 @@
    potionAt: 활력이 이 비율 아래면 생혈고를 바름 (한 전투에 potionPerFight개까지) · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율 (걸음 사이에 활력은 차지 않는다)
    minStamina: 기력이 이만큼 아래면 쉬어 가는 걸음 (기력만 가득 찬다) · 전투에서 지면 쓰러지고 강호행은 끝난다 */
 const EXPEDITION = {
-  stepMs: 30000, firstMs: 3000, restMs: 60000, catchUp: 8 * 3600000, keep: 8,
+  stepMs: 30000, firstMs: 3000,
+  stepGrade: { '삼류': 0.95, '이류': 0.9, '일류': 0.85, '절정': 0.8 },   // 장착 경공 경지가 높을수록 걸음 간격이 짧아져 요수를 조금 더 빨리 만난다 restMs: 60000, catchUp: 8 * 3600000, keep: 8,
   weights: { beast: 70, vault: 8, event: 6, trap: 8, gimmick: 8 },
   potionAt: 0.35, potionPerFight: 3, breathe: 0.06, minStamina: 3, maxRounds: 60,
   rewardMult: 0.1,   // 원정 은자 획득 배율 (인플레이션 억제, 반올림)

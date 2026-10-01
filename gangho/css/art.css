@@ -491,6 +491,12 @@
 .live-walker { left: 28.5%; bottom: 7%; width: 28%; aspect-ratio: 400 / 380; transition: none; }
 .walk-spr { width: 100%; height: 100%; background: 0 0 / 800% 100% no-repeat; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
 .live-walker .sp-shadow { width: 42%; }
+.live-walker .walk-ghost { position: absolute; inset: 0; opacity: .3; filter: saturate(.3) brightness(1.15) blur(.5px); pointer-events: none; }
+.live-walker .walk-ghost.g1 { transform: translateX(-14%); }
+.live-walker .walk-ghost.g2 { transform: translateX(-28%); opacity: .16; }
+.live-wind { position: absolute; z-index: 3; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .85)); animation: liveWind .55s linear forwards; pointer-events: none; }
+@keyframes liveWind { from { opacity: .9; transform: translateX(0); } to { opacity: 0; transform: translateX(-160px); } }
+@media (prefers-reduced-motion: reduce) { .live-wind { display: none; } }
 .live-scene:not(.rest):not(.fight) .live-hero, .live-scene.rest .live-walker, .live-scene.fight .live-walker { display: none; }
 .live-hero.sp-hero { transition: left .3s cubic-bezier(.3, .7, .3, 1); }
 

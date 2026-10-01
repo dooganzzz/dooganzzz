@@ -5,5 +5,5 @@ ASSET.foe = (e, atk) => assetUrl('foe', atk ? `${e}_atk` : e);
 /* 화면별로 한 번에 미리 불러올 그림 묶음 */
 const ASSET_SET = {
   battle: (zid, eid, w) => [ASSET.stage(zid), ASSET.hero(w), ASSET.foe(eid), ASSET.foe(eid, 1), ASSET.beast(eid), ASSET.portrait('hero')],
-  live: (zid, w) => [ASSET.stage(zid), ASSET.hero(w), ASSET.walk(w), ASSET.travel(zid), ASSET.portrait('hero'), ASSET.fx('hit'), ASSET.fx('crit')],
+  live: (zid, w) => [ASSET.stage(zid), ASSET.hero(w), ASSET.run(w), ASSET.travel(zid), ASSET.portrait('hero'), ASSET.fx('hit'), ASSET.fx('crit')],
 };

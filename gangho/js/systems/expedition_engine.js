@@ -6,6 +6,8 @@ function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags
 
 /* 가중치 표에서 하나 고르기: { key: weight } */
 /* 지형 상성: 장착 경공의 지형이 구역 지형(복합) 중 하나라도 맞으면 기력 소모 -20%, 하나도 안 맞으면 +20%, 경공이 없으면 보정 없음 */
+/* 걸음 간격: 장착 경공 경지가 높을수록 조금 짧다 */
+function stepMsNow() { const id = S.active.gyeonggong, g = id && MANUALS[id] && MANUALS[id].grade; return Math.round(EXPEDITION.stepMs * ((g && EXPEDITION.stepGrade[g]) || 1)); }
 function myTerrain() { const id = S.active.gyeonggong; return (id && MANUALS[id] && MANUALS[id].terrain) || null; }
 function terrainMult(zid) { const t = myTerrain(), Z = ZONES[zid]; if (!t || !Z || !Z.terrain) return 1; return Z.terrain.includes(t) ? AFFINITY.terrainMatch : AFFINITY.terrainMiss; }
 
@@ -247,7 +249,7 @@ function advanceRun(t = now()) {
   const rec = activeRun(); if (!rec) return null;
   const W = EXPEDITION; let n = 0;
   if (t - rec.next > W.catchUp) { log(`⌛ 자리를 오래 비워 ${Math.round((t - rec.next - W.catchUp) / 3600000)}시간 남짓은 그냥 흘러갔습니다. (최대 ${W.catchUp / 3600000}시간까지 이어집니다)`, 'muted', rec.next); rec.next = t - W.catchUp; }
-  while (rec.live && rec.next <= t && n++ < 5000) { const at = rec.next, s = runStep(rec, at); if (rec.live) rec.next = at + (s.k === 'rest' ? W.restMs : W.stepMs); }
+  while (rec.live && rec.next <= t && n++ < 5000) { const at = rec.next, s = runStep(rec, at); if (rec.live) rec.next = at + (s.k === 'rest' ? W.restMs : stepMsNow()); }
   if (n) { notify.refresh(); notify.save(); }
   return n ? rec : null;
 }
