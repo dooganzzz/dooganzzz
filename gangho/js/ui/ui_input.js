@@ -32,7 +32,8 @@ function onClick(e) {
   if (t.dataset.act === 'doreset') return doReset();
   if (!S) return;
   const d = t.dataset;
-  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); render(); return; }
+  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); if (d.tab === 'field' && !activeRun() && !ui.modal) ui.modal = 'map'; render(); return; }   // 강호행 탭: 먼저 지도
+  if (d.mapzone) { if (!zoneUnlocked(d.mapzone)) return toast('앞 구역의 두목을 쓰러뜨리면 길이 열립니다.'); setDestination(d.mapzone); ui.modal = `mapgo:${d.mapzone}`; render(); return; }
   if (d.dest) return setDestination(d.dest);
   if (d.stage) { const n = +d.stage, run = activeRun(), X = S.expedition; if (run && run.zone === X.zone) stageGo(run, n); else if (n <= stageMax(X.zone)) { X.stage = n; } notify.save(); return render(); }
   if (d.stageauto !== undefined) { S.expedition.auto = S.expedition.auto === false; notify.save(); return render(); }
@@ -87,9 +88,12 @@ function onClick(e) {
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
     claim: () => { if (!canClaim()) return toast('강호행이 끝나야 받을 수 있습니다.'); replayStop(); ui.lootSum = claimRewards(); ui.modal = 'loot'; render(); },
-    runstart: () => {                                        // 강호행 시작: 쓰러지거나 귀환할 때까지 이어진다
+    runstart: () => { ui.modal = 'map'; render(); },          // 강호행 시작은 지도에서 탐험지를 고르고 [출발]
+    mapback: () => { ui.modal = 'map'; render(); },
+    mapgo: () => {                                           // 강호행 시작: 쓰러지거나 귀환할 때까지 이어진다
       if (!S.expedition.zone) return toast('탐험지를 먼저 정하십시오.');
-      const go = () => { if (startRun()) { toast(`⛰️ 제자가 ${ZONES[S.expedition.zone].name}(으)로 길을 떠났습니다`); render(); } };
+      ui.modal = null;
+      const go = () => { if (startRun()) { toast(`⛰️ 제자가 ${ZONES[S.expedition.zone].name}(으)로 길을 떠났습니다`); ui.enterAt = now(); goTab('field'); render(); } };   // 지도에서 떠나면 무대가 먹빛에서 밝아지며 열린다
       const warn = [!S.active.mugong && '무공을 하나도 펼치지 않았습니다 — 상태 탭 › 무공에서 비급을 익히고 펼치십시오', !has('saenghyeol') && '생혈고가 하나도 없습니다 — 전방에서 개당 5냥'].filter(Boolean);
       if (warn.length) return requestActionConfirm({ title: '이대로 떠날까요?', description: '준비가 모자라면 금방 쓰러질 수 있습니다. 쓰러지면 강호행은 끝납니다.', details: warn, confirmText: '그래도 떠난다', onConfirm: go });
       go();

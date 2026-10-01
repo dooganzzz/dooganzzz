@@ -71,7 +71,7 @@ function liveSide() {
 function livePanel() {
   const r = liveRec(), run = activeRun();
   lastLiveSig = liveSig();
-  return `<section class="panel live-panel">
+  return `<section class="panel live-panel ${ui.enterAt && now() - ui.enterAt < 1200 ? 'enter' : ''}">
     ${head('실시간 강호행', '江湖行 觀', `<span class="pill">${run ? '강호행 중' : '대기'}</span>`)}
     <div class="live-wrap">${liveScene(r)}<div class="live-side" id="liveSide">${liveSide()}</div></div>
   </section>`;
@@ -148,7 +148,7 @@ function prepPanel() {
     ${row(CAT_ORDER.every(c => S.active[c]), '무공', arts, go('status', 'martial', '무공'))}
     ${row(!!S.equip.weapon && wOk, '병기', S.equip.weapon ? `${gearName(S.equip.weapon)}${wOk ? '' : ` <span class="warn">— 《${M.name}》은 ${WEAPON_TYPES[M.weapon]} 무공이라 초식이 나가지 않음</span>`}` : '맨손', go('status', 'gear', '무장'))}
     ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 전투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
-    ${row(has('saenghyeol', 5), '생혈고', `${count('saenghyeol')}개 (활력 35% 아래에서 자동 사용 · 떨어지면 쓰러지기 쉽다 · 전방 개당 5냥) · 소환단 ${count('potionMp')}개`, go('sect', 'shop', '전방'))}
+    ${row(has('saenghyeol', 5), '생혈고', `${count('saenghyeol')}개 (활력 ${potionAtNow()}% 아래에서 자동 사용 · 설정 탭에서 바꿈 · 떨어지면 쓰러지기 쉽다 · 전방 개당 5냥) · 소환단 ${count('potionMp')}개`, go('sect', 'shop', '전방'))}
     ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1;
       const tz = X.zone ? ` — ${ZONES[X.zone].name} ${zoneTerrainText(X.zone)} ${m < 1 ? '<b class="good">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn">불일치 · 기력 +20%</span>' : ''}` : '';
       return row(!!(e && t) && m <= 1, '상성', `기공 ${e ? elemTag(e) : '<span class="warn">오행 없음</span>'} · 경공 ${t ? terrainTag(t) : '<span class="warn">지형 없음</span>'}${tz} · 병기 ${weaponTag(weaponType())}`, go('status', 'martial', '무공')); })()}
