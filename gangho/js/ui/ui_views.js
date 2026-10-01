@@ -212,23 +212,6 @@ function cpDiffTag(it, slot) {
 /* 무장 · 행낭 */
 function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · '); }
 
-const DOLL_SVG = `<svg class="martial-artist-img fallback" viewBox="0 0 240 360" role="img" aria-label="무인 실루엣">
-  <defs><linearGradient id="dollInk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5361"/><stop offset="1" stop-color="#1b2027"/></linearGradient></defs>
-  <g fill="url(#dollInk)" stroke="rgba(212,175,55,.35)" stroke-width="1.2" stroke-linejoin="round">
-    <path d="M58 22 L66 18 L196 318 L188 322 Z"/>
-    <path d="M52 16 h22 v8 h-22z"/>
-    <ellipse cx="120" cy="34" rx="10" ry="8"/>
-    <path d="M128 36 q22 4 30 22 q-14 -8 -28 -10z"/>
-    <circle cx="120" cy="62" r="22"/>
-    <path d="M110 82 h20 v14 h-20z"/>
-    <path d="M86 98 q34 -12 68 0 l10 70 l-6 12 l14 146 h-104 l14 -146 l-6 -12z"/>
-    <path d="M86 100 q-22 18 -30 70 q-4 32 -2 50 l30 6 q-2 -40 10 -86z"/>
-    <path d="M154 100 q22 18 30 70 q4 32 2 50 l-30 6 q2 -40 -10 -86z"/>
-    <path d="M86 170 h68 v14 h-68z"/>
-    <path d="M100 184 q-6 30 -16 44 l8 2 q10 -16 16 -44z"/>
-    <path d="M94 326 h22 v18 h-26z M124 326 h22 l4 18 h-26z"/>
-  </g>
-</svg>`;
 
 /* 청풍문 › 전방(廛房): 왕 가의 구매 / 판매 */
 /* 전방 장비 진열 분류 */

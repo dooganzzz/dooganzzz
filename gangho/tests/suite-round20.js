@@ -92,29 +92,33 @@ module.exports = async (b) => {
 
     // 4. 지형 상성 (기력 소모)
     const tr = await p.evaluate(() => {
+      const A = { match: AFFINITY.terrainMatch, miss: AFFINITY.terrainMiss }, CP = ZONES.cheongpung.terrain;
       const r = { terr: myTerrain(), terrains: Object.keys(TERRAINS).join(), zones: ZONE_ORDER.map(z => ZONES[z].terrain.join('/')) };
-      r.mult = ZONE_ORDER.map(terrainMult).join();              // 팔보간섬(흙): 청풍산 흙·풀·나무 일치, 염화채 흙·평 일치, 적룡방 물·나무 불일치
+      r.mult = ZONE_ORDER.map(terrainMult).join();
+      r.expect = ZONE_ORDER.map(z => ZONES[z].terrain.includes(r.terr) ? A.match : A.miss).join();
       const g = S.active.gyeonggong; S.active.gyeonggong = null; r.none = terrainMult('cheongpung'); S.active.gyeonggong = g;
-      const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.saenghyeol = 20; return runExpedition(now()); };
-      const a = [], m = [];
-      for (let i = 0; i < 4; i++) a.push(run());
-      S.manuals.gy1b = { star: 1 }; equipManual('gy1b');     // 등평도수(물) → 청풍산 불일치
-      r.gy1b = terrainMult('cheongpung');
-      for (let i = 0; i < 4; i++) m.push(run());
-      S.manuals.gy1c = { star: 1 }; equipManual('gy1c'); r.gy1c = terrainMult('cheongpung');   // 제운종(나무) → 복합 지형 중 하나 일치
-      equipManual('gy1a');
-      const steps = rs => rs.reduce((x, rec) => x + rec.steps.filter(s => s.k !== 'trap' && s.k !== 'retreat' && s.k !== 'avoid').length, 0) / rs.length;
-      r.match = { mult: a[0].terrain.mult, steps: steps(a), extra: a.every(x => x.terrain.extra < 0), rec: a[0].terrain.match === true && a[0].terrain.zone.join() === 'earth,grass,wood' };
-      r.miss = { mult: m[0].terrain.mult, steps: steps(m), extra: m.every(x => x.terrain.extra > 0), rec: m[0].terrain.match === false };
+      // 청풍산 지형과 맞는 경공 · 안 맞는 경공 (1장에 열린 것 가운데)
+      const gys = Object.keys(MANUALS).filter(id => MANUALS[id].cat === 'gyeonggong' && !manualSealed(id));
+      const hit = gys.find(id => CP.includes(MANUALS[id].terrain)), miss = gys.find(id => !CP.includes(MANUALS[id].terrain));
+      const wear = id => { S.manuals[id] = S.manuals[id] || { star: 1 }; equipManual(id); return terrainMult('cheongpung'); };
+      const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.saenghyeol = 20; S.hp = 1e9; return runExpedition(now(), 12); };
+      r.hitMult = wear(hit); const a = [run(), run()];
+      r.missMult = wear(miss); const m = [run(), run()];
+      equipManual(g);
+      r.match = { mult: a[0].terrain.mult, extra: a.every(x => x.terrain.extra < 0), rec: a[0].terrain.match === true && a[0].terrain.zone.join() === CP.join() };
+      r.miss = { mult: m[0].terrain.mult, extra: m.every(x => x.terrain.extra > 0), rec: m[0].terrain.match === false };
+      r.A = A; r.ids = [hit, miss];
       return r;
     });
     ok('4 5대 지형 (풀·물·흙·나무·평) · 청풍산 = 흙/풀/나무 복합', tr.terrains === 'grass,water,earth,wood,plain' && tr.zones[0] === 'earth/grass/wood', JSON.stringify(tr));
-    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 ×0.8, 아니면 ×1.2, 경공 없으면 보정 없음', tr.terr === 'earth' && tr.mult === '0.8,0.8,1.2' && tr.none === 1 && tr.gy1b === 1.2 && tr.gy1c === 0.8, JSON.stringify(tr));
+    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 덜, 아니면 더 · 경공 없으면 보정 없음', tr.mult === tr.expect && tr.none === 1 && tr.hitMult === tr.A.match && tr.missMult === tr.A.miss && tr.A.match < 1 && tr.A.miss > 1, JSON.stringify(tr));
     ok('4 탐험 기록에 지형 일치 여부 · 기력 증감', tr.match.rec && tr.miss.rec && tr.match.extra && tr.miss.extra, JSON.stringify(tr));
-    ok('4 지형이 맞으면 같은 걸음에 기력을 덜 쓴다 (×0.8 / ×1.2)', tr.match.mult < 1 && tr.miss.mult > 1 && tr.match.mult < tr.miss.mult && tr.match.extra && tr.miss.extra, JSON.stringify(tr));
-    await p.evaluate(() => { ui.modal = null; goTab('field'); render(); });
-    ok('4 탐험 기록 결산 줄 · 구역 카드 지형 표식', await p.evaluate(() => /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 (흙|물|나무) (일치|불일치)/.test(document.querySelector('.tr-line').textContent) && document.querySelectorAll('.zone-terrain .aff-tag.tr').length >= 3));
-    ok('4 출정 준비에 상성 줄 (기공 오행 · 경공 지형 · 병기)', await p.evaluate(() => { const li = [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent === '상성'); return !!li && /金/.test(li.textContent) && /흙/.test(li.textContent) && /창/.test(li.textContent); }));
+    ok('4 지형이 맞으면 같은 걸음에 기력을 덜 쓴다', tr.match.mult < 1 && tr.miss.mult > 1, JSON.stringify(tr));
+    await p.evaluate(() => { claimRewards(); ui.modal = null; goTab('field'); render(); });
+    ok('4 탐험 기록 결산 줄에 지형 · 기력 증감', await p.evaluate(() => { const t = document.querySelector('.tr-line'); return !!t && /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 \S+ (일치|불일치) \(기력 \+?[\d.]+ (더 씀|아낌)\)/.test(t.textContent); }));
+    ok('4 출정 준비에 상성 줄 (기공 오행 · 경공 지형 · 병기)', await p.evaluate(() => {
+      const li = [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent === '상성'), txt = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
+      return !!li && li.textContent.includes(txt(elemTag(myElem()))) && li.textContent.includes(txt(terrainTag(myTerrain()))) && /병기/.test(li.textContent); }));
     ok('4 전투 기록 첫머리에 상성 한 줄', await p.evaluate(() => S.expeditions.some(r => r.battles.some(bt => bt.intro.some(l => l.cls === 'aff' && /오행/.test(l.text) && /병기/.test(l.text))))));
 
     // 5. 조합 실패물 → 검게 탄 찌꺼기 · 무신상 공양
@@ -162,6 +166,7 @@ module.exports = async (b) => {
     await p.click('.sim-row [data-simx]');
     ok('6 [10판 모의] → 결과 줄', await p.evaluate(() => /10판 모의: \d+승/.test(document.querySelector('.sim-stat').textContent)));
     await p.click('.sim-row [data-sim]');
+    await p.waitForSelector('#rpBox .eyebrow', { timeout: 3000 });   // 무대 그림을 풀고 열린다
     const rp = await p.evaluate(() => ({ modal: ui.modal, eyebrow: document.querySelector('#rpBox .eyebrow').textContent, aff: [...document.querySelectorAll('#rpLog p')].some(l => /상성/.test(l.textContent)), tag: !!document.querySelector('#pl-foe .aff-tag') }));
     ok('6 [겨루기] → 관찰 창으로 재생 (심상 · 보상 없음 · 상성 줄)', rp.modal === 'replay:sim' && /心象/.test(rp.eyebrow) && rp.aff && rp.tag, JSON.stringify(rp));
     await p.click('[data-rp="end"]'); await p.click('#rpBox [data-act="closemodal"]');

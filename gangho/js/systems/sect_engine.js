@@ -46,7 +46,6 @@ function addHint(r) {
   if (!S.codex.includes(r.id)) { S.codex.push(r.id); log(`📖 도감에 「${recipeName(r)}」 조합법이 기록되었습니다.`, 'gold'); }
 }
 
-function arinTalk() { log(`아린: "${pick(ARIN_TALK)}"`, 'npc'); }
 
 /* 아린(사매): 죽 한 그릇으로 활력·내력을 모두 채워 준다 (뒷마당 휴식을 대신한다).
    하루 첫 그릇은 공짜, 그 뒤로는 한 그릇에 은자 10냥 */

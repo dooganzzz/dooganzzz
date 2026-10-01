@@ -162,7 +162,14 @@ const OLD_ITEM_PRICE = {
 /* 장비 이름을 지금 데이터의 이름으로 맞춘다 (이름을 고쳐도 예전에 얻은 장비가 옛 이름으로 남지 않게) */
 /* 비급 120종 개편 (10월 1일): 옛 비급 id → 새 비급 id. 둘이 한 비급으로 모이면 성급 · 수련치가 높은 쪽을 남긴다 */
 const OLD_MANUAL = { samjaeGwon: 'fs1a', paseok: 'fs1b', swaegol: 'fs1c', yeonhwan: 'fs1c', cpGwon: 'fs2a', samjaeGeom: 'sw1a', cpGeombeop: 'sw1b', nakyeop: 'sw1c', chupung: 'sw1c', cpGeom: 'sw2a', samjaeDo: 'bd1a', ohodanmun: 'bd1b', byeokryeok: 'bd1c', dansu: 'bd1c', cpDo: 'bd2a', samjaeChang: 'sp1a', yukhap: 'sp1b', cheolgi: 'sp1c', pungun: 'sp1c', cpChang: 'sp2a', samjaePyo: 'hd1a', biyeon: 'hd1b', sanhwa: 'hd1c', tugol: 'hd1c', cpPyo: 'hd2a', tonap: 'sm1a', cpSim: 'sm2a', pocheolsak: 'gy1a', chosangbi: 'gy1a', mijong: 'gy1b', dapsu: 'gy1b', jihaeng: 'gy1c', deungsu: 'gy1c', cpGyeong: 'gy2a', cheolpo: 'gi1a', baekgeum: 'gi1a', huto: 'gi1b', mokryeong: 'gi1c', byeokhwa: 'gi1c', yusu: 'gi1c', cpGi: 'gi2a' };
+/* 더 예전 공양 비급 5종의 이름 바꿈 (무공 DB 통합 때) — OLD_MANUAL보다 먼저 거친다 */
+const OLDER_MANUAL = { yeolhwa: 'byeokhwa', suryu: 'yusu', hwangto: 'huto', deungpyeong: 'dapsu' };
 function migrateManuals(st) {
+  for (const [o, n] of Object.entries(OLDER_MANUAL)) {
+    if (st.manuals && st.manuals[o]) { if (!st.manuals[n] || (st.manuals[o].star || 0) > (st.manuals[n].star || 0)) st.manuals[n] = st.manuals[o]; delete st.manuals[o]; }
+    if (st.active) for (const c of Object.keys(st.active)) if (st.active[c] === o) st.active[c] = n;
+    if (st.inv && st.inv['bk_' + o]) { st.inv['bk_' + n] = (st.inv['bk_' + n] || 0) + st.inv['bk_' + o]; delete st.inv['bk_' + o]; }
+  }
   const nu = {};
   for (const [id, m] of Object.entries(st.manuals || {})) { const to = OLD_MANUAL[id] || id; if (!MANUALS[to]) continue; const a = nu[to]; if (!a || (m.star || 0) > (a.star || 0)) nu[to] = m; }
   st.manuals = nu;
@@ -203,13 +210,6 @@ function migrate(st) {
   if (!st.bestiary) { st.bestiary = {}; for (const z of Object.values(st.zoneLog || {})) for (const [e, n] of Object.entries(z.seen || {})) { const b = st.bestiary[e] = st.bestiary[e] || { met: 0, kills: 0 }; b.met += n; } }
   if (st.inv) for (const id of ['twistedIron', 'burntAsh', 'dregs']) if (st.inv[id]) { st.inv.slag = (st.inv.slag || 0) + st.inv[id]; delete st.inv[id]; }
   if (st.shrine && st.shrine.pulls === undefined) st.shrine.pulls = 0;
-  // 무공 DB 통합: 지난번 공양 비급 5종 → 새 삼류 무공으로 (성급 유지)
-  const REMAP = { yeolhwa: 'byeokhwa', suryu: 'yusu', hwangto: 'huto', deungpyeong: 'dapsu' };
-  for (const [o, n] of Object.entries(REMAP)) {
-    if (st.manuals && st.manuals[o]) { if (!st.manuals[n]) st.manuals[n] = st.manuals[o]; delete st.manuals[o]; }
-    if (st.active) for (const c of Object.keys(st.active)) if (st.active[c] === o) st.active[c] = n;
-    if (st.inv && st.inv['bk_' + o]) { st.inv['bk_' + n] = (st.inv['bk_' + n] || 0) + st.inv['bk_' + o]; delete st.inv['bk_' + o]; }
-  }
   // 청풍산 요수 교체: 들개·외눈 멧돼지왕은 사라졌다 (도감·임무에서 정리)
   for (const gone of ['dog', 'boarKing']) { if (st.bestiary) delete st.bestiary[gone]; for (const z of Object.values(st.zoneLog || {})) if (z.seen) delete z.seen[gone]; }
   if (st.missions) st.missions = st.missions.filter(m => m.type !== 'kill' || ENEMIES[m.target]);

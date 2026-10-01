@@ -1,12 +1,12 @@
 /* 운영자 관리자 창 (admin.html): 게임 창과 BroadcastChannel로 연결 · 상태 복사 · 추적 전달 · 명령 실행 · 재연결 */
 'use strict';
 const path = require('path');
-const { ok, GAME_URL, watchErrors } = require('./lib');
+const { ok, GAME_URL, watchErrors, testHelpers } = require('./lib');
 const ADMIN_URL = 'file://' + path.resolve(__dirname, '..', 'admin.html');
 
 module.exports = async (b) => {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
-  const game = await ctx.newPage(), gErr = watchErrors(game);
+  const game = await ctx.newPage(), gErr = watchErrors(game); await testHelpers(game);
   await game.goto(GAME_URL);
   const admin = await ctx.newPage(), aErr = watchErrors(admin);
   await admin.goto(ADMIN_URL);
@@ -14,7 +14,7 @@ module.exports = async (b) => {
   // 시작 화면에서도 연결
   await admin.waitForFunction(() => /연결됨/.test(document.querySelector('#gmConn').textContent), null, { timeout: 5000 });
   ok('별도 창: 게임 창과 연결 (시작 화면)', await admin.evaluate(() => /시작 화면/.test(document.querySelector('#gmConn').textContent) && S === null));
-  ok('별도 창: 창 전체를 쓰는 독립 페이지 · 5개 탭 · 닫기/새 창 버튼 없음', await admin.evaluate(() => getComputedStyle(document.querySelector('#gmPanel')).position === 'static' && document.querySelectorAll('.gm-tab').length === 5 && !document.querySelector('[data-gm="close"], [data-gm="popout"], #gmToggle')));
+  ok('별도 창: 창 전체를 쓰는 독립 페이지 · 8개 탭 · 닫기/새 창 버튼 없음', await admin.evaluate(() => getComputedStyle(document.querySelector('#gmPanel')).position === 'static' && document.querySelectorAll('.gm-tab').length === 8 && !document.querySelector('[data-gm="close"], [data-gm="popout"], #gmToggle')));
   ok('별도 창은 게임 화면 계층·app.js를 읽지 않음', await admin.evaluate(() => typeof render === 'undefined' && typeof boot === 'undefined' && typeof calcStats === 'function'));
 
   // 게임 시작 → 상태 복사본
@@ -52,7 +52,7 @@ module.exports = async (b) => {
   const tr = await admin.evaluate(() => ({ kinds: GM.trace.slice(0, 20).map(r => r.kind), top: document.querySelector('#gmTrace li span:last-child').textContent, cmd: GM.trace.some(r => /관리자 창 명령: spawn/.test(r.text)) }));
   ok('2 게임의 클릭·탭·전투가 관리자 창에 실시간 추적', tr.kinds.includes('click') && tr.kinds.includes('tab') && tr.kinds.slice(0, 3).includes('battle'), tr.kinds.join(','));
   ok('2 관리자 창에서 보낸 명령도 추적에 남음', tr.cmd);
-  await game.evaluate(() => { S.expedition.zone = 'cheongpung'; S.stamina = 100; runExpedition(now()); });
+  await game.evaluate(() => { S.expedition.zone = 'cheongpung'; runExpedition(now()); });
   await admin.waitForFunction(() => S && S.expeditions.length === 1, null, { timeout: 3000 });
   ok('1 탐험 기록도 복사', true);
 

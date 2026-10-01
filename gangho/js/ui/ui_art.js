@@ -243,11 +243,3 @@ function craftFx(ok) {
   setTimeout(() => fx.remove(), 2600);
 }
 
-/* 화로 불길: 단조는 주황 쇠불, 연단은 푸른 단화(丹火) */
-function furnaceFire(craft) {
-  return `<div class="furnace-fire ${craft}" aria-hidden="true"><svg viewBox="0 0 120 60" preserveAspectRatio="xMidYMax meet">
-    <path class="fl f1" d="M40 60q-6-18 8-30q-2 12 6 16q2-14 12-24q-2 16 8 22q4-8 2-16q12 12 6 32z"/>
-    <path class="fl f2" d="M50 60q-2-12 6-18q0 8 5 10q2-8 8-12q0 10 4 12q4-6 3-10q6 8 2 18z"/>
-    <path d="M26 58h68l-6 2H32z" fill="#2a1e14"/></svg>${Array.from({ length: 6 }, (_, i) => `<i style="left:${34 + i * 6}%;animation-delay:${i * 0.45}s"></i>`).join('')}</div>`;
-}
-

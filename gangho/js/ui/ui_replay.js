@@ -89,8 +89,9 @@ function replayStep() {
   RP.i++;
   const r = b.rounds[RP.i], s = b.start;
   // 막대 갱신: 스프라이트 무대가 있으면 첫 타격이 닿는 순간에, 없으면 곧바로
-  const bars = () => { $('#rpMe').innerHTML = vbar('hp', r.me.hp, prev.me.hp, s.me.maxHp, '활력') + bar('mp', r.me.mp, s.me.maxMp, '내력');
-    $('#rpFoe').innerHTML = vbar('hp foe', r.foe, prev.foe, s.foe.maxHp, '기세', true); };
+  const bars = () => { const me = $('#rpMe'), foe = $('#rpFoe'); if (!me || !foe) return;   // 그사이 창을 닫았으면 그만
+    me.innerHTML = vbar('hp', r.me.hp, prev.me.hp, s.me.maxHp, '활력') + bar('mp', r.me.mp, s.me.maxMp, '내력');
+    foe.innerHTML = vbar('hp foe', r.foe, prev.foe, s.foe.maxHp, '기세', true); };
   const sprite = !!$('#spStage') && !reduceMotion() && !RP.skip;
   if (!sprite) bars();
   const logEl = $('#rpLog');

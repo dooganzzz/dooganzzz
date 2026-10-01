@@ -26,8 +26,8 @@ module.exports = async (b) => {
     ok('2 미발견 비법은 목록에 없음', await p.evaluate(() => !document.querySelector('.recipe-row.unknown') && [...document.querySelectorAll('.recipe-row [data-recipe]')].every(b => S.codex.includes(b.dataset.recipe))));
 
     // 4. 전방 구매, 장비 강화
-    const shop = await p.evaluate(() => { S.silver = 1000; const n0 = count('saenghyeol'); buyItem('saenghyeol'); return { spent: 1000 - S.silver, got: count('saenghyeol') - n0 }; });
-    ok('4 전방에서 은자로 구매 (생혈고 30냥)', shop.spent === 30 && shop.got === 1, JSON.stringify(shop));
+    const shop = await p.evaluate(() => { S.silver = 1000; const n0 = count('saenghyeol'); buyItem('saenghyeol'); return { spent: 1000 - S.silver, got: count('saenghyeol') - n0, price: SHOP_STOCK.find(r => r[0] === 'saenghyeol')[1] }; });
+    ok('4 전방에서 은자로 구매 (생혈고 정가)', shop.spent === shop.price && shop.got === 1, JSON.stringify(shop));
     const enh = await p.evaluate(() => {
       S.silver = 99999; const atk0 = calcStats().atk, w = S.equip.weapon;
       for (let i = 0; i < 40 && (w.enh || 0) < 3; i++) enhanceGear('weapon');

@@ -44,17 +44,18 @@ module.exports = async (b) => {
       S.expeditions.push({ id: 999999, at: now(), zone: 'cheongpung', steps: [], wins: 1, losses: 0, gain: {}, battles: [{ eid: 'boar', name: '멧돼지', boss: false, win: true, intro: [{ text: '⚔️ 시작', cls: 'head' }],
         start: { me: { hp: 100, mp: 40, maxHp: 100, maxMp: 40 }, foe: { hp: 140, maxHp: 140 } },
         rounds: [R([{ side: 'foe', t: '-12', k: 'hit' }], 128), R([{ side: 'foe', t: '-40', k: 'crit', big: true }, { side: 'me', t: '회피!', k: 'dodge' }], 88), R([], 0)], exp: 0, silver: 0 }] });
-      openReplay('999999:0'); replayStop(); RP.playing = false;
-      replayStep();
-      await new Promise(r => setTimeout(r, 30));
+      openReplay('999999:0');
+      for (let i = 0; i < 40 && !document.getElementById('pl-foe'); i++) await new Promise(r => setTimeout(r, 50));   // 무대 그림을 풀고 열린다
+      replayStop(); RP.playing = false;
+      const until = async sel => { for (let i = 0; i < 60 && !document.querySelector(sel); i++) await new Promise(r => setTimeout(r, 50)); };   // 무대 동작이 끝나야 숫자가 뜬다
+      replayStep(); await until('#pl-foe .fx-num.hit');
       const foe = document.getElementById('pl-foe'), hit = foe.querySelector('.fx-num.hit');
       const o = {
         hitColor: getComputedStyle(hit).color, hitSize: parseFloat(getComputedStyle(hit).fontSize),
         flash: foe.classList.contains('flash-hit'), overlay: getComputedStyle(foe.querySelector('.seal-av'), '::after').animationName,
         overlayDur: getComputedStyle(foe.querySelector('.seal-av'), '::after').animationDuration, shakeOnHit: foe.classList.contains('shake'),
       };
-      replayStep();
-      await new Promise(r => setTimeout(r, 30));
+      replayStep(); await until('#pl-foe .fx-num.crit'); await until('#pl-me .fx-num.dodge');
       const foe2 = document.getElementById('pl-foe'), crit = foe2.querySelector('.fx-num.crit'), dg = document.querySelector('#pl-me .fx-num.dodge');
       const cs = getComputedStyle(crit);
       Object.assign(o, {

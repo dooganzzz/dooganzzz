@@ -1,4 +1,4 @@
-/* 사냥터 사건(기연): 데이터 무결성, 자동 선택, 조건·소모, 전투 연결, 탐험당 1회 */
+/* 사냥터 사건(기연): 데이터 무결성, 기연 탭에 쌓임, 조건·소모, 전투 연결 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -16,7 +16,7 @@ module.exports = async (b) => {
         const FX = new Set(['silver', 'items', 'hpPct', 'stamina', 'contrib', 'exp', 'buff', 'perm', 'book', 'gear']);
         for (const ev of EVENTS) {
           if (!(ev.zones === 'all' || ev.zones.every(z => ZONES[z]))) bad.push(ev.id + ':zone');
-          if (ev.choices.length < 2) bad.push(ev.id + ':choices');
+          if (ev.choices.length < (ev.wares ? 1 : 2)) bad.push(ev.id + ':choices');   // 약장수는 등짐 물건이 선택지로 끼어든다
           for (const c of ev.choices) {
             if (c.req && c.req.item && !ITEMS[c.req.item[0]]) bad.push(ev.id + ':req item');
             if (c.req && c.req.stat && !STAT_NAMES[c.req.stat[0]]) bad.push(ev.id + ':req stat');
@@ -37,39 +37,27 @@ module.exports = async (b) => {
       ok('지역마다 사건 6종 (고유 4 + 공용 2)', Object.values(lint.perZone).every(n => n >= 6), JSON.stringify(lint.perZone));
     }
 
-    // 자동 탐험의 기연: 제자가 조건을 채운 선택지 가운데 하나를 스스로 고른다
-    const auto = await p.evaluate(() => {
-      const r = { picks: {}, gatedPicked: 0, took: true, fights: 0, bonusWins: 0 };
-      const ev = EVENTS.find(e => e.id === 'oldtree'), orig = EVENTS.slice();
-      EVENTS.length = 0; EVENTS.push(ev);                           // 한 사건만 나오게
-      S.equip.weapon = null; S.shrine.atk = 0;                      // 공격력 조건 미달
-      for (let i = 0; i < 40; i++) { const rec = { battles: [] }; RT.journal = []; stepEvent(rec, 'cheongpung', new Set()); const line = RT.journal.find(l => l.text.startsWith('▸ ')).text; RT.journal = null;
-        const label = line.slice(2).split(' — ')[0]; r.picks[label] = (r.picks[label] || 0) + 1;
-        if (ev.choices.find(c => c.label === label).req && reqFail(ev.choices.find(c => c.label === label).req)) r.gatedPicked++; }
-      EVENTS.length = 0; EVENTS.push(...orig);
-      // 조건 아이템 소모: 부상당한 약초꾼 첫 선택지(생혈고)만 가능한 상황을 만들어 소모 확인
-      const herb = EVENTS.find(e => e.id === 'herbalist'), pot0 = (S.inv.saenghyeol = 5);
-      let tookSeen = false;
-      for (let i = 0; i < 30 && !tookSeen; i++) { const p0 = count('saenghyeol'); RT.journal = []; stepEvent({ battles: [] }, 'cheongpung', new Set(EVENTS.filter(e => e.id !== 'herbalist').map(e => e.id))); const t = RT.journal.map(l => l.text).join('\n'); RT.journal = null; if (t.includes(herb.choices[0].label)) tookSeen = count('saenghyeol') === p0 - herb.choices[0].req.item[1]; S.inv.saenghyeol = 5; }
-      r.took = tookSeen;
-      // 전투로 이어지는 사건 + 승리 보너스
+    // 기연: 강호행에서 만나면 기연 탭에 쌓이고, 유저가 고른다 (조건 미달은 거절 · 조건 아이템은 소모 · 싸움으로 이어지기도)
+    const enc = await p.evaluate(() => {
+      const r = {}, meet = id => { const n0 = (S.encounters || []).length; stepEncounter({ battles: [] }, 'cheongpung', new Set(EVENTS.filter(e => e.id !== id).map(e => e.id))); r.piled = (r.piled || 0) + (S.encounters.length - n0); return S.encounters[S.encounters.length - 1]; };
+      // 공격력 조건 미달 선택지는 거절된다
+      S.equip.weapon = null; S.shrine.atk = 0;
+      const tree = meet('oldtree'), gi = EVENTS.find(e => e.id === 'oldtree').choices.findIndex(c => c.req && c.req.stat);
+      r.gated = gi >= 0 ? !!(resolveEncounter(tree.uid, gi) || {}).fail && !tree.done : 'no-gated-choice';
+      // 조건 아이템(생혈고)을 거는 선택지는 소모
+      const herb = meet('herbalist'), hi = EVENTS.find(e => e.id === 'herbalist').choices.findIndex(c => c.take && c.req && c.req.item);
+      S.inv.saenghyeol = 5; const p0 = count('saenghyeol'); resolveEncounter(herb.uid, hi);
+      r.took = count('saenghyeol') < p0 && !!herb.done;
+      // 싸움으로 이어지는 선택 → 결과에 싸움이 적힌다
       S.equip.weapon = makeGear(MANUALS[S.active.mugong].weapon, 2, 3, false);
-      for (let i = 0; i < 30; i++) { S.hp = 1e9; const rec = { battles: [] }; RT.journal = []; const res = stepEvent(rec, 'cheongpung', new Set(EVENTS.filter(e => e.id !== 'ronin').map(e => e.id))); RT.journal = null;
-        if (rec.battles.length) { r.fights++; if (rec.battles[0].win && rec.battles[0].rounds.some(x => x.lines.some(l => l.text.includes('술값')))) r.bonusWins++; r.head = res.t; } }
+      const ri = EVENTS.find(e => e.id === 'ronin').choices.findIndex(c => c.out.some(o => o.fight));
+      for (let i = 0; i < 10 && !r.fight; i++) { S.hp = 1e9; const E = meet('ronin'); const d = resolveEncounter(E.uid, ri); if (d && d.fight) r.fight = d.fight; }
       return r;
     });
-    ok('조건 미달 선택지는 고르지 않음 (공격력 22 이상 필요)', auto.gatedPicked === 0 && Object.keys(auto.picks).length >= 1, JSON.stringify(auto.picks));
-    ok('조건 아이템을 거는 선택지는 소모', auto.took);
-    ok('전투로 이어지는 선택 → 기록된 전투 + 이기면 추가 보상', auto.fights > 0 && auto.bonusWins > 0 && /낭인/.test(auto.head || ''), JSON.stringify(auto));
-
-    // 한 탐험 안에서는 기연이 한 번, 겹치지 않음
-    const once = await p.evaluate(() => {
-      const W = EXPEDITION.weights, w0 = { ...W }; Object.assign(W, { beast: 0, vault: 0, trap: 0, gimmick: 0, event: 100 });
-      S.expedition.zone = 'cheongpung'; S.stamina = 100; const rec = runExpedition(now());
-      Object.assign(W, w0);
-      return { events: rec.steps.filter(s => s.k === 'event').length, vaults: rec.steps.filter(s => s.k === 'vault').length };
-    });
-    ok('탐험 한 번에 기연은 한 번 (금고는 계획대로 1~3)', once.events === 1 && once.vaults >= 1 && once.vaults <= 3, JSON.stringify(once));
+    ok('기연은 기연 탭에 쌓인다', enc.piled >= 3, JSON.stringify(enc));
+    ok('조건 미달 선택지는 고를 수 없음', enc.gated === true, String(enc.gated));
+    ok('조건 아이템을 거는 선택지는 소모', enc.took);
+    ok('싸움으로 이어지는 선택 → 결과에 싸움', /낭인/.test(enc.fight || ''), enc.fight || '');
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

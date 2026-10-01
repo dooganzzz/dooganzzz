@@ -1,11 +1,6 @@
 /* 전투 화면: 대치 패널·전투 무대·인장·체력 잔상·플로팅 대미지·초식 현판·3초 공방 막대 */
 
 .sense { font-weight: 600; }
-.sense.s1 { color: var(--dim); }
-.sense.s2 { color: var(--jade); }
-.sense.s3 { color: var(--gold); }
-.sense.s4 { color: var(--r4); }
-.sense.s5 { color: var(--seal); font-weight: 900; }
 .vs { font-family: var(--serif); font-weight: 900; font-size: 2rem; color: var(--seal); }
 .blog { height: 340px; overflow-y: auto; padding: 14px 16px; background: var(--sunk); border: 1px solid var(--line); border-radius: var(--radius); display: flex; flex-direction: column; gap: 7px; font-family: var(--serif); font-size: .95rem; line-height: 1.7; color: var(--silver); }
 .blog p.fresh { animation: rise .3s ease-out; }
@@ -157,7 +152,6 @@
 @keyframes ogPrevFade { from { opacity: .85; } to { opacity: 0; } }
 .og-ghost { position: absolute; z-index: 1; pointer-events: none; background: 0 0 / 1200% 100% no-repeat; opacity: .45; filter: brightness(1.35) blur(.6px) drop-shadow(0 0 5px rgb(var(--c))) drop-shadow(0 0 2px rgb(var(--c))); mix-blend-mode: screen; animation: ogGhost .42s ease-out forwards; }
 @keyframes ogGhost { to { opacity: 0; transform: translateX(-10px); } }
-.og-shadow { position: absolute; bottom: -2.5%; left: 50%; width: 30%; height: 9%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse, rgba(60, 40, 18, .55), rgba(60, 40, 18, 0) 72%); z-index: -1; }
 .og-foe { position: absolute; z-index: 2; transition: transform .2s; }
 .og-foe.charge { filter: brightness(2.4) saturate(.2) drop-shadow(0 0 12px rgb(var(--c))); transition: filter .15s; }
 .og-foe.flinch { animation: ogFlinch .1s; } @keyframes ogFlinch { 50% { translate: 6% 0; filter: brightness(1.8); } }

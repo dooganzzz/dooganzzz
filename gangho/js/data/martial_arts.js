@@ -79,7 +79,6 @@ const ELEMENTS = {
   water: { name: '수', hanja: '水', cls: 'el-water' },
 };
 const ELEM_BEATS = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };   // 목극토 · 토극수 · 수극화 · 화극금 · 금극목
-const ELEM_GEN = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };     // 상생 (표시용)
 
 /* 지형(地形) 5대: 구역마다 하나 이상(복합 지형). 장착 경공의 지형이 구역 지형 중 하나라도 맞으면 그 탐험의 기력 소모 -20%,
    하나도 맞지 않으면 +20%. 경공이 없으면 보정 없음. */

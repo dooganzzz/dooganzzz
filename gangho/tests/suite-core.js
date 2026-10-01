@@ -6,8 +6,7 @@ module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
   console.log(`\n=== ${w}px ===`);
   const p = await newPage(b, w, h);
-  const errs = [];
-  p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type()==='error' && !/ERR_CERT|ERR_FILE_NOT_FOUND/.test(m.text()) && errs.push(m.text()));
+  const errs = watchErrors(p);
   await p.goto(GAME_URL);
   await startEquipped(p);
   // 1

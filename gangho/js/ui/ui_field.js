@@ -11,7 +11,7 @@ Bus.on('tick', () => {
   { const lr = liveRec(), i = lr ? lr.steps.length - 1 : -1, st = i >= 0 ? lr.steps[i] : null, key = st ? `${lr.id}:${i}` : null;   // 기믹 걸음도 무대에
     if (scn && st && st.b === undefined && key !== liveAnim.lastGim && now() - stepAt(lr, i) < 6000) { liveAnim.lastGim = key; liveGimQueue(lr, i); } }
   const sig = liveSig(); if (sig === lastLiveSig) return; lastLiveSig = sig;   // 새 걸음이 드러났을 때만
-  const box = $('#liveSide'); if (box) setHTML(box, liveSide());
+  liveSideRefresh();
   const sc = $('#liveScene'), lr = liveRec();
   if (sc) {
     sc.classList.toggle('rest', liveDone(lr) && !liveHeld(lr)); sc.classList.toggle('dead', liveDead(lr));
@@ -113,7 +113,6 @@ function vbar(cls, cur, prev, max, name, hideNum) {
 const sealChar = name => name.replace(/^(염화채주|수룡방주|염화채|수룡방|흑풍채|청풍산|적염|사나운|흑비단|바위 등껍질|청령|화염|적토|단애|열화|수로|뻘밭|소택지)\s*/, '').trim()[0] || name[0];
 
 /* ───────── 강호행 탭 ───────── */
-const clockHM = t => { const d = new Date(t); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 
 /* 구역 카드: 적정 투력·난이도는 보여 주지 않는다. 내가 다녀오며 겪은 것만 적힌다 */
 

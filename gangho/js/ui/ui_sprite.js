@@ -36,8 +36,6 @@ const FOE_SHEET = { viper: 8 };
 const FOE_SIZE = { rabbit: .62, wildcat: .72, turtle: .86, boar: .92, eagle: 1.1, scaleFish: .8, centipede: 1.05, crocodile: 1.12,
   redTiger: 1.15, jeokpaecheon: 1.1, byeokhaeryong: 1.1, magmaGolem: 1.1, treant: 1.05, armored: 1, anchor: 1 };
 const FOE_HUMAN = new Set(['scout', 'deserter', 'slinger', 'logger', 'cannoneer', 'charger', 'eliteAxe', 'raftScout', 'netter', 'raider', 'diver', 'ronin', 'iceSpirit']);
-/* 그림 칸 안에서 머리 꼭대기 높이 (위에서부터 비율) — 체력바를 머리 위에 띄우는 데 씀 */
-const FOE_TOP = { anchor: .06, armored: .06, boar: .29, byeokhaeryong: .16, cannoneer: .14, centipede: .35, charger: .06, crocodile: .74, deserter: .1, diver: .06, eagle: .46, eliteAxe: .13, fireViper: .28, iceSpirit: .07, jeokpaecheon: .29, logger: .06, magmaGolem: .2, netter: .06, rabbit: .05, raftScout: .06, raider: .09, redTiger: .29, redWolf: .28, ronin: .06, scaleFish: .4, scout: .06, slinger: .17, treant: .05, turtle: .3, viper: .06, wildcat: .33 };
 function foeSize(eid) { return FOE_SIZE[eid] || (FOE_HUMAN.has(eid) ? .9 : 1); }
 function spriteOn(zid, eid) { return SPRITE_STAGES.has(zid) && !!ENEMIES[eid]; }
 function spriteStage(zid, eid) {

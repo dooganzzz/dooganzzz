@@ -23,22 +23,24 @@ module.exports = async (b) => {
     const cx = await p.evaluate(() => ({ tab: document.querySelector('[data-codextab="martial"] .ko').textContent, lede: document.querySelector('.codex-panel p.muted').textContent, sum: !!document.querySelector('.passive-sum') }));
     ok('1 도감 [비급 秘笈] · 영구 각인 안내 · 합계', cx.tab === '비급' && /몸에 영구히 각인/.test(cx.lede) && cx.sum, JSON.stringify(cx));
 
-    // 2. 문파 임무: 토벌만 · 공헌 절반 · 갱신비 10냥부터 +10 · 자정 초기화
+    // 2. 장문인 토벌 임무: 단계마다 SUBQ.kills번 이기면 보상 · 하루 SUBQ.daily번까지
     const ms = await p.evaluate(() => {
-      const r = { kinds: [...new Set(Array.from({ length: 60 }, genMission).map(m => m.type))].join(), n: Array.from({ length: 60 }, genMission).every(m => m.n >= 3 && m.n <= 6) };
-      const m = genMission(), E = ENEMIES[m.target]; r.half = m.contrib === Math.floor((E.xp * m.n * 0.4 + 10) * 0.5);
-      S.silver = 100; S.questRefreshCount = 0; r.c0 = getQuestRefreshCost(); rerollMissions(); r.c1 = getQuestRefreshCost(); rerollMissions(); r.silver = S.silver;
-      S.lastQuestResetDate = '2000. 1. 1.'; r.reset = checkDailyMidnightReset() && getQuestRefreshCost() === 10 && /자정이 지나/.test(S.log[S.log.length - 1].text);
+      const r = {}, c0 = S.contrib; S.subq = {}; S.subqDay = null;
+      for (let i = 0; i < SUBQ.kills; i++) subqAdd('cheongpung', 1);
+      r.ready = subqReady('cheongpung', 1); r.got = claimSubq('cheongpung', 1) && S.contrib > c0;
+      let n = 1; for (let k = 0; k < SUBQ.daily + 2; k++) { for (let i = 0; i < SUBQ.kills; i++) subqAdd('cheongpung', 1); if (claimSubq('cheongpung', 1)) n++; }
+      r.n = n; r.daily = SUBQ.daily; r.left = subqLeft('cheongpung', 1);
       return r;
     });
-    ok('2 임무는 토벌만 · 3~6마리 · 공헌은 예전 계산의 절반', ms.kinds === 'kill' && ms.n && ms.half, JSON.stringify(ms));
-    ok('2 갱신 비용 10냥 → 20냥 누적, 자정에 10냥으로 초기화', ms.c0 === 10 && ms.c1 === 20 && ms.silver === 70 && ms.reset, JSON.stringify(ms));
+    ok('2 토벌 임무: 다 채우면 보상 · 공헌도 오름', ms.ready && ms.got, JSON.stringify(ms));
+    ok('2 토벌 임무는 단계마다 하루 정해진 횟수까지', ms.n === ms.daily && ms.left === 0, JSON.stringify(ms));
 
     // 3. 장경각 3탭 · 이류 장비 (4대 스탯 보정 포함) · 공헌도
     await p.evaluate(() => { S.contrib = 1000; goTab('sect', 'hall'); ui.fold.library = false; render(); });
     const lt = {};
     for (const t of ['equipment', 'skills', 'tokens']) { await p.click(`[data-libtab="${t}"]`); lt[t] = await p.evaluate(() => [...document.querySelectorAll('.lib-grid .lib-item b')].map(e => e.textContent).join(',')); }
-    ok('3 장경각 [장비] 7 · [무공] 8 · [제자패] 2', lt.equipment.split(',').length === 7 && lt.skills.split(',').length === 8 && lt.tokens.split(',').length === 2 && /청풍유운권/.test(lt.skills), JSON.stringify(lt));
+    const ir = await p.evaluate(() => Object.values(MANUALS).filter(M => M.grade === '이류').map(M => M.name));
+    ok('3 장경각 [장비] 7 · [무공] 이류 전부 · [제자패] 2', lt.equipment.split(',').length === 7 && lt.skills.split(',').length === ir.length && ir.every(n => lt.skills.includes(n)) && lt.tokens.split(',').length === 2, JSON.stringify(lt));
     ok('3 제자패 공헌도 120 · 350', await p.evaluate(() => SHOP_GEAR.find(g => g.id === 'badge2').cost === 120 && SHOP_GEAR.find(g => g.id === 'badge3').cost === 350));
     await p.click('[data-libtab="equipment"]');
     await p.click('[data-buylib="lg_sword"]');
@@ -62,8 +64,6 @@ module.exports = async (b) => {
       return r;
     });
     ok('4 강적 최소 피해 20% · 역상성 받는 피해 +15% · 위험 강적 선공·관통', cb.minDmg && cb.inverse && cb.first, JSON.stringify(cb));
-    const tw = await p.evaluate(() => { const c = { 1: 0, 2: 0, 3: 0, 4: 0 }; for (let i = 0; i < 4000; i++) c[ENEMIES[pickBeast(ZONES.cheongpung)].tier]++; return Object.values(c).map(n => Math.round(n / 40)); });
-    ok('4 조우 비율 약 35 · 40 · 18 · 7%', Math.abs(tw[0] - 35) <= 4 && Math.abs(tw[1] - 40) <= 4 && Math.abs(tw[2] - 18) <= 4 && Math.abs(tw[3] - 7) <= 3, tw.join(','));
     const lose = await p.evaluate(() => { const k = ENEMIES.slinger.atk; ENEMIES.slinger.atk = 999; S.hp = 50; const bt = fight('slinger', { sim: true }); ENEMIES.slinger.atk = k; S.hp = calcStats().maxHp; return { win: bt.win, cause: bt.cause, known: Object.values(DEFEAT_CAUSE).includes(bt.cause) }; });
     ok('4 패배하면 원인을 남긴다', !lose.win && lose.known, JSON.stringify(lose));
 
@@ -77,9 +77,10 @@ module.exports = async (b) => {
     await p.click('.awaken-sheet [data-act="closemodal"]');
 
     // 6. 관찰 창: 크게, 로그가 대부분
-    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.hp = calcStats().maxHp; const r = runExpedition(now()); openReplay(r.id + ':0'); });
+    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.hp = 1e9; const r = runExpedition(now(), 12); openReplay(r.id + ':0'); });
+    await p.waitForSelector('#rpBox', { timeout: 3000 }); await p.waitForTimeout(600);   // 무대 그림을 풀고 열린다 (여는 연출이 끝난 뒤 잰다)
     const rp = await p.evaluate(() => { const bx = document.querySelector('#rpBox').getBoundingClientRect(), lg = document.querySelector('.combat-log-stream').getBoundingClientRect(); return { w: bx.width, h: bx.height, vw: innerWidth, vh: innerHeight, log: lg.height, line: !!document.querySelector('#rpLog .log-line') }; });
-    ok('6 관찰 창 폭 92vw(최대 820) · 높이 85vh 안팎 · 로그가 절반 이상', rp.w >= Math.min(820, rp.vw * 0.9) - 2 && rp.h >= rp.vh * 0.8 && rp.log > rp.h * 0.5 && rp.line, JSON.stringify(rp));
+    ok('6 관찰 창 폭 92vw(최대 820) · 높이 85vh 안팎 · 무대 아래 로그 칸', rp.w >= Math.min(820, rp.vw * 0.9) - 2 && rp.h >= rp.vh * 0.8 && rp.log > rp.h * 0.25 && rp.line, JSON.stringify(rp));
     await p.evaluate(() => { replayStop(); ui.modal = null; render(); });
 
     // 7. 행동 확인 창: 되돌릴 수 없는 것만, 취소하면 그대로

@@ -6,8 +6,7 @@ module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
   console.log(`\n=== ${w}px ===`);
   const p = await newPage(b, w, h);
-  const errs = [];
-  p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type()==='error' && !/ERR_CERT|ERR_FILE_NOT_FOUND/.test(m.text()) && errs.push(m.text()));
+  const errs = watchErrors(p);
   await p.goto(GAME_URL);
   await startEquipped(p);
   if (w === 1280) {
@@ -22,18 +21,20 @@ module.exports = async (b) => {
   ok('1 아린 조합법 물어보기 제거', !/조합법 물어보기|레시피 힌트/.test(yard) && !(await p.$('[data-act="hint"]')));
   ok('1 약과 없음 · 대화만', !(await p.$('[data-act="snack"]')) && !!(await p.$('[data-act="talk"]')));
   // 5
-  await p.click('[data-tab="field"]');
-  const z1 = await p.$$eval('.zone:not(.locked) h3 .ko', e => e.map(x => x.textContent).join(','));
+  await p.click('[data-tab="field"]');   // 강호행 탭은 강호 지도부터
+  const openZones = () => p.$$eval('.map-spot:not(.locked)', e => e.map(x => x.getAttribute('aria-label')).join(','));
+  const z1 = await openZones();
   ok('5 초기에는 청풍산만 열림', z1 === '청풍산', z1);
-  await p.evaluate(() => { S.flags.boss1 = true; render(); });
-  ok('5 청풍산 두목 처치 후 염화채 열림', (await p.$$eval('.zone:not(.locked) h3 .ko', e => e.map(x => x.textContent).join(','))) === '청풍산,염화채');
-  await p.evaluate(() => { S.flags.boss1 = false; render(); });
+  await p.evaluate(() => { S.flags[ZONES.yeomhwa.unlock.boss] = true; render(); });
+  ok('5 청풍산 두목 처치 후 염화채 열림', (await openZones()) === '청풍산,염화채');
+  await p.evaluate(() => { S.flags[ZONES.yeomhwa.unlock.boss] = false; render(); });
+  await p.click('.map-sheet [data-act="closemodal"]');
   // 2 전투 승리 → 수련치 (적의 xp × 수련치 획득 보정)
   const xp = await p.evaluate(() => {
     const e0 = S.exp; S.hp = 99999; const b = fightSync('boar');
-    return { win: b.win, got: S.exp - e0, expect: Math.round(expGain(ENEMIES.boar.xp) * EXPEDITION.rewardMult), rec: b.exp };
+    return { win: b.win, got: S.exp - e0, expect: Math.round(expGain(ENEMIES.boar.xp) * EXPEDITION.expMult), rec: b.exp };
   });
-  ok('2 승리 시 수련치 = 적 수련치 × 보정 × 원정 보상 1/10', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect > 0, JSON.stringify(xp));
+  ok('2 승리 시 수련치 = 적 수련치 × 보정 × 강호행 수련치 배율', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect > 0, JSON.stringify(xp));
   // 6 화로: [단조] | [연단] 두 탭, 탭마다 그 기예의 조합식에 쓰이는 재료만 보인다
   await p.evaluate(() => { ITEMS.testMat = { name: '시험재', icon: '❔', kind: '재료' }; Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2, testMat: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });
   const f = {};
@@ -54,10 +55,10 @@ module.exports = async (b) => {
   const st = await p.evaluate(() => ({ S, ls: localStorage.length }));
   ok('3 처음부터 다시 → 입문 화면', st.S === null, `localStorage ${st.ls}건`);
   // 3b dismissed confirm keeps data
-  await p.click('#begin');
+  await p.click('#begin'); await p.evaluate(() => save());
   p.once('dialog', d => { d.dismiss(); });
   await p.click('.reset'); await p.waitForTimeout(300);
-  ok('3 취소하면 유지', await p.evaluate(() => S !== null && !!localStorage.getItem(SAVE_KEY)));
+  ok('3 취소하면 유지', await p.evaluate(() => S !== null && !!localStorage.getItem(saveKey())));
   const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));
   }

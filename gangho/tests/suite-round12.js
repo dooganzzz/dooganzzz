@@ -30,7 +30,7 @@ module.exports = async (b) => {
     await p.click('[data-sub="martial"]');
     const s2 = await p.evaluate(() => ({ on: document.querySelector('.subtab.on .ko').textContent, tab: document.querySelector('.tab.on .ko').textContent, mslots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), books: document.querySelectorAll('.chips [data-use^="bk_"]').length, doll: !!document.querySelector('.paperdoll') }));
     ok('2 무공: 4대 무공 슬롯 + 보유 비급', s2.on === '무공' && s2.tab === '상태' && s2.mslots === '심법,무공,기공,경공' && s2.books === 4 && !s2.doll, JSON.stringify(s2));
-    for (const k of ['bk_samjaeGeom', 'bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
+    for (const k of ['bk_sw1a', 'bk_sm1a', 'bk_gy1a', 'bk_gi1a']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
     const s3 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, card: document.querySelectorAll('.mcard').length, on: document.querySelector('.subtab.on .ko').textContent }));
     ok('2 무공에서 바로 익히기 → 익힌 무공 목록, 하위 탭 유지', s3.learned === 4 && s3.card >= 1 && s3.on === '무공', JSON.stringify(s3));
 
@@ -41,7 +41,7 @@ module.exports = async (b) => {
     ok('2 무장으로 전환', await p.evaluate(() => !!document.querySelector('.paperdoll') && ui.statusSub === 'gear'));
 
     // 탐험 결산 창의 [견문록 보기] → 견문록 탭, 해당 탐험 기록 강조
-    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.stamina = 100; const r = runExpedition(now()); ui.modal = 'settle:' + r.id; render(); });
+    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; const r = runExpedition(now()); claimRewards(); /* 결산은 보상을 받은 뒤에 펼쳐진다 */ ui.modal = 'settle:' + r.id; render(); });
     await p.click('.settle-sheet [data-act="gochron"]');
     ok('2 결산 창 [견문록 보기] → 견문록 탭 (창 닫힘 · 해당 기록 펼침)', await p.evaluate(() => ui.tab === 'chronicle' && !ui.modal && !!document.querySelector('.chron-open details[open]')));
 

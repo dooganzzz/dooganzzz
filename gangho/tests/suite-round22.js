@@ -24,7 +24,7 @@ module.exports = async (b) => {
     ok('1 권장 전투력 50~300 · 300~700 · 700~1200 (데이터)', ar.map(z => z.cp).join() === '50~300,300~700,700~1200', JSON.stringify(ar));
     ok('1 사냥터마다 요수 10종 · 핵심 재료 6종 이상', ar.every(z => z.n === 10 && z.mats >= 6), JSON.stringify(ar));
     await p.evaluate(() => { S.flags.boss1 = S.flags.boss2 = true; goTab('field'); render(); });
-    ok('1 권장 전투력은 화면에 보이지 않음', await p.evaluate(() => { const t = [...document.querySelectorAll('.zone')].map(z => z.textContent).join(' '); return !/권장|300~700|700~1/.test(t) && /수룡방/.test(t); }));
+    ok('1 권장 전투력은 화면에 보이지 않음 (강호 지도)', await p.evaluate(() => { ui.modal = 'map'; renderModal(); const sh = document.querySelector('.map-sheet'), t = sh ? sh.textContent : ''; const ok = !!sh && !/권장|300~700|700~1/.test(t) && !!sh.querySelector('[aria-label="수룡방"]'); ui.modal = null; renderModal(); return ok; }));
     await p.evaluate(() => { S.flags.boss1 = S.flags.boss2 = false; render(); });
 
     // 2. 요수 30종 · 특수 규칙
@@ -44,7 +44,7 @@ module.exports = async (b) => {
       // 출혈: 혈문도 착용 시 적중하면 적에게 출혈
       const keep = S.equip.weapon; S.equip.weapon = makeNamedGear('c_blade'); bt = mk('rabbit'); RT.battle = bt; playerHit(bt, 1, '평타'); r.bleed = bt.dot.foe.some(d => d.kind === 'bleed'); S.equip.weapon = keep;
       // 고유 약점: 청령목괴는 화 기공에 취약
-      const g = S.active.gigong; S.manuals.gi1c = { star: 1 }; S.active.gigong = 'gi1c'; r.weak = affinity('treant').weak; S.active.gigong = g;
+      const g = S.active.gigong, fire = Object.keys(MANUALS).find(id => MANUALS[id].cat === 'gigong' && MANUALS[id].elem === 'fire'); S.manuals[fire] = S.manuals[fire] || { star: 1 }; S.active.gigong = fire; r.weak = affinity('treant').weak; S.active.gigong = g;
       Math.random = R; RT.battle = null; S.hp = calcStats().maxHp;
       return r;
     }, FOES);
@@ -93,24 +93,15 @@ module.exports = async (b) => {
     await p.click('[data-codextab="monster"]');
     ok('4 몬스터: 만난 요수가 있는 사냥터만 탭 · ??? 없음', await p.evaluate(() => document.querySelectorAll('.codex-panel [data-codexzone]').length === ZONE_ORDER.filter(z => [...ZONES[z].enemies, ZONES[z].boss].some(e => S.bestiary[e])).length && !/\?\?\?/.test(document.querySelector('.codex-panel').textContent)));
 
-    // 5. 탐험 루프: 기력이 다할 때까지 (조우·패배·마을 치료가 모두 기력을 깎는다)
-    const lp = await p.evaluate(() => {
-      const r = {};
-      r.costs = JSON.stringify(STAMINA_COST); r.def = EXPEDITION.defeatSta; r.vil = EXPEDITION.villageSta;
-      S.expedition.zone = 'cheongpung'; const recs = [];
-      for (let i = 0; i < 6; i++) { S.stamina = calcStats().maxSta; S.inv.saenghyeol = 3; recs.push(runExpedition(now())); }
-      r.steps = recs.map(x => x.steps.length); r.allTired = recs.every(x => x.end === 'tired' && S.stamina <= EXPEDITION.minStamina + 0.001 || x.end === 'tired');
-      // 패배해도 끝나지 않고 기력이 크게 줄어든다
+    // 5. 쓰러지면 강호행은 거기서 끝 · 다음 출발은 한 단계 아래
+    const dd = await p.evaluate(() => {
+      S.expedition.zone = 'cheongpung'; S.stages = { cheongpung: 4 }; S.expedition.stage = 5;
       for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk *= 80;
-      S.stamina = 100; const d = runExpedition(now());
+      S.inv.saenghyeol = 0; const d = runExpedition(now(), 30);
       for (const e of ZONES.cheongpung.enemies) ENEMIES[e].atk /= 80;
-      r.defeats = d.defeats; r.drained = d.end === 'tired' && S.stamina <= EXPEDITION.minStamina + 0.001;
-      return r;
+      return { end: d.end, defeats: d.defeats, stage: d.stage, next: S.expedition.stage, live: d.live };
     });
-    ok('5 한 번 탐험의 조우는 10걸음 안팎 (전투 3~5 · 금고 1~3 + α)', lp.steps.every(n => n >= 4 && n <= 18), JSON.stringify(lp.steps));
-    ok('5 쓰러져도 탐험은 이어지고 기력이 다할 때까지 간다', lp.defeats >= 2 && lp.drained, JSON.stringify(lp));
-    const bp = await p.evaluate(() => { const keep = S.bossPity; S.bossPity = {}; const r = [bossChanceNow('cheongpung')]; S.bossPity.cheongpung = 5; r.push(bossChanceNow('cheongpung')); S.bossPity.cheongpung = 999; r.push(bossChanceNow('cheongpung')); S.bossPity = keep; return { r: r.map(x => Math.round(x * 1000) / 1000), noAvoid: !('bossAvoid' in EXPEDITION) }; });
-    ok('5 두목: 기척 회피 없음 · 2.5%에서 못 만날수록 +3%p (최대 50%)', bp.noAvoid && bp.r.join() === '0.025,0.175,0.5', JSON.stringify(bp));
+    ok('5 쓰러지면 강호행 끝 · 다음 출발은 한 단계 아래', dd.end === 'dead' && dd.defeats === 1 && !dd.live && dd.next === Math.max(1, dd.stage - 1), JSON.stringify(dd));
 
     // 6. 저장 이전
     const mig = await p.evaluate(() => {

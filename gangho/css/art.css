@@ -7,9 +7,6 @@
 .art-frame > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
 /* ───────── 사냥터 풍경 ───────── */
-.zone-scene { margin: -14px -14px 2px; height: 96px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; border-bottom: 1px solid rgba(212, 175, 55, .12); }
-.zone-scene .art-frame { height: 100%; }
-.zone.locked .zone-scene { filter: grayscale(1) brightness(.6); }
 .scene .mist { animation: mistDrift 16s ease-in-out infinite alternate; }
 .scene .mist.m2 { animation-duration: 22s; animation-direction: alternate-reverse; }
 @keyframes mistDrift { from { transform: translateX(-24px); } to { transform: translateX(24px); } }
@@ -68,23 +65,12 @@
 @keyframes breathe { 50% { transform: scale(1.015) translateY(-1px); } }
 
 /* ───────── 화면 전환: 먹이 번지듯 ───────── */
-#main.ink-in { animation: inkIn .38s ease-out; }
-@keyframes inkIn { from { opacity: 0; filter: blur(4px); transform: translateY(4px); } to { opacity: 1; filter: none; transform: none; } }
 
 /* ───────── 결산 창: 두루마리가 펼쳐진다 ───────── */
 .settle-sheet { animation: unfurl .55s cubic-bezier(.2, .7, .2, 1); border-top: 3px solid #8a6a3a; border-bottom: 3px solid #8a6a3a; }
 @keyframes unfurl { from { clip-path: inset(0 0 100% 0); opacity: .4; } to { clip-path: inset(0 0 0 0); opacity: 1; } }
 
-/* ───────── 화로 불길 ───────── */
-.furnace-fire { position: relative; height: 64px; margin: -4px 0 -4px; pointer-events: none; }
-.furnace-fire svg { width: 100%; height: 100%; }
-.furnace-fire .fl { transform-box: fill-box; transform-origin: bottom center; animation: flicker .7s ease-in-out infinite alternate; }
-.furnace-fire .f2 { animation-duration: .5s; animation-direction: alternate-reverse; }
-.furnace-fire.forge .f1 { fill: #e9642c; } .furnace-fire.forge .f2 { fill: #ffc05e; }
-.furnace-fire.alchemy .f1 { fill: #2f9c8a; } .furnace-fire.alchemy .f2 { fill: #9ff0d8; }
 @keyframes flicker { from { transform: scaleY(.92) skewX(-2deg); } to { transform: scaleY(1.06) skewX(2deg); } }
-.furnace-fire i { position: absolute; bottom: 18px; width: 3px; height: 3px; border-radius: 50%; background: #ffb15e; opacity: 0; animation: emberRise 2.7s linear infinite; }
-.furnace-fire.alchemy i { background: #9ff0d8; }
 .pot { position: relative; }
 .pot.burst-ok::after, .pot.burst-fail::after { content: ''; position: absolute; left: 50%; top: 40px; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; pointer-events: none; }
 .pot.burst-ok::after { box-shadow: 0 0 0 4px rgba(240, 207, 130, .9), 0 0 40px 10px rgba(240, 207, 130, .6); animation: burstRing .9s ease-out forwards; }
@@ -95,9 +81,6 @@
 .pot.burst-fail .result { animation: shake .3s linear .1s; }
 
 /* ───────── 강호행 향 시계: 남은 시간만큼 향이 남는다 ───────── */
-.incense { position: relative; width: 180px; max-width: 100%; height: 4px; margin-top: 8px; border-radius: 2px; background: rgba(255, 255, 255, .06); }
-.incense i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: linear-gradient(90deg, #6b4a2a, #a0764a); transition: width 1s linear; }
-.incense i::after { content: ''; position: absolute; right: -3px; top: -2px; width: 7px; height: 7px; border-radius: 50%; background: #ff8a3a; box-shadow: 0 0 8px 2px rgba(255, 138, 58, .6); animation: glowPulse 1.4s ease-in-out infinite; }
 
 /* ───────── 관찰 창: 풍경 배경 · 칼바람 · 먹물 · 피격 · 두목 등장 ───────── */
 .arena-bg { position: absolute; inset: 0; opacity: .32; pointer-events: none; overflow: hidden; border-radius: 8px; }
@@ -121,7 +104,7 @@
 /* ───────── 바닥글 · 움직임 줄이기 ───────── */
 .footer .calm { margin-left: auto; }
 @media (prefers-reduced-motion: reduce) {
-  .btn.talk-btn.ready, .scene *, .statue *, .furnace-fire *, .portrait-img, .meditation-art > img, .gear-ico > img, .shrine-art > img, .incense i::after, .replay-sheet.won .arena-bg::after, .settle-sheet { animation: none !important; }
+  .btn.talk-btn.ready, .scene *, .statue *, .portrait-img, .meditation-art > img, .gear-ico > img, .shrine-art > img, .replay-sheet.won .arena-bg::after, .settle-sheet { animation: none !important; }
 }
 .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
 
@@ -193,7 +176,6 @@
 .furnace-stage .stage-bg .art-frame > img { object-fit: cover; object-position: 50% 45%; }
 .furnace-stage .stage-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 40%, rgba(10, 8, 6, .8) 100%), linear-gradient(to bottom, transparent 45%, rgba(10, 8, 6, .82) 100%); }
 /* 연단: 옅은 먹 번짐 바탕 + 뒤의 둥근 광배 */
-.furnace-stage.alchemy .furnace-fire { margin: 0 0 4px; }
 .furnace-stage .stage-ui { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 16px 18px; }
 .furnace-stage .stage-ui { margin-top: auto; }
 /* 재료 칸: 모서리에 마름모 장식이 달린 네모 칸 */
@@ -204,7 +186,6 @@
 .furnace-stage .slot.full { border-color: var(--gold-2); background: rgba(58, 44, 24, .7); }
 .furnace-stage .slot-hint { color: rgba(232, 222, 198, .7); font-style: italic; }
 .furnace-stage.alchemy .slot { border-color: rgba(220, 235, 228, .55); background: rgba(236, 240, 236, .1); }
-.furnace-stage .furnace-fire { width: 160px; height: 40px; margin: -4px 0; }
 /* 명패 버튼: 단조는 나무·청동 명패, 연단은 옥빛 알약 */
 .btn.plaque { display: inline-flex; justify-content: center; align-items: center; text-align: center; min-width: 180px; padding: 11px 26px; font-family: var(--serif, serif); font-size: 1.02rem; font-weight: 700; letter-spacing: .12em; color: #f3e2b8; border: 2px solid #9c7432; border-radius: 6px; background: linear-gradient(180deg, #6a4a27 0%, #4a3219 55%, #3a2713 100%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 220, 160, .25), 0 4px 10px rgba(0, 0, 0, .6); text-shadow: 0 1px 2px #000; }
 .btn.plaque:hover:not(:disabled) { border-color: #d9ad55; filter: brightness(1.12); }
@@ -380,9 +361,6 @@
 .sp-num { position: absolute; top: 26%; z-index: 5; font: 900 26px/1 serif; color: #e0301e; text-shadow: 0 0 3px #fff, 0 2px 3px #000; animation: spNum 1s ease-out forwards; pointer-events: none; }
 .sp-num.me { color: #c2281a; } .sp-num.crit { color: #ffcc33; font-size: 32px; } .sp-num.miss { color: #eef2f6; font-size: 20px; text-shadow: 0 1px 3px #000; }
 @keyframes spNum { from { opacity: 0; transform: translateY(10px) scale(.7); } 20% { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-40px); } }
-.sp-slash { position: absolute; left: 56%; top: 36%; width: 28%; height: 46%; z-index: 4; pointer-events: none; }
-.sp-slash path { fill: none; stroke: #1b2433; stroke-width: 3.4; stroke-linecap: round; stroke-dasharray: 260; stroke-dashoffset: 260; animation: stanceDraw .35s ease-out forwards, stanceFade 1s ease forwards; }
-.sp-slash.gold path { stroke: #ffd24a; filter: drop-shadow(0 0 3px rgba(255, 200, 80, .9)); }
 @media (max-width: 640px) { .sprite-stage { max-height: 170px; } .sp-num { font-size: 18px; } }
 
 .sp-streak { position: absolute; left: 52%; top: 34%; width: 30%; height: 36%; z-index: 4; pointer-events: none; overflow: visible; }
@@ -444,7 +422,6 @@
 .live-hero.sp-hero { left: 10%; bottom: 9%; width: 31.8%; transition: none; }   /* 관찰 창 무대와 같은 구도 (ui_live.js LIVE_POS) */
 .live-where { display: inline-block; margin-left: .5em; font: 400 .74em/1 'Gangho Brush', serif; letter-spacing: .11em; word-spacing: -.14em; color: #faf3e2; pointer-events: none; text-shadow: 0 1px 1px rgba(0, 0, 0, .6); }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.live-speed { flex-wrap: wrap; }
 .live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
 .live-prog span { display: block; height: 100%; background: linear-gradient(90deg, #8a6a3a, #d4a64c); transition: width 1s linear; }
 .live-state { margin: 0; font-size: 13px; }

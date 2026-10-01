@@ -12,7 +12,7 @@ module.exports = async (b) => {
 
     // 1. 1차 탭
     const tabs = await p.$$eval('#tabs .tab', els => els.map(e => `${e.querySelector('.ko').textContent}(${e.querySelector('.hj').textContent})`).join(' | '));
-    ok('1 1차 탭: 청풍문 | 상태 | 행낭 | 강호행 | 견문록 | 도감', tabs === '청풍문(淸風門) | 상태(狀態) | 행낭(行囊) | 강호행(江湖行) | 견문록(見聞錄) | 도감(圖鑑)', tabs);
+    ok('1 1차 탭: 청풍문 | 상태 | 행낭 | 강호행 | 견문록 | 기연 | 도감 | 설정', tabs === '청풍문(淸風門) | 상태(狀態) | 행낭(行囊) | 강호행(江湖行) | 견문록(見聞錄) | 기연(奇緣) | 도감(圖鑑) | 설정(設定)', tabs);
     ok('1 정청·화로·뒷마당·무신상 1차 탭 없음', await p.evaluate(() => !['hall', 'yeonmu', 'forge', 'yard', 'shrine'].some(t => document.querySelector(`#tabs [data-tab="${t}"]`))));
     const bar = await p.evaluate(() => { const t = document.querySelector('#tabs'); return { over: t.scrollWidth - t.clientWidth, rows: new Set([...t.querySelectorAll('.tab')].map(e => Math.round(e.getBoundingClientRect().top))).size }; });
     ok('1 탭 바 한 줄 · 가로 스크롤 없음', bar.over <= 0 && bar.rows === 1, JSON.stringify(bar));

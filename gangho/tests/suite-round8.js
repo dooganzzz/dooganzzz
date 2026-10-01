@@ -61,21 +61,20 @@ module.exports = async (b) => {
     for (const [eid, got] of Object.entries(drops)) ok(`3 ${eid} 드랍은 고유 테이블만`, got.every(k => allowed[eid].includes(k)) && got.length > 0, got.join(','));
     ok('3 살쾡이는 토끼 재료를 떨구지 않음', !drops.wildcat.some(k => /rabbit/.test(k)));
 
-    // 5. 탐험 조우: 요수 가중치(후반일수록 강한 요수), 금고 네 종류, 함정
+    // 5. 탐험 조우: 단계가 오를수록 강한 요수, 금고 네 종류, 함정
     const enc = await p.evaluate(() => {
-      const Z = ZONES.cheongpung, pick = depth => { const c = {}; for (let i = 0; i < 2000; i++) { const e = pickBeast(Z, depth); c[e] = (c[e] || 0) + 1; } return c; };
-      const early = pick(0.1), late = pick(0.9);
+      const Z = ZONES.cheongpung, pick = n => { const c = {}; for (let i = 0; i < 500; i++) { const e = pickStageFoe('cheongpung', n); c[e] = (c[e] || 0) + 1; } return c; };
+      const early = pick(1), late = pick(STAGE.count - 1);
+      const avg = c => Object.entries(c).reduce((a, [e, n]) => a + foePower(e) * n, 0) / 500;
       const kinds = new Set();
       for (let i = 0; i < 400; i++) kinds.add(openVault(Z).name);
       const st = calcStats(); S.hp = st.maxHp; S.stamina = 50;
       const tr = stepTrap();
-      const strong = c => Object.entries(c).filter(([e]) => ENEMIES[e].tier >= 3).reduce((a, [, n]) => a + n, 0);
-      return { pool: Z.enemies, early, late, s0: strong(early), s1: strong(late), kinds: [...kinds].sort(), trap: { hp: st.maxHp - S.hp, sta: 50 - S.stamina, t: tr.t } };
+      return { pool: [...Z.enemies, Z.boss], early, late, a0: avg(early), a1: avg(late), kinds: [...kinds].sort(), trap: { hp: st.maxHp - S.hp, sta: 50 - S.stamina, t: tr.t }, trapSta: TRAP.stamina };
     });
-    ok('5 요수는 지역 풀(청풍산 9종)에서 가중치로', Object.keys(enc.early).length === 9 && Object.keys(enc.early).every(e => enc.pool.includes(e)), JSON.stringify(enc.early));
-    ok('5 정예·위험 강적(3·4단계)은 조우의 약 25% (18% + 7%)', Math.abs(enc.s0 / 2000 - 0.25) < 0.04 && Math.abs(enc.s1 / 2000 - 0.25) < 0.04, `${enc.s0} · ${enc.s1} / 2000`);
+    ok('5 단계 요수는 지역 풀에서, 단계가 오를수록 강함 (10단계는 두목)', await p.evaluate(() => stageFoes('cheongpung', STAGE.count)[0] === ZONES.cheongpung.boss) && [...Object.keys(enc.early), ...Object.keys(enc.late)].every(e => enc.pool.includes(e)) && enc.a1 > enc.a0, `${JSON.stringify(enc.early)} → ${JSON.stringify(enc.late)}`);
     ok('5 금고 네 종류가 무작위로 (식재 궤 없음)', enc.kinds.length === 4 && !enc.kinds.includes('식재 궤'), enc.kinds.join(','));
-    ok('6 함정: 활력·기력 감소', enc.trap.hp > 0 && enc.trap.sta === 5 && /덫/.test(enc.trap.t), JSON.stringify(enc.trap));
+    ok('6 함정: 활력·기력 감소', enc.trap.hp > 0 && enc.trap.sta === enc.trapSta && /덫/.test(enc.trap.t), JSON.stringify(enc.trap));
     ok('6 청풍산 드랍은 청풍산 재료 6종 (두목은 돌파단 재료도)', await p.evaluate(() => ZONES.cheongpung.enemies.every(e => DROPS[e].every(([id]) => ZONES.cheongpung.mats.includes(id)))));
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);

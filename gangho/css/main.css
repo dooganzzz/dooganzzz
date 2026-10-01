@@ -59,8 +59,6 @@ h4 { font-size: .8rem; font-weight: 700; letter-spacing: .08em; color: var(--sil
 .bars { display: grid; grid-template-columns: repeat(3, minmax(120px, 170px)); gap: 6px; }
 .purse { display: flex; flex-wrap: wrap; gap: 4px 14px; font-weight: 700; }
 .purse span { display: inline-flex; align-items: center; gap: 6px; }
-.coin { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--gold); color: var(--gold); font-family: var(--serif); font-style: normal; font-size: .72rem; }
-.coin.c2 { border-color: var(--jade); color: var(--jade); }
 .bar { position: relative; height: 22px; background: var(--sunk); border-radius: 3px; overflow: hidden; border: 1px solid var(--line); }
 .bar-fill { position: absolute; inset: 0 auto 0 0; transition: width .35s ease; opacity: .75; }
 .bar.hp .bar-fill { background: var(--hp); }
@@ -146,15 +144,12 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .blessings div { display: flex; flex-direction: column; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--sunk); }
 .blessings small { color: var(--dim); }
 .blessings b { font-size: 1.35rem; font-weight: 900; color: var(--gold); font-variant-numeric: tabular-nums; }
-.offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .offer { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 14px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--raise); }
 .offer-icon { font-size: 1.6rem; grid-row: span 2; }
 .offer small { grid-column: 2 / -1; color: var(--gold); }
 .offer .btns { grid-column: 1 / -1; }
 /* 화로 */
 .crafts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.craft-pick { display: flex; justify-content: center; align-items: baseline; padding: 12px; border: 1px solid var(--line-2); background: var(--raise); border-radius: var(--radius); cursor: pointer; font-size: 1.15rem; }
-.craft-pick.on { border-color: var(--gold); color: var(--gold-2); box-shadow: inset 0 -3px 0 var(--gold); }
 .forge { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; }
 .pot { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--radius); background: radial-gradient(ellipse at 50% 110%, rgba(210, 90, 68, .18), transparent 60%), var(--sunk); border: 1px solid var(--line); }
 .pot-slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
@@ -196,12 +191,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .zone.locked { opacity: .45; }
 .map { display: grid; gap: 6px; padding: 12px; border-radius: var(--radius); background: var(--sunk); align-self: start; }
 /* 전투 */
-.versus { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
-.fighter { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.fighter h3 { font-family: var(--serif); font-size: 1.2rem; }
-.fighter small { color: var(--dim); }
-.fighter.foe { text-align: right; }
-.fighter.boss h3 { color: var(--seal); }
 .move { font-weight: 900; }
 .move.m1 { color: var(--jade); }
 .move.m2 { color: var(--r2); }
@@ -212,16 +201,12 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .crit { color: var(--gold-2); }
 .acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .acts .btn { padding: 14px 8px; font-size: 1.05rem; }
-.act-atk { border-color: var(--gold); color: var(--gold-2); }
-.act-def { border-color: var(--jade); color: var(--jade); }
-.act-run { color: var(--silver); }
 /* 무장: 인형형 배치 */
 .bag-top { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 18px; }
 .armory { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: radial-gradient(ellipse at 50% 40%, rgba(212, 175, 55, .08), transparent 65%), rgba(10, 12, 16, .55); border: 1px solid rgba(212, 175, 55, .12); border-radius: var(--radius); min-width: 0; }
 .paperdoll { display: grid; grid-template-columns: 1fr 1.25fr 1fr; grid-template-rows: auto auto; grid-template-areas: ". helmet weapon" "jade doll armor"; gap: 10px; align-items: center; }
 .paperdoll [style*="grid-area:helmet"], .paperdoll [style*="grid-area:weapon"] { align-self: end; }
 .doll-wrap { display: grid; place-items: center; min-height: 220px; }
-.martial-artist-img { display: block; width: 100%; max-width: 170px; height: auto; max-height: 280px; object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .6)); }
 .acc-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; padding-top: 10px; border-top: 1px solid rgba(212, 175, 55, .12); }
 .dslot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; padding: 8px 6px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--raise); cursor: pointer; text-align: center; min-width: 0; }
 .dslot small { color: var(--dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; }
@@ -238,7 +223,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .statsheet span { color: var(--silver); }
 .statsheet b { font-variant-numeric: tabular-nums; }
 .gear { padding: 10px 12px; border: 1px solid var(--line); border-left: 3px solid currentColor; border-radius: 4px; background: var(--raise); display: flex; flex-direction: column; gap: 4px; }
-.gear .gtop { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .gear b { color: var(--ink); font-family: var(--serif); }
 .gear small { font-size: .78rem; color: var(--silver); }
 .gear .uniq { color: var(--gold); }
@@ -250,14 +234,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 /* 도감 */
 .codex { display: flex; flex-direction: column; gap: 20px; }
 .codex-col { display: flex; flex-direction: column; gap: 10px; }
-.ctiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
-.ctile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 78px; padding: 8px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--raise); text-align: center; min-width: 0; }
-.ctile span { font-size: 1.4rem; }
-.ctile b { font-family: var(--serif); font-size: .82rem; line-height: 1.3; }
-.ctile small { font-size: .66rem; color: var(--dim); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.ctile.known { border-color: var(--gold); cursor: pointer; }
-.ctile.locked { cursor: pointer; }
-.ctile.locked span { color: var(--line-2); font-family: var(--serif); font-weight: 900; }
 /* 시작·엔딩 */
 .sheet h1 { font-family: var(--serif); font-weight: 900; font-size: 3rem; line-height: 1; }
 .eyebrow { font-family: var(--serif); letter-spacing: .5em; color: var(--seal); }
@@ -282,8 +258,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .panel { padding: 14px; }
   .missions li { grid-template-columns: minmax(0, 1fr) auto auto; }
   .missions .mprog { grid-column: 1 / -1; order: 5; }
-  .versus { grid-template-columns: 1fr; }
-  .fighter.foe { text-align: left; }
   .map { gap: 4px; padding: 8px; }
   .sheet { padding: 20px; }
   .sheet h1 { font-size: 2.3rem; }
@@ -302,7 +276,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 /* ───── 먹빛 글래스 (Ink Glass) ───── */
 .panel, .side { background: rgba(18, 22, 29, .85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, .15); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
 .sheet { background: rgba(18, 22, 29, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, .22); }
-.card, .art, .zone, .shop-item, .offer, .gear, .item, .missions li, .statsheet, .quest, .result, .craft-pick, .starter, .dslot:not(.empty), .ctile.known, .blessings div {
+.card, .art, .zone, .shop-item, .offer, .gear, .item, .missions li, .statsheet, .quest, .result, .starter, .dslot:not(.empty), .blessings div {
   background: rgba(28, 34, 44, .55); border-color: rgba(212, 175, 55, .12);
 }
 .quest { border-left-color: var(--gold); }
@@ -310,7 +284,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .mats-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .mats-list li { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 4px; background: rgba(28, 34, 44, .55); border: 1px solid rgba(212, 175, 55, .12); }
 /* 호버: 미세한 금빛 발광 */
-.btn, .chip, .art, .zone, .craft-pick, .dslot, .ctile, .starter, .tab { transition: box-shadow .18s, transform .18s, border-color .18s, background .18s, color .18s; }
+.btn, .chip, .art, .zone, .dslot, .starter, .tab { transition: box-shadow .18s, transform .18s, border-color .18s, background .18s, color .18s; }
 /* 견문록 획득 하이라이트 */
 .hl-item { color: #fbbf24; font-weight: 600; }
 .hl-silver { color: #fde047; font-weight: bold; }
@@ -336,13 +310,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .mslots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* 도감 단서 칸: 완성품과 아는 재료만 보이고 나머지는 ？ */
-.ctile.clue { border: 1px dashed rgba(212, 175, 55, .55); background: rgba(28, 34, 44, .4); cursor: pointer; }
-.ctile.clue b { color: var(--silver); }
-.ctile.clue small { font-size: .8rem; color: var(--gold); letter-spacing: .1em; }
-.mats-list li.hidden-mat { border-style: dashed; }
-.mats-list li.hidden-mat span { color: var(--dim); }
 /* 자동 공격 */
-.act-auto { width: 100%; border-color: rgba(212, 175, 55, .35); color: var(--gold-2); }
 /* 조운의 창고 */
 /* 경계 표시: 입문 · 소성 · 대성 */
 .realm { display: inline-flex; align-items: baseline; gap: 3px; font-family: var(--sans); font-size: .72rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; vertical-align: middle; white-space: nowrap; }
@@ -351,7 +319,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .realm-1 { color: var(--jade); box-shadow: 0 0 8px rgba(95, 176, 155, .25); }
 .realm-2 { color: #f0cf82; border-color: #d4af37; background: rgba(212, 175, 55, .12); box-shadow: 0 0 12px rgba(212, 175, 55, .45); }
 .sheet-head .realm { margin-top: 6px; }
-.eyebrow-s { font-family: var(--serif); font-size: .78rem; letter-spacing: .3em; color: var(--gold); }
 /* 정청 접기/펼치기 */
 .fold-head { cursor: pointer; user-select: none; }
 .fold-arrow { font-size: .8rem; color: var(--gold); margin-left: 6px; }
@@ -429,7 +396,6 @@ body {
   .ware > .btn, .ware > .btns { grid-column: 2 / -1; justify-self: end; }
 }
 /* 종합 전투력: 헤더 소형 표기 + 상태 탭 맨 위 카드 */
-.coin.cpi { background: radial-gradient(circle at 40% 35%, #e0785f, #7a2a1f); color: #fff1ec; }
 .purse .cp { position: relative; }
 .cp-delta { position: absolute; left: 100%; top: -9px; margin-left: 2px; font-style: normal; font-size: .7rem; font-weight: 800; white-space: nowrap; }
 .cp-delta.up { color: #7fe0a0; }
@@ -438,13 +404,10 @@ body {
 .cp-main { display: flex; align-items: baseline; gap: 14px; }
 .cp-label .ko { font-size: 1.05rem; }
 .cp-value { font-family: var(--serif); font-weight: 900; font-size: 2.1rem; line-height: 1; color: #f0cf82; text-shadow: 0 0 18px rgba(212, 175, 55, .35); font-variant-numeric: tabular-nums; }
-.cp-parts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--dim); font-size: .85rem; }
-.cp-parts b { color: var(--silver); font-variant-numeric: tabular-nums; margin-left: 4px; }
 @media (max-width: 640px) {
   .cp-value { font-size: 1.7rem; }
 }
 /* ───── 자동 탐험 ───── */
-.coin.c3 { background: radial-gradient(circle at 40% 35%, #8fd4b8, #1f5a4a); color: #eafff6; }
 .who .sect b { color: var(--gold); font-variant-numeric: tabular-nums; }
 .exp-status { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
 .exp-next { display: flex; flex-direction: column; align-items: flex-start; }
@@ -453,9 +416,6 @@ body {
 .exp-sta { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 4px; }
 .zones { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
 .zone { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: var(--radius); border: 1px solid rgba(212, 175, 55, .12); background: rgba(28, 34, 44, .55); }
-.zone.here { border-color: rgba(212, 175, 55, .6); box-shadow: 0 0 0 1px rgba(212, 175, 55, .35), 0 0 18px rgba(212, 175, 55, .15); }
-.zone-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.here-pill { border-color: var(--gold); color: var(--gold); }
 .exp-rec { border: 1px solid rgba(212, 175, 55, .12); border-radius: var(--radius); background: rgba(28, 34, 44, .45); }
 .exp-rec + .exp-rec { margin-top: 8px; }
 .exp-rec.defeat { border-color: rgba(210, 90, 68, .35); }
@@ -505,7 +465,6 @@ body {
 }
 
 /* 강호행: 출정 준비 · 구역 경험 기록 */
-.exp-next .clock { color: var(--silver); font-family: var(--sans); font-size: .85rem; margin-left: 4px; }
 .prep-head { margin-top: 4px; color: var(--silver); }
 .prep { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .prep li { display: grid; grid-template-columns: 22px 72px minmax(0, 1fr) auto; gap: 6px 8px; align-items: center; padding: 7px 10px; border-radius: 6px; background: rgba(28, 34, 44, .5); border: 1px solid rgba(212, 175, 55, .1); }
@@ -514,8 +473,6 @@ body {
 .prep li.warn .prep-mark { color: #ff8e7a; }
 .prep-k { color: var(--dim); font-size: .85rem; }
 .prep-v { font-size: .9rem; min-width: 0; }
-.zone-log { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .88rem; color: var(--silver); }
-.zone-log b { color: var(--ink); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) {
   .prep li { grid-template-columns: 18px minmax(0, 1fr) auto; }
   .prep-k { grid-column: 2; }
@@ -558,7 +515,6 @@ body {
 .attr-name { grid-area: name; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; }
 .attr-row [data-d="-1"] { grid-area: minus; } .attr-row [data-d="1"] { grid-area: plus; }
 .attr-val { grid-area: val; text-align: center; font-size: 1.2rem; font-variant-numeric: tabular-nums; color: var(--gold-2); }
-.attr-eff { grid-area: eff; color: var(--silver); }
 .talents .starter { flex-direction: column; align-items: flex-start; }
 .talents .starter small { font-weight: 500; }
 .cp-attr { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: .82rem; color: var(--silver); }
@@ -570,7 +526,6 @@ body {
 .aff-tag.el-metal { color: #c9cfd8; } .aff-tag.el-water { color: #6ea4ee; }
 .aff-tag.tr { color: var(--jade); } .aff-tag.wp { color: var(--r3); }
 .aff-line { color: var(--silver); font-size: .9rem; }
-.tr-tag { display: inline-block; min-width: 1.4em; margin-right: 6px; font: 700 .72rem/1.5 var(--serif); text-align: center; color: var(--jade); border: 1px solid var(--line-2); border-radius: 3px; }
 .tr-line { font-size: .82rem; }
 .good { color: var(--r1); }
 .blog .aff, .chron-detail .aff { color: var(--silver); font-size: .9em; }
@@ -580,11 +535,8 @@ body {
 .gacha-have .num { margin-left: auto; font-size: 1.1rem; color: var(--gold-2); }
 .gacha .btn small { display: block; font-size: .72rem; color: var(--dim); }
 .gacha-res { margin-top: 10px; }
-.gacha-res ul, .gacha-table ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+.gacha-res ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
 .gacha-res li { padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 4px; background: var(--raise); }
-.gacha-table { margin-top: 10px; }
-.gacha-table summary { cursor: pointer; color: var(--silver); }
-.gacha-table li { display: flex; justify-content: space-between; padding: 2px 8px; border-bottom: 1px dashed var(--line); }
 
 .sim-list, .beasts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .sim-row { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
@@ -595,7 +547,6 @@ body {
 .sim-stat { font-size: .88rem; }
 .beasts li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
 .beasts li small { margin-left: auto; }
-.beasts li.unknown { color: var(--dim); }
 .zone-terrain { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; font-size: .82rem; color: var(--dim); }
 
 /* ───────── 화로(단조·단약) · 도감 탭 ───────── */
@@ -607,8 +558,6 @@ body {
 .recipes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
 .recipe-row { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr; gap: 2px 12px; align-items: baseline; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
 .recipe-row .r-eff { grid-column: 2; }
-.recipe-row.unknown { color: var(--dim); background: var(--sunk); }
-.recipe-row.unknown .r-out { font-weight: 900; letter-spacing: .2em; }
 @media (max-width: 560px) { .recipe-row { grid-template-columns: 1fr; } .recipe-row .r-eff { grid-column: 1; } }
 .blog .log-stance-result.dot { color: #9fd18a; font-size: .9em; }
 
@@ -656,7 +605,6 @@ body {
 .cp-card { padding: 8px 16px; gap: 6px 16px; }
 .cp-main { gap: 10px; }
 .cp-value { font-size: 1.5rem; }
-.cp-parts { font-size: 12px; gap: 2px 12px; }
 .cp-attr { font-size: 11px; gap: 2px 10px; margin-top: 2px; }
 .martial-slots, .martial-learned { padding: 12px 14px; gap: 8px; }
 .exp-help { font-size: 11px; margin: 0; line-height: 1.4; }
@@ -690,7 +638,6 @@ body {
 /* 장경각: 세 칸 탭 · 이류 품목 카드 */
 .lib-tabs { margin-bottom: 4px; }
 .lib-item { gap: 3px; }
-.lib-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; width: 100%; }
 .lib-item .lib-eff { color: var(--silver); font-size: 11px; line-height: 1.45; }
 .lib-item .passive { color: #8ee0c8; }
 .pill.grade-2 { color: #6cc38a; border-color: rgba(108, 195, 138, .5); font-size: 10px; padding: 0 6px; }
@@ -722,12 +669,8 @@ body {
 .gauge-group { display: flex; align-items: center; gap: 10px; }
 .stat-gauge { display: flex; align-items: center; gap: 6px; }
 .gauge-badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap; line-height: 1.2; }
-.hp-gauge .gauge-badge { background: #7a2a1f; color: #fff1ec; }
-.mp-gauge .gauge-badge { background: #1f3a6a; color: #e6efff; }
 .gauge-bar-track { position: relative; width: 150px; height: 18px; border-radius: 9px; background: var(--sunk); border: 1px solid var(--line); overflow: hidden; }
 .gauge-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 9px; transition: width .3s; }
-.hp-gauge .gauge-bar-fill { background: linear-gradient(90deg, #8e3222, var(--hp)); }
-.mp-gauge .gauge-bar-fill { background: linear-gradient(90deg, #2d4f86, var(--mp)); }
 .gauge-text { position: relative; display: block; text-align: center; font-size: 11px; line-height: 16px; font-weight: 700; color: #f3f4f6; text-shadow: 0 1px 2px #000; font-variant-numeric: tabular-nums; }
 .currency-chips { display: flex; align-items: center; gap: 10px; }
 .currency-chips .chip-badge { padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap; height: auto; min-width: 0; }

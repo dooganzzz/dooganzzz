@@ -16,7 +16,7 @@ module.exports = async (b) => {
     ok('기본은 닫힘 · 우측 하단 [GM] 버튼', await p.evaluate(() => { const r = document.querySelector('#gmToggle').getBoundingClientRect(); return document.querySelector('#gmPanel').hidden && r.right > innerWidth - 60 && r.bottom > innerHeight - 60 && getComputedStyle(document.querySelector('#gmToggle')).position === 'fixed'; }));
     await p.click('#gmToggle');
     const t0 = await p.evaluate(() => ({ open: !document.querySelector('#gmPanel').hidden, tabs: [...document.querySelectorAll('.gm-tab')].map(e => e.textContent).join('|'), pos: getComputedStyle(document.querySelector('#gmPanel')).position }));
-    ok('[GM] 버튼으로 열림 · 5개 탭', t0.open && t0.tabs === '유저 상태|행동 추적|아이템 DB|조합법|쾌속 치트' && t0.pos === 'fixed', JSON.stringify(t0));
+    ok('[GM] 버튼으로 열림 · 8개 탭', t0.open && t0.tabs === '유저 상태|유저|AI 자동 플레이|행동 추적|아이템 DB|게임 DB|조합법|쾌속 치트' && t0.pos === 'fixed', JSON.stringify(t0));
     await p.keyboard.press('Escape');
     ok('Esc로 닫힘', await p.evaluate(() => document.querySelector('#gmPanel').hidden));
     await p.keyboard.press('F1');
@@ -85,20 +85,21 @@ module.exports = async (b) => {
     ok('5 [은자 +1,000냥] · [활력/내력 100% 회복]', ch.silver === 1000 && ch.hp && ch.mp, JSON.stringify(ch));
     const tn = await p.evaluate(() => {
       const r = {}, e0 = S.exp; document.querySelector('[data-gm="exp"]').click(); r.exp = S.exp - e0;
+      // 강호행 치트: 시작 · 다음 걸음 즉시 → 1시간 · 8시간 경과 (실제 진행 경로 advanceRun을 그대로 탄다)
       const n0 = S.expeditions.length; document.querySelector('[data-gm="expedite"]').click();
-      r.expedite = S.expeditions.length === n0 + 1 && S.expedition.zone === 'cheongpung' && /^settle:/.test(ui.modal);
+      const run = activeRun(); r.expedite = S.expeditions.length === n0 + 1 && S.expedition.zone === 'cheongpung' && !!run && run.steps.length >= 1 && ui.tab === 'field';
       ui.modal = null; render(); gmRender();
-      const n1 = S.expeditions.length; S.expedition.nextAt = now() + 1000; document.querySelector('[data-gm="hour"]').click();
-      r.hour = S.expeditions.length - n1;
-      S.expedition.nextAt = now() + 1000; const log0 = S.log.length; document.querySelector('[data-gm="hours8"]').click();
-      r.hours8 = S.log.slice(log0).some(l => /2번이 그냥 지나갔습니다/.test(l.text)); r.kept = S.expeditions.length;
+      S.hp = 1e9; const s1 = run ? run.steps.length : 0; document.querySelector('[data-gm="hour"]').click();
+      r.hour = run ? run.steps.length - s1 : 0;
+      const s2 = run ? run.steps.length : 0; S.hp = 1e9; if (activeRun()) { gmRender(); document.querySelector('[data-gm="hours8"]').click(); }
+      r.hours8 = run ? run.steps.length - s2 : 0; r.live = !!(run && run.live);
       ui.modal = null; render(); gmRender();
       return r;
     });
     ok('5 [수련치 +1,000]', tn.exp === 1000, JSON.stringify(tn));
-    ok('5 [탐험 즉시 1회] → 탐험 기록 + 결산 창', tn.expedite, JSON.stringify(tn));
-    ok('5 [1시간 경과] → 예약된 탐험 1번 결산', tn.hour === 1, JSON.stringify(tn));
-    ok('5 [10시간 경과] → 8번만 결산 (2번은 지나감) · 기록은 최근 8번만', tn.hours8 && tn.kept === 8, JSON.stringify(tn));
+    ok('5 [강호행 시작 · 다음 걸음 즉시] → 강호행 기록 + 첫 걸음 · 강호행 탭', tn.expedite, JSON.stringify(tn));
+    ok('5 [1시간 경과] → 밀린 걸음을 치른다', tn.hour >= 1, JSON.stringify(tn));
+    ok('5 [8시간 경과] → 더 많은 걸음 (쓰러지면 거기서 끝)', tn.hours8 >= 1 || !tn.live, JSON.stringify(tn));
     await p.click('[data-gm="reset"]');
     ok('5 초기화는 두 번 눌러야 (첫 번째는 확인 요청)', await p.evaluate(() => !!S && /한 번 더/.test(document.querySelector('[data-gm="reset"]').textContent)));
     await Promise.all([p.waitForNavigation(), p.click('[data-gm="reset"]')]);

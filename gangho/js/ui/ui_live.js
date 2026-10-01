@@ -76,7 +76,7 @@ function liveShowQueue(eid, real, boss, ref) {
   if (ref && ref.si !== undefined) {                  // 무대에서 맞붙는 동안 그 걸음(결과)은 견문록에 아직 안 띄운다
     const bt = (S.expeditions.find(x => x.id === ref.rid) || { battles: [] }).battles[ref.bi];
     liveAnim.hold = { rid: ref.rid, i: ref.si, until: now() + 40000, hp: bt && bt.start ? bt.start.me.hp : null };
-    const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
+    liveSideRefresh();
     const sc = document.getElementById('liveScene'); if (sc) sc.classList.remove('rest', 'dead');
   }
 }
@@ -85,18 +85,15 @@ function liveShown(r) { const h = liveAnim.hold; return r && h && h.rid === r.id
 /* 쓰러져 끝난 강호행(보상 받기 전): 무대에 쓰러진 제자와 놓친 병기를 눕힌다 */
 function liveDead(r) { return !!r && r.end === 'dead' && !r.claimed && liveDone(r) && !liveHeld(r); }
 function liveHeld(r) { return !!r && liveShown(r) < r.steps.length; }
+/* 견문록 패널만 다시 그린다 */
+function liveSideRefresh() { const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide()); }
 function liveRelease() {
   if (!liveAnim.hold) return; liveAnim.hold = null;
   const q = liveAnim.gimQ; liveAnim.gimQ = null;             // 기다리던 기믹이 있으면 이어서 (그 결과는 다시 가린다)
   if (q && now() - q.at < 60000) { const r = findExpedition(q.rid); if (r && r.steps[q.si]) liveGimQueue(r, q.si); }
-  const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
+  liveSideRefresh();
   const sc = document.getElementById('liveScene'), lr = liveRec(); if (sc) { sc.classList.toggle('rest', liveDone(lr)); sc.classList.toggle('dead', liveDead(lr)); }
   if (typeof renderTabs === 'function') renderTabs();
-}
-function liveShowPick(zid) {
-  const Z = ZONES[zid]; if (!Z) return null;
-  const pool = Z.enemies.filter(e => ENEMIES[e]);
-  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
 }
 /* 맞붙는 순서: 제자 공격 → 요수 반격(맞거나 피하거나) → … → 마무리 일격. at은 맞붙기 시작한 뒤 ms */
 function liveShowPlan(sh, w) {
@@ -336,7 +333,7 @@ function liveGimQueue(rec, si) {
   sc.appendChild(el);
   liveAnim.gim = { el, st, x0: liveAnim.x, fired: 0 };
   liveAnim.hold = { rid: rec.id, i: si, until: now() + 25000 };
-  const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
+  liveSideRefresh();
 }
 /* 얻은 것 · 잃은 것을 제자 머리 위로 차례로 띄운다 */
 function liveGain(sc, text, ico, cls, delay) {

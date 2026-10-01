@@ -168,27 +168,11 @@ function resolveEncounter(uid, ci) {
   applyFx(out.fx || {});
   let fightRes = null;
   if (out.fight) { const f = fight(out.fight, { bonus: out.bonus }); if (S.hp < 1) S.hp = 1; fightRes = `${josa(f.name, '과와')} 싸워 ${f.win ? '이겼습니다' : '졌습니다'}`; }
-  const items = {}; for (const id of new Set([...Object.keys(S.inv), ...Object.keys(b.inv)])) { const d = (S.inv[id] || 0) - (b.inv[id] || 0); if (d) items[id] = d; }
+  const items = invDelta(b.inv);
   E.done = { ci, label: ch.label, text: out.text, fight: fightRes, gear: out.fx && out.fx.named ? GEAR_DB[out.fx.named].name : '', silver: S.silver - b.silver, hp: Math.round(S.hp - b.hp), items, at: now() };
   const doneList = S.encounters.filter(e => e.done); while (doneList.length > ENCOUNTER_LOG) S.encounters.splice(S.encounters.indexOf(doneList.shift()), 1);
   notify.refresh(); notify.save();
   return E.done;
-}
-/* (예전 방식) 기연: 제자가 조건을 채운 선택지 가운데 하나를 스스로 고른다 — 지금은 쓰지 않음 */
-function stepEvent(rec, zid, used) {
-  const pool = eventPool(zid).filter(e => !used.has(e.id)), ev = pick(pool.length ? pool : eventPool(zid));
-  used.add(ev.id);
-  const options = ev.choices.filter(c => !reqFail(c.req)), ch = pick(options.length ? options : ev.choices);
-  if (ch.take && ch.req && !reqFail(ch.req)) { if (ch.req.item) take(ch.req.item[0], ch.req.item[1]); if (ch.req.silver) S.silver -= ch.req.silver; }
-  let r = Math.random() * ch.out.reduce((a, o) => a + o.w, 0), out = ch.out[0];
-  for (const o of ch.out) { r -= o.w; if (r < 0) { out = o; break; } }
-  log(`📜 ${ev.text}`, 'npc');
-  log(`▸ ${ch.label} — ${out.text}`, 'npc');
-  applyFx(out.fx || {});
-  const head = `📜 기연 「${ev.title}」 — ${ch.label}`;
-  if (!out.fight) return { t: head, cls: 'npc' };
-  const fb = stepBattle(rec, out.fight, out.bonus);
-  return { ...fb, t: `${head} → ${fb.t}`, enc: `${head} → ${fb.enc}` };
 }
 
 /* ───────── 강호행: [강호행 시작]을 누르면 쓰러지거나 귀환할 때까지 쭉 이어진다 ─────────
@@ -199,13 +183,14 @@ function stepEvent(rec, zid, used) {
    전투는 실시간 강호행 무대에서 기록 그대로 재생되고, 견문록에는 결과와 [관찰](전투 장면 · 합 로그)이 남는다 */
 const findExpedition = id => S.expeditions.find(r => r.id === id);
 function activeRun() { const id = S.expedition && S.expedition.run, r = id != null ? findExpedition(id) : null; return r && r.live ? r : null; }
+/* 행낭이 전과 견줘 얼마나 바뀌었나 ({아이템: 늘어난 수(줄면 음수)}) */
+function invDelta(before) { const d = {}; for (const id of new Set([...Object.keys(S.inv), ...Object.keys(before)])) { const n = (S.inv[id] || 0) - (before[id] || 0); if (n) d[id] = n; } return d; }
 const runSnap = () => ({ silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length, hp: S.hp });
 /* 한 걸음에서 얻은 것은 보관함(pend)으로 옮기고, 쓴 것(생혈고 등)은 쓴 채로 둔다 */
 function holdStep(rec, b) {
   const g = rec.gain, P = rec.pend, one = { items: {} };       // one = 이 걸음에서 얻은 것 (무대에 '+1'로 띄움)
   for (const k of ['silver', 'exp', 'contrib']) { const d = S[k] - b[k]; if (d > 0) { S[k] -= d; P[k] += d; if (k === 'silver') one.silver = d; } g[k] += d; }
-  for (const id of new Set([...Object.keys(S.inv), ...Object.keys(b.inv)])) {
-    const d = (S.inv[id] || 0) - (b.inv[id] || 0);
+  for (const [id, d] of Object.entries(invDelta(b.inv))) {
     if (d > 0) { take(id, d); P.items[id] = (P.items[id] || 0) + d; g.items[id] = (g.items[id] || 0) + d; one.items[id] = d; }
     else if (d < 0) g.used[id] = (g.used[id] || 0) - d;
   }
@@ -310,7 +295,8 @@ function staTick(rec, t) {
   const st = calcStats(), max = st.maxSta || 100, R = EXPEDITION.run, mult = terrainMult(rec.zone) * (1 - (st.staSave || 0) / 100);
   for (let g = 0; dt > 0 && g < 100; g++) {
     if (rec.mode !== 'walk') {
-      const rate = max / R.drainMs * mult, need = S.stamina / rate;
+      const rate = max / R.drainMs * mult, need = S.stamina / rate, used = Math.min(dt, need) * rate;
+      rec.terrain.extra += used * (1 - 1 / terrainMult(rec.zone));   // 지형 상성 때문에 더 쓴(+) · 아낀(-) 기력
       if (dt < need) { S.stamina -= dt * rate; dt = 0; } else { dt -= need; S.stamina = 0; rec.mode = 'walk'; rec.walks = (rec.walks || 0) + 1; log('🚶 기력이 다해 걸음을 늦춥니다. 기력이 차면 다시 달립니다.', 'muted', t - dt); }
     } else {
       const rate = max / R.regenMs, need = (max - S.stamina) / rate;
@@ -348,10 +334,7 @@ function setDestination(zid) {
 
 /* 실시간 강호행 보기: 걸음은 일어나는 즉시 드러난다 */
 function stepAt(rec, i) { const s = rec.steps[i]; return (s && s.at) || rec.at; }
-function liveEndAt(rec) { return rec.endAt || (rec.live ? now() : rec.at); }
-function stepShown() { return true; }
 function liveDone(rec) { return !rec || !rec.live; }
-function shownSteps(rec) { return rec.steps.length; }
 /* 지금 지켜보는 강호행: 진행 중인 것, 없으면 가장 최근 것 */
 function liveRec() { return activeRun() || (S.expeditions.length ? S.expeditions[S.expeditions.length - 1] : null); }
 /* 전투 결과: 관찰하기로 본 전투만 결과가 적힌다 */
