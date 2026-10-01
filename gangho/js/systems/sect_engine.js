@@ -2,10 +2,10 @@
 
 /* ───────── 서브 퀘스트: 단계별 토벌 (반복) ─────────
    열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'. 다 채우면 정청에서 보상을 받고, 진행은 처음부터 다시 쌓인다 (몇 번이고).
-   보상: 공헌도 · 은자 · 생혈고 (단계 × 탐험지 티어에 비례). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
-const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, pot: 1 };
+   보상: 공헌도 · 은자 · 수련치 · 생혈고 (단계 × 탐험지 티어에 비례). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
+const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1 };
 const subqKey = (zid, n) => `${zid}:${n}`;
-function subqReward(zid, n) { const t = ZONES[zid].tier; return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), pot: SUBQ.pot }; }
+function subqReward(zid, n) { const t = ZONES[zid].tier; return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
 function subqProg(zid, n) { return ((S.subq || {})[subqKey(zid, n)]) || 0; }
 function subqAdd(zid, n) { S.subq = S.subq || {}; const k = subqKey(zid, n); S.subq[k] = Math.min(SUBQ.kills, (S.subq[k] || 0) + 1); }
 const subqReady = (zid, n) => subqProg(zid, n) >= SUBQ.kills;
@@ -15,9 +15,9 @@ function subqReadyCount() { return subqList().filter(q => subqReady(q.zid, q.n))
 function claimSubq(zid, n) {
   if (!ZONES[zid] || !subqReady(zid, n)) return false;
   const r = subqReward(zid, n);
-  S.subq[subqKey(zid, n)] = 0; S.contrib += r.contrib; S.silver += r.silver; give('saenghyeol', r.pot, true);
+  S.subq[subqKey(zid, n)] = 0; S.contrib += r.contrib; S.silver += r.silver; S.exp += r.exp; give('saenghyeol', r.pot, true);
   S.subqDone = (S.subqDone || 0) + 1;
-  log(`📜 토벌 임무 완료 — ${stageName(zid, n)}: ${hlContrib('+' + r.contrib)}, ${hlSilver(r.silver)}, 생혈고 ${r.pot}`, 'good');
+  log(`📜 토벌 임무 완료 — ${stageName(zid, n)}: ${hlContrib('+' + r.contrib)}, ${hlSilver(r.silver)}, 수련치 +${r.exp}, 생혈고 ${r.pot}`, 'good');
   notify.refresh();
   return true;
 }

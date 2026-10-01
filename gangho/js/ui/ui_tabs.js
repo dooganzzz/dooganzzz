@@ -93,7 +93,7 @@ function goTab(tab, sub) {
 function subtabBar(tab) {
   const subs = SUBS[tab], cur = screen(), name = TABS.find(t => t[0] === tab)[1];
   return `<div class="subtabs" role="tablist" aria-label="${name}" style="--n:${subs.length}">${subs.map(([id, ko, hj]) =>
-    `<button class="subtab ${cur === id ? 'on' : ''}" role="tab" aria-selected="${cur === id}" data-tab="${tab}" data-sub="${id}">${label(ko, hj)}</button>`).join('')}</div>`;
+    `<button class="subtab ${cur === id ? 'on' : ''}" role="tab" aria-selected="${cur === id}" data-tab="${tab}" data-sub="${id}">${label(ko, hj)}${tab === 'sect' && id === 'hall' ? alertDot(questAlert()) : ''}</button>`).join('')}</div>`;
 }
 
 function bar(cls, cur, max, name, hideNum) {
@@ -134,8 +134,12 @@ function gauge(cls, cur, max, name) {
   return `<div class="stat-gauge ${cls}-gauge">${uiIco('h_' + cls)}<span class="gauge-badge">${name}</span><div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:${p}%"></div><span class="gauge-text">${fmt(cur)} / ${fmt(max)}</span></div></div>`;
 }
 
+/* 받을 보상 알림: 장문인 가르침을 이루었거나 토벌 임무를 채웠으면 청풍문 탭 · 정청에 빨간 점 */
+const questAlert = () => !!S && (tutorReady() || subqReadyCount() > 0);
+const alertDot = on => on ? '<i class="alert-dot" aria-label="받을 보상 있음"></i>' : '';
 function renderTabs() {
-  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}</button>`).join(''));
+  const qa = questAlert();
+  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : ''}</button>`).join(''));
 }
 
 /* 접기/펼치기 구역: 헤더를 누르면 본문에 .collapsed가 토글된다 (다시 그리지 않아 전환이 부드럽다) */

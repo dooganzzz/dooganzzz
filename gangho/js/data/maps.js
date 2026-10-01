@@ -10,7 +10,8 @@ const EXPEDITION = {
   stepMs: 30000, firstMs: 3000, restMs: 60000, catchUp: 8 * 3600000, keep: 8,
   weights: { beast: 70, vault: 8, event: 6, trap: 8, gimmick: 8 },
   potionAt: 0.35, potionPerFight: 3, breathe: 0.06, minStamina: 3, maxRounds: 60,
-  rewardMult: 0.1,   // 원정 은자·수련치 획득 배율 (인플레이션 억제, 반올림)
+  rewardMult: 0.1,   // 원정 은자 획득 배율 (인플레이션 억제, 반올림)
+  expMult: 0.2,      // 원정 수련치 획득 배율 (무공 성급이 강호행 진행을 따라가도록 은자보다 후하게)
   dropMult: 0.1,     // 요수 전리품·채집 재료 드랍 확률 배율 (1회 1개). 두목의 확정 드랍은 그대로
 };
 /* 탐험 중 조우 문구 */

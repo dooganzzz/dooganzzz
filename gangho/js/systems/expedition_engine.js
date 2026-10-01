@@ -210,6 +210,8 @@ function stageClear(rec, t) {
     log(`🏯 ${stageName(zid, n)}${n >= STAGE.count ? '의 두목을 쓰러뜨려 탐험지를 평정했습니다' : '을 돌파했습니다'}! 첫 돌파 보상: ${hlSilver(silver)} · 수련치 +${exp} · 생혈고 ${STAGE.firstPot}`, 'gold', t);
   }
   if (n < STAGE.count && S.expedition.auto !== false) stageGo(rec, n + 1, t);
+  // 두목은 한 강호행에 한 번: 쓰러뜨리면 굴을 나와 9단계로 (다시 맞서려면 새 강호행을 10단계에서)
+  else if (n >= STAGE.count) { rec.stage = STAGE.count - 1; rec.kills = 0; S.expedition.stage = STAGE.count - 1; log(`⛰️ 두목의 굴을 나와 ${josa(stageName(zid, STAGE.count - 1), '으로')} 내려옵니다. 두목에게 다시 맞서려면 새 강호행을 10단계에서 떠나십시오.`, 'place', t); }
 }
 function stageGo(rec, n, t = now()) {
   if (!rec || !rec.live || n < 1 || n > stageMax(rec.zone) || n === rec.stage) return false;

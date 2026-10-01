@@ -191,7 +191,7 @@ function viewHall() {
     <p class="muted subq-note">열린 단계마다 반복 토벌 임무가 있습니다. 그 단계에서 ${SUBQ.kills}번 이기면 보상을 받고, 몇 번이고 다시 할 수 있습니다.</p>
     <ul class="missions">${sq.map(({ zid, n }) => {
       const p = subqProg(zid, n), R = subqReward(zid, n), ok = subqReady(zid, n);
-      return `<li class="${ok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(zid, n)} <small class="muted">${n >= STAGE.count ? '두목' : `${n}단계`}</small></div><div class="mprog"><span style="width:${p / SUBQ.kills * 100}%"></span></div><span class="num">${p}/${SUBQ.kills}</span><span class="reward">공헌 ${R.contrib} · 은자 ${R.silver} · 생혈고 ${R.pot}</span><button class="btn sm ${ok ? 'primary' : ''}" data-subq="${zid}:${n}" ${ok ? '' : 'disabled'}>보상</button></li>`;
+      return `<li class="${ok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(zid, n)} <small class="muted">${n >= STAGE.count ? '두목' : `${n}단계`}</small></div><div class="mprog"><span style="width:${p / SUBQ.kills * 100}%"></span></div><span class="num">${p}/${SUBQ.kills}</span><span class="reward">공헌 ${R.contrib} · 은자 ${R.silver} · 수련치 ${R.exp} · 생혈고 ${R.pot}</span><button class="btn sm ${ok ? 'primary' : ''}" data-subq="${zid}:${n}" ${ok ? '' : 'disabled'}>보상</button></li>`;
     }).join('') || '<li class="muted">강호행에서 탐험지를 정하면 토벌 임무가 열립니다.</li>'}</ul>`;
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
   const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌']];
@@ -205,8 +205,8 @@ function viewHall() {
   const library = `
     <div class="subtabs lib-tabs" role="tablist" aria-label="장경각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
     <div class="shop lib-grid">${libItems.join('')}</div>`;
-  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳')}${foldBody('hq', hq)}</section>
-  <section class="panel fold">${foldHead('missions', '토벌 임무', '討伐任務', `<span class="num ${subqReadyCount() ? 'gold' : 'muted'}">${subqReadyCount()}건 완료 가능</span>`)}${foldBody('missions', missions)}</section>
+  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳', tutorReady() ? `<span class="num gold">가르침 보상 ${alertDot(true)}</span>` : '')}${foldBody('hq', hq)}</section>
+  <section class="panel fold">${foldHead('missions', '토벌 임무', '討伐任務', `<span class="num ${subqReadyCount() ? 'gold' : 'muted'}">${subqReadyCount()}건 완료 가능${alertDot(subqReadyCount() > 0)}</span>`)}${foldBody('missions', missions)}</section>
   <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 

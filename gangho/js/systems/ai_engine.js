@@ -50,7 +50,7 @@ function aiAct(note) {
   // 9. 강호행 중이 아니면 다시 떠난다: 쓰러진 단계보다 한 단계 아래에서 (자동 진행 켬)
   if (!activeRun() && S.expedition.zone) {
     const X = S.expedition, last = S.expeditions.filter(r => r.zone === X.zone && !r.live).slice(-1)[0];
-    X.auto = true; X.stage = last && last.end === 'dead' && !(last.cleared || []).length ? Math.max(1, last.stage - 1) : stageMax(X.zone);
+    X.auto = true; X.stage = last && last.end === 'dead' ? Math.max(1, last.stage - 1) : Math.min(stageMax(X.zone), stageCleared(X.zone) >= STAGE.count ? STAGE.count - 1 : STAGE.count);   // 쓰러진 단계 한 단계 아래에서 토벌 임무를 채우며 다시
     startRun(t);
   }
 }

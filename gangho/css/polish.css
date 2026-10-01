@@ -226,3 +226,9 @@ small { font-size: .82rem; }
 .main-quest.ready { box-shadow: inset 3px 0 0 #e2bb62; }
 .missions li.ready { box-shadow: inset 3px 0 0 #6aa84f; }
 .subq-note { margin: 0 0 6px; font-size: .85rem; }
+/* 받을 보상 알림 점 */
+.tab, .subtab { position: relative; }
+.alert-dot { display: inline-block; width: 8px; height: 8px; margin-left: 4px; border-radius: 50%; background: #e0412a; box-shadow: 0 0 0 2px rgba(0, 0, 0, .35), 0 0 6px rgba(224, 65, 42, .8); vertical-align: top; animation: alertPulse 1.6s ease-in-out infinite; }
+.tab .alert-dot, .subtab .alert-dot { position: absolute; top: 4px; right: 10%; margin: 0; }
+@keyframes alertPulse { 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .alert-dot { animation: none; } }
