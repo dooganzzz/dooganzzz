@@ -173,8 +173,18 @@ function liveLoop(ts) {
   const rest = sc.classList.contains('rest'), still = reduceMotion();
   if (liveAnim.show) { sc.classList.toggle('fight', liveAnim.show.phase === 'fight'); sc.classList.toggle('approach', liveAnim.show.phase === 'approach'); }   // 다시 그려져도 연출 상태를 잇는다
   if (liveAnim.show && liveAnim.show.phase === 'fight') { if (liveShowStep(sc, liveAnim.show, ts, dt)) liveShowEnd(sc); return; }   // 맞붙는 동안 산길은 멈춘다
-  if (rest || still) {                                // 쉬는 중: 대기 시트로 가슴만 들썩
+  if (rest || still) {                                // 쉬는 중: 숨을 고르다가 몇 초마다 제자리에서 초식을 연습한다 (다음 출발까지 남은 시간은 무대 위에)
     if (liveAnim.show) liveShowEnd(sc);
+    if (rest && !still && hero) {
+      liveAnim.kataMs = (liveAnim.kataMs || 0) + dt;
+      const k = liveAnim.kataMs - 5200;               // 5.2초 숨 고르기 → 초식 한 번 (준비 · 베기 · 마무리 · 거두기)
+      if (k >= 0) {
+        const f = k < 260 ? 4 : k < 420 ? 5 : k < 700 ? 6 : 0;
+        if (+hero.dataset.f !== f) { hero.dataset.f = f; if (f === 5) liveVfx(sc, 'hit', 62, 'small kata'); }
+        if (k > 1200) liveAnim.kataMs = Math.random() * 1500;
+        return;
+      }
+    }
     liveAnim.acc += dt; if (liveAnim.acc > 260) { liveAnim.acc = 0; if (hero) hero.dataset.f = BREATH[liveAnim.breath++ % BREATH.length]; }
     return;
   }
@@ -211,6 +221,7 @@ function liveScene(r) {
     <img class="live-enc" src="assets/art/ui/b_encounter.png" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
     <span class="live-where">${ZONES[zid].name}</span>
+    <span class="live-rest">다음 출발 <b data-countdown>${countdownText()}</b></span>
   </div>`;
 }
 function liveStepRow(r, i, t) {
