@@ -115,25 +115,6 @@ const sealChar = name => name.replace(/^(염화채주|수룡방주|염화채|수
 const clockHM = t => { const d = new Date(t); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 
 /* 구역 카드: 적정 전투력·난이도는 보여 주지 않는다. 내가 다녀오며 겪은 것만 적힌다 */
-function zoneCard(zid) {
-  const X = S.expedition, Z = ZONES[zid], open = zoneUnlocked(zid), here = X.zone === zid;
-  const zl = (S.zoneLog || {})[zid], B = ENEMIES[Z.boss];
-  const seen = zl ? Object.keys(zl.seen).filter(e => !ENEMIES[e].boss) : [];
-  const exp = !zl ? '<small class="muted">다녀온 적이 없습니다. 무엇이 기다리는지 모릅니다.</small>'
-    : `<div class="zone-log">
-        <span>다녀옴 <b>${zl.trips}</b>번</span><span><b>${zl.wins}</b>승 <b class="${zl.losses ? 'warn' : ''}">${zl.losses}</b>패</span>
-        ${zl.defeats ? `<span class="warn">쓰러짐 ${zl.defeats}</span>` : ''}${zl.retreats ? `<span>마을 치료 ${zl.retreats}</span>` : ''}
-      </div>
-      <small class="muted">만난 요수: ${seen.length ? seen.map(e => ENEMIES[e].name).join(' · ') : '—'} · 두목: ${zl.bossMet ? `${B.name}${S.flags[B.boss] ? ' <b class="gold">토벌</b>' : zl.bossWon ? '' : ' (아직 못 이김)'}` : '？'}</small>`;
-  return `<div class="zone ${open ? '' : 'locked'} ${here ? 'here' : ''}">
-    <div class="zone-scene">${zoneArt(zid)}</div>
-    <div class="zone-top"><h3>${label(Z.name, Z.hanja)}</h3>${here ? '<span class="pill here-pill">현재 탐험지</span>' : ''}</div>
-    <p class="story">${Z.desc}</p>
-    <p class="zone-terrain">지형 ${(Z.terrain || []).map(terrainTag).join('')}</p>
-    ${open ? exp : '<small class="muted">🔒 앞 구역의 두목을 쓰러뜨리면 길이 열립니다.</small>'}
-    <div>${!open || here ? '' : `<button class="btn ${X.zone ? '' : 'primary'} sm" data-dest="${zid}">탐험지로 정하기</button>`}</div>
-  </div>`;
-}
 
 /* 출정 준비: 떠나기 전에 갖춰 둘 것들 (탐험지·무공·병기·장비·생혈고·상성·단약) */
 function prepPanel() {
@@ -173,13 +154,13 @@ function viewField() {
     ${head('강호행', '江湖行', `<span class="pill">${cur ? `⛰️ ${cur.name}` : '탐험지 미정'}</span>`)}
     <div class="exp-status">
       <div class="exp-next"><small>${run ? `${ZONES[run.zone].name} 강호행 중` : '산문에서 대기 중'}</small><b data-runclock>${runClockText()}</b></div>
-      <div class="exp-sta">${run ? '<button class="btn ghost sm" data-act="runstop">귀환하기</button>' : `<button class="btn primary sm" data-act="runstart" ${X.zone ? '' : 'disabled'}>강호행 시작</button>`}<small class="muted">${run ? '쓰러지거나 귀환할 때까지 이어집니다.' : '떠나기 전에 아래 준비를 갖춰 두십시오.'}</small></div>
+      <div class="exp-sta">${run ? '<button class="btn ghost sm" data-act="runstop">귀환하기</button>' : `<button class="btn primary sm" data-act="runstart">강호행 시작</button>`}<small class="muted">${run ? '쓰러지거나 귀환할 때까지 이어집니다.' : '떠나기 전에 아래 준비를 갖춰 두십시오.'}</small></div>
     </div>
     <h4 class="prep-head">출정 준비</h4>
     ${prepPanel()}
     <p class="story">${cur ? `탐험지마다 10단계가 있습니다. 단계마다 ${STAGE.kills}번 이기면 돌파하고 다음 단계가 열리며, 10단계에는 두목이 기다립니다. [강호행 시작]을 누르면 제자가 고른 단계에서 ${EXPEDITION.stepMs / 1000}초마다 한 걸음씩 싸우고 줍습니다. 활력은 걸음 사이에 차지 않고, 위급하면 생혈고를 바릅니다. 전투에서 지면 쓰러지고 강호행은 끝납니다. 자리를 비워도 최대 ${EXPEDITION.catchUp / 3600000}시간까지 이어지고, 얻은 것은 끝난 뒤 [최종보상확인]으로 받습니다.` : '아래에서 탐험지를 고른 뒤 [강호행 시작]을 누르십시오.'}</p>
   </section>
-  <section class="panel">${head('탐험지', '行先')}<p class="muted">어느 곳이 얼마나 위험한지는 알려 주지 않습니다. 다녀오며 몸으로 익히십시오.</p><div class="zones">${ZONE_ORDER.map(zoneCard).join('')}</div></section>
+  ${run ? '' : `<section class="panel map-open">${head('탐험지', '行先', `<span class="pill">${cur ? `지금 여기 · ${cur.name}` : '정하지 않음'}</span>`)}<button class="btn primary" data-act="runstart">🗺️ 강호 지도 열기</button></section>`}
   <section class="panel">${head('탐험 기록', '見聞', `<span class="num muted">최근 ${S.expeditions.length} / ${EXPEDITION.keep}번</span>`)}
     ${recs || '<p class="story muted">아직 다녀온 탐험이 없습니다.</p>'}
   </section>`;
