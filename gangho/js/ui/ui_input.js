@@ -83,9 +83,11 @@ function onClick(e) {
     runstart: () => {                                        // 강호행 시작: 쓰러지거나 귀환할 때까지 이어진다
       if (!S.expedition.zone) return toast('탐험지를 먼저 정하십시오.');
       const go = () => { if (startRun()) { toast(`⛰️ 제자가 ${ZONES[S.expedition.zone].name}(으)로 길을 떠났습니다`); render(); } };
-      if (!has('saenghyeol')) return requestActionConfirm({ title: '생혈고 없이 떠나기', description: '생혈고가 하나도 없습니다. 다치면 바를 약이 없어 금방 쓰러질 수 있습니다.', details: ['전방에서 개당 5냥'], confirmText: '그래도 떠난다', onConfirm: go });
+      const warn = [!S.active.mugong && '무공을 하나도 펼치지 않았습니다 — 상태 탭 › 무공에서 비급을 익히고 펼치십시오', !has('saenghyeol') && '생혈고가 하나도 없습니다 — 전방에서 개당 5냥'].filter(Boolean);
+      if (warn.length) return requestActionConfirm({ title: '이대로 떠날까요?', description: '준비가 모자라면 금방 쓰러질 수 있습니다. 쓰러지면 강호행은 끝납니다.', details: warn, confirmText: '그래도 떠난다', onConfirm: go });
       go();
     },
+    logout: () => requestActionConfirm({ title: '로그아웃', description: '저장을 서버에 올리고 로그아웃합니다. 진행 중인 강호행은 다음에 로그인하면 이어집니다.', details: [], confirmText: '로그아웃', onConfirm: logout }),
     runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 [최종보상확인]으로 받습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); render(); } }),
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },
     gochron: () => {                                          // 결산 창 → 견문록 탭, 방금 탐험의 결산을 펼쳐 보인다

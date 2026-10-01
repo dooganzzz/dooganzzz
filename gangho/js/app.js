@@ -41,8 +41,62 @@ function save() {
   clearTimeout(saveT);
   if (!S) return;
   S.lastTick = now();
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가 환경 */ }
+  try { localStorage.setItem(saveKey(), JSON.stringify(S)); } catch (e) { /* 저장 불가 환경 */ }
+  if (AUTH.id) cloudSaveSoon();
 }
+
+/* ───────── 계정: 인터넷에 올린 게임은 아이디로 로그인하고, 캐릭터는 그 아이디의 서버 저장에 묶인다 ─────────
+   파일로 연 게임 · claude.ai 아티팩트 · localhost는 예전처럼 이 기기에만 저장한다 (로그인 없음).
+   세션(아이디 · 토큰 · 게임 버전)은 이 기기에 둔다. 새 버전이 배포되면 버전이 달라 모두 로그아웃되고, 다시 들어오면 진행 중이던 강호행은 끝난다 */
+const GAME_VER = (document.querySelector('meta[name="game-ver"]') || {}).content || 'dev';
+const SESSION_KEY = 'gangho_session', NOTICE_KEY = 'gangho_notice';
+const AUTH = { id: null, token: null };
+function authMode() { return /^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && typeof supaOn === 'function' && supaOn(); }
+const saveKey = () => AUTH.id ? `${SAVE_KEY}@${AUTH.id}` : SAVE_KEY;
+function sessionGet() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; } }
+function sessionSet(v) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(v)); } catch (e) { /* 저장 불가 */ } }
+function sessionClear() { try { localStorage.removeItem(SESSION_KEY); } catch (e) { /* 저장 불가 */ } }
+function popNotice() { try { const n = sessionStorage.getItem(NOTICE_KEY); sessionStorage.removeItem(NOTICE_KEY); return n || ''; } catch (e) { return ''; } }
+function readSave(key) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
+const validSave = st => !!(st && typeof st === 'object' && st.manuals);
+/* 서버 저장은 모아서 (1분에 한 번 · 창을 내릴 때 한 번). 견문록은 최근 200줄만 */
+let cloudT = null, cloudDirty = false, cloudBusy = false;
+function cloudSaveSoon() { cloudDirty = true; if (!cloudT) cloudT = setTimeout(cloudSaveNow, 60000); }
+async function cloudSaveNow() {
+  clearTimeout(cloudT); cloudT = null;
+  if (!AUTH.id || !S || !cloudDirty || cloudBusy) return;
+  cloudBusy = true; cloudDirty = false;
+  try { await accountSave(AUTH.id, AUTH.token, { ...S, log: S.log.slice(-200) }); }
+  catch (e) { if (/logged out/.test(e.message)) forceLogout('다른 곳에서 로그인했거나, 운영자가 전체 로그아웃을 했습니다. 다시 로그인하십시오.'); else cloudDirty = true; }
+  cloudBusy = false;
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && AUTH.id) { save(); cloudSaveNow(); } });
+function forceLogout(msg) {
+  try { sessionStorage.setItem(NOTICE_KEY, msg); } catch (e) { /* 무시 */ }
+  sessionClear(); AUTH.id = null; S = null; window.removeEventListener('beforeunload', save);
+  location.reload();
+}
+async function logout() {
+  if (AUTH.id && S) { save(); cloudDirty = true; await cloudSaveNow(); }
+  forceLogout('로그아웃했습니다.');
+}
+/* 로그인 · 회원가입이 끝나면 (화면 쪽에서 부른다) */
+function authSignedIn(res) {
+  AUTH.id = res.id; AUTH.token = res.token;
+  sessionSet({ id: res.id, token: res.token, ver: GAME_VER });
+  enterGame(res.save);
+}
+/* 서버 저장과 이 기기에 남은 같은 아이디의 저장 중 더 최근 것으로 시작한다. 둘 다 없으면 예전(로그인 전) 캐릭터를 옮겨 올지 묻는다 */
+function enterGame(server) {
+  const local = readSave(saveKey()), pickS = [server, local].filter(validSave).sort((a, b) => (b.lastTick || 0) - (a.lastTick || 0))[0];
+  hideAuth();
+  if (pickS) return startGame(migrate(pickS));
+  const legacy = readSave(SAVE_KEY);
+  if (validSave(legacy)) return authLegacyOffer(legacy, () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 무시 */ } startGame(migrate(legacy)); save(); cloudDirty = true; cloudSaveNow(); }, () => startGame(null));
+  startGame(null);
+}
+/* 로그인 없이 (서버를 쓸 수 없을 때) */
+function startGuest() { AUTH.id = null; hideAuth(); startGame(migrate(load())); }
 
 /* 웹 기록(Supabase)용 익명 id와 비밀값: 저장마다 한 번 만든다 */
 function randHex(n) { const a = new Uint8Array(n); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => { a[i] = Math.random() * 256; }); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
@@ -64,10 +118,7 @@ function importSave(st, keepBackup = true) {
   return true;
 }
 
-function load() {
-  try { const raw = localStorage.getItem(SAVE_KEY); if (raw) return JSON.parse(raw); } catch (e) { /* 무시 */ }
-  return null;
-}
+function load() { return readSave(saveKey()); }
 
 /* 견문록 기록은 상태에 남기고, 화면에는 신호로 알린다.
    탐험을 계산하는 동안(RT.journal)에는 견문록 대신 그 걸음의 상세 기록으로 모은다. t: 기록 시각(탐험 시각) */
@@ -82,7 +133,7 @@ function log(text, cls = '', t = now(), ref) {
 
 /* 새 게임: 프롤로그 뒤 제자 설정(이름·4대 스탯·입문 무공·기예)을 마치면 부른다 */
 function startNewGame(name, mugongId, opts = {}) {
-  S = newState(name, mugongId, opts); ensureCloudId(S);
+  S = newState(name, mugongId, opts); ensureCloudId(S); S.gameVer = GAME_VER;
   const wt = MANUALS[mugongId].weapon;
   S.equip.weapon = makeNamedGear(STARTER_GEAR[wt]);
   S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
@@ -210,10 +261,13 @@ function tick() {
 }
 
 /* 처음부터 다시: 저장을 지우고 새로 불러온다. beforeunload가 현재 상태를 다시 저장하지 않게 먼저 뗀다. */
-function doReset() {
+async function doReset() {
   S = null;
   window.removeEventListener('beforeunload', save);
-  try { localStorage.clear(); } catch (e) { /* 저장소 접근 불가 */ }
+  if (AUTH.id) {                                         // 계정: 이 아이디의 저장만 지운다 (서버도)
+    try { for (const k of Object.keys(localStorage)) if (k.startsWith(saveKey())) localStorage.removeItem(k); } catch (e) { /* 무시 */ }
+    try { await accountSave(AUTH.id, AUTH.token, { reset: true }); } catch (e) { /* 무시 */ }
+  } else { try { const ses = localStorage.getItem(SESSION_KEY); localStorage.clear(); if (ses) localStorage.setItem(SESSION_KEY, ses); } catch (e) { /* 저장소 접근 불가 */ } }
   location.reload();
 }
 
@@ -225,30 +279,59 @@ function syncCombatPower() { if (S) S.combatPower = calculateCombatPower(S); }
 Bus.on('refresh', syncCombatPower);
 Bus.on('tick', syncCombatPower);
 
+/* 새 버전 알아채기 (인터넷에 올린 게임에서만): 브라우저가 옛 페이지를 들고 있으면 옛 코드와 새 그림이 섞인다.
+   version.json을 캐시 없이 읽어 이 페이지의 game-ver와 다르면, 저장한 뒤 ?v=새버전 주소로 다시 연다 (같은 버전 주소로 이미 열었으면 되풀이하지 않는다) */
+function checkVersion() {
+  if (!/^https?:$/.test(location.protocol) || /claude/.test(location.hostname) || typeof fetch !== 'function') return;
+  const meta = document.querySelector('meta[name="game-ver"]'), cur = meta && meta.content; if (!cur) return;
+  fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j || !j.v || j.v === cur || new URLSearchParams(location.search).get('v') === j.v) return;
+    if (S) save();
+    location.replace(`${location.pathname}?v=${j.v}${location.hash}`);
+  }).catch(() => {});
+}
 function boot() {
   bindInput();
   gmInit();                                              // 운영자 콘솔 (GM_ENABLED일 때만)
-  S = load();
-  S = migrate(S);
-  if (!S) showIntro();
-  else {
-    if (S.migratedRefund) { log(`📜 화로가 단조·단약으로 바뀌며 쓰임을 잃은 옛 재료와 음식을 전방에 넘기고 ${hlSilver(S.migratedRefund)}을 받았습니다.`, 'gold'); delete S.migratedRefund; }
-    if (S.migratedExp !== undefined) {
-      log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 한 시간마다 강호로 나가 경험을 쌓습니다. 그동안의 수련은 수련치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
-      delete S.migratedExp;
-    }
-    ensureMissions(); checkDailyMidnightReset();
-    for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
-    if (S.migratedPot) { log('📜 강호행이 바뀌었습니다. 이제 정각마다 떠나지 않고, [강호행 시작]을 누르면 쓰러질 때까지 쭉 이어집니다. 조운이 생혈고 10개를 챙겨 주었습니다.', 'gold'); delete S.migratedPot; }
-    // 자리를 비운 동안에도 강호행은 이어졌다 (최대 8시간). 얻은 것은 끝난 뒤 강호행 탭의 [최종보상확인]으로 받는다
-    const run = activeRun(), n0 = run ? run.steps.length : 0, r = advanceRun();
-    if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 강호행 탭에서 견문과 보상을 확인하십시오`);
-    notify.refresh();
-  }
   lastFrame = now();
   setInterval(tick, 1000);
+  checkVersion(); setInterval(checkVersion, 600000);
   setInterval(save, 10000);
   window.addEventListener('beforeunload', save);
+  if (!authMode()) return startGame(migrate(load()));
+  const ses = sessionGet();
+  if (!ses || !ses.id || ses.ver !== GAME_VER) {         // 처음이거나, 새 버전이 배포되어 모두 로그아웃
+    const notice = popNotice() || (ses && ses.id ? '새 버전이 배포되어 다시 로그인해야 합니다. 진행 중이던 강호행은 마친 것으로 정리됩니다.' : '');
+    sessionClear();
+    return showAuth(notice, ses && ses.id);
+  }
+  AUTH.id = ses.id; AUTH.token = ses.token;
+  showAuthBusy(`${ses.id} — 불러오는 중…`);
+  accountLoad(ses.id, ses.token).then(sv => enterGame(sv), e => {
+    if (/logged out/.test(e.message)) { sessionClear(); AUTH.id = null; showAuth('다른 곳에서 로그인했거나, 운영자가 전체 로그아웃을 했습니다. 다시 로그인하십시오.', ses.id); }
+    else enterGame(null);                                // 서버에 닿지 않으면 이 기기의 저장으로 (나중에 다시 올린다)
+  });
+}
+/* 저장으로 게임을 연다 (없으면 서장) */
+function startGame(st) {
+  S = st;
+  if (!S) { showIntro(); authFooter(); return; }
+  if (S.migratedRefund) { log(`📜 화로가 단조·단약으로 바뀌며 쓰임을 잃은 옛 재료와 음식을 전방에 넘기고 ${hlSilver(S.migratedRefund)}을 받았습니다.`, 'gold'); delete S.migratedRefund; }
+  if (S.migratedExp !== undefined) {
+    log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 강호로 나가 경험을 쌓습니다. 그동안의 수련은 수련치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
+    delete S.migratedExp;
+  }
+  ensureMissions(); checkDailyMidnightReset();
+  for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
+  if (S.migratedPot) { log('📜 강호행이 바뀌었습니다. 이제 정각마다 떠나지 않고, [강호행 시작]을 누르면 쓰러질 때까지 쭉 이어집니다. 조운이 생혈고 10개를 챙겨 주었습니다.', 'gold'); delete S.migratedPot; }
+  // 자리를 비운 동안에도 강호행은 이어졌다 (최대 8시간). 새 버전이 배포되었으면 그 강호행은 여기서 마친다
+  const run = activeRun(), n0 = run ? run.steps.length : 0, r = advanceRun();
+  const verChanged = S.gameVer && S.gameVer !== GAME_VER && GAME_VER !== 'dev';
+  if (verChanged && activeRun()) { endRun(activeRun(), now(), 'recall'); log('📜 새 버전이 배포되어 진행 중이던 강호행을 마쳤습니다. 얻은 것은 강호행 탭의 [최종보상확인]으로 받으십시오.', 'gold'); notify.toast('📜 새 버전 배포로 강호행을 마쳤습니다 — 보상을 받으십시오'); }
+  else if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 강호행 탭에서 견문과 보상을 확인하십시오`);
+  S.gameVer = GAME_VER;
+  authFooter();
+  notify.refresh(); save();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

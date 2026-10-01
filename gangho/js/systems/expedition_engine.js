@@ -18,9 +18,10 @@ function weighted(table) {
   return Object.keys(table)[0];
 }
 
-/* 요수: 지역 요수 중 하나를 가중치로 고른다. 탐험 후반(기력을 절반 넘게 쓴 뒤)일수록 중형이 잦다 */
-function pickBeast(Z) {
-  const tiers = Object.fromEntries(Object.entries(TIER_WEIGHT).filter(([k]) => Z.enemies.some(e => (ENEMIES[e].tier || 2) === +k)));   // 이 구역에 있는 단계만
+/* 요수: 지역 요수 중 하나를 가중치로 고른다. 강호행 안쪽으로 깊이 들어갈수록(치른 전투 수) 강한 단계가 잦다 */
+function pickBeast(Z, fought = 0) {
+  const d = Math.min(1, fought / TIER_DEPTH), mix = k => TIER_WEIGHT_START[k] * (1 - d) + TIER_WEIGHT[k] * d;
+  const tiers = Object.fromEntries(Object.keys(TIER_WEIGHT).filter(k => Z.enemies.some(e => (ENEMIES[e].tier || 2) === +k)).map(k => [k, mix(k)]));   // 이 구역에 있는 단계만
   const tier = +weighted(tiers);
   return pick(Z.enemies.filter(e => (ENEMIES[e].tier || 2) === tier));
 }
@@ -174,14 +175,14 @@ function runStep(rec, t) {
     } else {
       k = weighted(W.weights);
       S.bossPity = S.bossPity || {};
-      if (k === 'beast' && Z.boss && !rec.bossSeen && Math.random() < bossChanceNow(zid)) {   // 두목: 낮은 확률 · 못 만날수록 오른다 (천장) · 한 강호행에 한 번
+      if (k === 'beast' && Z.boss && !rec.bossSeen && rec.battles.length >= W.bossDepth && Math.random() < bossChanceNow(zid)) {   // 두목: 낮은 확률 · 못 만날수록 오른다 (천장) · 한 강호행에 한 번
         k = 'boss'; rec.bossSeen = true; S.bossPity[zid] = 0; spend(STAMINA_COST.boss);
         r = stepBattle(rec, Z.boss);
       } else {
-        if (k === 'beast') S.bossPity[zid] = (S.bossPity[zid] || 0) + 1;
+        if (k === 'beast' && rec.battles.length >= W.bossDepth) S.bossPity[zid] = (S.bossPity[zid] || 0) + 1;
         spend(COST[k]);
         if (k === 'event') { const used = new Set(rec.used); r = stepEvent(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
-        else r = k === 'beast' ? stepBattle(rec, pickBeast(Z)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
+        else r = k === 'beast' ? stepBattle(rec, pickBeast(Z, rec.battles.length)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
       }
     }
   } finally { r = r || {}; rec.steps.push({ k, at: t, t: r.t, enc: r.enc, cls: r.cls || '', b: r.b, d: RT.journal || [] }); RT.journal = null; }
@@ -199,7 +200,7 @@ function endRun(rec, t, why) {
   rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
   if (S.expedition.run === rec.id) S.expedition.run = null;
   S.stamina = 0; S.buffs = [];                                     // 증강 단약 효과는 이번 강호행으로 끝
-  if (why === 'dead') S.hp = Math.max(1, Math.round(calcStats().maxHp * 0.1));
+  { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; }   // 산문에 돌아오면 몸을 추스른다 (쓰러졌어도 실려 와 치료받는다)
   const zid = rec.zone, zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
   zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = t; zl.defeats += rec.defeats;
   for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }

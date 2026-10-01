@@ -310,6 +310,7 @@ function gmBindPanel(panel) {
     if (d.gmaipat) { GM.aiPattern = d.gmaipat; return gmRender(); }
     if (d.gmdbtab) { GM.dbTab = d.gmdbtab; return gmRender(); }
     if (d.gmimport) return gmDo('importplayer', d.gmimport);
+    if (t.closest('[data-gmlogoutall]')) { if (!SUPA_ST.pass) { gmTrace('warn', '운영자 암호를 먼저 넣으십시오'); return; } accountLogoutAll(SUPA_ST.pass).then(n => gmTrace('gm', `전체 로그아웃 (차수 ${n}) — 모든 유저가 다시 로그인해야 합니다`), e => gmTrace('warn', `전체 로그아웃 실패: ${e.message}`)); return; }
     if (d.gmsupa) { supaPlayerSave(d.gmsupa).then(st => st ? gmDo('importobj', st) : gmTrace('warn', '저장이 비어 있습니다'), e => gmTrace('warn', `저장을 받지 못했습니다: ${e.message}`)); return; }
     if (d.gm === 'airestore' || d.gm === 'importundo') return gmDo(d.gm);
     if (d.gm === 'cloudsync') { cloudSync(true); return; }

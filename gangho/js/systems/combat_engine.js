@@ -114,7 +114,9 @@ function battleRound(b) {
 /* 위급하면 제자가 알아서 단약을 쓴다: 활력이 바닥나면 생혈고, 내력이 바닥나면 소환단 */
 function autoPotion(b) {
   const use = (id, k) => { if (b.sim) { if (b.pots[k] <= 0) return false; b.pots[k]--; return true; } if (!has(id)) return false; take(id, 1); return true; };
-  if (S.hp < b.st.maxHp * EXPEDITION.potionAt && use('saenghyeol', 'hp')) {
+  // 한 전투에 생혈고는 EXPEDITION.potionPerFight개까지 (이길 수 없는 상대에게 가진 것을 다 쏟아붓지 않는다)
+  if (S.hp < b.st.maxHp * EXPEDITION.potionAt && (b.potHp || 0) < EXPEDITION.potionPerFight && use('saenghyeol', 'hp')) {
+    b.potHp = (b.potHp || 0) + 1;
     const v = Math.round(b.st.maxHp * ITEMS.saenghyeol.use.hp * (1 + (talentOf().pill || 0)));   // 기예 단약: 단약 효과 +15%
     S.hp = Math.min(b.st.maxHp, S.hp + v);
     bLine(`🩸 숨을 고르며 상처에 생혈고를 발랐습니다. <span class="heal">활력 +${fmt(v)}</span>`, 'good');

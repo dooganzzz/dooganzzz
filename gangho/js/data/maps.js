@@ -5,12 +5,13 @@
    catchUp: 자리를 비운 동안 따라잡아 치르는 최대 시간 · keep: 보관하는 강호행 기록 수
    weights: 한 걸음마다 무엇을 만날지 (금고는 전리품이 크므로 드물게)
    bossChance: 전투 조우 한 번이 두목일 확률 (히든 강적) · bossPity: 두목이 아닌 전투마다 더해지는 확률 (천장, 만나면 초기화) · bossMax: 확률 상한
-   potionAt: 활력이 이 비율 아래면 생혈고를 바름 · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율 (걸음 사이에 활력은 차지 않는다)
+   bossDepth: 두목은 한 강호행에서 전투를 이만큼 치러 깊이 들어간 뒤에야 나타난다
+   potionAt: 활력이 이 비율 아래면 생혈고를 바름 (한 전투에 potionPerFight개까지) · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율 (걸음 사이에 활력은 차지 않는다)
    minStamina: 기력이 이만큼 아래면 쉬어 가는 걸음 (기력만 가득 찬다) · 전투에서 지면 쓰러지고 강호행은 끝난다 */
 const EXPEDITION = {
   stepMs: 30000, firstMs: 3000, restMs: 60000, catchUp: 8 * 3600000, keep: 8,
   weights: { beast: 60, vault: 10, event: 6, trap: 12, gimmick: 12 },
-  bossChance: 0.025, bossPity: 0.0075, bossMax: 0.5, potionAt: 0.35, breathe: 0.06, minStamina: 3, maxRounds: 60,
+  bossChance: 0.02, bossPity: 0.004, bossMax: 0.25, bossDepth: 12, potionAt: 0.35, potionPerFight: 3, breathe: 0.06, minStamina: 3, maxRounds: 60,
   rewardMult: 0.1,   // 원정 은자·수련치 획득 배율 (인플레이션 억제, 반올림)
   dropMult: 0.1,     // 요수 전리품·채집 재료 드랍 확률 배율 (1회 1개). 두목의 확정 드랍은 그대로
 };
@@ -21,9 +22,11 @@ const EXP_TEXT = {
   defeat: '눈앞이 캄캄해집니다… 지나던 약초꾼이 쓰러진 제자를 업어 산문까지 데려다주었습니다. 강호행은 여기까지입니다.',
 };
 
-/* 요수 출현 가중치: 적의 rank(1 약함 · 2 중간 · 3 강함)별 — 탐험 후반(기력 절반 이상 쓴 뒤)일수록 강한 요수가 잦다 */
-/* 요수 조우 비율 (단계별 %): 1 최약체 · 2 일반 · 3 정예 · 4 위험 강적 (두목은 따로 확률 천장) */
-const TIER_WEIGHT = { 1: 35, 2: 40, 3: 18, 4: 7 };
+/* 요수 조우 비율 (단계별 %): 1 최약체 · 2 일반 · 3 정예 · 4 위험 강적 (두목은 따로 확률 천장).
+   강호행 초입(TIER_WEIGHT_START)에서 시작해, 전투를 TIER_DEPTH번 치를 만큼 깊이 들어가면 TIER_WEIGHT가 된다 (그 사이는 고르게 섞음) */
+const TIER_WEIGHT_START = { 1: 55, 2: 35, 3: 8, 4: 2 };
+const TIER_WEIGHT = { 1: 25, 2: 40, 3: 23, 4: 12 };
+const TIER_DEPTH = 24;
 
 /* 금고(金庫): 열면 네 가지 중 하나 */
 const VAULTS = [

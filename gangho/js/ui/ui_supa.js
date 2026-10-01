@@ -18,11 +18,18 @@ async function supaRpc(fn, body) {
 }
 const supaSource = () => /claude|claudeusercontent/.test(location.hostname) ? 'claude.ai' : location.protocol === 'file:' ? '파일' : location.hostname;
 
+/* 계정: 회원가입 · 로그인 · 저장 불러오기/하기 (gangho_accounts, 비밀번호는 서버에서 bcrypt) */
+const accountSignup = (id, pass) => supaRpc('gangho_signup', { p_id: id, p_pass: pass });
+const accountLogin = (id, pass) => supaRpc('gangho_login', { p_id: id, p_pass: pass });
+const accountLoad = (id, token) => supaRpc('gangho_load', { p_id: id, p_token: token });
+const accountSave = (id, token, save) => supaRpc('gangho_save', { p_id: id, p_token: token, p_save: save });
+const accountLogoutAll = pass => supaRpc('gangho_logout_all', { p_pass: pass });
+
 /* 게임 → 기록 (index.html에서만) */
 async function supaSync() {
   if (!supaOn() || typeof S === 'undefined' || !S || !S.cloudId || SUPA_ST.busy || document.hidden) return;
   const sum = typeof cloudSummary === 'function' ? cloudSummary() : null; if (!sum) return;
-  const data = { ...sum, device: cloudUA(), source: supaSource() }, sig = JSON.stringify(data);
+  const data = { ...sum, device: cloudUA(), source: supaSource() + (typeof AUTH !== 'undefined' && AUTH.id ? ` · ${AUTH.id}` : '') }, sig = JSON.stringify(data);
   let save = null;
   if (sig !== SUPA_ST.lastSig) {
     const blob = cloudSaveBlob();
@@ -60,6 +67,7 @@ function gmSupaSection() {
     <td class="gm-acts">${p.has_save ? `<button class="gm-btn" data-gmsupa="${esc(p.id)}">저장 불러오기</button>` : ''}</td></tr>`).join('');
   return `<h4 class="gm-h">웹 유저 (Supabase) ${L ? `· 접속 중 ${L.filter(online).length}명 / 전체 ${L.length}명` : ''}</h4>
     <form class="gm-bar" data-gmform="supa"><input type="password" name="pass" placeholder="운영자 암호" value="${esc(SUPA_ST.pass)}" autocomplete="current-password" aria-label="운영자 암호"><button class="gm-btn primary" type="submit">${SUPA_ST.loading ? '불러오는 중…' : '[목록 불러오기]'}</button>
+      <button class="gm-btn" type="button" data-gmlogoutall title="모든 계정의 접속 토큰을 무효로 만든다 (새 버전 배포 때는 자동)">[전체 로그아웃]</button>
       <small class="gm-muted">${SUPA_ST.listErr ? esc(SUPA_ST.listErr) : `내 기록: ${SUPA_ST.syncedAt ? since(SUPA_ST.syncedAt) : '아직'}${SUPA_ST.err ? ` · 오류 ${esc(SUPA_ST.err)}` : ''}`}</small></form>
     ${L ? `<table class="gm-table"><thead><tr><th>#</th><th>ID</th><th>캐릭터</th><th>전투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>IP</th><th>기기</th><th>접속 경로</th><th>마지막 접속</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="13" class="gm-muted">아직 기록이 없습니다.</td></tr>'}</tbody></table>` : ''}`;
 }
