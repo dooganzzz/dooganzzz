@@ -10,7 +10,8 @@ const ASSET_KIND = {
   walk:     { dir: 'sprites/walk_', ext: 'webp' },   // 병기별 걷기 16컷 (기력이 다해 걸을 때)
   stage:    { dir: 'stages/', ext: 'jpg' },
   travel:   { dir: 'travel/', ext: 'jpg' },
-  ground:   { dir: 'travel/ground_', ext: 'webp' },  // 강호행 앞 겹: 산길 그림의 땅만 (윗선은 둔덕 모양, 위는 투명)
+  ground:   { dir: 'travel/ground_', ext: 'webp' },
+  skymask:  { dir: 'travel/sky_', ext: 'webp' },     // 먼 겹의 하늘 가리개: 하늘은 불투명, 산 · 나무 · 연기는 투명 (달이 지형 뒤로 숨게)  // 강호행 앞 겹: 산길 그림의 땅만 (윗선은 둔덕 모양, 위는 투명)
   prop:     { dir: 'props/', ext: 'webp' },
   fx:       { dir: 'fx/', ext: 'webp' },
   zone:     { dir: 'zones/', ext: 'jpg' },
