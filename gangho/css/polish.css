@@ -161,6 +161,9 @@ small { font-size: .82rem; }
 .main-header { display: block; position: relative; padding: 0; min-height: 0; background: #0f0d0b; border-bottom: 1px solid #2d261e; }
 .header-hero { position: relative; height: clamp(64px, 8.5vw, 118px); overflow: hidden; background: #d9d6cf; }
 .header-hero .hero-art { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+/* 배너도 서울 시각의 빛깔을 함께 입는다 (값은 ui_live.js liveTodApply가 :root에 둔다) */
+.header-hero::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: multiply;
+  background: linear-gradient(180deg, var(--tt, transparent), var(--tm, transparent) 60%, var(--tb, transparent)); }
 .header-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, rgba(15, 13, 11, 0) 55%, rgba(15, 13, 11, .55) 82%, #0f0d0b 100%), linear-gradient(to right, rgba(15, 13, 11, .35), transparent 12%, transparent 88%, rgba(15, 13, 11, .35)); }
 .main-header .header-banner { position: absolute; left: 50%; top: clamp(4px, 1.2vw, 16px); transform: translateX(-50%); z-index: 1; flex-direction: column; gap: 2px; text-align: center; pointer-events: none; order: 0; flex-basis: auto; justify-content: center; }
 .main-header .header-banner .brand-symbol { position: absolute; right: -28px; top: 4px; width: 22px; height: 22px; font-size: 11px; font-weight: 900; color: #fff4ec; background: #b3261e; border: none; border-radius: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); transform: rotate(4deg); }

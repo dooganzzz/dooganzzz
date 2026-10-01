@@ -21,19 +21,29 @@ let liveAnim = { f: 0, last: 0, acc: 0, x: 0, raf: 0, breath: 0, walkMs: 0, next
 /* 산길 시간대: 지금 시각으로 새벽 · 낮 · 해 질 녘 · 밤 */
 /* 하루의 빛: 서울 표준시(KST) 기준 — 새벽 · 낮 · 저녁 · 밤이 시각에 따라 서서히 바뀐다 (빛깔 마디 사이를 고르게 섞는다)
    마디: [KST 분, 위 · 가운데 · 아래 빛깔 rgba, 등불 빛] — 그림 위에 곱하기로 덧씌운다 */
-const TOD_NIGHT = [[40, 52, 110, .78], [60, 70, 120, .62], [40, 45, 80, .7], .22];
-const TOD_DAWN = [[255, 196, 200, .55], [255, 226, 200, .25], [255, 240, 225, .1], 0];
-const TOD_DAY = [[255, 255, 255, 0], [255, 255, 255, 0], [255, 255, 255, 0], 0];
-const TOD_DUSK = [[240, 130, 80, .6], [250, 175, 110, .4], [170, 110, 90, .3], .08];
-const TOD_KEYS = [[0, TOD_NIGHT], [270, TOD_NIGHT], [360, TOD_DAWN], [450, TOD_DAY], [990, TOD_DAY], [1110, TOD_DUSK], [1200, TOD_NIGHT], [1440, TOD_NIGHT]];
+// [위, 가운데, 아래 빛깔, 등불 빛, 햇살, 별 · 달 · 반딧불이]
+const TOD_NIGHT = [[40, 52, 110, .78], [60, 70, 120, .62], [40, 45, 80, .7], .22, 0, 1];
+const TOD_DAWN = [[255, 196, 200, .55], [255, 226, 200, .25], [255, 240, 225, .1], 0, .15, .1];
+const TOD_DAY = [[255, 255, 255, 0], [255, 255, 255, 0], [255, 255, 255, 0], 0, .55, 0];
+const TOD_NOON = [[255, 255, 255, 0], [255, 255, 255, 0], [255, 255, 255, 0], 0, 1, 0];
+const TOD_DUSK = [[240, 130, 80, .6], [250, 175, 110, .4], [170, 110, 90, .3], .08, .2, .25];
+const TOD_KEYS = [[0, TOD_NIGHT], [270, TOD_NIGHT], [360, TOD_DAWN], [450, TOD_DAY], [720, TOD_NOON], [990, TOD_DAY], [1110, TOD_DUSK], [1200, TOD_NIGHT], [1440, TOD_NIGHT]];
 const kstMin = (t = now()) => { const d = new Date(t); return (d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60 + 540) % 1440; };
 function liveTod(t = now()) { const m = kstMin(t); return m >= 300 && m < 420 ? 'dawn' : m >= 420 && m < 1050 ? 'day' : m >= 1050 && m < 1170 ? 'dusk' : 'night'; }
 function liveTodVars(t = now()) {
   const m = kstMin(t), i = TOD_KEYS.findIndex(k => k[0] > m), [m0, A] = TOD_KEYS[i - 1], [m1, B] = TOD_KEYS[i], f = (m - m0) / (m1 - m0);
   const mix = (a, b) => `rgba(${a.map((v, j) => (j < 3 ? Math.round(v + (b[j] - v) * f) : +(v + (b[j] - v) * f).toFixed(3))).join(',')})`;
-  return `--tt:${mix(A[0], B[0])};--tm:${mix(A[1], B[1])};--tb:${mix(A[2], B[2])};--glow:${(A[3] + (B[3] - A[3]) * f).toFixed(3)}`;
+  const num = j => (A[j] + (B[j] - A[j]) * f).toFixed(3);
+  return `--tt:${mix(A[0], B[0])};--tm:${mix(A[1], B[1])};--tb:${mix(A[2], B[2])};--glow:${num(3)};--sun:${num(4)};--star:${num(5)}`;
 }
-function liveTodApply(sc) { if (!sc) return; const v = liveTodVars(); if (sc._tod !== v) { sc._tod = v; for (const kv of v.split(';')) { const [k, x] = kv.split(':'); sc.style.setProperty(k, x); } } sc.dataset.tod = liveTod(); }
+/* 하루의 빛 값을 화면 뿌리(:root)에 둔다 — 강호행 무대와 상단 배너가 함께 쓴다 */
+function liveTodApply(sc) {
+  const v = liveTodVars(), root = document.documentElement;
+  if (root._tod !== v) { root._tod = v; for (const kv of v.split(';')) { const [k, x] = kv.split(':'); root.style.setProperty(k, x); if (sc) sc.style.setProperty(k, x); } }
+  if (sc && sc.dataset.tod !== liveTod()) sc.dataset.tod = liveTod();
+}
+/* 밤하늘 · 반딧불이: 자리는 고정(다시 그려도 튀지 않게) */
+const LIVE_FLIES = [[18, 70, 0], [27, 80, 1.3], [36, 66, 2.6], [48, 76, .7], [57, 69, 3.4], [66, 82, 1.9], [74, 71, 4.1], [83, 78, 2.2], [90, 67, .4], [42, 85, 3]];
 /* 맞붙는 모습 예약: ref = 강호행에서 방금 치른 전투 { rid, bi } — 그 기록(합 · 피해 · 회피 · 생혈고 · 초식 · 승패)을 무대에서 그대로 재생한다 */
 function liveShowQueue(eid, real, boss, ref) {
   if (!eid || !ENEMIES[eid] || (liveAnim.show && liveAnim.show.real)) return;
@@ -401,7 +411,8 @@ function liveScene(r) {
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
     <div class="live-hp me" data-anim><span class="lh-face" style="background-image:url('${ASSET.portrait('hero')}')"></span><div class="lh-body"><b>${esc(S.name)}</b><span class="lh-bar"><i></i></span><em></em></div></div>
     <div class="live-hp foe" data-anim><span class="lh-face"></span><div class="lh-body"><b></b><span class="lh-bar"><i></i></span><em></em></div></div>
-    <i class="live-tint"></i>
+    <i class="live-sun"></i><i class="live-sky"><i class="live-moon"></i></i><i class="live-tint"></i>
+    <i class="live-flies">${LIVE_FLIES.map(([x, y, d]) => `<i style="left:${x}%;top:${y}%;animation-delay:-${d}s,-${(d * 1.7).toFixed(1)}s"></i>`).join('')}</i>
     <img class="live-enc" src="${ASSET.ui('b_encounter')}" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
     <span class="live-where">${stageName(zid, r && r.live ? r.stage : S.expedition.stage || 1)}</span>
