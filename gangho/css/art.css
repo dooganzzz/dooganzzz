@@ -581,7 +581,7 @@
 .sp-num.heal { color: #7ee08a; }
 /* 강호행 기믹: 땅 위 물건(덫 · 궤짝 · 장치 · 기연)과 얻은 것 띄우기 */
 .live-gim { position: absolute; bottom: 9%; z-index: 1; width: 9%; pointer-events: none; filter: drop-shadow(0 3px 3px rgba(40, 25, 10, .45)) saturate(.9); transform-origin: 50% 100%; }
-.live-gim.vault { width: 11%; } .live-gim.event { width: 8%; bottom: 22%; filter: drop-shadow(0 0 8px rgba(255, 220, 120, .8)); animation: gimFloat 1.6s ease-in-out infinite; }
+.live-gim.vault { width: 10%; } .live-gim.gimmick { width: 15%; } .live-gim.trap { width: 10%; } .live-gim.event { width: 9%; bottom: 22%; filter: drop-shadow(0 0 8px rgba(255, 220, 120, .8)); animation: gimFloat 1.6s ease-in-out infinite; }
 @keyframes gimFloat { 50% { transform: translateY(-6px); } }
 .live-gim.hit { animation: gimHit .5s ease-out forwards; }
 .live-gim.trap.hit { animation: gimSnap .35s ease-out forwards; }

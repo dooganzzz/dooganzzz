@@ -210,11 +210,11 @@ function liveProps(sc, walker, dt) {
 }
 /* 기믹 걸음(덫 · 금고 · 장치 · 기연)도 무대에: 오른쪽 끝에서 땅과 같이 다가와 제자에게 닿으면 이펙트와 얻은 것('+1')을 띄운다.
    닿기 전까지 견문록에는 그 걸음을 아직 안 띄운다 (맞붙기와 같은 hold) */
-const LIVE_GIM = { trap: 'c_trap', vault: 'c_chest', gimmick: 'c_explore', event: 'c_star' };
+const LIVE_GIM = { trap: 'gim_trap', vault: 'gim_vault', gimmick: 'gim_gimmick', event: 'gim_event' };   // props/ 아래 기믹 전용 그림
 function liveGimQueue(rec, si) {
   const st = rec.steps[si], sc = document.getElementById('liveScene');
   if (!sc || !LIVE_GIM[st.k] || liveAnim.show || liveAnim.queued || liveAnim.gim || reduceMotion()) return;
-  const el = document.createElement('img'); el.className = `live-gim ${st.k}`; el.src = ASSET.ui(LIVE_GIM[st.k]); el.alt = ''; el.style.left = '104%';
+  const el = document.createElement('img'); el.className = `live-gim ${st.k}`; el.src = ASSET.prop(LIVE_GIM[st.k]); el.alt = ''; el.style.left = '104%';
   sc.appendChild(el);
   liveAnim.gim = { el, st, x0: liveAnim.x, fired: 0 };
   liveAnim.hold = { rid: rec.id, i: si, until: now() + 25000 };
