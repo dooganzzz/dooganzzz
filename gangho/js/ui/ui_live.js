@@ -127,7 +127,13 @@ function liveShowPlan(sh, w) {
   const num = t => +String(t).replace(/[^\d]/g, '') || 0;
   let t = 900, me = B.start.me.hp, foe = B.start.foe.hp;
   for (const r of B.rounds) {
-    for (const f of r.fx) {
+    const used = new Set();
+    for (let i = 0; i < r.fx.length; i++) {
+      const f = r.fx[i]; if (used.has(i)) continue;
+      if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function') {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
+        const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
+        if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', name: f.t, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
+      }
       if (f.side === 'banner') { if (f.k === 'move' && f.mid && f.n) { q.push({ at: t, k: 'skill', sk: { mid: f.mid, tier: f.n >= 3 ? 2 : 1, name: f.t } }); t += T(f.n >= 3 ? 700 : 420); } continue; }
       if (f.side === 'foe') { if (f.k !== 'miss') foe = Math.max(0, foe - num(f.t)); t = heroAtk(t, { k: 'hitR', f, hp: foe }); }
       else if (f.k === 'heal') { me = Math.min(B.start.me.maxHp, me + num(f.t)); q.push({ at: t, k: 'heal', f, hp: me }); t += T(520); }
@@ -183,6 +189,8 @@ function liveShowStart(sc, sh) {
   const R = sh.ref && findExpedition(sh.ref.rid), B = R && R.battles[sh.ref.bi];
   sh.rec = B && B.rounds && B.rounds.length ? B : null;
   for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) preloadImgs([SPRITE_SRC.fx(`${f.mid}_${f.n >= 3 ? 2 : 1}`)]);
+  if (typeof OG_CFG !== 'undefined' && sh.rec && sh.rec.rounds.some(r => r.fx.some(f => f.mid && f.n >= 3))) {   // 오의가 나가는 전투: 오의 그림을 미리
+    const C = OG_CFG[weaponType()]; preloadImgs([ASSET.fx('aura'), ASSET.fx('dart'), ...(C && C.fx ? [ASSET.fx(C.fx)] : [])]); }
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1);
   liveHp(sc, 'foe', sh.rec ? sh.rec.start.foe.hp : 1, sh.rec ? sh.rec.start.foe.maxHp : 1, ENEMIES[sh.eid].name);
   liveAnim.hpm.foe.face = `url('${ASSET.beast(sh.eid)}')`; const ff = sc.querySelector('.live-hp.foe .lh-face'); if (ff) ff.style.backgroundImage = liveAnim.hpm.foe.face;
@@ -209,6 +217,7 @@ function liveShowStep(sc, sh, ts, dt) {
     } else { sc.classList.remove('enc'); void sc.offsetWidth; sc.classList.add('enc'); setTimeout(() => sc.classList.remove('enc'), 2600); }
     return false;
   }
+  if (sh.hold) return false;                          // 오의를 펼치는 동안은 순서를 멈춘다 (끝나면 그만큼 미룬다)
   const el = ts - sh.t0;
   while (sh.q.length && sh.q[0].at <= el) {
     const e = sh.q.shift();
@@ -217,6 +226,12 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'fx') foe.style.left = (sh.foeX + e.x * LIVE_POS.k) + '%';
     else if (e.k === 'fa') foe.classList.toggle('striking', e.f >= 0), e.f >= 0 && (foe.querySelector('.sp-fatk').style.backgroundPositionX = e.f * 50 + '%');
     else if (e.k === 'skill') liveSkill(sc, e.sk);
+    else if (e.k === 'ougi') {
+      sh.hold = true; const t1 = performance.now();
+      ougiPlay(sc, { w: hero.dataset.w || weaponType(), name: e.name, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
+        onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
+      return false;
+    }
     else if (e.k === 'proj') liveProj(sc, sh, e.dur);
     else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 치명타 · 빗나감
       const f = e.f;

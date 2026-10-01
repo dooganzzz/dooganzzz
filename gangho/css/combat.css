@@ -143,3 +143,78 @@
 .move-banner span.long { font-size: 1.5rem; letter-spacing: .12em; }
 .move-banner span.ougi.long { font-size: 1.65rem; }
 @media (max-width: 640px) { .move-banner span.long, .move-banner span.ougi.long { font-size: 1.05rem; letter-spacing: .06em; padding: 8px 14px; } }
+
+/* ───── 오의 연출 (ui_ougi.js): 무대 위에 덮는 막. 바탕색은 --c (병기별) ───── */
+.og-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.live-foe.og-dead { visibility: hidden !important; }
+.og-dim { position: absolute; inset: 0; z-index: 1; background: radial-gradient(ellipse at 40% 60%, rgba(10, 8, 20, .35), rgba(5, 4, 12, .72)); opacity: 0; transition: opacity .3s; }
+.og-layer.dark .og-dim { opacity: 1; }
+.og-hero { position: absolute; z-index: 2; transition: left .5s cubic-bezier(.5, .05, .35, 1); }
+.og-hero.jump { animation: ogJump .52s cubic-bezier(.3, .6, .5, 1) forwards; }
+@keyframes ogJump { 0% { transform: translateY(0); } 45% { transform: translateY(-48%) rotate(-5deg); } 80% { transform: translateY(-14%) rotate(3deg); } 100% { transform: translateY(0) rotate(0); } }
+.og-hero .og-spr { position: absolute; inset: 0; background: 0 0 / 1200% 100% no-repeat; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
+.og-prev { opacity: 0; } .og-prev.fade { animation: ogPrevFade .12s ease-out forwards; }
+@keyframes ogPrevFade { from { opacity: .85; } to { opacity: 0; } }
+.og-ghost { position: absolute; z-index: 1; pointer-events: none; background: 0 0 / 1200% 100% no-repeat; opacity: .45; filter: brightness(1.35) blur(.6px) drop-shadow(0 0 5px rgb(var(--c))) drop-shadow(0 0 2px rgb(var(--c))); mix-blend-mode: screen; animation: ogGhost .42s ease-out forwards; }
+@keyframes ogGhost { to { opacity: 0; transform: translateX(-10px); } }
+.og-shadow { position: absolute; bottom: -2.5%; left: 50%; width: 30%; height: 9%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse, rgba(60, 40, 18, .55), rgba(60, 40, 18, 0) 72%); z-index: -1; }
+.og-foe { position: absolute; z-index: 2; transition: transform .2s; }
+.og-foe.charge { filter: brightness(2.4) saturate(.2) drop-shadow(0 0 12px rgb(var(--c))); transition: filter .15s; }
+.og-foe.flinch { animation: ogFlinch .1s; } @keyframes ogFlinch { 50% { translate: 6% 0; filter: brightness(1.8); } }
+.og-foe.push { transform: translateX(14%); }
+.og-foe.fly { transition: transform .42s cubic-bezier(.3, .6, .5, 1); transform: translate(60%, -55%) rotate(200deg); }
+.og-foe.gone { opacity: 0; transition: opacity .05s; }
+.og-aura { position: absolute; z-index: 3; width: 26%; transform: translate(-50%, -50%); mix-blend-mode: screen; opacity: 0; pointer-events: none; filter: var(--aura-f, hue-rotate(190deg) saturate(1.3)); transition: opacity .3s; }
+.og-aura.on { opacity: 1; animation: ogAuraSpin 1.2s ease-in-out infinite alternate; }
+.og-aura.fadeout { opacity: 0; transition: opacity .8s ease-in; }
+@keyframes ogAuraSpin { from { scale: .95; } to { scale: 1.05; } }
+.og-blade { position: absolute; z-index: 4; height: 1.6%; transform-origin: 0 50%; border-radius: 999px; pointer-events: none; opacity: 0; mix-blend-mode: screen; transition: opacity .7s ease-in;
+  background: linear-gradient(90deg, rgba(var(--c), .5), rgba(var(--c), .95) 55%, #fff 92%, rgba(255, 255, 255, 0)); box-shadow: 0 0 10px 4px rgba(var(--c), .85), 0 0 26px 10px rgba(var(--c), .5); }
+.og-blade.on { opacity: 1; animation: ogFlick .18s ease-in-out infinite alternate; }
+.og-hand { position: absolute; z-index: 4; width: 4.6%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; mix-blend-mode: screen; transition: opacity .6s;
+  background: radial-gradient(circle, #fff 0 14%, rgba(var(--c), .9) 34%, rgba(var(--c), 0) 70%); box-shadow: 0 0 16px 6px rgba(var(--c), .7); }
+.og-hand.on { opacity: 1; animation: ogFlick .15s ease-in-out infinite alternate; }
+@keyframes ogFlick { to { filter: brightness(1.35); } }
+.og-wisp { position: absolute; z-index: 4; width: 3.4%; aspect-ratio: 1.8; border-radius: 50%; pointer-events: none; mix-blend-mode: screen; filter: blur(2.5px);
+  background: radial-gradient(ellipse, rgba(255, 255, 255, .95) 0, rgba(var(--c), .75) 30%, rgba(var(--c), .35) 55%, rgba(var(--c), 0) 72%); }
+.og-wisp.ember { width: 1.4%; aspect-ratio: 1; filter: blur(.6px); background: radial-gradient(circle, #fff6d0 0 25%, rgba(var(--c), .9) 50%, rgba(var(--c), 0) 75%); }
+.og-wisp.spiral { width: 2.2%; aspect-ratio: 2.6; filter: blur(1.4px); }
+.og-wisp.dart { width: 2.2%; aspect-ratio: 2.4; border-radius: 40% 60% 60% 40%; filter: blur(.4px); background: linear-gradient(90deg, rgba(var(--c), 0), rgba(var(--c), .9) 60%, #fff); }
+.og-kunai { position: absolute; z-index: 6; width: 9%; aspect-ratio: 96 / 28; background: center / contain no-repeat; transform: translate(-50%, -50%) rotate(var(--a, -.35rad)); pointer-events: none; display: none;
+  filter: drop-shadow(0 0 2px rgba(var(--c), var(--g, .3))) drop-shadow(0 0 7px rgba(var(--c), var(--g, .3))); }
+@property --g { syntax: '<number>'; inherits: false; initial-value: .3; }
+.og-kunai.on { display: block; }
+.og-kunai.charged { animation: ogKPulse .25s ease-in-out infinite alternate; } @keyframes ogKPulse { from { filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 10px rgba(var(--c), 1)) drop-shadow(0 0 18px rgba(var(--c), .8)) brightness(1.25); } to { filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 16px rgba(var(--c), 1)) drop-shadow(0 0 30px rgba(var(--c), .9)) brightness(1.5); } }
+.og-ktrail { position: absolute; z-index: 4; width: 6.5%; aspect-ratio: 4.5; border-radius: 50%; pointer-events: none; mix-blend-mode: screen; filter: blur(1.4px);
+  background: linear-gradient(90deg, rgba(var(--c), 0), rgba(var(--c), .75) 70%, #fff); transform: translate(-85%, -50%) rotate(var(--a)); transform-origin: 85% 50%; animation: ogTrail .34s ease-out forwards; }
+.og-kghost { position: absolute; z-index: 4; width: 9%; aspect-ratio: 96 / 28; background: center / contain no-repeat; pointer-events: none; mix-blend-mode: screen;
+  transform: translate(-50%, -50%) rotate(var(--a)); filter: brightness(1.6) drop-shadow(0 0 6px rgba(var(--c), 1)); opacity: .6; animation: ogKGhost .42s ease-out forwards; }
+@keyframes ogKGhost { to { opacity: 0; filter: brightness(1.2) blur(2px) drop-shadow(0 0 10px rgba(var(--c), .8)); } }
+@keyframes ogTrail { to { opacity: 0; transform: translate(-85%, -50%) rotate(var(--a)) scaleX(.3); } }
+.og-wisp.flame { width: 2.6%; aspect-ratio: .7; border-radius: 50% 50% 45% 45%; filter: blur(1.6px); background: radial-gradient(ellipse at 50% 70%, #fff3e0 0 18%, rgba(var(--c), .85) 45%, rgba(var(--c), 0) 75%); }
+.og-fx { position: absolute; z-index: 3; width: 42%; aspect-ratio: 1; background: 0 0 / 1600% 100% no-repeat; mix-blend-mode: screen; opacity: 0; pointer-events: none; }
+.og-ring { position: absolute; z-index: 3; width: 6%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%) scale(0); border: 3px solid rgba(var(--c), .9); box-shadow: 0 0 20px rgba(var(--c), .9), inset 0 0 20px rgba(var(--c), .6); opacity: 0; pointer-events: none; }
+.og-ring.play { animation: ogRing .7s ease-out forwards; }
+@keyframes ogRing { 0% { opacity: 1; transform: translate(-50%, -50%) scale(.3); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(9); } }
+.og-spark { position: absolute; z-index: 4; width: 5%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle, #fff 0 15%, rgba(var(--c), .9) 35%, rgba(var(--c), 0) 70%); animation: ogSpark .35s ease-out forwards; }
+@keyframes ogSpark { from { transform: translate(-50%, -50%) scale(.4); opacity: 1; } to { transform: translate(-50%, -50%) scale(1.8); opacity: 0; } }
+.og-hit { position: absolute; z-index: 5; font: 900 clamp(12px, 2.4vw, 18px) serif; color: #fff; text-shadow: 0 0 8px rgb(var(--c)), 0 1px 2px #000; pointer-events: none; animation: ogHit .9s ease-out forwards; }
+@keyframes ogHit { 0% { opacity: 0; transform: translateY(6px) scale(.7); } 20% { opacity: 1; transform: translateY(0) scale(1.1); } 100% { opacity: 0; transform: translateY(-22px); } }
+.og-ban { position: absolute; z-index: 5; transform: translate(-50%, -100%); white-space: nowrap; font: 400 clamp(15px, 3.4vw, 26px)/1.1 'Gangho Brush', serif; letter-spacing: .06em; color: #fff; text-shadow: 0 0 10px rgb(var(--c)), 0 0 3px #000, 0 1px 2px #000; opacity: 0; pointer-events: none; }
+.og-ban small { font: 700 .55em serif; letter-spacing: .1em; color: rgba(var(--c), 1); margin-right: .3em; vertical-align: .25em; filter: brightness(1.5); }
+.og-ban.play { animation: ogB 3.2s ease-out forwards; }
+@keyframes ogB { 0% { opacity: 0; transform: translate(-50%, -80%) scale(.85); } 10%, 82% { opacity: 1; transform: translate(-50%, -100%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -115%); } }
+.og-num { position: absolute; z-index: 5; translate: -50% -100%; white-space: nowrap; font: 900 clamp(16px, 3.6vw, 28px) serif; color: #fff; text-shadow: 0 0 10px rgb(var(--c)), 0 2px 3px #000; opacity: 0; pointer-events: none; }
+.og-num.play { animation: ogN 1.1s ease-out forwards; }
+@keyframes ogN { 0% { opacity: 0; transform: translateY(8px) scale(.7); } 20% { opacity: 1; transform: translateY(0) scale(1.15); } 100% { opacity: 0; transform: translateY(-22px); } }
+.og-flash { position: absolute; z-index: 3; inset: 0; background: radial-gradient(circle at 74% 56%, rgba(var(--c), .55), transparent 55%); opacity: 0; }
+.og-flash.play { animation: ogL .5s linear forwards; }
+@keyframes ogL { 20% { opacity: 1; } 100% { opacity: 0; } }
+.og-shard { position: absolute; z-index: 3; pointer-events: none; background-repeat: no-repeat; transform: scaleX(-1); animation: ogShard .8s cubic-bezier(.2, .7, .4, 1) forwards; }
+@keyframes ogShard { 0% { filter: brightness(3) saturate(.3); opacity: 1; } 100% { transform: scaleX(-1) translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; filter: brightness(2) drop-shadow(0 0 6px rgb(var(--c))); } }
+.og-half { position: absolute; z-index: 3; pointer-events: none; background: center / contain no-repeat; transform: scaleX(-1); filter: brightness(1.6) drop-shadow(0 0 8px rgb(var(--c))); }
+.og-half.top { animation: ogTop 1.2s cubic-bezier(.4, 0, .7, 1) forwards; } .og-half.bot { animation: ogBot 1.2s ease-in forwards; }
+@keyframes ogTop { 0% { opacity: 1; } 30% { transform: scaleX(-1) translate(-10%, -4%) rotate(-4deg); } 100% { transform: scaleX(-1) translate(-30%, 30%) rotate(-38deg); opacity: 0; } }
+@keyframes ogBot { 0% { opacity: 1; } 40% { transform: scaleX(-1) translateY(2%); } 100% { transform: scaleX(-1) translateY(12%) scaleY(.85); opacity: 0; } }
+.og-cut { position: absolute; z-index: 4; height: 3px; transform: rotate(-12deg) scaleX(0); background: linear-gradient(90deg, transparent, #fff, rgb(var(--c)), transparent); box-shadow: 0 0 12px rgb(var(--c)); animation: ogCut .6s ease-out forwards; }
+@keyframes ogCut { 30% { transform: rotate(-12deg) scaleX(1.4); opacity: 1; } 100% { transform: rotate(-12deg) scaleX(1.6); opacity: 0; } }
