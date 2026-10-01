@@ -709,7 +709,7 @@
 /* 지도 글씨: 붓글씨 그림(ui/map_*)만 — 작게, 배경 · 테두리 없이 먹이 종이에 스며든 듯(곱하기), 각 그림의 머리 위쪽에 */
 .map-box > .map-word { position: absolute; z-index: 3; border-radius: 0; object-fit: contain; transform: translate(-50%, -50%); width: 10%; height: auto; pointer-events: none; mix-blend-mode: multiply; opacity: 1; transition: opacity .2s, filter .2s; }
 .map-box > .map-word.home { width: 9%; }
-.map-box > .map-word.locked { opacity: .88; }
+.map-box > .map-word.locked { display: none; }   /* 앞 사냥터를 깨기 전에는 다음 사냥터 이름을 숨긴다 (손을 대도 연출 없음) */
 .map-spot:hover + .map-pillar + .map-word, .map-spot:focus-visible + .map-pillar + .map-word { opacity: 1; filter: drop-shadow(0 0 4px rgba(255, 225, 150, .9)); mix-blend-mode: normal; }
 .map-hint { margin: 8px 2px 0; font-size: 12px; }
 .map-go { width: min(640px, 96vw); }
