@@ -562,12 +562,32 @@
   -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent); mask-image: linear-gradient(180deg, #000 40%, transparent); }
 .live-sky::before { content: ''; position: absolute; inset: 0; background: radial-gradient(1.5px 1.5px at 7.9% 20.3%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 37.9% 57.8%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 94.6% 55.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 47.5% 12.2%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 48.8% 88.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 48.1% 29.4%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 15.1% 68.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 73.6% 44.1%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 68.8% 47.4%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 21.1% 85.8%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 36.5% 62.7%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 90.6% 68.7%, rgba(255, 250, 225, .95), transparent); animation: liveTwinkle 3.2s ease-in-out infinite alternate; }
 @keyframes liveTwinkle { from { opacity: .15; } to { opacity: 1; } }
-.live-moon { position: absolute; right: 18%; top: 12%; width: 6.5%; aspect-ratio: 1; border-radius: 50%;
+.live-moon { position: absolute; right: 18%; top: 12%; width: 6.5%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; opacity: calc(.25 + var(--moonlit, 1) * .75);
   background: radial-gradient(circle at 38% 36%, #fffbe8, #f3e6bd 55%, #d8c99c);
   box-shadow: 0 0 14px 4px rgba(255, 244, 205, .55), 0 0 40px 14px rgba(255, 240, 200, .18); }
+/* 달의 위상: 하늘이 '밝게 더하기(screen)'로 얹히므로 검은 가림 원은 그 부분을 지운다 */
+.live-moon .moon-shade { position: absolute; inset: -2%; border-radius: 50%; background: #000; z-index: 1; transform: translateX(var(--moonx, -100%)); box-shadow: 0 0 6px 3px #000; }
 .live-moon::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 70% 60%, rgba(150, 140, 110, .25) 0 10%, transparent 11%), radial-gradient(circle at 40% 70%, rgba(150, 140, 110, .2) 0 7%, transparent 8%); }
+/* 날씨: 비 줄기 · 눈송이 · 안개 띠 (세기 --rain · --snow · --fog, 서서히 들고 난다) */
+.live-rain, .live-snow, .live-fog { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.live-rain { opacity: calc(var(--rain, 0) * .85);
+  background: repeating-linear-gradient(102deg, transparent 0 9px, rgba(150, 165, 192, .75) 9px 10.5px, transparent 10px 23px),
+    repeating-linear-gradient(98deg, transparent 0 14px, rgba(175, 188, 210, .55) 14px 15px, transparent 15px 31px);
+  background-size: 100% 120px, 100% 170px; animation: liveRain .45s linear infinite; }
+@keyframes liveRain { to { background-position: -24px 120px, -30px 170px; } }
+.live-rain::after { content: ''; position: absolute; inset: 0; background: rgba(70, 80, 100, .22); mix-blend-mode: multiply; }
+.live-snow { opacity: var(--snow, 0);
+  background: radial-gradient(circle 3.0px at 12% 18%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%), radial-gradient(circle 2.5px at 33% 42%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%), radial-gradient(circle 3.5px at 57% 12%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%), radial-gradient(circle 2.5px at 78% 36%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%), radial-gradient(circle 3.0px at 91% 70%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%), radial-gradient(circle 2.5px at 23% 76%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%), radial-gradient(circle 3.5px at 46% 64%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%), radial-gradient(circle 2.5px at 67% 88%, #fff 0 45%, rgba(140, 150, 170, .8) 70%, transparent 100%);
+  background-size: 110px 100px; animation: liveSnow 7s linear infinite; }
+.live-snow::after { content: ''; position: absolute; inset: 0; background: inherit; background-size: 170px 150px; opacity: .8; animation: liveSnow 11s linear infinite; }
+@keyframes liveSnow { to { background-position: 30px 100px; } }
+.live-fog { opacity: var(--fog, 0); z-index: 4;
+  background: linear-gradient(180deg, rgba(235, 236, 232, .15) 0, rgba(236, 238, 234, .7) 45%, rgba(230, 232, 228, .55) 70%, rgba(225, 226, 222, .2)),
+    radial-gradient(ellipse 40% 20% at 30% 60%, rgba(255, 255, 255, .55), transparent 70%), radial-gradient(ellipse 45% 18% at 75% 50%, rgba(255, 255, 255, .5), transparent 70%);
+  background-size: 100% 100%, 200% 100%, 200% 100%; animation: liveFog 40s linear infinite alternate; }
+@keyframes liveFog { to { background-position: 0 0, -60% 0, 40% 0; } }
 /* 반딧불이: 저녁 · 밤에 풀숲 위를 떠돈다 (세기 --star) */
-.live-flies { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: var(--star, 0); }
+.live-flies { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .live-flies i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #f4ffb0; box-shadow: 0 0 6px 2px rgba(214, 255, 120, .75), 0 0 14px 5px rgba(190, 255, 110, .3);
   animation: liveFly 6s ease-in-out infinite alternate, liveFlyBlink 2.3s ease-in-out infinite; }
 @keyframes liveFly { 0% { transform: translate(0, 0); } 33% { transform: translate(14px, -10px); } 66% { transform: translate(-8px, -18px); } 100% { transform: translate(10px, 4px); } }

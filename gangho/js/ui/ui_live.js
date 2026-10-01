@@ -33,8 +33,32 @@ function liveTod(t = now()) { const m = kstMin(t); return m >= 300 && m < 420 ? 
 function liveTodVars(t = now()) {
   const m = kstMin(t), i = TOD_KEYS.findIndex(k => k[0] > m), [m0, A] = TOD_KEYS[i - 1], [m1, B] = TOD_KEYS[i], f = (m - m0) / (m1 - m0);
   const mix = (a, b) => `rgba(${a.map((v, j) => (j < 3 ? Math.round(v + (b[j] - v) * f) : +(v + (b[j] - v) * f).toFixed(3))).join(',')})`;
-  const num = j => (A[j] + (B[j] - A[j]) * f).toFixed(3);
-  return `--tt:${mix(A[0], B[0])};--tm:${mix(A[1], B[1])};--tb:${mix(A[2], B[2])};--glow:${num(3)};--sun:${num(4)};--star:${num(5)}`;
+  const num = j => A[j] + (B[j] - A[j]) * f, W = liveWeather(t), clouded = Math.min(1, W.rain + W.snow * .8 + W.fog * .9);
+  // 달: 실제 음력 위상 (0 그믐 → .5 보름 → 1 그믐). 가림 원을 옆으로 밀어 초승 · 반달 · 보름을 낸다
+  const ph = moonPhase(t), mx = ph < .5 ? -ph * 200 : (1 - ph) * 200, lit = 1 - Math.abs(1 - ph * 2);
+  return `--tt:${mix(A[0], B[0])};--tm:${mix(A[1], B[1])};--tb:${mix(A[2], B[2])};--glow:${num(3).toFixed(3)};--sun:${(num(4) * (1 - clouded)).toFixed(3)}`
+    + `;--star:${(num(5) * (1 - clouded * .85)).toFixed(3)};--fly:${(num(5) * (1 - Math.max(W.rain, W.snow))).toFixed(3)};--moonx:${mx.toFixed(1)}%;--moonlit:${lit.toFixed(2)}`
+    + `;--rain:${W.rain.toFixed(3)};--snow:${W.snow.toFixed(3)};--fog:${W.fog.toFixed(3)}`;
+}
+/* 달의 위상: 삭(2000-01-06 18:14 UTC)에서 지난 날 ÷ 삭망월 29.53일 */
+const moonPhase = (t = now()) => (((t - Date.UTC(2000, 0, 6, 18, 14)) / 86400000 / 29.530589) % 1 + 1) % 1;
+/* 날씨: 서울 시각 3시간마다 모두에게 같은 날씨(시각으로 정해진 주사위). 마디 앞뒤 40분 동안 서서히 들고 난다.
+   겨울(12~2월)에는 비 대신 눈 */
+const WEATHER = { blockH: 3, fadeMin: 40, odds: [['clear', 64], ['rain', 14], ['fog', 14], ['snow', 8]] };
+function liveWeatherKind(block) {
+  let x = Math.imul(block ^ 0x9e3779b9, 0x85ebca6b); x ^= x >>> 13; x = Math.imul(x, 0xc2b2ae35); x ^= x >>> 16;
+  let r = (x >>> 0) % 100, k = 'clear';
+  for (const [w, n] of WEATHER.odds) { if (r < n) { k = w; break; } r -= n; }
+  const mon = new Date(block * WEATHER.blockH * 3600000).getUTCMonth(), winter = mon === 11 || mon <= 1;
+  return k === 'snow' && !winter ? 'rain' : k === 'rain' && winter ? 'snow' : k;
+}
+function liveWeather(t = now()) {
+  const H = WEATHER.blockH * 3600000, k = t + 9 * 3600000, b = Math.floor(k / H), into = (k - b * H) / 60000, left = H / 60000 - into;
+  const cur = liveWeatherKind(b), out = { rain: 0, snow: 0, fog: 0, kind: cur };
+  const fade = WEATHER.fadeMin, edge = m => Math.min(1, m / fade);
+  // 앞 · 뒤 마디도 같은 날씨면 그 경계에서는 끊기지 않고 이어진다
+  if (cur !== 'clear') out[cur] = Math.min(liveWeatherKind(b - 1) === cur ? 1 : edge(into), liveWeatherKind(b + 1) === cur ? 1 : edge(left));
+  return out;
 }
 /* 하루의 빛 값을 화면 뿌리(:root)에 둔다 — 강호행 무대와 상단 배너가 함께 쓴다 */
 function liveTodApply(sc) {
@@ -411,8 +435,8 @@ function liveScene(r) {
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
     <div class="live-hp me" data-anim><span class="lh-face" style="background-image:url('${ASSET.portrait('hero')}')"></span><div class="lh-body"><b>${esc(S.name)}</b><span class="lh-bar"><i></i></span><em></em></div></div>
     <div class="live-hp foe" data-anim><span class="lh-face"></span><div class="lh-body"><b></b><span class="lh-bar"><i></i></span><em></em></div></div>
-    <i class="live-sun"></i><i class="live-sky"><i class="live-moon"></i></i><i class="live-tint"></i>
-    <i class="live-flies">${LIVE_FLIES.map(([x, y, d]) => `<i style="left:${x}%;top:${y}%;animation-delay:-${d}s,-${(d * 1.7).toFixed(1)}s"></i>`).join('')}</i>
+    <i class="live-sun"></i><i class="live-sky"><i class="live-moon"><i class="moon-shade"></i></i></i><i class="live-fog"></i><i class="live-rain"></i><i class="live-snow"></i><i class="live-tint"></i>
+    <i class="live-flies" style="opacity:var(--fly,0)">${LIVE_FLIES.map(([x, y, d]) => `<i style="left:${x}%;top:${y}%;animation-delay:-${d}s,-${(d * 1.7).toFixed(1)}s"></i>`).join('')}</i>
     <img class="live-enc" src="${ASSET.ui('b_encounter')}" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
     <span class="live-where">${stageName(zid, r && r.live ? r.stage : S.expedition.stage || 1)}</span>
