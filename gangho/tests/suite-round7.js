@@ -21,7 +21,7 @@ module.exports = async (b) => {
     ok('2 재료 단서는 더 이상 없음', !clue.known && clue.clues === 0, JSON.stringify(clue));
     await p.click('.recipe-row [data-recipe="a_sohwan"]');
     const cm = await p.evaluate(() => ({ title: document.querySelector('.sheet h2').textContent, hidden: !!document.querySelector('.hidden-mat'), mats: [...document.querySelectorAll('.mats-list li span')].map(e => e.textContent).join(' | ') }));
-    ok('2 발견한 조합식 창: 재료 전부 공개', !cm.hidden && /야생 삼채/.test(cm.mats) && /청령목 수액/.test(cm.mats), `${cm.title} — ${cm.mats}`);
+    ok('2 발견한 조합식 창: 재료 전부 공개', !cm.hidden && /산삼 잔뿌리/.test(cm.mats) && /청령목 진액/.test(cm.mats), `${cm.title} — ${cm.mats}`);
     await p.click('[data-act="closemodal"]');
     ok('2 미발견 비법은 목록에 없음', await p.evaluate(() => !document.querySelector('.recipe-row.unknown') && [...document.querySelectorAll('.recipe-row [data-recipe]')].every(b => S.codex.includes(b.dataset.recipe))));
 

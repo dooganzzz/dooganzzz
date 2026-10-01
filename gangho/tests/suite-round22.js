@@ -87,7 +87,7 @@ module.exports = async (b) => {
     ok('4 도감: 강적 | 비급 | 단조 비법 | 연단 비법', cx.tabs === '강적|비급|단조 비법|연단 비법', cx.tabs);
     await p.click('[data-codextab="forge"]');
     const fr = await p.evaluate(() => ({ known: document.querySelectorAll('.recipe-row:not(.unknown)').length, unknown: document.querySelectorAll('.recipe-row.unknown').length, text: (document.querySelector('.recipe-row:not(.unknown)') || {}).textContent || '' }));
-    ok('4 단조 비법: 발견한 것만 재료·결과와 함께 (못 찾은 비법은 숨김)', fr.known === 1 && fr.unknown === 0 && /청강검/.test(fr.text) && /거친 철광석 ×3/.test(fr.text), JSON.stringify(fr));
+    ok('4 단조 비법: 발견한 것만 재료·결과와 함께 (못 찾은 비법은 숨김)', fr.known === 1 && fr.unknown === 0 && /청강검/.test(fr.text) && /조철광 ×3/.test(fr.text), JSON.stringify(fr));
     await p.click('[data-codextab="martial"]');
     ok('4 무공: 익힌 무공만 공개 (분류 탭마다)', await p.evaluate(() => { const cat = CAT_ORDER.find(c => Object.keys(S.manuals).some(id => MANUALS[id].cat === c)); return document.querySelectorAll('.codex-panel .beasts li:not(.unknown)').length === Object.keys(S.manuals).filter(id => MANUALS[id].cat === cat).length && !document.querySelector('.codex-panel .beasts li.unknown') && document.querySelectorAll('.codex-panel [data-codexcat]').length === CAT_ORDER.filter(c => Object.keys(S.manuals).some(id => MANUALS[id].cat === c)).length; }));
     await p.click('[data-codextab="monster"]');

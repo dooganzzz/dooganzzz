@@ -92,7 +92,7 @@ module.exports = async (b) => {
     await p.click('[data-add="roughOre"]');
     ok('7 재료 넣기는 확인 없이 바로', await p.evaluate(() => ui.modal === null && potTotal(ui.pot) === 1));
     await p.click('[data-act="craft"]');
-    ok('7 단조 시도는 확인 창 (소모 재료 요약)', await p.evaluate(() => ui.modal === 'confirm' && /거친 철광석 ×1/.test(document.querySelector('.confirm-details').textContent)));
+    ok('7 단조 시도는 확인 창 (소모 재료 요약)', await p.evaluate(() => ui.modal === 'confirm' && /조철광 ×1/.test(document.querySelector('.confirm-details').textContent)));
     await p.click('.confirm-sheet [data-act="closemodal"]');
 
     // 8. 컴팩트: 헤더 칩 · 무공 카드

@@ -101,7 +101,7 @@ module.exports = async (b) => {
     });
     ok('6 기력은 숨겨진 능력치: 틱·음식으로 차오르지 않고 화면에 없음', sta.noRegen && sta.noFood, JSON.stringify(sta));
     ok('6 정각 출발 때만 기력이 가득', sta.full, JSON.stringify(sta));
-    ok('6 증강 단약(골계단)은 다음 탐험 한 번 뒤 사라짐', sta.buff && sta.cleared, JSON.stringify(sta));
+    ok('6 증강 단약(철골단)은 다음 탐험 한 번 뒤 사라짐', sta.buff && sta.cleared, JSON.stringify(sta));
     ok('6 생혈고 없이 활력 바닥 → 마을 치료(기력 소모) 후 다시 사냥', sta.village, JSON.stringify(sta));
     ok('6 쓰러지면 기력을 잃고 회복해 다시 사냥 (기력이 다할 때까지)', sta.defeat && sta.defeatLog, JSON.stringify(sta));
     ok('6 위급하면 생혈고 자동 사용', sta.potion, JSON.stringify(sta));

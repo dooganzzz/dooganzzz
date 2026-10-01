@@ -12,7 +12,7 @@ const ZONES = {
     enemies: ['rabbit', 'wildcat', 'viper', 'scout', 'slinger', 'boar', 'deserter', 'turtle', 'treant'], boss: 'redTiger',
     mats: ['wildGinseng', 'blackwood', 'boarMolar', 'wildcatHide', 'treeSap', 'roughOre', 'viperScale', 'viperSac', 'blackIngot'],   // 독사 비늘·독낭, 드문 흑철괴(3재료 단조)
     herb: [['wildGinseng', 1, 2, 1], ['treeSap', 1, 1, 0.5], ['herb', 1, 2, 0.8], ['lingzhi', 1, 1, 0.3]],
-    mine: [['roughOre', 1, 2, 1], ['blackwood', 1, 2, 0.6], ['blackIngot', 1, 1, 0.2]],   // 정련된 흑철괴: 청풍산에서도 드물게 (3재료 단조용)
+    mine: [['roughOre', 1, 2, 1], ['blackwood', 1, 2, 0.6], ['blackIngot', 1, 1, 0.2]],   // 정련 흑철괴: 청풍산에서도 드물게 (3재료 단조용)
     chest: [['silver', 20, 40], ['saenghyeol', 1, 2], ['lingzhi', 1, 2], ['roughOre', 2, 3]],
     gimmick: { name: '쓰러진 고목', stat: 'atk', need: 22, text: '쓰러진 고목을 내공으로 쪼개자 속에 숨겨진 약초 주머니가 드러났습니다!', reward: [['lingzhi', 1, 2], ['blackwood', 2, 3], ['silver', 30, 50]], fail: '고목이 꿈쩍도 하지 않습니다. (공격력 22 이상 필요)' },
     unlock: null,
