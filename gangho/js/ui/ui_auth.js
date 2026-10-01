@@ -7,6 +7,7 @@ const AUTH_ERR = {
   'id taken': '이미 쓰고 있는 아이디입니다.',
   'bad id': '아이디는 영문 소문자 · 숫자 · _ 로 3~16자입니다.',
   'bad pass': '비밀번호는 4~64자입니다.',
+  'locked': '비밀번호를 여러 번 틀려 10분 동안 로그인이 막혔습니다. 잠시 뒤 다시 시도하십시오.',
 };
 let authUi = { mode: 'login', busy: false, err: '', notice: '', id: '', offline: false };
 function authErrText(e) {
