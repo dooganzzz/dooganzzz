@@ -277,7 +277,7 @@ async function doReset() {
 
 Bus.on('save', save);
 
-/* 전투력은 늘 계산해서 쓰고, 저장 상태에는 거울 값으로만 둔다. 능력치·장비·무공이 바뀌는 모든 조작은
+/* 투력은 늘 계산해서 쓰고, 저장 상태에는 거울 값으로만 둔다. 능력치·장비·무공이 바뀌는 모든 조작은
    refresh 신호를 보내고, 탐험 결산도 refresh를 보낸다. 틱에서도 한 번 더 맞춘다. */
 function syncCombatPower() { if (S) S.combatPower = calculateCombatPower(S); }
 Bus.on('refresh', syncCombatPower);

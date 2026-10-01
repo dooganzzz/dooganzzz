@@ -30,7 +30,7 @@ function aiAct(note) {
   // 3. 비급 읽기 → 무공 고르기
   for (const id of Object.keys(S.inv)) if (id.startsWith('bk_') && ITEMS[id].use && ITEMS[id].use.learn && !S.manuals[ITEMS[id].use.learn]) { const mid = ITEMS[id].use.learn; learnManual(id); note(`비급 습득: ${MANUALS[mid].name}`); }
   aiPickManuals(note);
-  // 4. 장비: 전투력이 오르면 갈아 끼우고, 행낭이 차면 못 쓰는 장비를 판다
+  // 4. 장비: 투력이 오르면 갈아 끼우고, 행낭이 차면 못 쓰는 장비를 판다
   aiPickGear(note);
   // 5. 문파 임무 · 무신상 공양
   for (const q of subqList()) if (subqReady(q.zid, q.n)) claimSubq(q.zid, q.n);
@@ -73,13 +73,13 @@ function aiPickGear(note) {
     if (it.slot === 'weapon' && mu && mu.weapon && it.wtype !== mu.weapon) continue;   // 무공과 맞지 않는 병기는 들지 않는다
     const slots = SLOT_ORDER.filter(s => slotAccepts(s) === it.slot);
     let bestSlot = null, bestCp = cp();
-    for (const s of slots) {                               // 잠깐 끼워 보고 전투력을 잰다
+    for (const s of slots) {                               // 잠깐 끼워 보고 투력을 잰다
       const prev = S.equip[s]; S.equip[s] = it;
       const v = cp(); S.equip[s] = prev;
       if (prev === undefined) delete S.equip[s];
       if (v > bestCp) { bestCp = v; bestSlot = s; }
     }
-    if (bestSlot) { equipItem(it.uid, bestSlot); note(`장비: ${it.name} 착용 (전투력 ${fmt(bestCp)})`); }
+    if (bestSlot) { equipItem(it.uid, bestSlot); note(`장비: ${it.name} 착용 (투력 ${fmt(bestCp)})`); }
   }
   if (bagUsed() >= bagCap() - 2) for (const it of [...S.gear]) if (gearSellPrice(it)) sellGear(it.uid);
 }
@@ -152,7 +152,7 @@ function aiRun(days, patternKey = 'life') {
   report.ms = Date.now() - start;
   // 보고서에 같은 줄이 겹치면 줄인다
   const seen = new Set(); report.notes = report.notes.filter(n => { const k = n.day + n.text; if (seen.has(k)) return false; seen.add(k); return true; });
-  log(`🤖 AI 자동 플레이 ${days}일 (${P.name}) — 전투력 ${fmt(report.before.cp)} → ${fmt(report.after.cp)}, 무공 ${report.before.star}성 → ${report.after.star}성`, 'gold');
+  log(`🤖 AI 자동 플레이 ${days}일 (${P.name}) — 투력 ${fmt(report.before.cp)} → ${fmt(report.after.cp)}, 무공 ${report.before.star}성 → ${report.after.star}성`, 'gold');
   notify.refresh(); notify.save();
   return report;
 }

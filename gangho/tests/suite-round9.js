@@ -79,13 +79,13 @@ module.exports = async (b) => {
 
     // 5. 정청 접기/펼치기
     await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'hall'; render(); });
-    const state = () => p.evaluate(() => ['hq', 'missions', 'library'].map(k => document.querySelector(`[data-foldbody="${k}"]`).classList.contains('collapsed') ? '접힘' : '펼침').join(','));
+    const state = () => p.evaluate(() => ['hq', 'library'].map(k => document.querySelector(`[data-foldbody="${k}"]`).classList.contains('collapsed') ? '접힘' : '펼침').join(','));
     const s0 = await state();
-    ok('5 기본: 정청 세 구역 모두 접힘', s0 === '접힘,접힘,접힘', s0);
-    await p.click('[data-fold="library"]'); await p.click('[data-fold="missions"]');
+    ok('5 기본: 정청 두 구역(토벌 임무는 장문인 안) 모두 접힘', s0 === '접힘,접힘', s0);
+    await p.click('[data-fold="library"]');
     const s1 = await state();
     const arrows = await p.$$eval('.fold-arrow', e => e.map(x => x.textContent).join(''));
-    ok('5 헤더 클릭으로 토글 + 화살표 ▼/▲', s1 === '접힘,펼침,펼침' && arrows === '▼▲▲', `${s1} ${arrows}`);
+    ok('5 헤더 클릭으로 토글 + 화살표 ▼/▲', s1 === '접힘,펼침' && arrows === '▼▲', `${s1} ${arrows}`);
     await p.waitForTimeout(450);
     const fh = await p.evaluate(() => ({ collapsed: document.querySelector('[data-foldbody="hq"]').getBoundingClientRect().height, cursor: getComputedStyle(document.querySelector('.fold-head')).cursor, trans: getComputedStyle(document.querySelector('.fold-body')).transitionProperty }));
     ok('5 접힌 구역은 높이 0, max-height 전환, 포인터 커서', fh.collapsed < 1 && /max-height/.test(fh.trans) && fh.cursor === 'pointer', JSON.stringify(fh));

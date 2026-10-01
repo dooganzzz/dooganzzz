@@ -125,8 +125,9 @@
 }
 .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
 
-/* ───────── 그림 파일이 뜨면 SVG 자리 그림은 감춘다 (투명 배경 그림이 겹쳐 보이지 않게) ───────── */
-.art-frame.loaded > svg { visibility: hidden; }
+/* ───────── 그림 파일이 있으면 SVG 자리 그림은 처음부터 감춘다 (예전 그림이 비쳤다가 바뀌지 않게).
+   그림을 못 불러오면 artFail이 img를 걷어 내므로 그때만 자리 그림이 보인다 (SVG는 칸 크기만 잡는다) ───────── */
+.art-frame.loaded > svg, .art-frame:has(> img) > svg { visibility: hidden; }
 .beast-art > img { object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55)); }
 .beast-art.loaded { border-radius: 0; }
 /* 도감: 요수를 그림으로 크게 */

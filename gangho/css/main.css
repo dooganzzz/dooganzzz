@@ -178,7 +178,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .quest { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-left: 3px solid var(--gold); background: var(--raise); border-radius: 0 4px 4px 0; }
 .quest > b { font-size: 1.15rem; }
 .missions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.missions li { display: grid; grid-template-columns: minmax(0, 1fr) 90px 44px 70px auto; gap: 10px; align-items: center; padding: 10px 12px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px; font-size: .9rem; }
+.missions li { display: grid; grid-template-columns: minmax(0, 1fr) 90px 44px minmax(120px, 190px) auto auto; gap: 10px; align-items: center; padding: 10px 12px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px; font-size: .9rem; }
 .mprog { height: 6px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
 .mprog span { display: block; height: 100%; background: var(--jade); }
 .reward { color: var(--jade); font-weight: 700; font-size: .85rem; }
@@ -914,4 +914,14 @@ body {
 }
 @media (max-width: 760px) {   /* 폰: 위치 편향은 빼고 기울기만 남긴다 (가장자리에 닿지 않게) */
   .pos-12 { transform: rotate(-.6deg); } .pos-9 { transform: rotate(.8deg); } .pos-3 { transform: rotate(-.8deg); } .pos-6 { transform: rotate(.5deg); }
+}
+
+/* 정청 › 장문인의 토벌 임무 (장문인 가르침 아래) */
+.subq-box { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 6px; padding: 12px 14px; border-left: 3px solid rgba(95, 176, 155, .6); border-radius: 0 8px 8px 0; background: rgba(255, 255, 255, .02); }
+.subq-title { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.subq-day { white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .missions li { grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px 10px; }
+  .missions li > div:first-child { grid-column: 1 / -1; }
+  .missions .mprog { grid-column: 1 / -1; order: 0; }
 }

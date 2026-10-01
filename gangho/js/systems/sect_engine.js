@@ -1,20 +1,25 @@
 /* [시스템] 청풍문: 문파 임무·인물(조운·아린·장문인)·장경각·창고·하산 (DOM 조작 금지) */
 
 /* ───────── 서브 퀘스트: 단계별 토벌 (반복) ─────────
-   열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'. 다 채우면 정청에서 보상을 받고, 진행은 처음부터 다시 쌓인다 (몇 번이고).
+   열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'. 다 채우면 장문인에게 보상을 받고, 진행은 처음부터 다시 쌓인다 (단계마다 하루 SUBQ.daily번까지).
    보상: 공헌도 · 은자 · 수련치 · 생혈고 (단계 × 탐험지 티어에 비례). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
-const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1 };
+const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 3 };   // daily: 단계마다 하루에 보상을 받을 수 있는 횟수
 const subqKey = (zid, n) => `${zid}:${n}`;
 function subqReward(zid, n) { const t = ZONES[zid].tier; return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
 function subqProg(zid, n) { return ((S.subq || {})[subqKey(zid, n)]) || 0; }
 function subqAdd(zid, n) { S.subq = S.subq || {}; const k = subqKey(zid, n); S.subq[k] = Math.min(SUBQ.kills, (S.subq[k] || 0) + 1); }
-const subqReady = (zid, n) => subqProg(zid, n) >= SUBQ.kills;
+/* 오늘 그 단계에서 보상을 받은 횟수 (자정이 지나면 0부터) */
+function subqToday(zid, n) { const d = S.subqDay; return d && d.date === today() ? d.n[subqKey(zid, n)] || 0 : 0; }
+const subqLeft = (zid, n) => Math.max(0, SUBQ.daily - subqToday(zid, n));
+const subqReady = (zid, n) => subqProg(zid, n) >= SUBQ.kills && subqLeft(zid, n) > 0;
 /* 지금 받을 수 있는 서브 퀘스트 목록: 열린 탐험지의 열린 단계 */
 function subqList() { const out = []; for (const z of ZONE_ORDER) if (zoneUnlocked(z)) for (let n = 1; n <= stageMax(z); n++) out.push({ zid: z, n }); return out; }
 function subqReadyCount() { return subqList().filter(q => subqReady(q.zid, q.n)).length; }
 function claimSubq(zid, n) {
   if (!ZONES[zid] || !subqReady(zid, n)) return false;
   const r = subqReward(zid, n);
+  if (!S.subqDay || S.subqDay.date !== today()) S.subqDay = { date: today(), n: {} };
+  S.subqDay.n[subqKey(zid, n)] = subqToday(zid, n) + 1;
   S.subq[subqKey(zid, n)] = 0; S.contrib += r.contrib; S.silver += r.silver; S.exp += r.exp; give('saenghyeol', r.pot, true);
   S.subqDone = (S.subqDone || 0) + 1;
   log(`📜 토벌 임무 완료 — ${stageName(zid, n)}: ${hlContrib('+' + r.contrib)}, ${hlSilver(r.silver)}, 수련치 +${r.exp}, 생혈고 ${r.pot}`, 'good');
@@ -77,7 +82,7 @@ function jounGuide() {
     [!(S.expedition && S.expedition.zone), '아직 탐험지를 안 정했구나. 강호행에서 갈 곳을 정하고 [강호행 시작]을 눌러라. 쓰러질 때까지 알아서 나아간다.'],
     [Object.keys(S.manuals).some(id => !starUpBlock(id)), '수련치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
     [!has('saenghyeol', 3), '생혈고가 떨어져 간다. 탐험 중에 위급하면 그걸 바르니, 화로에서 달이든 전방에서 사든 넉넉히 챙겨라.'],
-    [ready, `토벌 임무 ${ready}건을 채웠구나. 정청 토벌 임무에서 보상을 받아 가라.`],
+    [ready, `토벌 임무 ${ready}건을 채웠구나. 내게 토벌 보상을 받아 가라.`],
     [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].defeats, '지난 강호행에서 쓰러졌다지? 한 단계 아래에서 토벌 임무를 채우며 생혈고와 은자를 모으고, 무공과 장비를 올린 뒤 다시 올라가라.'],
     [S.gear.length >= 3, '행낭에 안 쓰는 장비가 쌓였다. 청풍전방 왕 가에게 가면 은자로 바꿔 준다.'],
     [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],

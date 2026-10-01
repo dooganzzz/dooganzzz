@@ -53,16 +53,20 @@ const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_
 
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 
-/* 상태 탭 맨 위: 종합 전투력과 내역 */
+/* 상태 탭 맨 위: 투력과 내역. 내역은 가운데 기준 상대(염화채 정예)와 겨뤘을 때의 기대값 */
 function cpCard() {
-  const p = combatPowerParts(S), W = CP_WEIGHTS;
-  return `<section class="cp-card" aria-label="종합 전투력">
-    <div class="cp-main"><span class="cp-label">${label('전투력', '戰鬪力')}</span><b class="cp-value">${fmt(p.total)}</b></div>
+  const p = combatPowerParts(S), pct = v => `${Math.round(v * 100)}%`, R = CP_REF[1];
+  const vsTip = p.vs.map((v, i) => `${CP_REF[i].name}: 공세 ${v.offense.toFixed(1)} × 수세 ${v.rounds.toFixed(1)}합`).join('\n');
+  return `<section class="cp-card" aria-label="투력">
+    <div class="cp-main" title="기준 상대 셋과 겨뤄 쓰러지기 전까지 넣는 피해(공세 × 수세)를 기하평균한 지수.\n${vsTip}"><span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(p.total)}</b></div>
     <div class="cp-parts">
-      <span title="최대 활력 × ${W.maxHp} + 최대 내력 × ${W.maxMp}">체력·내력 <b>${fmt(p.base)}</b></span>
-      <span title="공격력 × ${W.atk} + 방어력 × ${W.def}">공격·방어 <b>${fmt(p.gear)}</b></span>
-      <span title="장착 무공 4종: 등급 계수 × 성 × ${W.art}">무공 <b>${fmt(p.arts)}</b></span>
-      <span title="민첩 × ${W.agi}">민첩 <b>${fmt(p.agi)}</b></span>
+      <span title="${R.name}에게 한 합에 넣는 기대 피해 (명중 · 관통 · 치명 · 초식 · 반격 · 오행 포함)">공세 <b>${p.offense.toFixed(1)}</b></span>
+      <span title="${R.name}에게 쓰러지기까지 버티는 합 수 (활력 · 방어 · 회피 · 치명 저항 · 흡혈 · 충격 포함)">수세 <b>${p.rounds.toFixed(1)}합</b></span>
+      <span title="평타가 들어갈 확률">명중 <b>${pct(p.hit)}</b></span>
+      <span title="치명타가 더해 주는 평균 피해">치명 <b>×${p.crit.toFixed(2)}</b></span>
+      <span title="공격 무공 초식이 평타보다 더 넣는 몫 (발현 확률 · 연결 · 내력 지속 반영)">초식 <b>×${p.skill.toFixed(2)}</b></span>
+      <span title="한 판 동안 초식을 쓸 내력이 버티는 정도">내력 지속 <b>${pct(p.sustain)}</b></span>
+      <span title="선공: 속도 + 민첩이 기준 상대보다 빠르면 먼저 친다">선공 <b>${p.first ? '우세' : '열세'}</b></span>
     </div>
     <div class="cp-attr">${Object.entries(ATTRS).map(([k, A]) => `<span title="${A.desc}">${A.name} <b>${attrOf(k)}</b></span>`).join('')}${S.talent ? `<span title="${TALENTS[S.talent].desc}">기예 <b>${TALENTS[S.talent].name}</b></span>` : ''}</div>
   </section>`;
@@ -180,6 +184,7 @@ function viewHall() {
         : `<small class="muted">메인 퀘스트 · 장문인의 가르침 ${qi + 1}/${QUESTS.length}</small><b>${q.t}${tutorReady() ? ' <span class="good">— 이룸!</span>' : ''}</b><p class="story">${tutorReady() ? '장문인에게 [ 보상 받기 ]를 누르십시오.' : q.hint}</p>${q.reward ? `<p class="quest-reward">보상: <b>${questRewardText(q)}</b></p>` : ''}`}
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
+    <!--subq-->
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
       <div class="npc-acts"><button class="btn talk-btn" data-act="jounguide">문파 안내</button><button class="btn talk-btn ${supplied ? '' : 'ready'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 배고프죠? 죽 끓여 놨어요!"</p></div>
@@ -187,11 +192,11 @@ function viewHall() {
   // 서브 퀘스트: 열린 단계마다 반복 토벌 (지금 탐험지가 먼저, 받을 수 있는 것이 위로)
   const sq = subqList().sort((a, b) => (subqReady(b.zid, b.n) - subqReady(a.zid, a.n)) || ((b.zid === S.expedition.zone) - (a.zid === S.expedition.zone)) || ZONE_ORDER.indexOf(a.zid) - ZONE_ORDER.indexOf(b.zid) || a.n - b.n);
   const missions = `
-    <p class="muted subq-note">열린 단계마다 반복 토벌 임무가 있습니다. 그 단계에서 ${SUBQ.kills}번 이기면 보상을 받고, 몇 번이고 다시 할 수 있습니다.</p>
+    <div class="subq-box"><p class="subq-title"><b>장문인의 토벌 임무</b> <small class="muted">열린 단계마다 그 단계에서 ${SUBQ.kills}번 이기면 장문인이 보상을 내립니다. 단계마다 하루 ${SUBQ.daily}번까지.</small></p>
     <ul class="missions">${sq.map(({ zid, n }) => {
-      const p = subqProg(zid, n), R = subqReward(zid, n), ok = subqReady(zid, n);
-      return `<li class="${ok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(zid, n)} <small class="muted">${n >= STAGE.count ? '두목' : `${n}단계`}</small></div><div class="mprog"><span style="width:${p / SUBQ.kills * 100}%"></span></div><span class="num">${p}/${SUBQ.kills}</span><span class="reward">공헌 ${R.contrib} · 은자 ${R.silver} · 수련치 ${R.exp} · 생혈고 ${R.pot}</span><button class="btn sm ${ok ? 'primary' : ''}" data-subq="${zid}:${n}" ${ok ? '' : 'disabled'}>보상</button></li>`;
-    }).join('') || '<li class="muted">강호행에서 탐험지를 정하면 토벌 임무가 열립니다.</li>'}</ul>`;
+      const p = subqProg(zid, n), R = subqReward(zid, n), ok = subqReady(zid, n), left = subqLeft(zid, n);
+      return `<li class="${ok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(zid, n)} <small class="muted">${n >= STAGE.count ? '두목' : `${n}단계`}</small></div><div class="mprog"><span style="width:${p / SUBQ.kills * 100}%"></span></div><span class="num">${p}/${SUBQ.kills}</span><span class="reward">공헌 ${R.contrib} · 은자 ${R.silver} · 수련치 ${R.exp} · 생혈고 ${R.pot}</span><small class="muted subq-day">오늘 ${SUBQ.daily - left}/${SUBQ.daily}</small><button class="btn sm ${ok ? 'primary' : ''}" data-subq="${zid}:${n}" ${ok ? '' : 'disabled'}>${left ? '보상' : '내일'}</button></li>`;
+    }).join('') || '<li class="muted">강호행에서 탐험지를 정하면 토벌 임무가 열립니다.</li>'}</ul></div>`;
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
   const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌']];
   const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';
@@ -204,8 +209,7 @@ function viewHall() {
   const library = `
     <div class="subtabs lib-tabs" role="tablist" aria-label="장경각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
     <div class="shop lib-grid">${libItems.join('')}</div>`;
-  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳', tutorReady() ? `<span class="num gold">가르침 보상 ${alertDot(true)}</span>` : '')}${foldBody('hq', hq)}</section>
-  <section class="panel fold">${foldHead('missions', '토벌 임무', '討伐任務', `<span class="num ${subqReadyCount() ? 'gold' : 'muted'}">${subqReadyCount()}건 완료 가능${alertDot(subqReadyCount() > 0)}</span>`)}${foldBody('missions', missions)}</section>
+  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳', tutorReady() || subqReadyCount() ? `<span class="num gold">${[tutorReady() ? '가르침 보상' : '', subqReadyCount() ? `토벌 보상 ${subqReadyCount()}건` : ''].filter(Boolean).join(' · ')} ${alertDot(true)}</span>` : '')}${foldBody('hq', hq.replace('<!--subq-->', missions))}</section>
   <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 

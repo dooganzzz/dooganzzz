@@ -12,14 +12,12 @@ module.exports = async (b) => {
 
     // 1. 공식
     const f = await p.evaluate(() => {
-      const st = calcStats();
-      const arts = CAT_ORDER.reduce((a, c) => { const id = S.active[c]; return a + (id ? GRADES[MANUALS[id].grade].mult * S.manuals[id].star * 10 : 0); }, 0);
-      const expect = Math.round(st.maxHp * 1.0 + st.maxMp * 1.5 + st.atk * 5.0 + st.def * 3.0 + arts + attrOf('agi') * 8);
       const parts = combatPowerParts(S);
-      return { cp: calculateCombatPower(S), expect, sum: parts.base + parts.gear + parts.arts + parts.agi, total: parts.total, int: Number.isInteger(calculateCombatPower()) };
+      const geo = Math.round(CP_SCALE * Math.exp(parts.vs.reduce((a, v) => a + Math.log(v.value), 0) / parts.vs.length));
+      return { cp: calculateCombatPower(S), geo, total: parts.total, n: parts.vs.length, int: Number.isInteger(calculateCombatPower()), each: parts.vs.every(v => Math.abs(v.value - v.offense * Math.max(0.5, v.rounds + v.first)) < 1e-6) };
     });
-    ok('1 calculateCombatPower = 활력×1 + 내력×1.5 + 공격×5 + 방어×3 + Σ(등급 계수×성×10) + 민첩×8', f.cp === f.expect && f.int, JSON.stringify(f));
-    ok('1 내역 합 ≈ 전투력 (반올림 차 ≤ 2)', Math.abs(f.sum - f.total) <= 2, JSON.stringify(f));
+    ok('1 투력 = 기준 상대 3명에게 (공세 × 수세) 기하평균 × CP_SCALE', f.cp === f.geo && f.n === 3 && f.each && f.int, JSON.stringify(f));
+    ok('1 활력만 키우면 공수를 함께 키울 때보다 덜 오른다', await p.evaluate(() => { const c1 = JSON.parse(JSON.stringify(S)), c2 = JSON.parse(JSON.stringify(S)); c1.perm.maxHp += 400; c2.perm.maxHp += 200; c2.shrine.atk = (c2.shrine.atk || 0) + 30; return calculateCombatPower(c2) > calculateCombatPower(c1); }));
     ok('1 다른 상태 객체도 계산 · 전역 S는 그대로', await p.evaluate(() => { const copy = JSON.parse(JSON.stringify(S)); copy.manuals[copy.active.mugong].star = 12; const a = calculateCombatPower(copy), b0 = calculateCombatPower(S); return a > b0 && S.manuals[S.active.mugong].star !== 12; }));
 
     // gameState 거울 값 갱신: 장비 탈착 · 능력치 변동 · 돌파

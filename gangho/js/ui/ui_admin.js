@@ -76,7 +76,7 @@ function gmRenderLive() {
     return `<tr><td>${CATS[c].name}</td><td><code>${id || '—'}</code></td><td>${id ? MANUALS[id].name : ''}</td><td>${m ? m.star + '성' : ''}</td><td>${m ? (m.star >= MAX_STAR ? '대성' : `다음 ${fmt(starCost(id))}${GATES[m.star] ? ' + ' + GATES[m.star] : ''}${starUpBlock(id) ? '' : ' ✔'}`) : ''}</td></tr>`; }).join('');
   const X = S.expedition, run = activeRun();
   const inv = Object.entries(S.inv).map(([id, n]) => `<span class="gm-chip"><code>${id}</code> ×${n}</span>`).join('') || '<span class="gm-muted">비어 있음</span>';
-  box.innerHTML = `<div class="gm-kv">${row('전투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('수련치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('강호행', run ? `${Math.floor((now() - run.at) / 60000)}분째 · ${run.steps.length}걸음` : '대기')}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
+  box.innerHTML = `<div class="gm-kv">${row('투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('수련치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('강호행', run ? `${Math.floor((now() - run.at) / 60000)}분째 · ${run.steps.length}걸음` : '대기')}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
     <table class="gm-table"><thead><tr><th>분류</th><th>ID</th><th>무공</th><th>성</th><th>다음 성급</th></tr></thead><tbody>${arts}</tbody></table>
     <div class="gm-chips">${inv}</div>
     ${S.gear.length ? `<div class="gm-chips">${S.gear.map(g => `<span class="gm-chip">uid ${g.uid} · ${g.name}${g.enh ? ' +' + g.enh : ''}</span>`).join('')}</div>` : ''}`;
@@ -179,7 +179,7 @@ const GM_CMDS = {
     if (!S) return;
     backupSave('ai');
     GM.aiReport = aiRun(days, pattern);
-    gmTrace('gm', `AI 자동 플레이 ${days}일: 전투력 ${GM.aiReport.before.cp} → ${GM.aiReport.after.cp} (${GM.aiReport.ms}ms)`);
+    gmTrace('gm', `AI 자동 플레이 ${days}일: 투력 ${GM.aiReport.before.cp} → ${GM.aiReport.after.cp} (${GM.aiReport.ms}ms)`);
   },
   airestore() { if (restoreSave('ai')) { GM.aiReport = null; gmTrace('gm', 'AI 실행 전 저장으로 되돌림'); } else gmTrace('warn', '되돌릴 백업이 없습니다'); },
   importplayer(pid) {
@@ -358,9 +358,9 @@ function gmViewUsers() {
   return `<div class="gm-kv"><div><span>접속 중</span><b>${CLOUD.peers.length}명</b></div><div><span>DB 유저</span><b>${CLOUD.admin ? CLOUD.players.length + '명' : '권한 없음'}</b></div><div><span>내 동기화</span><b>${since(CLOUD.syncedAt)}</b></div></div>
     <div class="gm-bar"><button class="gm-btn primary" data-gm="cloudsync" ${CLOUD.db ? '' : 'disabled'}>[지금 DB 동기화]</button>${typeof backupInfo === 'function' && backupInfo('import') ? '<button class="gm-btn" data-gm="importundo">[불러오기 전으로 되돌리기]</button>' : ''}<small class="gm-muted">${esc(CLOUD.note || '저장이 바뀔 때마다(1분 간격 확인) players DB에 올라갑니다.')}</small></div>
     <h4 class="gm-h">지금 접속 중</h4>
-    <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>전투력</th><th>탐험지</th><th>보는 화면</th><th>기기</th></tr></thead><tbody>${peers || '<tr><td colspan="7" class="gm-muted">접속자 정보가 없습니다.</td></tr>'}</tbody></table>
+    <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>투력</th><th>탐험지</th><th>보는 화면</th><th>기기</th></tr></thead><tbody>${peers || '<tr><td colspan="7" class="gm-muted">접속자 정보가 없습니다.</td></tr>'}</tbody></table>
     <h4 class="gm-h">전체 유저 (DB)</h4>
-    <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>전투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>기기</th><th>마지막 동기화</th><th></th></tr></thead><tbody>${players || `<tr><td colspan="11" class="gm-muted">${CLOUD.admin ? '아직 동기화된 유저가 없습니다.' : '주인·편집자만 전체 유저를 볼 수 있습니다.'}</td></tr>`}</tbody></table>
+    <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>기기</th><th>마지막 동기화</th><th></th></tr></thead><tbody>${players || `<tr><td colspan="11" class="gm-muted">${CLOUD.admin ? '아직 동기화된 유저가 없습니다.' : '주인·편집자만 전체 유저를 볼 수 있습니다.'}</td></tr>`}</tbody></table>
     <p class="gm-muted">claude.ai 유저 ID는 익명 토큰이라 화면에는 이름으로 풀어 보입니다 (claude.ai는 IP를 알려 주지 않습니다). IP는 아래 웹 유저(Supabase) 기록에만 남습니다.</p>
     ${gmSupaSection()}`;
 }
@@ -371,8 +371,8 @@ function gmViewAI() {
   const pats = Object.entries(AI_PATTERNS).map(([k, P]) => `<button class="gm-btn ${GM.aiPattern === k ? 'on' : ''}" data-gmaipat="${k}">${P.name}</button>`).join('');
   const d = (a, b, f = fmt) => `${f(a)} → <b>${f(b)}</b>`;
   const rep = !R ? '<p class="gm-muted">아직 돌린 기록이 없습니다.</p>' : `
-    <div class="gm-kv"><div><span>기간</span><b>${R.days}일</b></div><div><span>패턴</span><b>${R.pattern.split(' (')[0]}</b></div><div><span>전투력</span><b>${d(R.before.cp, R.after.cp)}</b></div><div><span>무공 성</span><b>${R.before.star} → ${R.after.star}</b></div><div><span>은자</span><b>${d(R.before.silver, R.after.silver)}</b></div><div><span>공헌도</span><b>${d(R.before.contrib, R.after.contrib)}</b></div><div><span>탐험지</span><b>${ZONES[R.before.zone] ? ZONES[R.before.zone].name : '—'} → ${ZONES[R.after.zone] ? ZONES[R.after.zone].name : '—'}</b></div><div><span>계산 시간</span><b>${R.ms}ms</b></div></div>
-    <table class="gm-table"><thead><tr><th>날</th><th>탐험</th><th>승</th><th>패</th><th>쓰러짐</th><th>두목</th><th>전투력</th><th>무공</th><th>심법·경공·기공</th><th>은자</th><th>수련치</th><th>탐험지</th></tr></thead><tbody>${R.daily.map(x => `<tr><td>${x.label}</td><td class="gm-num">${x.runs}</td><td class="gm-num">${x.wins}</td><td class="gm-num">${x.losses}</td><td class="gm-num">${x.defeats}</td><td class="gm-num">${x.bosses}</td><td class="gm-num">${fmt(x.end.cp)}</td><td>${x.end.stars.mugong}성</td><td>${x.end.stars.simbeop}·${x.end.stars.gyeonggong}·${x.end.stars.gigong}성</td><td class="gm-num">${fmt(x.end.silver)}</td><td class="gm-num">${fmt(x.end.exp)}</td><td>${ZONES[x.end.zone] ? ZONES[x.end.zone].name : '—'}</td></tr>`).join('')}</tbody></table>
+    <div class="gm-kv"><div><span>기간</span><b>${R.days}일</b></div><div><span>패턴</span><b>${R.pattern.split(' (')[0]}</b></div><div><span>투력</span><b>${d(R.before.cp, R.after.cp)}</b></div><div><span>무공 성</span><b>${R.before.star} → ${R.after.star}</b></div><div><span>은자</span><b>${d(R.before.silver, R.after.silver)}</b></div><div><span>공헌도</span><b>${d(R.before.contrib, R.after.contrib)}</b></div><div><span>탐험지</span><b>${ZONES[R.before.zone] ? ZONES[R.before.zone].name : '—'} → ${ZONES[R.after.zone] ? ZONES[R.after.zone].name : '—'}</b></div><div><span>계산 시간</span><b>${R.ms}ms</b></div></div>
+    <table class="gm-table"><thead><tr><th>날</th><th>탐험</th><th>승</th><th>패</th><th>쓰러짐</th><th>두목</th><th>투력</th><th>무공</th><th>심법·경공·기공</th><th>은자</th><th>수련치</th><th>탐험지</th></tr></thead><tbody>${R.daily.map(x => `<tr><td>${x.label}</td><td class="gm-num">${x.runs}</td><td class="gm-num">${x.wins}</td><td class="gm-num">${x.losses}</td><td class="gm-num">${x.defeats}</td><td class="gm-num">${x.bosses}</td><td class="gm-num">${fmt(x.end.cp)}</td><td>${x.end.stars.mugong}성</td><td>${x.end.stars.simbeop}·${x.end.stars.gyeonggong}·${x.end.stars.gigong}성</td><td class="gm-num">${fmt(x.end.silver)}</td><td class="gm-num">${fmt(x.end.exp)}</td><td>${ZONES[x.end.zone] ? ZONES[x.end.zone].name : '—'}</td></tr>`).join('')}</tbody></table>
     <h4 class="gm-h">있었던 일</h4><ol class="gm-notes">${R.notes.map(n => `<li><time>${n.day}일 ${hhmm(n.t)}</time><span>${esc(n.text)}</span></li>`).join('') || '<li class="gm-muted">특별한 일이 없었습니다.</li>'}</ol>`;
   return `<p class="gm-muted">지금 캐릭터로 며칠을 미리 살아 봅니다. 시계를 그만큼 앞당겨 강호행이 실제 규칙 그대로 이어지고(쓰러지면 AI가 보상을 받고 다시 떠남), 접속한 시각마다 AI가 보상 받기 · 성급 · 돌파단 · 생혈고 · 장비 · 무공 · 임무 · 공양 · 탐험지를 스스로 고릅니다. 실행 전 저장은 백업됩니다.</p>
     <div class="gm-bar">${pats}</div>

@@ -110,7 +110,7 @@ function bar(cls, cur, max, name, hideNum) {
   return `<div class="bar ${cls}"><span class="bar-fill" style="width:${p}%"></span><span class="bar-text"><b>${name}</b>${hideNum ? '' : ` ${fmt(cur)} / ${fmt(max)}`}</span></div>`;
 }
 
-/* 전투력이 바뀌면 헤더에 잠깐 ▲/▼ 변화량을 붙인다 */
+/* 투력이 바뀌면 헤더에 잠깐 ▲/▼ 변화량을 붙인다 */
 const cpMark = { last: null, delta: 0, until: 0 };
 function cpDeltaHtml(cp) {
   const t = Date.now();
@@ -128,7 +128,7 @@ function renderHeader() {
     <div class="status-indicator-row">
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
       <div class="currency-chips user-status-bar">
-        <div class="status-chip combat combat-power" title="종합 전투력 ${fmt(cp)}">${uiIco('h_cp')}<span class="chip-badge badge-combat">전투력</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
+        <div class="status-chip combat combat-power" title="투력 ${fmt(cp)}">${uiIco('h_cp')}<span class="chip-badge badge-combat">투력</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
         <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 수련 · 상태 › 무공에서 성급 올리기)">${uiIco('h_xp')}<span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
         <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}<span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
         <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}">${uiIco('h_contrib')}<span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>

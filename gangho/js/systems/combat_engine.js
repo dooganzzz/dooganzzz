@@ -5,18 +5,55 @@ function dmgBase(atk, def) { return (atk * atk) / (atk + def); }
 function dmgCalc(atk, def) { return Math.max(1, Math.round(dmgBase(atk, def) * rnd(0.9, 1.1))); }
 function reaction(dmg, maxHp) { const r = dmg / maxHp; return HIT_TEXT.find(([t]) => r >= t); }
 
-/* 종합 전투력 (정수). 능력치는 calcStats 합계를 쓰므로 장비·무공·무신상·영약·버프가 모두 반영된다.
+/* 투력 (정수). 기준 상대(CP_REF)마다 '쓰러지기 전까지 넣는 피해' = 공세(합당 피해) × 수세(버티는 합)를 실제 전투 규칙대로 기대값으로 계산하고,
+   세 상대의 값을 기하평균한다. 활력만 높거나 공격만 높으면 곱이 작아 투력이 덜 오른다.
    player는 저장 상태 S (관리자 창에서는 받은 복사본). 다른 객체를 넘기면 그 상태로 잠시 바꿔 계산한다. */
+function cpVersus(st, R, art) {
+  const hit = Math.min(1, (Math.max(55, 95 - R.eva) + (st.acc || 0)) / 100);
+  const def = Math.max(0, R.def * (1 - (st.armorPen || 0) / 100) - (st.pierce || 0));
+  const critF = 1 + Math.min(100, st.crit || 0) / 100 * 0.6;
+  const elemF = 1 + (art.elem ? 0.2 * (st.elem || 0) / 100 : 0);           // 기공이 있으면 다섯 중 하나는 내가 극한다
+  const basic = dmgBase(st.atk, def) * hit * critF * elemF;
+  // 받는 피해: 회피 · 방어(최소 피해) · 치명(저항) · 연격, 충격으로 적이 쉬는 몫
+  const foeHit = Math.max(40, 95 - (st.eva || 0)) / 100;
+  const foeDmg = Math.max(dmgBase(R.atk, st.def), R.atk * COMBAT_RULES.minDmg);
+  const foeCrit = 1 + Math.max(0, R.crit - (st.critRes || 0) / 2) / 100 * 0.5;
+  const stun = Math.min(0.5, (st.shock || 0) / 100 * hit);
+  let taken = foeDmg * foeHit * foeCrit * (1 + (R.hits - 1) * 0.6) * (1 - stun);
+  // 초식: 발현 확률 · 이어지는 확률 · 내력이 버티는 만큼만
+  let skill = 1, sustain = 1;
+  if (art.moves) {
+    const p = Math.min(1, (35 + (st.combo || 0)) / 100), chain = Math.min(1, (45 + (st.combo || 0)) / 100);
+    const m2 = art.moves > 1 ? chain : 0, qi = 1 + (st.qiDmg || 0);
+    const costPerRound = p * (art.cost[0] + m2 * art.cost[1]);
+    const roughRounds = Math.max(1, st.maxHp / Math.max(1, taken));
+    const budget = st.maxMp + (st.mpRegen + st.maxMp * (st.mpRegenPct || 0) / 100) * roughRounds;
+    sustain = costPerRound > 0 ? Math.min(1, budget / (costPerRound * roughRounds)) : 1;
+    skill = 1 + sustain * p * ((art.mult[0] * qi - 1) + m2 * art.mult[1] * qi);
+  }
+  const counter = Math.min(1, (st.counter || 0) / 100) * foeHit;              // 맞을 때마다 평타 한 번
+  const offense = basic * skill + dmgBase(st.atk, def) * hit * critF * counter;
+  taken = Math.max(taken * 0.1, taken - offense * (st.lifesteal || 0) / 100);
+  const rounds = st.maxHp / Math.max(1, taken);
+  const first = st.spd + attrOf('agi') + (st.first || 0) >= R.spd ? 0.5 : -0.5;   // 먼저 치면 한 번 더
+  return { offense, rounds, hit, critF, skill, sustain, counter, first, value: offense * Math.max(0.5, rounds + first) };
+}
 function combatPowerParts(player = S) {
-  if (!player) return { base: 0, gear: 0, arts: 0, agi: 0, total: 0 };
+  if (!player) return { total: 0, offense: 0, rounds: 0, hit: 0, crit: 0, skill: 1, sustain: 1, counter: 0, vs: [] };
   const prev = S; S = player;
   try {
-    const st = calcStats(), W = CP_WEIGHTS;
-    const base = st.maxHp * W.maxHp + st.maxMp * W.maxMp;
-    const gear = st.atk * W.atk + st.def * W.def;
-    const arts = CAT_ORDER.reduce((a, c) => { const id = S.active[c], m = id && S.manuals[id]; return a + (m ? GRADES[MANUALS[id].grade].mult * m.star * W.art : 0); }, 0);
-    const agi = attrOf('agi') * W.agi;                       // 민첩 × 8
-    return { base: Math.round(base), gear: Math.round(gear), arts: Math.round(arts), agi: Math.round(agi), total: Math.round(base + gear + arts + agi) };
+    const st = calcStats(), id = S.active.mugong, M = id && MANUALS[id], m = id && S.manuals[id];
+    const moves = M && m && M.weapon === weaponType() ? unlockedMoves(m.star) : 0;
+    const art = { elem: !!myElem(), moves };
+    if (moves) {
+      const g = GRADES[M.grade].mult, power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase, realm = m.star >= 6 ? 1.25 : 1;
+      art.mult = [1.8, 3.4].map(v => v * (1 + (g - 1) * 0.5) * realm * power);
+      art.cost = [0, 1].map(i => Math.max(1, Math.round((5 + m.star + i * (6 + m.star)) * g * (1 - ((st.mpCost || 0) + (st.mpSave || 0)) / 100))));
+    }
+    const vs = CP_REF.map(R => cpVersus(st, R, art));
+    const total = Math.round(CP_SCALE * Math.exp(vs.reduce((a, v) => a + Math.log(Math.max(1e-6, v.value)), 0) / vs.length));
+    const mid = vs[1];                                                        // 내역은 가운데 기준 상대(염화채 정예)로 보여 준다
+    return { total, offense: mid.offense, rounds: mid.rounds, hit: mid.hit, crit: mid.critF, skill: mid.skill, sustain: mid.sustain, counter: mid.counter, first: mid.first > 0, vs };
   } finally { S = prev; }
 }
 function calculateCombatPower(player = S) { return combatPowerParts(player).total; }

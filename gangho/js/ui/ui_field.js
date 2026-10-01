@@ -115,7 +115,7 @@ const sealChar = name => name.replace(/^(염화채주|수룡방주|염화채|수
 /* ───────── 강호행 탭 ───────── */
 const clockHM = t => { const d = new Date(t); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 
-/* 구역 카드: 적정 전투력·난이도는 보여 주지 않는다. 내가 다녀오며 겪은 것만 적힌다 */
+/* 구역 카드: 적정 투력·난이도는 보여 주지 않는다. 내가 다녀오며 겪은 것만 적힌다 */
 
 /* 출정 준비: 떠나기 전에 갖춰 둘 것들 (탐험지·무공·병기·장비·생혈고·상성·단약) */
 function prepPanel() {
@@ -129,7 +129,7 @@ function prepPanel() {
     ${row(!!X.zone, '탐험지', X.zone ? ZONES[X.zone].name : '정하지 않음')}
     ${row(CAT_ORDER.every(c => S.active[c]), '무공', arts, go('status', 'martial', '무공'))}
     ${row(!!S.equip.weapon && wOk, '병기', S.equip.weapon ? `${gearName(S.equip.weapon)}${wOk ? '' : ` <span class="warn">— 《${M.name}》은 ${WEAPON_TYPES[M.weapon]} 무공이라 초식이 나가지 않음</span>`}` : '맨손', go('status', 'gear', '무장'))}
-    ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 전투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
+    ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
     ${row(has('saenghyeol', 5), '생혈고', `${count('saenghyeol')}개 (활력 ${potionAtNow()}% 아래에서 자동 사용 · 설정 탭에서 바꿈 · 떨어지면 쓰러지기 쉽다 · 전방 개당 5냥) · 소환단 ${count('potionMp')}개`, go('sect', 'shop', '전방'))}
     ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1;
       const tz = X.zone ? ` — ${ZONES[X.zone].name} ${zoneTerrainText(X.zone)} ${m < 1 ? '<b class="good">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn">불일치 · 기력 +20%</span>' : ''}` : '';

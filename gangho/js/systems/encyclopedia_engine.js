@@ -16,6 +16,6 @@ function checkAreaEncyclopediaCompletion(zid) {
   log(`📖 [도감 완성] ${ZONES[zid].name}의 모든 요수를 파악했습니다! ${R.flavor}. 영구 능력치가 오릅니다 — ${R.text}`, 'gold');
   notify.banner('圖鑑完成 · 도감 완성', ZONES[zid].name, 'seal');
   clampVitals();
-  notify.refresh();                                           // 전투력·능력치는 새로 계산된다
+  notify.refresh();                                           // 투력·능력치는 새로 계산된다
   return true;
 }

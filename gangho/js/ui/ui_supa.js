@@ -71,7 +71,7 @@ function gmSupaSection() {
       <button class="gm-btn" type="button" data-gmlogoutall title="모든 계정의 접속 토큰을 무효로 만든다 (새 버전 배포 때는 자동)">[전체 로그아웃]</button>
       <span class="gm-reset"><input name="rid" placeholder="유저 아이디" autocomplete="off" aria-label="비밀번호를 초기화할 아이디"><input name="rpw" placeholder="임시 비밀번호 (4자 이상)" autocomplete="off" aria-label="임시 비밀번호"><button class="gm-btn" type="button" data-gmresetpass title="그 아이디의 비밀번호를 임시 비밀번호로 바꾸고 접속을 끊는다">[비밀번호 초기화]</button></span>
       <small class="gm-muted">${SUPA_ST.listErr ? esc(SUPA_ST.listErr) : `내 기록: ${SUPA_ST.syncedAt ? since(SUPA_ST.syncedAt) : '아직'}${SUPA_ST.err ? ` · 오류 ${esc(SUPA_ST.err)}` : ''}`}</small></form>
-    ${L ? `<table class="gm-table"><thead><tr><th>#</th><th>ID</th><th>캐릭터</th><th>전투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>IP</th><th>기기</th><th>접속 경로</th><th>마지막 접속</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="13" class="gm-muted">아직 기록이 없습니다.</td></tr>'}</tbody></table>` : ''}`;
+    ${L ? `<table class="gm-table"><thead><tr><th>#</th><th>ID</th><th>캐릭터</th><th>투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>IP</th><th>기기</th><th>접속 경로</th><th>마지막 접속</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="13" class="gm-muted">아직 기록이 없습니다.</td></tr>'}</tbody></table>` : ''}`;
 }
 /* 기록을 켜면 바닥글에 알린다 */
 if (!window.GM_REMOTE && supaOn()) document.addEventListener('DOMContentLoaded', () => { const f = document.querySelector('.footer .muted'); if (f) f.insertAdjacentHTML('afterend', '<small class="muted supa-note">플레이 기록(캐릭터 요약 · 접속 IP)은 운영과 밸런스 확인에만 쓰입니다.</small>'); });
