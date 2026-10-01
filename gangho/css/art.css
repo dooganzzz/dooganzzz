@@ -457,7 +457,7 @@
 .live-strip img { height: 100%; width: auto; flex: none; display: block; }
 .live-hero.sp-hero { left: 10%; bottom: 9%; width: 31.8%; transition: none; }   /* 관찰 창 무대와 같은 구도 (ui_live.js LIVE_POS) */
 .live-where { display: inline-block; margin-left: .5em; font-size: .62em; font-weight: 700; color: var(--silver, #ccc); pointer-events: none; }
-.live-where img { display: inline-block; height: 1.05em; width: auto; vertical-align: -.06em; opacity: .92; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .7)); }
+.live-where img { display: inline-block; height: 1.25em; width: auto; vertical-align: -.17em; opacity: .92; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .7)); }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .live-speed { flex-wrap: wrap; }
 .live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
