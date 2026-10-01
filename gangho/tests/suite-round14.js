@@ -36,7 +36,7 @@ module.exports = async (b) => {
     const buy = await p.evaluate(() => { S.silver = 100; const n0 = count('saenghyeol'); document.querySelector('[data-buy="saenghyeol"]').click(); const asked = ui.modal === 'confirm'; document.querySelector('[data-act="confirmok"]').click(); return { asked, silver: S.silver, got: count('saenghyeol') - n0, log: S.log[S.log.length - 1].text }; });
     ok('3 구매: 은자 -30, 생혈고 +1', buy.silver === 70 && buy.got === 1 && /전방에서/.test(buy.log), JSON.stringify(buy));
     const bg = await p.evaluate(() => { S.silver = 100; ui.shopBuy = 'gear'; ui.shopGear = 'weapon'; render(); const g0 = S.gear.length; document.querySelector('[data-buygear="g_straightSword:1"]').click(); document.querySelector('[data-act="confirmok"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity, named: it.named }; });
-    ok('3 하급 장비 구매 → 행낭 보관 장비', bg.silver === 55 && bg.added === 1 && bg.name === '직도형 박검' && bg.rarity === 0 && bg.named === 'g_straightSword', JSON.stringify(bg));
+    ok('3 하급 장비 구매 → 행낭 보관 장비', bg.silver === 55 && bg.added === 1 && bg.name === '협봉검' && bg.rarity === 0 && bg.named === 'g_straightSword', JSON.stringify(bg));
 
     // 은자 부족: 구매 차단 + 견문록 오류
     const poor = await p.evaluate(() => { S.silver = 3; ui.shopBuy = 'items'; render(); const n0 = count('saenghyeol'), g0 = S.gear.length; document.querySelector('[data-buy="saenghyeol"]').click(); const l1 = S.log[S.log.length - 1]; ui.shopBuy = 'gear'; ui.shopGear = 'armor'; render(); document.querySelector('[data-buygear="g_hunterCoat:1"]').click(); const l2 = S.log[S.log.length - 1]; ui.shopBuy = 'items'; render();

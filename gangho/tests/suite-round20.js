@@ -93,15 +93,15 @@ module.exports = async (b) => {
     // 4. 지형 상성 (기력 소모)
     const tr = await p.evaluate(() => {
       const r = { terr: myTerrain(), terrains: Object.keys(TERRAINS).join(), zones: ZONE_ORDER.map(z => ZONES[z].terrain.join('/')) };
-      r.mult = ZONE_ORDER.map(terrainMult).join();              // 포철삭(흙): 청풍산 흙·풀·나무 일치, 염화채 흙·평 일치, 적룡방 물·나무 불일치
+      r.mult = ZONE_ORDER.map(terrainMult).join();              // 팔보간섬(흙): 청풍산 흙·풀·나무 일치, 염화채 흙·평 일치, 적룡방 물·나무 불일치
       const g = S.active.gyeonggong; S.active.gyeonggong = null; r.none = terrainMult('cheongpung'); S.active.gyeonggong = g;
       const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.saenghyeol = 20; return runExpedition(now()); };
       const a = [], m = [];
       for (let i = 0; i < 4; i++) a.push(run());
-      S.manuals.dapsu = { star: 1 }; equipManual('dapsu');     // 답수보(물) → 청풍산 불일치
+      S.manuals.dapsu = { star: 1 }; equipManual('dapsu');     // 등평도수(물) → 청풍산 불일치
       r.dapsu = terrainMult('cheongpung');
       for (let i = 0; i < 4; i++) m.push(run());
-      S.manuals.deungsu = { star: 1 }; equipManual('deungsu'); r.deungsu = terrainMult('cheongpung');   // 등수보(나무) → 복합 지형 중 하나 일치
+      S.manuals.deungsu = { star: 1 }; equipManual('deungsu'); r.deungsu = terrainMult('cheongpung');   // 제운종(나무) → 복합 지형 중 하나 일치
       equipManual('pocheolsak');
       const steps = rs => rs.reduce((x, rec) => x + rec.steps.filter(s => s.k !== 'trap' && s.k !== 'retreat' && s.k !== 'avoid').length, 0) / rs.length;
       r.match = { mult: a[0].terrain.mult, steps: steps(a), extra: a.every(x => x.terrain.extra < 0), rec: a[0].terrain.match === true && a[0].terrain.zone.join() === 'earth,grass,wood' };

@@ -7,7 +7,7 @@ const FOES = {
   suryong: [['수로 청어귀', 'water', 'hidden'], ['뻘밭 흑악어', 'earth', 'fist'], ['수룡방 뗏목 척후', 'water', 'spear'], ['수룡방 투망수', 'metal', 'hidden'], ['수룡방 강습대원', 'water', 'blade'], ['수룡방 수중 잠영수', 'water', 'hidden'], ['수룡방 철퇴수', 'metal', 'fist'], ['소택지 독지네', 'wood', 'spear'], ['빙화수요', 'water', 'hidden'], ['수룡방주 벽해룡', 'water', 'spear']],
 };
 // 단조 장비 위계: 2재료(중급) 공격 18~22·방어 7~9·스탯 +1 / 3재료(상급 이류) 공격 26~32·방어 12~15·스탯 +2
-const GEAR = { c_fist: ['흑철 권갑', { atk: 20, def: 8, str: 1 }], c_sword: ['청강검', { atk: 28, crit: 3, agi: 2 }], c_blade: ['혈문도', { atk: 32, str: 2 }], c_spear: ['벽파 삼지창', { atk: 30, pierce: 5, con: 2 }], c_hidden: ['칠성 투골정', { atk: 26, agi: 2 }], c_armor: ['청강 사슬갑', { def: 15, maxHp: 80, con: 2 }], c_ring: ['벽옥환', { maxMp: 40, atk: 5, int: 1 }], c_belt: ['웅모 포대', { def: 8, con: 1 }], c_jade: ['수정 영옥대', { qiPct: 6, elemRes: 5, int: 2 }],
+const GEAR = { c_fist: ['흑철 호수', { atk: 20, def: 8, str: 1 }], c_sword: ['청강검', { atk: 28, crit: 3, agi: 2 }], c_blade: ['혈문도', { atk: 32, str: 2 }], c_spear: ['벽파 삼지창', { atk: 30, pierce: 5, con: 2 }], c_hidden: ['칠성 투골정', { atk: 26, agi: 2 }], c_armor: ['청강 사슬갑', { def: 15, maxHp: 80, con: 2 }], c_ring: ['벽옥 지환', { maxMp: 40, atk: 5, int: 1 }], c_belt: ['웅모 포대', { def: 8, con: 1 }], c_jade: ['수정 영옥대', { qiPct: 6, elemRes: 5, int: 2 }],
   t2_sword: ['청풍 단련검', { atk: 19, agi: 1 }], t3_sword: ['청풍비검', { atk: 28, crit: 5, agi: 2 }], t3_jade: ['청풍보옥대', { def: 10, maxMp: 40, maxHp: 40 }] };
 
 module.exports = async (b) => {

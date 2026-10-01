@@ -8,8 +8,8 @@ function martialModal(id) {
   const M = MANUALS[id], m = S.manuals[id], cat = M.cat;
   const worn = S.active[cat] === id;
   const bonus = Object.entries(manualBonus(id, m.star)).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-  const moves = M.weapon && M.stances ? `<h4>초식</h4><ol class="moves">${M.stances.map(({ name: mv }, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 소성', '제2초식 · 대성'][i]}${open ? '' : ` — ${i === 0 ? '6성 소성' : '12성 대성'} 돌파 시 해금`}</small></li>`; }).join('')}</ol>
-    <p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : '';
+  const moves = M.stances ? `<h4>${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name: mv }, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 습득', '제2초식 · 소성', '오의 · 대성'][i]}${open ? '' : ` — ${i === 1 ? '6성 소성 돌파' : '12성 대성 달성'} 시 해금`}</small></li>`; }).join('')}</ol>
+    ${M.weapon ? `<p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : ''}` : '';
   const pill = GATES[m.star];
   let gateInfo;
   if (m.star < MAX_STAR) {

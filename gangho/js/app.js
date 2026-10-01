@@ -142,7 +142,7 @@ function startNewGame(name, mugongId, opts = {}) {
   ensureMissions(); checkDailyMidnightReset();
   log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
   if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
-  log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·포철삭·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
+  log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·팔보간섬·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
   log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 강호에 나가 부딪혀라."', 'npc');
   log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
   log('아린: "새 사형이다! 비급부터 익혀요. 상태 탭의 무공에 있어요!"', 'npc');
@@ -159,6 +159,14 @@ const OLD_ITEM_PRICE = {
 
 /* 예전 저장을 지금 규칙에 맞게 옮긴다.
    v8: 지도·연무장·비급별 수련/실전 수련치가 사라졌다. 쌓아 둔 진행 비율만큼 수련치 주머니(S.exp)로 돌려준다. */
+/* 장비 이름을 지금 데이터의 이름으로 맞춘다 (이름을 고쳐도 예전에 얻은 장비가 옛 이름으로 남지 않게) */
+function gearNameNow(it) {
+  if (!it) return;
+  const G = it.named && (GEAR_DB[it.named] || CRAFT_GEAR[it.named] || LIBRARY_GEAR[it.named]);
+  if (G) it.name = G.name;
+  else if (it.base && EQUIP_BASES[it.base]) it.name = EQUIP_BASES[it.base].names[(it.tier || 1) - 1] || it.name;
+  else { const B = SHOP_GEAR.find(g => g.id === it.id || g.id === it.named); if (B) it.name = B.name; }
+}
 function migrate(st) {
   if (!st) return null;
   if ((st.v || 0) < 8) {
@@ -250,6 +258,7 @@ function migrate(st) {
   for (const r of st.expeditions || []) { if (r.live === undefined) r.live = false; delete r.shownAll; delete r.shownAt; for (const b of r.battles || []) b.seen = true; }   // 전투 결과는 이제 곧바로 보인다
   if (!st.potGift) { st.potGift = true; st.inv.saenghyeol = (st.inv.saenghyeol || 0) + 10; st.migratedPot = true; }
   ensureCloudId(st);
+  for (const it of [...(st.gear || []), ...Object.values(st.equip || {})]) gearNameNow(it);   // 장비 이름 고증 개편 (예전 이름 → 지금 이름)
   return st;
 }
 

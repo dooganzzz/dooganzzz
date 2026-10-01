@@ -205,6 +205,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .move { font-weight: 900; }
 .move.m1 { color: var(--jade); }
 .move.m2 { color: var(--r2); }
+.move.m3 { color: var(--gold-2); }
 .move.m3 { color: var(--seal); font-size: 1.1em; }
 .move.counter { color: var(--gold-2); }
 .dmg { font-family: var(--sans); font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -926,10 +927,7 @@ body {
   .missions .mprog { grid-column: 1 / -1; order: 0; }
 }
 
-/* 투력: 약한 쪽 알려 주기 · 장비를 끼면 바뀌는 투력 */
-.cp-advice { flex-basis: 100%; margin: 4px 0 0; display: flex; flex-direction: column; gap: 2px; font-size: .82rem; color: var(--silver); }
-.cp-advice .adv-def, .cp-advice .adv-off, .cp-advice .adv-hit, .cp-advice .adv-mp { color: #e9b872; }
-.cp-advice .adv-ok { color: var(--jade); }
+/* 투력: 장비를 끼면 바뀌는 투력 */
 .cp-diff { color: var(--dim); font-variant-numeric: tabular-nums; }
 .cp-diff.up { color: var(--jade); font-weight: 700; }
 .cp-diff.down { color: #e07a6a; font-weight: 700; }

@@ -724,3 +724,6 @@
 @keyframes lfDown { 0% { opacity: 0; transform: translateY(-14%) rotate(-6deg); } 70% { opacity: 1; transform: translateY(2%) rotate(1deg); } 100% { opacity: 1; transform: none; } }
 @keyframes lfDrop { 0% { opacity: 0; transform: translate(-30%, -160%) rotate(calc(var(--r, 45deg) - 120deg)); } 55% { opacity: 1; transform: translate(0, 0) rotate(var(--r, 45deg)) scaleY(.75); } 72% { transform: translate(6%, -18%) rotate(calc(var(--r, 45deg) + 8deg)) scaleY(.75); } 88%, 100% { opacity: 1; transform: rotate(var(--r, 45deg)) scaleY(.75); } }
 @media (prefers-reduced-motion: reduce) { .live-fallen .lf-body, .live-fallen .lf-weapon { animation: none; } }
+
+.live-skname.long { font-size: 16px; letter-spacing: .06em; white-space: nowrap; }
+.live-skname.n2.long { font-size: 18px; }

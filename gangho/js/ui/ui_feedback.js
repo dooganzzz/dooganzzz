@@ -31,7 +31,7 @@ function playFx(fx) {
   fx.forEach((f, i) => {
     if (f.side === 'banner') {
       const el = $('#moveBanner'); if (!el) return;
-      el.innerHTML = `<span class="${f.k}">${f.t}</span>`; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+      el.innerHTML = `<span class="${f.k}${f.n >= 3 ? ' ougi' : ''}${String(f.t).length > 9 ? ' long' : ''}">${f.t}</span>`;   // 오의는 금빛 · 긴 초식명은 글씨를 줄인다 el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
       const ar = el.closest('.arena'); if (ar) { ar.classList.remove('flash'); void ar.offsetWidth; ar.classList.add('flash'); if (!reduce) stanceAnim(ar, f); }
       return;
     }
@@ -65,13 +65,13 @@ const STANCE_SVG = {
 };
 const hashStr = t => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 function stanceAnim(ar, f) {
-  if (f.mid && f.n) {                                     // 무공마다 다른 초식 그림 (소성 = 먹빛 · 대성 = 광휘). 스프라이트 무대가 있으면 무대가 띄운다
+  if (f.mid && f.n) {                                     // 무공마다 다른 초식 그림 (제1 · 제2초식 = 먹빛 · 오의 = 광휘). 스프라이트 무대가 있으면 무대가 띄운다
     if ($('#spStage')) return;
-    const v = document.createElement('div'); v.className = `stance-vfx n${f.n >= 2 ? 2 : 1}`; v.setAttribute('aria-hidden', 'true');
-    v.innerHTML = `<img src="${ASSET.fx(`${f.mid}_${f.n >= 2 ? 2 : 1}`)}" alt="">`;
+    const v = document.createElement('div'); v.className = `stance-vfx n${f.n >= 3 ? 2 : 1}`; v.setAttribute('aria-hidden', 'true');
+    v.innerHTML = `<img src="${ASSET.fx(`${f.mid}_${f.n >= 3 ? 2 : 1}`)}" alt="">`;
     ar.appendChild(v); setTimeout(() => v.remove(), 1500); return;
   }
-  const w = STANCE_SVG[f.w] ? f.w : 'sword', n = f.k === 'counter' ? 1 : f.n >= 2 ? 3 : 1;   // 대성 초식은 금빛
+  const w = STANCE_SVG[f.w] ? f.w : 'sword', n = f.k === 'counter' ? 1 : f.n >= 3 ? 3 : f.n >= 2 ? 2 : 1;   // 오의는 금빛
   const tilt = (hashStr(f.t) % 31) - 15;
   const el = document.createElement('div');
   el.className = `stance-anim w-${w} n${n} ${f.k === 'counter' ? 'counter' : ''}`;

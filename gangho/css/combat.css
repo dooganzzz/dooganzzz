@@ -101,7 +101,8 @@
 
 /* ───────── 3단계 전투 묘사: 초식 선언 → 기세/호흡 → 타격/후폭풍 ───────── */
 .blog .log-stance-title { margin-top: 4px; font-family: var(--serif); font-weight: 900; font-size: 1.02rem; letter-spacing: .04em; color: var(--gold-2); text-shadow: 0 0 10px rgba(216, 178, 94, .35); }
-.blog .log-stance-title.m2 { color: #f6d58f; }
+.blog .log-stance-title.m2 { color: #cfe8ff; }
+.blog .log-stance-title.m3 { color: #ffd36a; text-shadow: 0 0 8px rgba(255, 190, 70, .6); }
 .blog .log-stance-title.m3 { color: #ffe4a6; font-size: 1.08rem; }
 .blog .log-stance-title.counter { color: var(--jade); text-shadow: none; }
 .blog .log-stance-desc { color: var(--silver); font-style: italic; padding-left: .6em; border-left: 2px solid var(--line-2); }
@@ -136,3 +137,9 @@
   .combat-modal-container .seal-av { width: 40px; height: 40px; }
   .combat-log-stream { padding: 10px; }
 }
+
+/* 오의(奧義) 현판: 금빛 · 더 크게. 긴 초식명은 한 줄에 들어가게 글씨를 줄인다 */
+.move-banner span.ougi { color: #ffe08a; font-size: 2.3rem; text-shadow: 0 0 26px rgba(255, 190, 60, .95), 0 0 8px rgba(255, 140, 0, .8), 0 2px 4px #000; }
+.move-banner span.long { font-size: 1.5rem; letter-spacing: .12em; }
+.move-banner span.ougi.long { font-size: 1.65rem; }
+@media (max-width: 640px) { .move-banner span.long, .move-banner span.ougi.long { font-size: 1.05rem; letter-spacing: .06em; padding: 8px 14px; } }

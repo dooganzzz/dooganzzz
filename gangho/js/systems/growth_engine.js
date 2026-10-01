@@ -35,7 +35,7 @@ function starUp(id) {
   } else log(`《${M.name}》 ${m.star}성에 올랐습니다. (수련치 -${fmt(cost)})`, 'good');
   if (m.star === 6) { log(`✨ 《${M.name}》 소성(小成) — 장착 능력치 30% 상향${M.cat === 'mugong' ? ', 초식 위력 25% 상향' : ''}.`, 'gold'); notify.banner('小成 · 소성', `《${M.name}》 6성`, 'jade'); }
   if (m.star === MAX_STAR) { log(`🌟 《${M.name}》 대성(大成 / 極意) — ${DAESUNG_PASSIVE[M.cat].text}`, 'gold'); notify.banner('大成 · 대성', `《${M.name}》 극의(極意)`, 'gold'); }
-  if (M.cat === 'mugong' && M.weapon && (m.star === 6 || m.star === MAX_STAR)) log(`《${M.name}》 제${m.star === 6 ? 1 : 2}초식 「${M.stances[m.star === 6 ? 0 : 1].name}」이 열렸습니다.`, 'good');
+  if (M.stances && (m.star === 6 || m.star === MAX_STAR)) { const i = m.star === 6 ? 1 : 2; log(`《${M.name}》 ${MOVE_NAME[i]} 「${M.stances[i].name}」${M.cat === 'mugong' ? '이 열렸습니다' : '의 경지에 올랐습니다'}.`, 'good'); }
   notify.toast(`${M.name} ${m.star}성!`);
   notify.trace('sys', `성급: ${id} → ${m.star}성 (수련치 -${cost})`);
   notify.refresh();
@@ -45,6 +45,7 @@ function starUp(id) {
 /* 적을 쓰러뜨려 얻는 수련치: 신분패·음식·영단의 '수련치 획득' 보정을 곱한다 */
 function expGain(base, st) { st = st || calcStats(); return Math.round(base * (1 + st.train / 100 + st.trainBuff)); }
 
-/* 공격 무공 초식: 소성(6성)에 제1초식, 대성(12성)에 제2초식 */
-function unlockedMoves(star) { return star >= MAX_STAR ? 2 : star >= 6 ? 1 : 0; }
+/* 공격 무공 초식: 비급을 익히면 제1초식, 소성(6성)에 제2초식, 대성(12성)에 오의(奧義) */
+function unlockedMoves(star) { return star >= MAX_STAR ? 3 : star >= 6 ? 2 : star >= 1 ? 1 : 0; }
+const MOVE_NAME = ['제1초식', '제2초식', '오의'];
 function bestMugongStar() { return Math.max(0, ...Object.entries(S.manuals).filter(([id]) => MANUALS[id].cat === 'mugong').map(([, m]) => m.star)); }

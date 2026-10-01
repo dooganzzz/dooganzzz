@@ -116,7 +116,7 @@ async function spHeroAttack(f, stance, gap) {
   const h = $('#spHero'), e = $('#spFoe'); if (!h || !e) return;
   const w = h.dataset.w || 'sword', M = HERO_MOTION[w] || HERO_MOTION.sword;
   const k = Math.min(1, gap / 1000), wt = ms => spWait(ms * k);
-  const tier = stance ? (stance.n >= 2 ? 2 : 1) : 0;
+  const tier = stance ? (stance.n >= 3 ? 2 : 1) : 0;   // 화면 단계: 1 = 제1 · 제2초식 (먹빛), 2 = 오의 (광휘)
   h.classList.remove('idle');
   if (tier === 2) { spDaesungOn(); spFrame(h, 'slashA'); await wt(360); }
   if (M.dash) {

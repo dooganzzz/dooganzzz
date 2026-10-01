@@ -128,7 +128,7 @@ function liveShowPlan(sh, w) {
   let t = 900, me = B.start.me.hp, foe = B.start.foe.hp;
   for (const r of B.rounds) {
     for (const f of r.fx) {
-      if (f.side === 'banner') { if (f.k === 'move' && f.mid && f.n) { q.push({ at: t, k: 'skill', sk: { mid: f.mid, tier: Math.min(2, f.n), name: f.t } }); t += T(f.n >= 2 ? 700 : 420); } continue; }
+      if (f.side === 'banner') { if (f.k === 'move' && f.mid && f.n) { q.push({ at: t, k: 'skill', sk: { mid: f.mid, tier: f.n >= 3 ? 2 : 1, name: f.t } }); t += T(f.n >= 3 ? 700 : 420); } continue; }
       if (f.side === 'foe') { if (f.k !== 'miss') foe = Math.max(0, foe - num(f.t)); t = heroAtk(t, { k: 'hitR', f, hp: foe }); }
       else if (f.k === 'heal') { me = Math.min(B.start.me.maxHp, me + num(f.t)); q.push({ at: t, k: 'heal', f, hp: me }); t += T(520); }
       else { if (f.k !== 'dodge') me = Math.max(0, me - num(f.t)); t = foeAtk(t, { k: 'hurtR', f, hp: me }); }
@@ -143,11 +143,11 @@ function liveShowPlan(sh, w) {
 /* 지금 무공에서 열린 가장 높은 초식 (없으면 null) */
 function liveSkillOf() {
   const id = S.active.mugong, M = id && MANUALS[id]; if (!M || !M.weapon || !M.stances) return null;
-  const tier = unlockedMoves(S.manuals[id].star); if (!tier) return null;
-  return { mid: id, tier, name: M.stances[tier - 1].name };
+  const n = unlockedMoves(S.manuals[id].star); if (!n) return null;
+  return { mid: id, tier: n >= 3 ? 2 : 1, name: stanceShort(M.stances[n - 1].name) };   // tier: 화면 단계 (오의만 광휘)
 }
 function liveSkill(sc, sk) {
-  const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}`; lab.dataset.live = 1; lab.textContent = `「${sk.name}」`;
+  const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}${sk.name.length > 9 ? ' long' : ''}`; lab.dataset.live = 1; lab.textContent = `「${sk.name}」`;
   const v = document.createElement('img'); v.className = `live-skill n${sk.tier}`; v.dataset.live = 1; v.src = SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`); v.alt = '';
   sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
   if (sk.tier === 2) liveShake(sc);
@@ -182,7 +182,7 @@ function liveShowStart(sc, sh) {
   const sk = liveSkillOf(); if (sk) preloadImgs([SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`)]);
   const R = sh.ref && findExpedition(sh.ref.rid), B = R && R.battles[sh.ref.bi];
   sh.rec = B && B.rounds && B.rounds.length ? B : null;
-  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) preloadImgs([SPRITE_SRC.fx(`${f.mid}_${Math.min(2, f.n)}`)]);
+  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) preloadImgs([SPRITE_SRC.fx(`${f.mid}_${f.n >= 3 ? 2 : 1}`)]);
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1);
   liveHp(sc, 'foe', sh.rec ? sh.rec.start.foe.hp : 1, sh.rec ? sh.rec.start.foe.maxHp : 1, ENEMIES[sh.eid].name);
   liveAnim.hpm.foe.face = `url('${ASSET.beast(sh.eid)}')`; const ff = sc.querySelector('.live-hp.foe .lh-face'); if (ff) ff.style.backgroundImage = liveAnim.hpm.foe.face;

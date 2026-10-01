@@ -53,23 +53,12 @@ const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_
 
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 
-/* 상태 탭 맨 위: 투력과 내역. 내역은 지금 탐험지의 기준 상대와 겨뤘을 때의 기대값 */
+/* 상태 탭 맨 위: 투력. 공세 · 수세 같은 내역은 보여 주지 않는다 (유저가 직접 찾아가도록) */
 function cpCard() {
-  const p = combatPowerParts(S), pct = v => `${Math.round(v * 100)}%`, R = CP_REF[p.ref];
-  const vsTip = p.vs.map((v, i) => `${CP_REF[i].name}: 공세 ${v.offense.toFixed(1)} × 수세 ${v.rounds.toFixed(1)}합`).join('\n');
+  const p = combatPowerParts(S);
   return `<section class="cp-card" aria-label="투력">
-    <div class="cp-main" title="기준 상대 셋과 겨뤄 쓰러지기 전까지 넣는 피해(공세 × 수세)를 기하평균한 지수.\n${vsTip}"><span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(p.total)}</b></div>
-    <div class="cp-parts">
-      <span title="${R.name}에게 한 합에 넣는 기대 피해 (명중 · 관통 · 치명 · 초식 · 반격 · 오행 포함)">공세 <b>${p.offense.toFixed(1)}</b></span>
-      <span title="${R.name}에게 쓰러지기까지 버티는 합 수 (활력 · 방어 · 회피 · 치명 저항 · 흡혈 · 충격 포함)">수세 <b>${p.rounds.toFixed(1)}합</b></span>
-      <span title="평타가 들어갈 확률">명중 <b>${pct(p.hit)}</b></span>
-      <span title="치명타가 더해 주는 평균 피해">치명 <b>×${p.crit.toFixed(2)}</b></span>
-      <span title="공격 무공 초식이 평타보다 더 넣는 몫 (발현 확률 · 연결 · 내력 지속 반영)">초식 <b>×${p.skill.toFixed(2)}</b></span>
-      <span title="한 판 동안 초식을 쓸 내력이 버티는 정도">내력 지속 <b>${pct(p.sustain)}</b></span>
-      <span title="선공: 속도 + 민첩이 기준 상대보다 빠르면 먼저 친다">선공 <b>${p.first ? '우세' : '열세'}</b></span>
-    </div>
+    <div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수. 어디가 모자란지는 직접 겨뤄 보며 찾아가십시오."><span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(p.total)}</b></div>
     <div class="cp-attr">${Object.entries(ATTRS).map(([k, A]) => `<span title="${A.desc}">${A.name} <b>${attrOf(k)}</b></span>`).join('')}${S.talent ? `<span title="${TALENTS[S.talent].desc}">기예 <b>${TALENTS[S.talent].name}</b></span>` : ''}</div>
-    <p class="cp-advice">${cpAdvice(p).map(a => `<span class="adv-${a.k}">${a.t}</span>`).join('')}</p>
   </section>`;
 }
 
@@ -214,11 +203,10 @@ function viewHall() {
   <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 
-/* 장비를 끼면 투력이 어떻게 바뀌는지 (▲ 오름 · ▼ 내림, 공세 · 수세 방향도) */
+/* 장비를 끼면 투력이 얼마나 바뀌는지 (▲ 오름 · ▼ 내림). 공세 · 수세 방향은 알려 주지 않는다 */
 function cpDiffTag(it, slot) {
-  const d = cpTryGear(it, slot), arrow = v => Math.abs(v) < 0.05 ? '' : v > 0 ? '▲' : '▼';
-  const parts = [arrow(d.off) && `공세 ${arrow(d.off)}`, arrow(d.rounds) && `수세 ${arrow(d.rounds)}`].filter(Boolean).join(' · ');
-  return `<small class="cp-diff ${d.cp > 0 ? 'up' : d.cp < 0 ? 'down' : ''}">끼면 투력 ${d.cp > 0 ? '▲' : d.cp < 0 ? '▼' : ''}${fmt(Math.abs(d.cp))}${parts ? ` (${parts})` : ''}</small>`;
+  const d = cpTryGear(it, slot).cp;
+  return `<small class="cp-diff ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">끼면 투력 ${d > 0 ? '▲' : d < 0 ? '▼' : ''}${fmt(Math.abs(d))}</small>`;
 }
 
 /* 무장 · 행낭 */
