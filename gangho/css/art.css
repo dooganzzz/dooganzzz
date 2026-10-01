@@ -456,8 +456,8 @@
 .live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; will-change: transform; }
 .live-strip img { height: 100%; width: auto; flex: none; display: block; }
 .live-hero.sp-hero { left: 10%; bottom: 9%; width: 31.8%; transition: none; }   /* 관찰 창 무대와 같은 구도 (ui_live.js LIVE_POS) */
-.live-where { display: inline-flex; align-items: center; gap: .25em; height: 1.05em; margin-left: .45em; vertical-align: -.12em; color: var(--silver, #ccc); pointer-events: none; }
-.live-where img { height: 100%; width: auto; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .8)); }
+.live-where { display: inline-flex; align-items: center; gap: .35em; height: .62em; margin-left: .55em; vertical-align: .02em; pointer-events: none; opacity: .92; }
+.live-where img { height: 100%; width: auto; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .7)); }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .live-speed { flex-wrap: wrap; }
 .live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
