@@ -4,7 +4,7 @@
    ② 별도 창 (admin.html): 오버레이의 [새 창 ↗] 또는 admin.html을 직접 연다. 같은 출처의 게임 창과
       BroadcastChannel로 이어져 게임이 1초마다 상태·추적을 보내고, 관리자 창은 명령만 보낸다.
       게임을 새로고침·초기화해도 관리자 창과 추적 기록은 남고 다시 이어진다.
-   값 주입은 언제나 게임 쪽에서 기존 시스템 함수(give·runExpedition·settleExpeditions·clampVitals·doReset …)로 실행한다 (GM_CMDS). */
+   값 주입은 언제나 게임 쪽에서 기존 시스템 함수(give·startRun·advanceRun·clampVitals·doReset …)로 실행한다 (GM_CMDS). */
 
 /* 출시 때 false로 두면 버튼·단축키가 모두 사라진다 */
 const GM_ENABLED = true;
@@ -74,9 +74,9 @@ function gmRenderLive() {
   const row = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
   const arts = CAT_ORDER.map(c => { const id = S.active[c], m = id && S.manuals[id];
     return `<tr><td>${CATS[c].name}</td><td><code>${id || '—'}</code></td><td>${id ? MANUALS[id].name : ''}</td><td>${m ? m.star + '성' : ''}</td><td>${m ? (m.star >= MAX_STAR ? '대성' : `다음 ${fmt(starCost(id))}${GATES[m.star] ? ' + ' + GATES[m.star] : ''}${starUpBlock(id) ? '' : ' ✔'}`) : ''}</td></tr>`; }).join('');
-  const X = S.expedition, left = nextExpeditionIn();
+  const X = S.expedition, run = activeRun();
   const inv = Object.entries(S.inv).map(([id, n]) => `<span class="gm-chip"><code>${id}</code> ×${n}</span>`).join('') || '<span class="gm-muted">비어 있음</span>';
-  box.innerHTML = `<div class="gm-kv">${row('전투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('수련치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('다음 출발', left === null ? '—' : `${Math.floor(left / 60000)}분 ${Math.floor(left / 1000) % 60}초`)}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
+  box.innerHTML = `<div class="gm-kv">${row('전투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('수련치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('강호행', run ? `${Math.floor((now() - run.at) / 60000)}분째 · ${run.steps.length}걸음` : '대기')}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
     <table class="gm-table"><thead><tr><th>분류</th><th>ID</th><th>무공</th><th>성</th><th>다음 성급</th></tr></thead><tbody>${arts}</tbody></table>
     <div class="gm-chips">${inv}</div>
     ${S.gear.length ? `<div class="gm-chips">${S.gear.map(g => `<span class="gm-chip">uid ${g.uid} · ${g.name}${g.enh ? ' +' + g.enh : ''}</span>`).join('')}</div>` : ''}`;
@@ -140,9 +140,9 @@ function gmViewCheat() {
     <button class="gm-btn big" data-gm="exp" ${S ? '' : 'disabled'}>[수련치 +1,000]</button>
     <button class="gm-btn big" data-gm="heal" ${S ? '' : 'disabled'}>[활력/내력 100% 회복]</button>
     <button class="gm-btn big" data-gm="stamina" ${S ? '' : 'disabled'}>[기력 가득]</button>
-    <button class="gm-btn big" data-gm="expedite" ${S ? '' : 'disabled'}>[탐험 즉시 1회]</button>
-    <button class="gm-btn big" data-gm="hour" ${zone ? '' : 'disabled'}>[1시간 경과 (예약된 탐험 결산)]</button>
-    <button class="gm-btn big" data-gm="hours8" ${zone ? '' : 'disabled'}>[10시간 경과 (8번까지만 쌓임 확인)]</button>
+    <button class="gm-btn big" data-gm="expedite" ${S ? '' : 'disabled'}>[강호행 시작 · 다음 걸음 즉시]</button>
+    <button class="gm-btn big" data-gm="hour" ${zone ? '' : 'disabled'}>[1시간 경과 (강호행 중)]</button>
+    <button class="gm-btn big" data-gm="hours8" ${zone ? '' : 'disabled'}>[8시간 경과 (강호행 중)]</button>
     <button class="gm-btn big danger ${GM.resetArm ? 'armed' : ''}" data-gm="reset">${GM.resetArm ? '[정말 초기화 — 한 번 더 누르기]' : '[데이터 완전 초기화]'}</button>
   </div>
   <p class="gm-muted">${zone ? `탐험지 ${zone} · 기력 ${Math.round(S.stamina)}` : '탐험지가 없으면 [탐험 즉시 1회]는 청풍산으로 보냅니다.'}</p>`;
@@ -195,19 +195,20 @@ const GM_CMDS = {
     if (what === 'heal') { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; gmTrace('gm', `활력·내력 회복 → ${st.maxHp} / ${st.maxMp}`); }
     if (what === 'stamina') { S.stamina = calcStats().maxSta; gmTrace('gm', `기력 → ${S.stamina}`); }
     if (what === 'exp') { S.exp += 1000; gmTrace('gm', `수련치 +1000 → ${S.exp}`); }
-    if (what === 'expedite') {                               // 일정과 상관없이 지금 한 번 다녀오게 한다 (기력은 가득 채워서)
-      if (!S.expedition.zone) { S.expedition.zone = 'cheongpung'; S.expedition.nextAt = now() + EXPEDITION.interval; }
-      S.stamina = Math.max(S.stamina, calcStats().maxSta);
-      const r = runExpedition(now());
-      gmTrace('gm', `탐험 즉시: ${r.zone} ${r.wins}승 ${r.losses}패 · 은자 ${r.gain.silver} · 수련치 ${r.gain.exp}`);
+    if (what === 'expedite') {                               // 강호행이 없으면 지금 떠나고, 있으면 다음 걸음을 곧바로 치른다
+      if (!S.expedition.zone) S.expedition.zone = 'cheongpung';
+      let r = activeRun();
+      if (!r) { r = startRun(now()); gmTrace('gm', `강호행 시작: ${r.zone}`); }
+      r.next = now(); advanceRun();
+      gmTrace('gm', `걸음 ${r.steps.length} · ${r.live ? '진행 중' : r.end}`);
       notify.view({ tab: 'field' });
     }
-    if (what === 'hour' || what === 'hours8') {               // 예약 시각을 앞당겨 실제 결산 경로(settleExpeditions)를 그대로 탄다
-      const h = what === 'hour' ? 1 : 10;
-      S.expedition.nextAt -= h * EXPEDITION.interval;
-      const recs = settleExpeditions();
-      gmTrace('gm', `${h}시간 경과: 탐험 ${recs.length}번 결산`);
-      if (recs.length) notify.view({ tab: 'field' });
+    if (what === 'hour' || what === 'hours8') {               // 다음 걸음 시각을 앞당겨 실제 진행 경로(advanceRun)를 그대로 탄다
+      const h = what === 'hour' ? 1 : 8, r = activeRun();
+      if (!r) { gmTrace('warn', '강호행 중이 아닙니다'); return; }
+      const n0 = r.steps.length; r.next -= h * 3600000; advanceRun();
+      gmTrace('gm', `${h}시간 경과: 걸음 ${r.steps.length - n0} · ${r.live ? '진행 중' : `끝 (${r.end})`}`);
+      notify.view({ tab: 'field' });
     }
   },
 };
@@ -364,7 +365,7 @@ function gmViewAI() {
     <div class="gm-kv"><div><span>기간</span><b>${R.days}일</b></div><div><span>패턴</span><b>${R.pattern.split(' (')[0]}</b></div><div><span>전투력</span><b>${d(R.before.cp, R.after.cp)}</b></div><div><span>무공 성</span><b>${R.before.star} → ${R.after.star}</b></div><div><span>은자</span><b>${d(R.before.silver, R.after.silver)}</b></div><div><span>공헌도</span><b>${d(R.before.contrib, R.after.contrib)}</b></div><div><span>탐험지</span><b>${ZONES[R.before.zone] ? ZONES[R.before.zone].name : '—'} → ${ZONES[R.after.zone] ? ZONES[R.after.zone].name : '—'}</b></div><div><span>계산 시간</span><b>${R.ms}ms</b></div></div>
     <table class="gm-table"><thead><tr><th>날</th><th>탐험</th><th>승</th><th>패</th><th>쓰러짐</th><th>두목</th><th>전투력</th><th>무공</th><th>심법·경공·기공</th><th>은자</th><th>수련치</th><th>탐험지</th></tr></thead><tbody>${R.daily.map(x => `<tr><td>${x.label}</td><td class="gm-num">${x.runs}</td><td class="gm-num">${x.wins}</td><td class="gm-num">${x.losses}</td><td class="gm-num">${x.defeats}</td><td class="gm-num">${x.bosses}</td><td class="gm-num">${fmt(x.end.cp)}</td><td>${x.end.stars.mugong}성</td><td>${x.end.stars.simbeop}·${x.end.stars.gyeonggong}·${x.end.stars.gigong}성</td><td class="gm-num">${fmt(x.end.silver)}</td><td class="gm-num">${fmt(x.end.exp)}</td><td>${ZONES[x.end.zone] ? ZONES[x.end.zone].name : '—'}</td></tr>`).join('')}</tbody></table>
     <h4 class="gm-h">있었던 일</h4><ol class="gm-notes">${R.notes.map(n => `<li><time>${n.day}일 ${hhmm(n.t)}</time><span>${esc(n.text)}</span></li>`).join('') || '<li class="gm-muted">특별한 일이 없었습니다.</li>'}</ol>`;
-  return `<p class="gm-muted">지금 캐릭터로 며칠을 미리 살아 봅니다. 시계를 그만큼 앞당겨 매시 정각 강호행이 실제 규칙 그대로 돌고, 접속한 시각마다 AI가 보상 받기 · 성급 · 돌파단 · 생혈고 · 장비 · 무공 · 임무 · 공양 · 탐험지를 스스로 고릅니다. 실행 전 저장은 백업됩니다.</p>
+  return `<p class="gm-muted">지금 캐릭터로 며칠을 미리 살아 봅니다. 시계를 그만큼 앞당겨 강호행이 실제 규칙 그대로 이어지고(쓰러지면 AI가 보상을 받고 다시 떠남), 접속한 시각마다 AI가 보상 받기 · 성급 · 돌파단 · 생혈고 · 장비 · 무공 · 임무 · 공양 · 탐험지를 스스로 고릅니다. 실행 전 저장은 백업됩니다.</p>
     <div class="gm-bar">${pats}</div>
     <div class="gm-cheats">${[1, 2, 3].map(n => `<button class="gm-btn big primary" data-gmai="${n}" ${S && !GM.aiBusy ? '' : 'disabled'}>[${n}일 돌리기]</button>`).join('')}
       <button class="gm-btn big" data-gm="airestore" ${bk ? '' : 'disabled'}>[AI 실행 전으로 되돌리기]${bk ? ` <small>${hhmm(bk)} 백업</small>` : ''}</button></div>

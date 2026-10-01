@@ -1,8 +1,8 @@
-/* [화면] 강호행: 탐험지 고르기 · 다음 출발 · 탐험 기록, 결산 창, 전투 관찰(리플레이) */
+/* [화면] 강호행: 탐험지 고르기 · 강호행 시작/귀환 · 탐험 기록, 결산 창, 전투 관찰(리플레이) */
 
-/* 1초마다 남은 시간만 바꿔 쓴다 (화면 전체를 다시 그리지 않는다) */
+/* 1초마다 흐른 시간만 바꿔 쓴다 (화면 전체를 다시 그리지 않는다) */
 Bus.on('tick', () => {
-  for (const el of document.querySelectorAll('[data-countdown]')) el.textContent = countdownText();
+  for (const el of document.querySelectorAll('[data-runclock]')) el.textContent = runClockText();
   const scn = $('#liveScene'); if (scn && scn.dataset.tod !== liveTod()) scn.dataset.tod = liveTod();   // 시간대 빛깔
   const sig = liveSig(); if (sig === lastLiveSig) return; lastLiveSig = sig;   // 새 걸음이 드러났을 때만
   const box = $('#liveSide'); if (box) setHTML(box, liveSide());
@@ -10,19 +10,19 @@ Bus.on('tick', () => {
   if (sc) {
     sc.classList.toggle('rest', liveDone(lr));
     // 방금 드러난 걸음이 전투면 그 요수와 맞붙는 모습을 보여 준다 (결과는 견문록 · 결과보기에서)
-    const n = lr && lr.pend ? shownSteps(lr) : 0, st = n ? lr.steps[n - 1] : null;
-    if (st && st.b !== undefined && !lr.shownAll && now() - stepAt(lr, n - 1) < 2600) { const bt = lr.battles[st.b]; if (bt) liveShowQueue(bt.eid, true, bt.boss); }
+    const n = lr ? lr.steps.length : 0, st = n ? lr.steps[n - 1] : null;
+    if (st && st.b !== undefined && now() - stepAt(lr, n - 1) < 2600) { const bt = lr.battles[st.b]; if (bt) liveShowQueue(bt.eid, true, bt.boss); }
   }
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
 });
 
-/* ───────── 실시간 강호행: 산길을 오르는 제자와 배속 견문록 ───────── */
+/* ───────── 실시간 강호행: 산길을 걷는 제자와 견문록 ───────── */
 let lastLiveSig = '';
-function liveSig(t = now()) { return S ? S.expeditions.map(r => r.pend ? `${shownSteps(r, t)}${liveDone(r, t) ? 'd' : ''}${r.claimed ? 'c' : ''}${r.battles.filter(b => b.seen).length}` : '').join(',') + liveSpeed() : ''; }
-const LIVE_SPEED_NAME = { 2: '2배속', 3: '3배속', 4: '4배속', 0: '일괄확인' };
+function liveSig() { return S ? S.expeditions.map(r => `${r.id}:${r.steps.length}${r.live ? 'L' : ''}${r.claimed ? 'c' : ''}${r.battles.filter(b => b.seen !== false).length}`).join(',') + `|${S.expedition.zone || ''}|${count('saenghyeol')}` : ''; }
+const runClockText = () => { const r = activeRun(); return r ? hhmmss(now() - r.at) : '—'; };
 /* 걷기: 병기별 걸음 시트 16칸이 두 걸음 한 주기(ms). 산길은 한 주기에 키(칸 높이)의 g배만큼 한 겹으로 흘러 발이 미끄러지지 않는다
    (주기와 g는 걷는 영상에서 디딘 발이 뒤로 밀리는 빠르기를 재어 정했다).
-   다 돌아오면 멈춰 서서 숨쉬기 (대기 시트). 걷다 보면 가끔 요수와 마주쳐 맞붙는 모습을 보여 준다 (연출일 뿐, 실제 전투는 견문록에) */
+   강호행이 끝나면 멈춰 서서 숨을 고르며 초식을 연습한다 (대기 시트). 전투 걸음이 드러나면 그 요수와 맞붙는 모습을 보여 준다 (결과는 견문록 · 결과보기에서) */
 const WALK_META = { sword: { n: 16, ms: 1375, g: .64 }, blade: { n: 16, ms: 1500, g: .631 }, spear: { n: 16, ms: 1417, g: .592 }, fist: { n: 16, ms: 1333, g: .587 }, hidden: { n: 16, ms: 1167, g: .764 } }, WALK_DEF = { n: 16, ms: 1375, g: .64 };
 const walkMeta = w => WALK_META[w] || WALK_DEF;
 let liveAnim = { f: 0, last: 0, acc: 0, x: 0, raf: 0, breath: 0, walkMs: 0, nextShow: 0, show: null, queued: null };
@@ -200,11 +200,8 @@ function liveLoop(ts) {
     if (wImg) strip.style.transform = `translate3d(${-(liveAnim.x % wImg).toFixed(1)}px,0,0)`;
   }
   liveProps(sc, walker, dt);
-  // 연출 전투: 실제 전투가 드러났으면 그 요수로 곧바로, 아니면 18~32초 걸을 때마다 한 번
+  // 맞붙는 모습: 전투 걸음이 드러나면 그 요수로
   if (liveAnim.show) { liveShowStep(sc, liveAnim.show, ts, dt); return; }
-  liveAnim.walkMs += dt;
-  if (!liveAnim.nextShow) liveAnim.nextShow = 9000 + Math.random() * 8000;
-  if (!liveAnim.queued && liveAnim.walkMs >= liveAnim.nextShow) { const e = liveShowPick(sc.dataset.zone); if (e) liveShowQueue(e, false); else liveAnim.walkMs = 0; }
   const q = liveAnim.queued;
   if (q && imgsReady([SPRITE_SRC.foe(q.eid), SPRITE_SRC.foe(q.eid, 1)])) { liveAnim.queued = null; liveAnim.show = liveShowStart(sc, { ...q }); }
 }
@@ -221,38 +218,39 @@ function liveScene(r) {
     <img class="live-enc" src="assets/art/ui/b_encounter.png" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
     <span class="live-where">${ZONES[zid].name}</span>
-    <span class="live-rest">다음 출발 <b data-countdown>${countdownText()}</b></span>
+    <span class="live-rest">${r && r.end === 'dead' && !r.claimed ? '쓰러져 돌아왔습니다' : '산문에서 대기 중'}</span>
   </div>`;
 }
 function liveStepRow(r, i, t) {
   const st = r.steps[i], seen = st.b === undefined || battleSeen(r, st.b);
   const btn = st.b !== undefined ? `<button class="watch ${seen ? '' : 'unseen'}" data-watch="${r.id}:${st.b}">${seen ? '다시보기' : '결과보기'}</button>` : '';
-  return `<li class="${seen ? st.cls : 'enc'} ${t - stepAt(r, i) < 4000 && !r.shownAll ? 'fresh' : ''}"><time>${hhmm(Math.min(stepAt(r, i), r.shownAt || Infinity))}</time><span>${chronDecor(stepText(r, st))}</span>${btn}</li>`;
+  return `<li class="${seen ? st.cls : 'enc'} ${t - stepAt(r, i) < 4000 && r.live ? 'fresh' : ''}"><time>${hhmm(stepAt(r, i))}</time><span>${chronDecor(stepText(r, st))}</span>${btn}</li>`;
 }
 function liveSide() {
-  const r = liveRec(), t = now(), sp = liveSpeed();
-  const speeds = `<div class="chips live-speed">${LIVE_SPEEDS.map(v => `<button class="chip ${sp === v ? 'on' : ''}" data-livespeed="${v}">${LIVE_SPEED_NAME[v]}</button>`).join('')}</div>`;
-  if (!r || !r.pend) return `${speeds}<p class="muted live-empty">${S.expedition.zone ? '다음 정각에 제자가 길을 떠나면, 이곳에서 강호행을 실시간으로 지켜볼 수 있습니다.' : '탐험지를 정하면 제자가 길을 떠납니다.'}</p>`;
-  const n = shownSteps(r, t), done = liveDone(r, t), pend = pendingRecs();
-  const pct = done ? 100 : Math.min(100, (t - r.at) / Math.max(1, liveDur()) * 100);
+  const r = liveRec(), t = now(), run = activeRun(), pend = pendingRecs(), X = S.expedition;
+  const startBtn = `<button class="btn ${pend.length ? '' : 'primary'}" data-act="runstart" ${X.zone ? '' : 'disabled'}>강호행 시작</button>`;
+  const claimBtn = pend.length ? `<button class="btn primary" data-act="claim">최종보상확인${pend.length > 1 ? ` (${pend.length}번)` : ''}</button>` : '';
+  const pots = `생혈고 <b class="${count('saenghyeol') < 3 ? 'warn' : ''}">${count('saenghyeol')}</b>개`;
+  if (!r) return `<p class="muted live-empty">${X.zone ? `${josa(ZONES[X.zone].name, '으로')} 떠날 준비가 되었습니다. [강호행 시작]을 누르면 제자가 쓰러질 때까지 쭉 나아갑니다. (${pots})` : '아래 탐험지에서 갈 곳을 먼저 정하십시오.'}</p><div class="btns live-btns">${startBtn}</div>`;
   const rows = [];
-  for (let i = n - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
-  const unseen = r.battles.filter(b => b.seen === false).length;
-  return `${speeds}
-    <div class="live-prog"><span style="width:${pct.toFixed(1)}%"></span></div>
-    <p class="live-state">${done ? `<b>강호행을 마치고 돌아왔습니다.</b>` : `<b>${ZONES[r.zone].name}</b>을 오르는 중 · 견문 ${n} / ${r.steps.length} · ${hhmm(liveEndAt(r))} 무렵 귀환`}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
+  for (let i = r.steps.length - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
+  const unseen = r.battles.filter(b => b.seen === false).length, st = calcStats(), hpP = clamp(S.hp / st.maxHp * 100, 0, 100);
+  const state = run ? `<b>${ZONES[r.zone].name}</b> 강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${r.steps.length} · 전투 ${r.battles.length}`
+    : r.end === 'dead' ? `<b class="warn">${ZONES[r.zone].name}에서 쓰러져 강호행이 끝났습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}`
+    : `<b>${ZONES[r.zone].name} 강호행을 마치고 돌아왔습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}`;
+  return `${run ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span>활력 ${fmt(Math.round(S.hp))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>` : ''}
+    <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">
-      ${pend.length ? `<button class="btn ${canClaim(t) ? 'primary' : ''}" data-act="claim" ${canClaim(t) ? '' : 'disabled'}>최종보상확인${pend.length > 1 ? ` (${pend.length}번)` : ''}</button>` : '<span class="muted">받을 보상이 없습니다.</span>'}
-      ${!done && sp !== 0 ? '<button class="btn ghost sm" data-act="revealall">지금 모두 보기</button>' : ''}
+      ${run ? '<button class="btn ghost" data-act="runstop">귀환하기</button>' : `${claimBtn}${startBtn}`}
     </div>
-    ${pend.length && !canClaim(t) ? '<small class="muted">견문이 끝나면 얻은 것을 받을 수 있습니다.</small>' : ''}`;
+    ${run ? '<small class="muted">전투에서 지면 쓰러지고 강호행이 끝납니다. 얻은 것은 끝난 뒤 [최종보상확인]으로 받습니다.</small>' : !X.zone ? '' : `<small class="muted">${pots} · 전방에서 개당 5냥</small>`}`;
 }
 function livePanel() {
-  const r = liveRec();
+  const r = liveRec(), run = activeRun();
   lastLiveSig = liveSig();
   return `<section class="panel live-panel">
-    ${head('실시간 강호행', '江湖行 觀', `<span class="pill">${LIVE_SPEED_NAME[liveSpeed()]}</span>`)}
+    ${head('실시간 강호행', '江湖行 觀', `<span class="pill">${run ? '강호행 중' : '대기'}</span>`)}
     <div class="live-wrap">${liveScene(r)}<div class="live-side" id="liveSide">${liveSide()}</div></div>
   </section>`;
 }
@@ -272,10 +270,6 @@ function lootModal() {
 
 
 const hhmmss = ms => { const s = Math.ceil(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return `${h ? h + ':' : ''}${String(m).padStart(h ? 2 : 1, '0')}:${String(x).padStart(2, '0')}`; };
-function countdownText() {
-  const left = nextExpeditionIn();
-  return left === null ? '탐험지 미정' : left <= 0 ? '곧 출발' : hhmmss(left);
-}
 const recTime = r => hhmm(r.at);
 function recSummary(r) {
   const g = r.gain, items = Object.entries(g.items || {}).map(([id, n]) => `${ITEMS[id].icon}${ITEMS[id].name} ×${n}`);
@@ -315,11 +309,11 @@ function zoneCard(zid) {
     <p class="story">${Z.desc}</p>
     <p class="zone-terrain">지형 ${(Z.terrain || []).map(terrainTag).join('')}</p>
     ${open ? exp : '<small class="muted">🔒 앞 구역의 두목을 쓰러뜨리면 길이 열립니다.</small>'}
-    <div>${!open || here ? '' : `<button class="btn ${X.zone ? '' : 'primary'} sm" data-dest="${zid}">${X.zone ? '탐험지로 정하기' : '이곳으로 첫 탐험 떠나기'}</button>`}</div>
+    <div>${!open || here ? '' : `<button class="btn ${X.zone ? '' : 'primary'} sm" data-dest="${zid}">탐험지로 정하기</button>`}</div>
   </div>`;
 }
 
-/* 출정 준비: 정각 전에 갖춰 둘 것들 (탐험지·무공·병기·장비·생혈고·상성·단약) */
+/* 출정 준비: 떠나기 전에 갖춰 둘 것들 (탐험지·무공·병기·장비·생혈고·상성·단약) */
 function prepPanel() {
   const X = S.expedition, st = calcStats(), mu = S.active.mugong, M = mu && MANUALS[mu];
   const worn = SLOT_ORDER.filter(k => S.equip[k]).length;
@@ -332,7 +326,7 @@ function prepPanel() {
     ${row(CAT_ORDER.every(c => S.active[c]), '무공', arts, go('status', 'martial', '무공'))}
     ${row(!!S.equip.weapon && wOk, '병기', S.equip.weapon ? `${gearName(S.equip.weapon)}${wOk ? '' : ` <span class="warn">— 《${M.name}》은 ${WEAPON_TYPES[M.weapon]} 무공이라 초식이 나가지 않음</span>`}` : '맨손', go('status', 'gear', '무장'))}
     ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 전투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
-    ${row(has('saenghyeol', 3), '생혈고', `${count('saenghyeol')}개 (활력 35% 아래에서 자동 사용) · 소환단 ${count('potionMp')}개`, go('sect', 'forge', '화로'))}
+    ${row(has('saenghyeol', 5), '생혈고', `${count('saenghyeol')}개 (활력 35% 아래에서 자동 사용 · 떨어지면 쓰러지기 쉽다 · 전방 개당 5냥) · 소환단 ${count('potionMp')}개`, go('sect', 'shop', '전방'))}
     ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1;
       const tz = X.zone ? ` — ${ZONES[X.zone].name} ${zoneTerrainText(X.zone)} ${m < 1 ? '<b class="good">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn">불일치 · 기력 +20%</span>' : ''}` : '';
       return row(!!(e && t) && m <= 1, '상성', `기공 ${e ? elemTag(e) : '<span class="warn">오행 없음</span>'} · 경공 ${t ? terrainTag(t) : '<span class="warn">지형 없음</span>'}${tz} · 병기 ${weaponTag(weaponType())}`, go('status', 'martial', '무공')); })()}
@@ -342,11 +336,12 @@ function prepPanel() {
 
 function viewField() {
   const X = S.expedition, st = calcStats(), cur = X.zone && ZONES[X.zone];
+  const run = activeRun();
   const recs = [...S.expeditions].reverse().filter(r => liveDone(r)).map(r => {
     const sm = recSummary(r), Z = ZONES[r.zone];
     if (r.pend && !r.claimed) return `<details class="exp-rec"><summary><time>${recTime(r)}</time><b>${Z.name}</b><span>보상을 아직 받지 않았습니다</span><button class="watch claim" data-act="claim">최종보상확인</button></summary></details>`;
     return `<details class="exp-rec ${r.defeats ? 'defeat' : ''}">
-      <summary><time>${recTime(r)}</time><b>${Z.name}</b><span>${sm.head}</span>${r.defeats ? `<em class="warn">쓰러짐 ${r.defeats}</em>` : ''}</summary>
+      <summary><time>${recTime(r)}</time><b>${Z.name}</b><span>${sm.head}</span>${r.defeats ? `<em class="warn">쓰러짐</em>` : r.end === 'recall' ? '<em>귀환</em>' : ''}</summary>
       ${sm.items.length || sm.gear.length ? `<p class="exp-loot">${[...sm.items, ...sm.gear].map(t => `<span>${t}</span>`).join('')}</p>` : ''}
       ${terrainLine(r) ? `<p class="muted tr-line">⛰ ${terrainLine(r)}</p>` : ''}
       <ol class="exp-steps">${r.steps.map(s => { const seen = s.b === undefined || battleSeen(r, s.b); return `<li class="${seen ? s.cls : 'enc'}">${stepText(r, s)}${s.b !== undefined ? ` <button class="watch ${seen ? '' : 'unseen'}" data-watch="${r.id}:${s.b}">${seen ? '다시보기' : '결과보기'}</button>` : ''}</li>`; }).join('')}</ol>
@@ -355,12 +350,12 @@ function viewField() {
   return `${livePanel()}<section class="panel">
     ${head('강호행', '江湖行', `<span class="pill">${cur ? `⛰️ ${cur.name}` : '탐험지 미정'}</span>`)}
     <div class="exp-status">
-      <div class="exp-next"><small>다음 출발 ${X.nextAt ? `<b class="clock">${clockHM(X.nextAt)}</b>` : ''}</small><b data-countdown>${countdownText()}</b>${X.nextAt ? incenseClock() : ''}</div>
-      <div class="exp-sta"><small class="muted">매시 정각, 제자가 이 준비 그대로 떠납니다. 그 전에 갖춰 두십시오.</small></div>
+      <div class="exp-next"><small>${run ? `${ZONES[run.zone].name} 강호행 중` : '산문에서 대기 중'}</small><b data-runclock>${runClockText()}</b></div>
+      <div class="exp-sta">${run ? '<button class="btn ghost sm" data-act="runstop">귀환하기</button>' : `<button class="btn primary sm" data-act="runstart" ${X.zone ? '' : 'disabled'}>강호행 시작</button>`}<small class="muted">${run ? '쓰러지거나 귀환할 때까지 이어집니다.' : '떠나기 전에 아래 준비를 갖춰 두십시오.'}</small></div>
     </div>
     <h4 class="prep-head">출정 준비</h4>
     ${prepPanel()}
-    <p class="story">${cur ? `매시 정각마다 제자가 ${josa(cur.name, '으로')} 나가 지칠 때까지 싸우고 줍고 돌아옵니다. 한 시간의 강호행은 위 '실시간 강호행'에 배속으로 펼쳐지고, 얻은 것은 [최종보상확인]으로 받습니다. 자리를 비워도 최대 ${EXPEDITION.maxQueue}번까지 쌓입니다.` : '탐험지를 고르면 제자가 첫 탐험을 곧바로 떠납니다. 그 뒤로는 매시 정각에 스스로 나갑니다.'}</p>
+    <p class="story">${cur ? `[강호행 시작]을 누르면 제자가 ${josa(cur.name, '으로')} 나가 ${EXPEDITION.stepMs / 1000}초마다 한 걸음씩 싸우고 줍습니다. 활력은 걸음 사이에 차지 않고, 위급하면 생혈고를 바릅니다. 전투에서 지면 쓰러지고 강호행은 끝납니다. 자리를 비워도 최대 ${EXPEDITION.catchUp / 3600000}시간까지 이어지고, 얻은 것은 끝난 뒤 [최종보상확인]으로 받습니다.` : '아래에서 탐험지를 고른 뒤 [강호행 시작]을 누르십시오.'}</p>
   </section>
   <section class="panel">${head('탐험지', '行先')}<p class="muted">어느 곳이 얼마나 위험한지는 알려 주지 않습니다. 다녀오며 몸으로 익히십시오.</p><div class="zones">${ZONE_ORDER.map(zoneCard).join('')}</div></section>
   <section class="panel">${head('탐험 기록', '見聞', `<span class="num muted">최근 ${S.expeditions.length} / ${EXPEDITION.keep}번</span>`)}

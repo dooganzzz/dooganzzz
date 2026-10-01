@@ -115,7 +115,7 @@ const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S);
   setHTML($('#status'), `
-    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name} · ${S.expedition.nextAt ? clockHM(S.expedition.nextAt) : ''} 출발 <strong class="highlight-timer">${countdownText()}</strong>` : '탐험지 미정'}</span></div>
+    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name} · ${activeRun() ? `강호행 중 <strong class="highlight-timer" data-runclock>${runClockText()}</strong>` : '대기 중'}` : '탐험지 미정'}</span></div>
     <div class="status-indicator-row">
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
       <div class="currency-chips user-status-bar">

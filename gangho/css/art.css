@@ -462,6 +462,8 @@
 .live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
 .live-prog span { display: block; height: 100%; background: linear-gradient(90deg, #8a6a3a, #d4a64c); transition: width 1s linear; }
 .live-state { margin: 0; font-size: 13px; }
+.live-prog.hp span { background: linear-gradient(90deg, #8a2a1a, #d0503a); }
+.live-vit { margin: 0; display: flex; justify-content: space-between; gap: 8px; font-size: 12px; opacity: .9; }
 .live-log { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow: auto; display: flex; flex-direction: column; gap: 3px; }
 .live-log li { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 6px; background: rgba(255, 255, 255, .045); font-size: 13px; line-height: 1.4; }
 .live-log li time { flex: none; font-size: 11px; opacity: .6; font-variant-numeric: tabular-nums; }

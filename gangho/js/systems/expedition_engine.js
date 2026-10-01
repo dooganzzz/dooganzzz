@@ -1,6 +1,5 @@
-/* [시스템] 자동 탐험: 매시 정각, 제자가 목적지로 나가 기력을 다 쓸 때까지 조우를 겪는다 (DOM 조작 금지)
-   유저는 정각 전에 탐험지·무공·장비·소모품을 갖춰 둔다. 구역의 적정 전투력은 알려 주지 않는다 — 다녀온 경험(S.zoneLog)만 쌓인다.
-   유저는 목적지만 고른다. 자리를 비운 동안의 탐험은 최대 EXPEDITION.maxQueue번까지 한꺼번에 결산하고,
+/* [시스템] 강호행: 유저가 [강호행 시작]을 누르면 제자가 탐험지로 나가 쓰러지거나 귀환할 때까지 조우를 이어 간다 (DOM 조작 금지)
+   유저는 떠나기 전에 탐험지·무공·장비·생혈고를 갖춰 둔다. 구역의 적정 전투력은 알려 주지 않는다 — 다녀온 경험(S.zoneLog)만 쌓인다.
    기록은 최근 EXPEDITION.keep번만 남긴다 (오래된 것부터 지움). 전투는 합마다 기록해 견문록 [관찰하기]로 다시 본다. */
 
 function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags[u.boss]; }
@@ -86,7 +85,7 @@ function openVault(Z) {
 function stepBattle(rec, eid, bonus) {
   const b = fight(eid, { bonus });
   if (b.win) { const st = calcStats(); S.hp = Math.min(st.maxHp, S.hp + Math.round(st.maxHp * (EXPEDITION.breathe + (st.breathe || 0) / 100))); }   // 숨 고르기 (흑사 편직 요대 등)
-  rec.battles.push({ eid, name: b.name, boss: b.boss, win: b.win, fled: !!b.fled, intro: b.intro, start: b.start, rounds: b.rounds, exp: b.exp, silver: b.silver, cause: b.cause || null });
+  rec.battles.push({ eid, seen: false, name: b.name, boss: b.boss, win: b.win, fled: !!b.fled, intro: b.intro, start: b.start, rounds: b.rounds, exp: b.exp, silver: b.silver, cause: b.cause || null });
   const res = b.win ? '승리' : b.fled ? '무승부' : '패배';
   return { t: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 전투에서 ${res}${b.cause ? ` — ${b.cause}` : ''}`, enc: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 조우했습니다`, cls: b.win ? (b.boss ? 'gold' : 'good') : 'bad', b: rec.battles.length - 1, lost: !b.win && !b.fled };
 }
@@ -124,184 +123,128 @@ function stepEvent(rec, zid, used) {
   return { ...fb, t: `${head} → ${fb.t}`, enc: `${head} → ${fb.enc}` };
 }
 
-/* ───────── 탐험 한 번 ───────── */
-function runExpedition(at = now()) {
-  const W = EXPEDITION, zid = S.expedition.zone, Z = ZONES[zid];
-  const st0 = calcStats();
-  S.hp = st0.maxHp; S.mp = st0.maxMp;                      // 몸을 추스르고 출발
-  const budget = Math.max(S.stamina, W.minStamina);
-  const rec = { id: S.uid++, at, zone: zid, budget, steps: [], battles: [], end: 'tired', gain: {} };
-  const before = { silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length };
-  const used = new Set();
-  let bossSeen = false, guard = 0;
-  const step = (k, fn) => { RT.journal = []; const r = fn() || {}; rec.steps.push({ k, t: r.t, enc: r.enc, cls: r.cls || '', b: r.b, d: RT.journal }); return r; };
-  const COST = { beast: STAMINA_COST.battle, vault: STAMINA_COST.chest, event: STAMINA_COST.battle, trap: 0, gimmick: STAMINA_COST.gimmick };
-  // 지형 상성(구역 단위)과 기력 소모 감소(장비)를 걸음마다의 기력에 곱한다
-  const tm = terrainMult(zid), mult = tm * (1 - (st0.staSave || 0) / 100);
-  rec.terrain = { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(mult * 1000) / 1000, extra: 0 };
-  const spend = base => { const c = base * mult; S.stamina = Math.max(0, S.stamina - c); rec.terrain.extra += c - base; };
-  const recover = () => { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; };
-  // 이번 탐험에서 겪을 전투·금고 횟수를 정해 둔다
-  const plan = rec.plan = { battles: rint(...W.battles), vaults: rint(...W.vaults) };
-  let vaults = 0, extras = 0;
-  rec.defeats = 0; rec.villages = 0;
-  try {
-    while (guard++ < 300) {
-      const nB = rec.battles.length, needB = nB < W.battles[0], needV = vaults < W.vaults[0];
-      const doneB = nB >= plan.battles, doneV = vaults >= plan.vaults;
-      if (doneB && doneV) break;                                  // 정한 만큼 다 겪었다
-      const tired = S.stamina < W.minStamina;
-      if (tired && !needB && !needV) break;                       // 기력이 바닥났고 최소 횟수도 채웠다
-      const depth = Math.max(1 - S.stamina / budget, (nB + vaults) / (plan.battles + plan.vaults));
-      if (S.hp < calcStats().maxHp * W.villageAt && !has('saenghyeol')) {      // 마을 치료: 기력을 써서 활력·내력을 채우고 다시 오른다
-        spend(W.villageSta); recover(); rec.villages++;
-        step('village', () => { log(EXP_TEXT.village, 'muted'); return { t: '🏘️ 마을로 내려가 상처를 치료하고 다시 올랐습니다 (기력 소모)', cls: 'muted' }; });
-        continue;
-      }
-      const lost = () => {                                    // 패배: 기력을 크게 잃고, 추슬러 다시 사냥
-        rec.defeats++; spend(W.defeatSta); recover();
-        rec.steps[rec.steps.length - 1].d.push({ text: EXP_TEXT.defeat, cls: 'bad' });
-      };
-      let k;
-      if (tired) k = needB ? 'beast' : 'vault';                   // 지친 몸으로 최소 횟수만 채운다
-      else {
-        const wt = {};
-        if (!doneB) wt.beast = W.weights.beast;
-        if (!doneV) wt.vault = W.weights.vault;
-        if (extras < W.extras) { if (!doneB && !used.size) wt.event = W.weights.event; wt.trap = W.weights.trap; wt.gimmick = W.weights.gimmick; }
-        k = weighted(wt);
-        if (S.stamina < COST[k] * mult) {                          // 기력이 모자라면: 최소 횟수가 남았으면 그것부터, 아니면 돌아온다
-          if (!needB && !needV) break;
-          k = needB ? 'beast' : 'vault';
-        }
-      }
-      // 두목(히든 강적): 전투 조우 한 번마다 낮은 확률. 못 만난 탐험이 쌓일수록 조금씩 오른다 (천장). 만나면 피하지 않고 싸운다
-      if (k === 'beast' && Z.boss && !bossSeen && Math.random() < bossChanceNow(zid)) {
-        bossSeen = true;
-        spend(STAMINA_COST.boss);
-        if (step('boss', () => stepBattle(rec, Z.boss)).lost) lost();
-        continue;
-      }
-      if (k === 'vault') vaults++; else if (k !== 'beast') extras++;
-      spend(COST[k]);
-      const r = step(k, () => k === 'beast' ? stepBattle(rec, pickBeast(Z, depth))
-        : k === 'vault' ? stepVault(Z) : k === 'event' ? stepEvent(rec, zid, used) : k === 'trap' ? stepTrap() : stepGimmick(Z));
-      if (r.lost) lost();
-    }
-  } finally { RT.journal = null; }
-  // 결산
-  const g = { silver: S.silver - before.silver, exp: S.exp - before.exp, contrib: S.contrib - before.contrib, items: {}, used: {}, gear: S.gear.slice(before.gear).map(it => `[${RARITY[it.rarity].name}] ${it.name}`) };
-  for (const id of new Set([...Object.keys(S.inv), ...Object.keys(before.inv)])) {
-    const d = (S.inv[id] || 0) - (before.inv[id] || 0);
-    if (d > 0) g.items[id] = d; else if (d < 0) g.used[id] = -d;
+/* ───────── 강호행: [강호행 시작]을 누르면 쓰러지거나 귀환할 때까지 쭉 이어진다 ─────────
+   걸음은 EXPEDITION.stepMs마다 하나(전투 · 금고 · 기연 · 덫 · 장치). 활력은 걸음 사이에 차지 않는다 —
+   이기면 숨을 조금 고르고(breathe), 위급하면 생혈고를 스스로 바른다. 전투에서 지면 쓰러지고 강호행은 거기서 끝난다.
+   기력이 바닥나면 쉬어 가는 걸음(EXPEDITION.restMs)으로 기력만 되찾는다 (경공 지형 상성이 쉬는 횟수를 정한다).
+   자리를 비워도 이어지고(최대 EXPEDITION.catchUp만큼 따라잡음), 얻은 것은 보관했다가 끝난 뒤 [최종보상확인]으로 받는다.
+   전투 결과는 미리 적지 않는다: '조우했습니다'만 적고, [결과보기]로 관찰해야 결과가 적힌다 */
+const findExpedition = id => S.expeditions.find(r => r.id === id);
+function activeRun() { const id = S.expedition && S.expedition.run, r = id != null ? findExpedition(id) : null; return r && r.live ? r : null; }
+const runSnap = () => ({ silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length });
+/* 한 걸음에서 얻은 것은 보관함(pend)으로 옮기고, 쓴 것(생혈고 등)은 쓴 채로 둔다 */
+function holdStep(rec, b) {
+  const g = rec.gain, P = rec.pend;
+  for (const k of ['silver', 'exp', 'contrib']) { const d = S[k] - b[k]; if (d > 0) { S[k] -= d; P[k] += d; } g[k] += d; }
+  for (const id of new Set([...Object.keys(S.inv), ...Object.keys(b.inv)])) {
+    const d = (S.inv[id] || 0) - (b.inv[id] || 0);
+    if (d > 0) { take(id, d); P.items[id] = (P.items[id] || 0) + d; g.items[id] = (g.items[id] || 0) + d; }
+    else if (d < 0) g.used[id] = (g.used[id] || 0) - d;
   }
-  rec.gain = g;
-  holdRewards(rec, S.gear.slice(before.gear));
-  S.bossPity = S.bossPity || {};
-  S.bossPity[zid] = bossSeen ? 0 : (S.bossPity[zid] || 0) + 1;       // 두목 천장: 만나면 초기화
-  rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
-  rec.wins = rec.battles.filter(b => b.win).length; rec.losses = rec.battles.filter(b => !b.win && !b.fled).length;
-  S.stamina = 0;                                            // 남은 기력은 다음 탐험 전까지 다시 찬다
-  S.buffs = [];                                             // 증강 단약 효과는 이번 탐험으로 끝
-  // 구역에서 겪은 것 (정답 대신 경험만 남는다)
-  const zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
-  zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = at;
-  zl.defeats += rec.defeats; zl.retreats += rec.villages;
-  for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }
-  S.expeditions.push(rec);
-  while (S.expeditions.length > W.keep) S.expeditions.shift();   // 오래된 기록부터 지운다
-  writeExpeditionLog(rec);
-  notify.trace('sys', `탐험 ${zid}: ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${g.silver} · 수련치 ${g.exp}${rec.defeats ? ` · 쓰러짐 ${rec.defeats}` : ''}`);
+  const ng = S.gear.slice(b.gear);
+  if (ng.length) { S.gear = S.gear.slice(0, b.gear); P.gear.push(...ng); g.gear.push(...ng.map(it => `[${RARITY[it.rarity].name}] ${it.name}`)); }
+}
+function startRun(t = now()) {
+  const X = S.expedition; if (!X.zone || !zoneUnlocked(X.zone) || activeRun()) return null;
+  const zid = X.zone, Z = ZONES[zid], st = calcStats(), tm = terrainMult(zid);
+  S.hp = st.maxHp; S.mp = st.maxMp; S.stamina = st.maxSta;      // 몸을 추스르고 출발
+  const rec = { id: S.uid++, at: t, zone: zid, live: true, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [], bossSeen: false,
+    gain: { silver: 0, exp: 0, contrib: 0, items: {}, used: {}, gear: [] }, pend: { silver: 0, exp: 0, contrib: 0, items: {}, gear: [] },
+    defeats: 0, villages: 0, rests: 0, wins: 0, losses: 0,
+    terrain: { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(tm * (1 - (st.staSave || 0) / 100) * 1000) / 1000, extra: 0 } };
+  X.run = rec.id; S.expeditions.push(rec);
+  // 기록은 최근 EXPEDITION.keep번만 (받지 않은 보상이 있는 기록은 남긴다)
+  while (S.expeditions.length > EXPEDITION.keep) { const i = S.expeditions.findIndex(r => !r.live && (!r.pend || r.claimed)); if (i < 0) break; S.expeditions.splice(i, 1); }
+  log(`⛰️ ${josa(Z.name, '으로')} 강호행을 떠납니다. ${pick(EXP_TEXT.depart)}`, 'place', t);
+  notify.refresh(); notify.save();
   return rec;
 }
-
-/* 견문록에는 걸음마다 한 줄. 전투에는 [결과보기] 단추를 붙인다 (탐험 시각으로 찍고, 드러나는 시각은 stepAt).
-   최신이 위에 오도록 걸음을 먼저 적고, 머리줄(요약)을 마지막에 적는다. */
-function writeExpeditionLog(rec) {
-  const Z = ZONES[rec.zone], g = rec.gain;
-  for (const s of rec.steps) {
-    const watch = s.b !== undefined ? ` <button class="watch" data-watch="${rec.id}:${s.b}">결과보기</button>` : '';
-    log(`${stepText(rec, s)}${watch}`, `exp-step ${s.b !== undefined && !battleSeen(rec, s.b) ? '' : s.cls}`, rec.at, { r: rec.id, s: rec.steps.indexOf(s) });
-  }
-  const items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
-  log(`⛰️ ${Z.name} 탐험 — ${rec.wins}승 ${rec.losses}패 · ${hlSilver(g.silver)}${g.exp ? ` · 수련치 +${fmt(g.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}${rec.defeats ? ` · <b class="warn">쓰러짐 ${rec.defeats}번</b>` : ''}${rec.villages ? ` · 마을 치료 ${rec.villages}번` : ''}`, 'exp-head', rec.at, { r: rec.id });
+function runStep(rec, t) {
+  const W = EXPEDITION, zid = rec.zone, Z = ZONES[zid], st0 = calcStats();
+  const mult = terrainMult(zid) * (1 - (st0.staSave || 0) / 100);
+  const spend = base => { const c = base * mult; S.stamina = Math.max(0, S.stamina - c); rec.terrain.extra += c - base; };
+  const COST = { beast: STAMINA_COST.battle, vault: STAMINA_COST.chest, event: STAMINA_COST.battle, trap: 0, gimmick: STAMINA_COST.gimmick };
+  const b = runSnap(); let k, r;
+  RT.journal = [];
+  try {
+    if (S.stamina < W.minStamina) {                               // 기력이 바닥났다: 쉬어 가며 기력만 되찾는다
+      k = 'rest'; S.stamina = calcStats().maxSta; rec.rests++;
+      log(EXP_TEXT.rest, 'muted', t);
+      r = { t: '🏕️ 바위 그늘에서 숨을 고르며 기력을 되찾았습니다', cls: 'muted' };
+    } else {
+      k = weighted(W.weights);
+      S.bossPity = S.bossPity || {};
+      if (k === 'beast' && Z.boss && !rec.bossSeen && Math.random() < bossChanceNow(zid)) {   // 두목: 낮은 확률 · 못 만날수록 오른다 (천장) · 한 강호행에 한 번
+        k = 'boss'; rec.bossSeen = true; S.bossPity[zid] = 0; spend(STAMINA_COST.boss);
+        r = stepBattle(rec, Z.boss);
+      } else {
+        if (k === 'beast') S.bossPity[zid] = (S.bossPity[zid] || 0) + 1;
+        spend(COST[k]);
+        if (k === 'event') { const used = new Set(rec.used); r = stepEvent(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
+        else r = k === 'beast' ? stepBattle(rec, pickBeast(Z)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
+      }
+    }
+  } finally { r = r || {}; rec.steps.push({ k, at: t, t: r.t, enc: r.enc, cls: r.cls || '', b: r.b, d: RT.journal || [] }); RT.journal = null; }
+  holdStep(rec, b);
+  const si = rec.steps.length - 1, s = rec.steps[si];
+  log(`${stepText(rec, s)}`, `exp-step ${s.b !== undefined ? '' : s.cls}`, t, { r: rec.id, s: si });
+  if (r.lost) { rec.defeats = 1; s.d.push({ text: EXP_TEXT.defeat, cls: 'bad' }); endRun(rec, t, 'dead'); }
+  return s;
 }
-
-/* ───────── 일정: 매시 정각, 최대 8번까지 쌓임 ───────── */
-/* t 이후 처음 오는 정각 (현지 시각) */
-function nextTopOfHour(t = now()) { const d = new Date(t); d.setMinutes(0, 0, 0); let h = d.getTime(); while (h <= t) h += EXPEDITION.interval; return h; }
-function settleExpeditions(t = now()) {
-  const X = S.expedition, W = EXPEDITION;
-  if (!X || !X.zone || !X.nextAt || t < X.nextAt) return [];
-  let n = Math.floor((t - X.nextAt) / W.interval) + 1;
-  const skipped = Math.max(0, n - W.maxQueue); n -= skipped;
-  let at = X.nextAt + skipped * W.interval;
-  if (skipped) log(`⌛ 자리를 오래 비워 탐험 ${skipped}번이 그냥 지나갔습니다. (최대 ${W.maxQueue}번까지만 쌓입니다)`, 'muted', at);
-  const recs = [];
-  for (let i = 0; i < n; i++, at += W.interval) {
-    S.stamina = calcStats().maxSta;                        // 정각마다 기력이 다시 가득 찬다 (숨겨진 능력치)
-    recs.push(runExpedition(at));
-  }
-  X.nextAt = nextTopOfHour(t);                              // 다음 탐험은 지금 이후 첫 정각
+/* 강호행 끝: dead = 쓰러짐 · recall = 귀환 */
+function endRun(rec, t, why) {
+  if (!rec || !rec.live) return;
+  rec.live = false; rec.endAt = t; rec.end = why; delete rec.next;
+  rec.wins = rec.battles.filter(b => b.win).length; rec.losses = rec.battles.filter(b => !b.win && !b.fled).length;
+  rec.terrain.extra = Math.round(rec.terrain.extra * 10) / 10;
+  if (S.expedition.run === rec.id) S.expedition.run = null;
+  S.stamina = 0; S.buffs = [];                                     // 증강 단약 효과는 이번 강호행으로 끝
+  if (why === 'dead') S.hp = Math.max(1, Math.round(calcStats().maxHp * 0.1));
+  const zid = rec.zone, zl = S.zoneLog[zid] = S.zoneLog[zid] || { trips: 0, wins: 0, losses: 0, defeats: 0, retreats: 0, seen: {}, bossMet: 0, bossWon: 0, lastAt: 0 };
+  zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = t; zl.defeats += rec.defeats;
+  for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }
+  const g = rec.gain, items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
+  log(`${why === 'dead' ? '💀' : '🏯'} ${ZONES[zid].name} 강호행 ${why === 'dead' ? '— 쓰러져 실려 돌아왔습니다' : '— 스스로 돌아왔습니다'} · ${rec.wins}승 ${rec.losses}패 · ${hlSilver(Math.max(0, rec.pend.silver))}${rec.pend.exp ? ` · 수련치 +${fmt(rec.pend.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}`, 'exp-head', t, { r: rec.id });
+  notify.trace('sys', `강호행 ${zid} 끝(${why}): ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${rec.pend.silver} · 수련치 ${rec.pend.exp}`);
   notify.refresh(); notify.save();
-  return recs;
 }
-const nextExpeditionIn = (t = now()) => S.expedition && S.expedition.nextAt ? Math.max(0, S.expedition.nextAt - t) : null;
-const findExpedition = id => S.expeditions.find(r => r.id === id);
+function recallRun(t = now()) { const rec = activeRun(); if (rec) endRun(rec, t, 'recall'); return rec; }
+/* 시각 t까지 밀린 걸음을 차례로 치른다 (자리를 비운 시간은 EXPEDITION.catchUp까지만 따라잡는다) */
+function advanceRun(t = now()) {
+  const rec = activeRun(); if (!rec) return null;
+  const W = EXPEDITION; let n = 0;
+  if (t - rec.next > W.catchUp) { log(`⌛ 자리를 오래 비워 ${Math.round((t - rec.next - W.catchUp) / 3600000)}시간 남짓은 그냥 흘러갔습니다. (최대 ${W.catchUp / 3600000}시간까지 이어집니다)`, 'muted', rec.next); rec.next = t - W.catchUp; }
+  while (rec.live && rec.next <= t && n++ < 5000) { const at = rec.next, s = runStep(rec, at); if (rec.live) rec.next = at + (s.k === 'rest' ? W.restMs : W.stepMs); }
+  if (n) { notify.refresh(); notify.save(); }
+  return n ? rec : null;
+}
 
-/* 목적지 정하기. 캐릭터의 첫 탐험만 곧바로 떠나고(길 익히기), 그 뒤로는 매시 정각에 떠난다 */
+/* 목적지 정하기. 강호행 중이면 다음 강호행부터 그곳으로 간다 */
 function setDestination(zid) {
-  if (!ZONES[zid] || !zoneUnlocked(zid)) return [];
-  const X = S.expedition, first = !X.nextAt;
-  if (X.zone === zid && !first) return [];
+  if (!ZONES[zid] || !zoneUnlocked(zid)) return false;
+  const X = S.expedition; if (X.zone === zid) return false;
   X.zone = zid;
-  log(`🧭 탐험지를 ${josa(ZONES[zid].name, '으로')} 정했습니다.${first ? ' 제자가 곧바로 길을 떠납니다.' : ''}`, 'place');
-  let recs = [];
-  if (first) {
-    S.stamina = Math.max(S.stamina, calcStats().maxSta);
-    recs = [runExpedition(now())];
-    X.nextAt = nextTopOfHour();
-    notify.view({ tab: 'field' });
-  }
+  log(`🧭 탐험지를 ${josa(ZONES[zid].name, '으로')} 정했습니다.${activeRun() ? ' 지금 강호행을 마치면 다음부터 그곳으로 갑니다.' : ' 강호행 탭에서 [강호행 시작]을 누르면 길을 떠납니다.'}`, 'place');
   notify.refresh();
-  return recs;
+  return true;
 }
 
-/* ───────── 실시간 강호행: 한 시간 탐험을 배속으로 지켜본다 ─────────
-   결과(보상 · 기록)는 정각에 한 번에 정해진다. 견문록은 걸음마다 드러나는 시각이 있어, 배속(2 · 3 · 4배)만큼 빨리 차례로 보인다.
-   전투는 미리 결과를 적지 않고 '조우했습니다'만 적는다. [결과보기]로 관찰해야 결과가 적힌다.
-   얻은 것은 곧바로 들어오지 않고 보관해 두었다가, [최종보상확인]을 누를 때 한꺼번에 받는다 */
-const LIVE_SPEEDS = [2, 3, 4, 0];                           // 0 = 일괄확인
-function liveSpeed() { const v = S.liveSpeed; return LIVE_SPEEDS.includes(v) ? v : 3; }
-function setLiveSpeed(v) { if (LIVE_SPEEDS.includes(v)) { S.liveSpeed = v; notify.refresh(); } }
-/* 이 탐험의 견문이 다 드러나는 데 걸리는 시간 (ms) */
-function liveDur() { const v = liveSpeed(); return v ? EXPEDITION.interval / v : 0; }
-/* i번째 걸음이 드러나는 시각. 마지막 걸음이 끝나는 시각에 요약이 뜬다 */
-function stepAt(rec, i) { const n = rec.steps.length; return rec.at + (n ? (i + 1) / (n + 1) : 1) * liveDur(); }
-function liveEndAt(rec) { return rec.at + liveDur(); }
-function stepShown(rec, i, t = now()) { return rec.shownAll || t >= stepAt(rec, i); }
-function liveDone(rec, t = now()) { return !rec || rec.shownAll || t >= liveEndAt(rec); }
-function shownSteps(rec, t = now()) { let n = 0; while (n < rec.steps.length && stepShown(rec, n, t)) n++; return n; }
-/* 지금 지켜보는 탐험: 가장 최근 탐험 */
-function liveRec() { return S.expeditions.length ? S.expeditions[S.expeditions.length - 1] : null; }
-/* 일괄확인: 지금 진행 중인 견문을 모두 드러낸다 */
-function revealAll() { for (const r of S.expeditions) { if (!r.shownAll && !r.shownAt) r.shownAt = now(); r.shownAll = true; } notify.refresh(); }
+/* 실시간 강호행 보기: 걸음은 일어나는 즉시 드러난다 */
+function stepAt(rec, i) { const s = rec.steps[i]; return (s && s.at) || rec.at; }
+function liveEndAt(rec) { return rec.endAt || (rec.live ? now() : rec.at); }
+function stepShown() { return true; }
+function liveDone(rec) { return !rec || !rec.live; }
+function shownSteps(rec) { return rec.steps.length; }
+/* 지금 지켜보는 강호행: 진행 중인 것, 없으면 가장 최근 것 */
+function liveRec() { return activeRun() || (S.expeditions.length ? S.expeditions[S.expeditions.length - 1] : null); }
 /* 전투 결과: 관찰하기로 본 전투만 결과가 적힌다 */
 function battleSeen(rec, bi) { const b = rec && rec.battles[bi]; return !b || b.seen !== false; }
 function markSeen(rec, bi) { const b = rec && rec.battles[bi]; if (b && b.seen === false) { b.seen = true; notify.save(); } }
 function stepText(rec, s) { return s.b !== undefined && !battleSeen(rec, s.b) && s.enc ? s.enc : s.t; }
 
-/* 얻은 것은 보관해 둔다 (쓴 것은 이미 쓴 채로). 새 탐험의 전투는 모두 '아직 안 봄' */
-function holdRewards(rec, newGear) {
-  const g = rec.gain, P = rec.pend = { silver: Math.max(0, g.silver), exp: Math.max(0, g.exp), contrib: Math.max(0, g.contrib), items: { ...g.items }, gear: newGear };
-  S.silver -= P.silver; S.exp -= P.exp; S.contrib -= P.contrib;
-  for (const [id, n] of Object.entries(P.items)) take(id, Math.min(n, S.inv[id] || 0));
-  if (newGear.length) S.gear = S.gear.filter(it => !newGear.includes(it));
-  for (const b of rec.battles) b.seen = false;
-}
-function pendingRecs() { return S.expeditions.filter(r => r.pend && !r.claimed); }
-/* 받을 수 있는가: 보관 중인 탐험의 견문이 모두 끝났을 때 */
-function canClaim(t = now()) { const p = pendingRecs(); return p.length > 0 && p.every(r => liveDone(r, t)); }
+function pendingRecs() { return S.expeditions.filter(r => r.pend && !r.claimed && !r.live); }
+/* 받을 수 있는가: 끝난 강호행에 받지 않은 보상이 있을 때 */
+function canClaim() { return pendingRecs().length > 0; }
 /* 최종보상확인: 보관한 것을 모두 받는다. 행낭이 차 있어도 버리지 않는다. 받은 것을 돌려준다 */
 function claimRewards() {
   const recs = pendingRecs(), sum = { silver: 0, exp: 0, contrib: 0, items: {}, gear: [], n: recs.length };
@@ -311,7 +254,7 @@ function claimRewards() {
     sum.silver += P.silver; sum.exp += P.exp; sum.contrib += P.contrib;
     for (const [id, n] of Object.entries(P.items)) { S.inv[id] = (S.inv[id] || 0) + n; sum.items[id] = (sum.items[id] || 0) + n; }
     for (const it of P.gear) { S.gear.push(it); sum.gear.push(it); }
-    r.claimed = true; r.shownAll = true;
+    r.claimed = true;
   }
   if (recs.length) {
     const items = Object.entries(sum.items).map(([id, n]) => `${ITEMS[id].icon} ${ITEMS[id].name} ×${n}`);

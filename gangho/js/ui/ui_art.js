@@ -250,12 +250,3 @@ function furnaceFire(craft) {
     <path d="M26 58h68l-6 2H32z" fill="#2a1e14"/></svg>${Array.from({ length: 6 }, (_, i) => `<i style="left:${34 + i * 6}%;animation-delay:${i * 0.45}s"></i>`).join('')}</div>`;
 }
 
-/* 강호행 향 시계: 다음 정각까지 향이 타들어 간다 */
-function incenseClock() {
-  const left = nextExpeditionIn(), p = left === null ? 0 : clamp(left / EXPEDITION.interval * 100, 0, 100);
-  return `<div class="incense" data-incense aria-hidden="true"><i style="width:${p}%"></i></div>`;
-}
-Bus.on('tick', () => {
-  const el = $('[data-incense] i'); if (!el) return;
-  const left = nextExpeditionIn(); el.style.width = (left === null ? 0 : clamp(left / EXPEDITION.interval * 100, 0, 100)) + '%';
-});

@@ -1,5 +1,5 @@
 /* [시스템] AI 자동 플레이 (운영자 시험용, DOM 조작 금지)
-   지금 캐릭터로 N일을 미리 살아 본다. 게임 시계(CLOCK.shift)를 N일 전으로 돌려 놓고 한 시간씩 감으며,
+   지금 캐릭터로 N일을 미리 살아 본다. 게임 시계(CLOCK.shift)를 N일 전으로 돌려 놓고 한 시간씩 감으며 강호행을 이어 가고,
    접속해 있는 시각에는 유저가 할 법한 일(보상 받기 · 성급 · 돌파단 · 생혈고 · 장비 · 무공 · 임무 · 공양 · 탐험지)을 한다.
    자리를 비운 시각에는 아무것도 하지 않고, 돌아오면 쌓인 탐험을 한꺼번에 결산한다 (최대 8번 규칙 그대로).
    끝나면 시계는 지금으로 돌아오고, 날마다의 기록(보고서)을 돌려준다. 되돌리기(백업)는 화면 계층이 맡는다. */
@@ -21,8 +21,8 @@ function aiSnapshot() {
 /* 한 시각의 행동. note(text)로 눈에 띄는 일만 보고서에 남긴다 */
 function aiAct(note) {
   const t = now();
-  // 1. 견문을 다 보고(전투도 관찰했다고 치고) 최종보상확인
-  for (const r of S.expeditions) { if (!r.shownAll) { r.shownAll = true; r.shownAt = r.shownAt || t; } for (const b of r.battles) if (b.seen === false) b.seen = true; }
+  // 1. 전투를 다 관찰했다고 치고, 끝난 강호행의 최종보상확인
+  for (const r of S.expeditions) for (const b of r.battles) if (b.seen === false) b.seen = true;
   if (pendingRecs().length) claimRewards();
   // 2. 인물: 장문인 가르침 · 조운 보급
   if (tutorReady()) masterTalk();
@@ -47,6 +47,8 @@ function aiAct(note) {
   }
   // 8. 탐험지: 두목을 쓰러뜨려 다음 구역이 열리고 최근 탐험이 순조로우면 올라가고, 거듭 쓰러지면 내려온다
   aiZone(note);
+  // 9. 강호행 중이 아니면 다시 떠난다
+  if (!activeRun() && S.expedition.zone) startRun(t);
 }
 
 function aiPickManuals(note) {
@@ -100,20 +102,20 @@ function aiPills(note) {
 function aiPotions() {
   const r = RECIPES.find(x => x.out === 'saenghyeol');
   let guard = 0;
-  while (count('saenghyeol') < 3 && guard++ < 6) {
-    if (r && S.codex.includes(r.id) && aiCraftable(r)) doCraft(r.craft, { ...r.in });
-    else if (S.silver >= 60) buyItem('saenghyeol');
+  while (count('saenghyeol') < 10 && guard++ < 20) {      // 강호행 동안 쓰러지지 않게 생혈고를 10개까지 채운다 (전방 5냥)
+    if (S.silver >= 5) buyItem('saenghyeol');
+    else if (r && S.codex.includes(r.id) && aiCraftable(r)) doCraft(r.craft, { ...r.in });
     else break;
   }
 }
 function aiZone(note) {
   const cur = S.expedition.zone, i = ZONE_ORDER.indexOf(cur);
-  const recent = S.expeditions.filter(r => r.zone === cur).slice(-3);
+  const recent = S.expeditions.filter(r => r.zone === cur && !r.live).slice(-3);
   if (!recent.length) return;
   const next = ZONE_ORDER[i + 1];
-  const good = recent.length >= 2 && recent.every(r => !r.defeats && r.losses <= 1);
+  const good = recent.length >= 2 && recent.slice(-2).every(r => r.wins >= 20);            // 오래 버티면 올라간다
   if (next && zoneUnlocked(next) && good) { setDestination(next); note(`탐험지 이동 → ${ZONES[next].name}`); return; }
-  const bad = recent.length >= 2 && recent.slice(-2).every(r => r.defeats >= 2);
+  const bad = recent.length >= 2 && recent.slice(-2).every(r => r.defeats && r.wins < 4);
   if (bad && i > 0) { setDestination(ZONE_ORDER[i - 1]); note(`탐험지 후퇴 → ${ZONES[ZONE_ORDER[i - 1]].name} (거듭 쓰러짐)`); }
 }
 
@@ -126,24 +128,24 @@ function aiRun(days, patternKey = 'life') {
   try {
     CLOCK.shift = -hours * AI_HOUR;
     if (!S.expedition.zone) S.expedition.zone = ZONE_ORDER[0];
-    S.expedition.nextAt = nextTopOfHour(now());
+    const cur = activeRun(); if (cur) cur.next = Math.max(cur.next, now());   // 진행 중인 강호행은 앞당긴 시계에서 이어 간다
     let day = null;
-    const mark = new Set(S.expeditions.map(r => r.id));
-    const tally = d => { for (const r of S.expeditions) if (!mark.has(r.id)) { mark.add(r.id); d.runs++; d.wins += r.wins; d.losses += r.losses; d.defeats += r.defeats; d.bosses += r.battles.filter(b => b.boss && b.win).length; } };
+    const mark = new Set(S.expeditions.filter(r => !r.live).map(r => r.id));
+    const tally = d => { for (const r of S.expeditions) if (!r.live && !mark.has(r.id)) { mark.add(r.id); d.runs++; d.wins += r.wins; d.losses += r.losses; d.defeats += r.defeats; d.bosses += r.battles.filter(b => b.boss && b.win).length; } };
     for (let h = 0; h <= hours; h++) {
       CLOCK.shift = -(hours - h) * AI_HOUR;
       const t = now(), hr = new Date(t).getHours(), di = Math.min(days - 1, Math.floor(h / 24));
       if (!day || day.i !== di) { if (day) { tally(day); report.daily.push({ ...day, end: aiSnapshot() }); } day = { i: di, label: `${di + 1}일째`, runs: 0, wins: 0, losses: 0, defeats: 0, bosses: 0 }; }
       checkDailyMidnightReset(t);
-      if (!P.on(hr) && h < hours) continue;
-      settleExpeditions(t);
+      if (!P.on(hr) && h < hours) continue;           // 자는 동안은 밀렸다가, 깨면 한꺼번에 (최대 8시간) 따라잡는다
+      advanceRun(t);
       tally(day);
       aiAct(text => report.notes.push({ t, day: di + 1, text }));
     }
     tally(day); report.daily.push({ ...day, end: aiSnapshot() });
   } finally {
     CLOCK.shift = 0;
-    if (S.expedition.zone) S.expedition.nextAt = nextTopOfHour(now());
+    const r = activeRun(); if (r) r.next = Math.max(r.next, now() + EXPEDITION.firstMs);   // 시계를 되돌렸으니 다음 걸음은 지금부터
     Bus.mute(false);
   }
   report.after = aiSnapshot();

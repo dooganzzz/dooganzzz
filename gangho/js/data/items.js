@@ -39,7 +39,7 @@ const ITEMS = {
   pillHigh:  { name: '대성 돌파단', icon: '🟣', kind: '영단', price: 500, desc: '11성 비급을 12성 대성(大成)으로 올릴 때 수련치와 함께 복용한다. (상태 › 무공)' },
   // 8품(八品) 단약: 회복은 즉시, 증강은 다음 원정 동안 (탐험 중 위급하면 생혈고·소환단은 제자가 알아서 먹는다)
   potionMp:   { name: '소환단', hanja: '小還丹', icon: '💧', kind: '단약', grade: '8품', price: 20, use: { mp: 0.4 }, desc: '급격히 손상된 내력을 즉시 40% 회복시키는 기본 영약.' },
-  saenghyeol: { name: '생혈고', hanja: '生血膏', icon: '🩸', kind: '단약', grade: '8품', price: 24, use: { hp: 0.5 }, desc: '깊은 상처를 아물게 하여 활력을 즉시 50% 회복시키는 고약. 탐험 중 활력이 바닥나면 제자가 알아서 바른다.' },
+  saenghyeol: { name: '생혈고', hanja: '生血膏', icon: '🩸', kind: '단약', grade: '8품', price: 5, use: { hp: 0.5 }, desc: '깊은 상처를 아물게 하여 활력을 즉시 50% 회복시키는 고약. 탐험 중 활력이 바닥나면 제자가 알아서 바른다.' },
   golgye:     { name: '골계단', hanja: '骨啓丹', icon: '🦴', kind: '단약', grade: '8품', price: 40, use: { buff: { key: 'defFlat', val: 15, name: '골계단' } }, desc: '뼈와 근육을 강화하여 다음 원정 동안 방어력 +15.' },
   tongmaek:   { name: '통맥환', hanja: '通脈丸', icon: '🔆', kind: '단약', grade: '8품', price: 50, use: { buff: { key: 'qiDmg', val: 0.15, name: '통맥환' } }, desc: '굳어진 경락을 뚫어 다음 원정 동안 초식(기공) 피해 +15%.' },
   haedok:     { name: '해독산', hanja: '解毒散', icon: '🧪', kind: '단약', grade: '8품', price: 30, use: { buff: { key: 'antidote', val: 30, name: '해독산' } }, desc: '독충과 사파의 독기를 정화한다. 다음 원정에서 30합 동안 중독되지 않는다.' },

@@ -18,9 +18,9 @@ function newState(name, mugongId, opts = {}) {
     v: 8, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, exp: 0,
     attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), talent: TALENTS[opts.talent] ? opts.talent : null,
-    expedition: { zone: null, nextAt: null }, expeditions: [], zoneLog: {}, craftNotes: [], bestiary: {},
+    expedition: { zone: null, run: null }, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
-    inv: { saenghyeol: 3, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
+    inv: { saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
     perm: { maxHp: 0, maxMp: 0, attr: {} },
@@ -122,7 +122,7 @@ function migrate(st) {
     }
     st.exp = (st.exp || 0) + exp;
     for (const k of ['zone', 'seen', 'activeTrainingSkillId', 'training', 'gatherCd', 'opened', 'cleared']) delete st[k];
-    st.expedition = { zone: null, nextAt: null }; st.expeditions = [];
+    st.expedition = { zone: null, run: null }; st.expeditions = [];
     st.buffs = [];                                          // 시간제 음식 효과는 '다음 탐험' 효과로 바뀌었다
     st.v = 8;
     st.migratedExp = exp;
@@ -189,21 +189,22 @@ function migrate(st) {
   // 조합 단서는 없어졌다 (연구 노트로 대체). 구역 경험 기록·정각 일정
   delete st.knownMats;
   st.zoneLog = st.zoneLog || {}; st.craftNotes = st.craftNotes || [];
-  if (st.expedition && st.expedition.nextAt && new Date(st.expedition.nextAt).getMinutes() + new Date(st.expedition.nextAt).getSeconds() !== 0 && st.expedition.nextAt > Date.now()) st.expedition.nextAt = nextTopOfHour(Date.now());
+  // 강호행 개편: 매시 정각 · 배속이 없어지고 [강호행 시작]부터 쓰러질 때까지 이어진다. 생혈고 10개를 한 번 지급한다
+  if (st.expedition) { delete st.expedition.nextAt; if (st.expedition.run === undefined) st.expedition.run = null; }
+  delete st.liveSpeed;
+  for (const r of st.expeditions || []) { if (r.live === undefined) r.live = false; delete r.shownAll; delete r.shownAt; }
+  if (!st.potGift) { st.potGift = true; st.inv.saenghyeol = (st.inv.saenghyeol || 0) + 10; st.migratedPot = true; }
   ensureCloudId(st);
   return st;
 }
 
-/* 시간 흐름: 탐험 시각이 되면 결산한다 (기력은 정각 출발 때만 가득 찬다) */
+/* 시간 흐름: 강호행 중이면 때가 된 걸음을 치른다. 쓰러지면 알린다 */
 let lastFrame = now();
 function tick() {
   if (!S) return;
-  const t = now(), dt = Math.min(5, (t - lastFrame) / 1000); lastFrame = t;
-  const recs = settleExpeditions(t);
-  if (recs.length) {
-    const r = recs[recs.length - 1];
-    notify.toast(`⛰️ 제자가 ${ZONES[r.zone].name}(으)로 길을 떠났습니다 — 강호행 탭에서 지켜보십시오`);
-  }
+  const t = now(); lastFrame = t;
+  const r = advanceRun(t);
+  if (r && !r.live) notify.toast(r.end === 'dead' ? `💀 제자가 ${ZONES[r.zone].name}에서 쓰러져 강호행이 끝났습니다 — 강호행 탭에서 보상을 받으십시오` : `🏯 강호행을 마쳤습니다`);
   checkDailyMidnightReset(t);
   Bus.emit('tick');
 }
@@ -238,9 +239,10 @@ function boot() {
     }
     ensureMissions(); checkDailyMidnightReset();
     for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
-    // 자리를 비운 동안의 탐험을 한꺼번에 치른다 (최대 8번). 얻은 것은 강호행 탭의 [최종보상확인]으로 받는다
-    const recs = settleExpeditions();
-    if (recs.length) notify.toast(`⛰️ 자리를 비운 동안 강호행 ${recs.length}번 — 강호행 탭에서 견문과 보상을 확인하십시오`);
+    if (S.migratedPot) { log('📜 강호행이 바뀌었습니다. 이제 정각마다 떠나지 않고, [강호행 시작]을 누르면 쓰러질 때까지 쭉 이어집니다. 조운이 생혈고 10개를 챙겨 주었습니다.', 'gold'); delete S.migratedPot; }
+    // 자리를 비운 동안에도 강호행은 이어졌다 (최대 8시간). 얻은 것은 끝난 뒤 강호행 탭의 [최종보상확인]으로 받는다
+    const run = activeRun(), n0 = run ? run.steps.length : 0, r = advanceRun();
+    if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 강호행 탭에서 견문과 보상을 확인하십시오`);
     notify.refresh();
   }
   lastFrame = now();

@@ -16,7 +16,7 @@ const MERCHANT = {
 };
 /* 전방 진열: [아이템, 은자] — 단약·재료 */
 const SHOP_STOCK = [
-  ['saenghyeol', 30], ['potionMp', 20], ['herb', 6], ['wildGinseng', 6],
+  ['saenghyeol', 5], ['potionMp', 20], ['herb', 6], ['wildGinseng', 6],
   ['blackwood', 6], ['roughOre', 5], ['wildcatHide', 8],
 ];
 /* 전방 진열: [하급 장비 id(GEAR_DB) 또는 기본형(EQUIP_BASES), 티어, 은자] */
