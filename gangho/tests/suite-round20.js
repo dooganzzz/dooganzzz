@@ -22,7 +22,7 @@ module.exports = async (b) => {
     ok('1 한 스탯은 3 아래로 못 내림', await p.evaluate(() => document.querySelector('[data-attrrow="con"] .attr-val').textContent === '3' && document.querySelector('[data-attr="con"][data-d="-1"]').disabled));
     for (let i = 0; i < 3; i++) await p.click('[data-attr="str"][data-d="1"]');
     ok('1 스탯은 관여 능력치만 (세부 수치 숨김)', await p.evaluate(() => !document.querySelector('.attr-eff') && /공격력/.test(document.querySelector('[data-attrrow="str"]').textContent)));
-    await p.click('[data-starter="samjaeChang"]'); await p.click('[data-talent="alchemy"]');
+    await p.click('[data-starter="sp1a"]'); await p.click('[data-talent="alchemy"]');
     await p.fill('#pname', '석상제자');
     await p.click('#begin');
     const s0 = await p.evaluate(() => { const st = calcStats(); return { attr: S.attr, talent: S.talent, alch: S.crafts.alchemy.lv, forge: S.crafts.forge.lv, name: S.name, weapon: S.equip.weapon.wtype, atk: st.atk, hp: st.maxHp, mp: st.maxMp, log: S.log.some(l => /무신상/.test(l.text)) }; });
@@ -34,7 +34,7 @@ module.exports = async (b) => {
       const keep = { ...S.attr }; S.attr = { str: 6, con: 6, agi: 6, int: 6 }; const a = base();
       S.attr = { str: 7, con: 6, agi: 6, int: 5 }; const b2 = base(); S.attr = { str: 6, con: 8, agi: 6, int: 4 }; const c = base(); S.attr = keep;
       const bad = [validAttr({ str: 10, con: 10, agi: 10, int: 10 }), validAttr({ str: 2, con: 8, agi: 6, int: 8 }), validAttr({ str: 6, con: 6, agi: 6, int: 6 })];
-      const ns = newState('x', 'samjaeGeom', { attr: { str: 20, con: 0, agi: 6, int: -2 }, talent: 'nope' });
+      const ns = newState('x', 'sw1a', { attr: { str: 20, con: 0, agi: 6, int: -2 }, talent: 'nope' });
       return { d: { atk: b2.atk - a.atk, bag: b2.bag - a.bag, mp: b2.mp - a.mp }, c: { hp: c.hp - a.hp, def: c.def - a.def }, bad, ns: { attr: ns.attr, talent: ns.talent } };
     });
     ok('1 근력 +1 → 공격력 +2 · 적재량 +6 / 지력 -1 → 내력 -6', st.d.atk === 2 && st.d.bag === 6 && st.d.mp === -6, JSON.stringify(st.d));
@@ -98,18 +98,18 @@ module.exports = async (b) => {
       const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.saenghyeol = 20; return runExpedition(now()); };
       const a = [], m = [];
       for (let i = 0; i < 4; i++) a.push(run());
-      S.manuals.dapsu = { star: 1 }; equipManual('dapsu');     // 등평도수(물) → 청풍산 불일치
-      r.dapsu = terrainMult('cheongpung');
+      S.manuals.gy1b = { star: 1 }; equipManual('gy1b');     // 등평도수(물) → 청풍산 불일치
+      r.gy1b = terrainMult('cheongpung');
       for (let i = 0; i < 4; i++) m.push(run());
-      S.manuals.deungsu = { star: 1 }; equipManual('deungsu'); r.deungsu = terrainMult('cheongpung');   // 제운종(나무) → 복합 지형 중 하나 일치
-      equipManual('pocheolsak');
+      S.manuals.gy1c = { star: 1 }; equipManual('gy1c'); r.gy1c = terrainMult('cheongpung');   // 제운종(나무) → 복합 지형 중 하나 일치
+      equipManual('gy1a');
       const steps = rs => rs.reduce((x, rec) => x + rec.steps.filter(s => s.k !== 'trap' && s.k !== 'retreat' && s.k !== 'avoid').length, 0) / rs.length;
       r.match = { mult: a[0].terrain.mult, steps: steps(a), extra: a.every(x => x.terrain.extra < 0), rec: a[0].terrain.match === true && a[0].terrain.zone.join() === 'earth,grass,wood' };
       r.miss = { mult: m[0].terrain.mult, steps: steps(m), extra: m.every(x => x.terrain.extra > 0), rec: m[0].terrain.match === false };
       return r;
     });
     ok('4 5대 지형 (풀·물·흙·나무·평) · 청풍산 = 흙/풀/나무 복합', tr.terrains === 'grass,water,earth,wood,plain' && tr.zones[0] === 'earth/grass/wood', JSON.stringify(tr));
-    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 ×0.8, 아니면 ×1.2, 경공 없으면 보정 없음', tr.terr === 'earth' && tr.mult === '0.8,0.8,1.2' && tr.none === 1 && tr.dapsu === 1.2 && tr.deungsu === 0.8, JSON.stringify(tr));
+    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 ×0.8, 아니면 ×1.2, 경공 없으면 보정 없음', tr.terr === 'earth' && tr.mult === '0.8,0.8,1.2' && tr.none === 1 && tr.gy1b === 1.2 && tr.gy1c === 0.8, JSON.stringify(tr));
     ok('4 탐험 기록에 지형 일치 여부 · 기력 증감', tr.match.rec && tr.miss.rec && tr.match.extra && tr.miss.extra, JSON.stringify(tr));
     ok('4 지형이 맞으면 같은 걸음에 기력을 덜 쓴다 (×0.8 / ×1.2)', tr.match.mult < 1 && tr.miss.mult > 1 && tr.match.mult < tr.miss.mult && tr.match.extra && tr.miss.extra, JSON.stringify(tr));
     await p.evaluate(() => { ui.modal = null; goTab('field'); render(); });

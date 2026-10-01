@@ -12,7 +12,7 @@ module.exports = async (b) => {
   await startEquipped(p);
   // 1
   const tabs = await p.$$eval('.tab .ko', els => els.map(e => e.textContent).join(','));
-  ok('1 탭 순서', tabs === '청풍문,상태,행낭,강호행,견문록,도감', tabs);
+  ok('1 탭 순서', tabs === '청풍문,상태,행낭,강호행,견문록,기연,도감,설정', tabs);
   ok('1 첫 화면=청풍문 › 정청', await p.$eval('.tab.on .ko', e => e.textContent) === '청풍문' && await p.$eval('.subtab.on .ko', e => e.textContent) === '정청');
   // 2 성장: 연무장·비급별 수련치 없음, 수련치로 성급 올리기
   const t = await p.evaluate(() => {
@@ -25,11 +25,10 @@ module.exports = async (b) => {
   });
   ok('2 수련치 제거 · 연무장은 심상수련장만', t.noTrainFields && t.noYeonmu);
   ok('2 수련치 부족하면 막힘 → 채우면 성급 +1, 수련치 차감', /수련치 60 필요/.test(t.block) && t.up && t.star === 2 && t.left === 0, JSON.stringify(t));
-  // 3 강호행: 지도 없음, 탐험지 선택
+  // 3 강호행: 탭을 누르면 강호 지도부터 (탐험지 3곳 · 처음엔 2곳 잠김)
   await p.click('[data-tab="field"]');
-  const zones = await p.$$eval('.zone h3', els => els.map(e => e.textContent).join(' | '));
-  ok('3 성급 표기 없음', !/성/.test(zones.replace(/평정/g, '')), zones);
-  ok('3 지도 없음 · 구역 3곳(잠김 2)', !(await p.$('.map, .cell, .dpad')) && (await p.$$('.zone')).length === 3 && (await p.$$('.zone.locked')).length === 2);
+  ok('3 강호행 탭 → 강호 지도 · 구역 3곳(잠김 2)', await p.evaluate(() => ui.modal === 'map') && (await p.$$('.map-spot')).length === 3 && (await p.$$('.map-spot.locked')).length === 2);
+  await p.click('.map-sheet [data-act="closemodal"]');
   // 4 전투 (fight: 한 판을 끝까지 계산해 기록)
   const bt = await p.evaluate(() => {
     const r = {}; S.hp = 99999;

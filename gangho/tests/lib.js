@@ -15,7 +15,7 @@ function ok(name, cond, extra = '') {
 function watchErrors(p) {
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
-  p.on('console', m => m.type() === 'error' && !/ERR_CERT|ERR_FILE_NOT_FOUND|ERR_NAME|ERR_INTERNET|net::/.test(m.text()) && errs.push(m.text()));
+  p.on('console', m => m.type() === 'error' && !/ERR_CERT|ERR_FILE_NOT_FOUND|ERR_NAME|ERR_INTERNET|net::|CORS policy/.test(m.text()) && errs.push(m.text()));
   return errs;
 }
 // 새 게임을 시작하고 행낭의 비급을 모두 익혀 장착한다

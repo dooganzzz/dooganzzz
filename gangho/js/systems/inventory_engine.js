@@ -121,6 +121,7 @@ function useItem(id) {
 
 function learnManual(bookId) {
   const mid = ITEMS[bookId].use.learn, M = MANUALS[mid];
+  if (manualSealed(mid)) { notify.toast(`봉인된 비급입니다: ${M.name}`); return; }
   if (S.manuals[mid]) { notify.toast(`이미 익힌 무공입니다: ${M.name}`); return; }
   take(bookId, 1);
   S.manuals[mid] = { star: 1 };

@@ -13,8 +13,8 @@ module.exports = async (b) => {
     // 1. 비급 독파 영구 각인: 장착 여부와 무관, 도감 탭 이름은 비급
     const pb = await p.evaluate(() => {
       const r = { all: Object.values(MANUALS).every(M => M.passiveBonus && Object.keys(M.passiveBonus).length) };
-      const a0 = attrOf('agi'); unequipManual('gyeonggong'); r.keep = attrOf('agi') === a0; equipManual('pocheolsak');
-      r.rules = [MANUALS.samjaeGwon.passiveBonus, MANUALS.samjaeChang.passiveBonus, MANUALS.tonap.passiveBonus, MANUALS.pocheolsak.passiveBonus, MANUALS.cheolpo.passiveBonus].map(o => JSON.stringify(o)).join(' ');
+      const a0 = attrOf('agi'); unequipManual('gyeonggong'); r.keep = attrOf('agi') === a0; equipManual('gy1a');
+      r.rules = [MANUALS.fs1a.passiveBonus, MANUALS.sp1a.passiveBonus, MANUALS.sm1a.passiveBonus, MANUALS.gy1a.passiveBonus, MANUALS.gi1a.passiveBonus].map(o => JSON.stringify(o)).join(' ');
       return r;
     });
     ok('1 모든 비급에 passiveBonus · 장착 해제해도 각인 유지', pb.all && pb.keep, JSON.stringify(pb));

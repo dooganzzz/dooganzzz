@@ -163,7 +163,7 @@ function viewYeonmu() {
 /* 정청 */
 function viewHall() {
   const qi = questIndex(), q = QUESTS[qi];
-  const shopManuals = Object.entries(MANUALS).filter(([, M]) => M.cost);
+  const shopManuals = Object.entries(MANUALS).filter(([id, M]) => M.cost && !manualSealed(id));
   const ownsBook = id => !!S.manuals[id] || has('bk_' + id);
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();

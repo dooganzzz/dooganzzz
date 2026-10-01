@@ -38,7 +38,8 @@ function codexMonsters() {
 function codexMartial() {
   const cats = CAT_ORDER.filter(cat => Object.keys(MANUALS).some(id => MANUALS[id].cat === cat && S.manuals[id]));
   const P = manualPassive(), sum = bonusText({ ...P.attr, ...P.stats });
-  const intro = `<p class="muted">독파하여 깨우친 비급의 비결이 온전히 기록되며, 몸에 영구히 각인됩니다.</p>${sum ? `<p class="passive-sum">몸에 새겨진 각인의 효과: <b>${sum}</b></p>` : ''}`;
+  const sealed = Object.keys(MANUALS).filter(manualSealed).length;
+  const intro = `<p class="muted">독파하여 깨우친 비급의 비결이 온전히 기록되며, 몸에 영구히 각인됩니다.${sealed ? ` <span class="sealed-note">🔒 일류 · 절정 · 초절정 비급 ${sealed}종은 아직 봉인되어 있습니다.</span>` : ''}</p>${sum ? `<p class="passive-sum">몸에 새겨진 각인의 효과: <b>${sum}</b></p>` : ''}`;
   if (!cats.length) return intro + CODEX_EMPTY;
   const cat = cats.includes(ui.codexCat) ? ui.codexCat : cats[0];
   const cbar = `<div class="subtabs codex-zones" role="tablist" aria-label="비급 분류" style="--n:${cats.length}">${cats.map(k =>

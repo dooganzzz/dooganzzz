@@ -9,7 +9,7 @@ module.exports = async (b) => {
   const errs = [];
   p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type()==='error' && !/ERR_CERT|ERR_FILE_NOT_FOUND/.test(m.text()) && errs.push(m.text()));
   await p.goto(GAME_URL);
-  await p.click('[data-starter="samjaeDo"]'); await p.click('#begin');
+  await p.click('[data-starter="bd1a"]'); await p.click('#begin');
   const tabs = await p.$$eval('.tab .ko', e => e.map(x => x.textContent).join(','));
   ok('1 1차 탭 6개 순서', tabs === '청풍문,상태,행낭,강호행,견문록,도감', tabs);
   const st0 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, active: Object.values(S.active).filter(Boolean).length, books: Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').sort().join(',') }));
@@ -23,7 +23,7 @@ module.exports = async (b) => {
   const btns = await p.$$eval('.items .item button', e => e.map(x => x.textContent));
   ok('2 행낭 비급 [익히기] 버튼', btns.length === 4 && btns.every(t => t === '익히기'), btns.join(','));
   await p.click('[data-use="bk_samjaeDo"]'); await p.click('[data-act="confirmok"]');
-  const l1 = await p.evaluate(() => ({ learned: !!S.manuals.samjaeDo, left: count('bk_samjaeDo') }));
+  const l1 = await p.evaluate(() => ({ learned: !!S.manuals.bd1a, left: count('bk_samjaeDo') }));
   ok('2 익히기: 소모 + 습득 목록 등록', l1.learned && l1.left === 0);
   for (const k of ['bk_tonap', 'bk_pocheolsak', 'bk_cheolpo']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
   // 상태 › 무공
@@ -41,21 +41,21 @@ module.exports = async (b) => {
   const atk0 = await p.evaluate(() => calcStats().atk);
   await p.click('[data-equipm]');
   const e1 = await p.evaluate(() => ({ active: S.active.mugong, atk: calcStats().atk, btn: document.querySelector('.sheet [data-unequipm]') && document.querySelector('.sheet [data-unequipm]').textContent }));
-  ok('4 장착 → 슬롯 반영·능력치 상승', e1.active === 'samjaeDo' && e1.atk > atk0, `공격력 ${atk0}→${e1.atk}`);
+  ok('4 장착 → 슬롯 반영·능력치 상승', e1.active === 'bd1a' && e1.atk > atk0, `공격력 ${atk0}→${e1.atk}`);
   ok('4 장착 상태 → [ 장착 해제 ]', e1.btn === '[ 장착 해제 ]');
   await p.click('[data-act="closemodal"]');
-  for (const [id, tab] of [['tonap', 'heart'], ['pocheolsak', 'agility'], ['cheolpo', 'aura']]) { await p.click(`[data-skilltab="${tab}"]`); await p.click(`.mcard[data-mart="${id}"]`); await p.click('[data-equipm]'); await p.click('[data-act="closemodal"]'); }
+  for (const [id, tab] of [['sm1a', 'heart'], ['gy1a', 'agility'], ['gi1a', 'aura']]) { await p.click(`[data-skilltab="${tab}"]`); await p.click(`.mcard[data-mart="${id}"]`); await p.click('[data-equipm]'); await p.click('[data-act="closemodal"]'); }
   ok('3 네 슬롯 모두 장착', (await p.$$('.mslot.empty')).length === 0);
   // 장착 슬롯의 [▲ 성급] 단추: 수련치가 모자라면 비활성, 채우면 올라감
-  ok('3 장착 슬롯에 성급 올리기 단추 (수련치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="tonap"]'); return !!b && b.disabled; }));
+  ok('3 장착 슬롯에 성급 올리기 단추 (수련치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="sm1a"]'); return !!b && b.disabled; }));
   await p.evaluate(() => { S.exp = 500; render(); });
-  await p.click('.mslot [data-starup="tonap"]'); await p.click('[data-act="confirmok"]');
-  ok('3 [▲ 성급] 누르면 2성 · 수련치 차감', await p.evaluate(() => S.manuals.tonap.star === 2 && S.exp === 500 - Math.round(60 * GRADES[MANUALS.tonap.grade].mult)));
+  await p.click('.mslot [data-starup="sm1a"]'); await p.click('[data-act="confirmok"]');
+  ok('3 [▲ 성급] 누르면 2성 · 수련치 차감', await p.evaluate(() => S.manuals.sm1a.star === 2 && S.exp === 500 - Math.round(60 * GRADES[MANUALS.sm1a.grade].mult)));
   await p.click('.mslot [data-unequipm="simbeop"]');
-  const u = await p.evaluate(() => ({ slot: S.active.simbeop, keep: !!S.manuals.tonap }));
+  const u = await p.evaluate(() => ({ slot: S.active.simbeop, keep: !!S.manuals.sm1a }));
   ok('3 장착 해제 → 빈 슬롯, 습득은 유지', u.slot === null && u.keep, JSON.stringify(u));
   // 장경각 → 비급서
-  const shop = await p.evaluate(() => { S.contrib = 999; buyManual('cpDo'); return { book: count('bk_cpDo'), learned: !!S.manuals.cpDo }; });
+  const shop = await p.evaluate(() => { S.contrib = 999; buyManual('bd2a'); return { book: count('bk_cpDo'), learned: !!S.manuals.bd2a }; });
   ok('장경각 구매 → 행낭 비급서', shop.book === 1 && !shop.learned);
   const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

@@ -126,7 +126,7 @@ module.exports = async (b) => {
     ok('4 전방 › 구매 › 장비에 하급 장비 진열 (이름 · 하급 뱃지 · 설명, 무기·갑옷·장신구 탭 합계 10종 이상)', await p.evaluate(() => { let n = 0; for (const t of Object.keys(SHOP_GEAR_TABS)) { ui.shopBuy = 'gear'; ui.shopGear = t; render(); n += document.querySelectorAll('[data-buygear]').length; } ui.shopGear = 'weapon'; render(); const w = [...document.querySelectorAll('.shop-panel .ware')].find(e => /협봉검/.test(e.textContent)); return n >= 10 && !!w && /하급/.test(w.textContent); }));
 
     // 5. 화면: 무공 상세 초식 · 관찰 창 3단계
-    await p.evaluate(() => { S.manuals.paseok = { star: 12 }; ui.modal = 'mart:paseok'; renderModal(); });
+    await p.evaluate(() => { S.manuals.fs1b = { star: 12 }; ui.modal = 'mart:fs1b'; renderModal(); });
     ok('5 무공 상세: 새 무공의 초식 이름', await p.evaluate(() => ['파석일권', '붕산권', '쇄석연타'].every(n => document.querySelector('.sheet .moves').textContent.includes(n))));
     await p.evaluate(() => { ui.modal = null; S.hp = 99999; setDestination('cheongpung'); ui.modal = null; render(); });
     const rp = await p.evaluate(() => { const r = S.expeditions[S.expeditions.length - 1]; const i = r.battles.findIndex(x => x.rounds.some(q => q.lines.some(l => /log-stance-title m/.test(l.cls)))); openReplay(r.id + ':' + Math.max(0, i)); return i; });
@@ -137,13 +137,13 @@ module.exports = async (b) => {
     // 6. 저장 이전
     const mig = await p.evaluate(() => {
       const old = JSON.parse(JSON.stringify(S));
-      old.manuals.yeolhwa = { star: 4 }; old.active.gigong = 'yeolhwa'; old.inv.bk_suryu = 1; delete old.manuals.byeokhwa;
+      old.manuals.yeolhwa = { star: 4 }; old.active.gigong = 'yeolhwa'; old.inv.bk_suryu = 1; delete old.manuals.gi1c;
       old.missions = [{ type: 'kill', target: 'dog', n: 3, prog: 0 }, { type: 'kill', target: 'rabbit', n: 3, prog: 0 }];
       old.bestiary = { dog: { met: 2, kills: 2 }, rabbit: { met: 1, kills: 1 } };
       const st = migrate(old);
-      return { star: st.manuals.byeokhwa && st.manuals.byeokhwa.star, active: st.active.gigong, book: st.inv.bk_yusu, old: 'yeolhwa' in st.manuals || 'bk_suryu' in st.inv, missions: st.missions.map(m => m.target).join(), best: Object.keys(st.bestiary).join() };
+      return { star: st.manuals.gi1c && st.manuals.gi1c.star, active: st.active.gigong, book: st.inv.bk_yusu, old: 'yeolhwa' in st.manuals || 'bk_suryu' in st.inv, missions: st.missions.map(m => m.target).join(), best: Object.keys(st.bestiary).join() };
     });
-    ok('6 이전 저장: 열화기공→열양공(성급 유지) · 수류 비급→현수공 · 들개 임무/도감 정리', mig.star === 4 && mig.active === 'byeokhwa' && mig.book === 1 && !mig.old && mig.missions === 'rabbit' && mig.best === 'rabbit', JSON.stringify(mig));
+    ok('6 이전 저장: 열화기공→열양공(성급 유지) · 수류 비급→현수공 · 들개 임무/도감 정리', mig.star === 4 && mig.active === 'gi1c' && mig.book === 1 && !mig.old && mig.missions === 'rabbit' && mig.best === 'rabbit', JSON.stringify(mig));
 
     ok('오류/가로스크롤 없음', !errs.length && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(';'));
     await p.close();

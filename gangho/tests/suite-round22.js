@@ -44,7 +44,7 @@ module.exports = async (b) => {
       // 출혈: 혈문도 착용 시 적중하면 적에게 출혈
       const keep = S.equip.weapon; S.equip.weapon = makeNamedGear('c_blade'); bt = mk('rabbit'); RT.battle = bt; playerHit(bt, 1, '평타'); r.bleed = bt.dot.foe.some(d => d.kind === 'bleed'); S.equip.weapon = keep;
       // 고유 약점: 청령목괴는 화 기공에 취약
-      const g = S.active.gigong; S.manuals.byeokhwa = { star: 1 }; S.active.gigong = 'byeokhwa'; r.weak = affinity('treant').weak; S.active.gigong = g;
+      const g = S.active.gigong; S.manuals.gi1c = { star: 1 }; S.active.gigong = 'gi1c'; r.weak = affinity('treant').weak; S.active.gigong = g;
       Math.random = R; RT.battle = null; S.hp = calcStats().maxHp;
       return r;
     }, FOES);

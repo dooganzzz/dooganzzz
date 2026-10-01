@@ -146,14 +146,14 @@ module.exports = async (b) => {
 
     // 10. 예전 저장(v7: 지도·연무장·비급별 수련치) → v8
     const mig = await p.evaluate(() => {
-      const old = JSON.parse(JSON.stringify(S)); old.v = 7; old.zone = { id: 'cheongpung', layout: ['o'] }; old.seen = {}; old.activeTrainingSkillId = 'tonap';
-      old.manuals.tonap = { star: 3, txp: 4 * 3600, cxp: 5, gate: false };           // 3성 절반
-      old.manuals.cheolpo = { star: 5, txp: 0, cxp: 0, gate: true };                  // 소성 관문에 막힘 → 한 성 몫
+      const old = JSON.parse(JSON.stringify(S)); old.v = 7; old.zone = { id: 'cheongpung', layout: ['o'] }; old.seen = {}; old.activeTrainingSkillId = 'sm1a';
+      old.manuals.sm1a = { star: 3, txp: 4 * 3600, cxp: 5, gate: false };           // 3성 절반
+      old.manuals.gi1a = { star: 5, txp: 0, cxp: 0, gate: true };                  // 소성 관문에 막힘 → 한 성 몫
       delete old.expedition; delete old.expeditions; old.exp = 0; old.buffs = [{ key: 'atk', val: 0.1, until: 1 }];
       const st = migrate(JSON.parse(JSON.stringify(old)));
       const g = id => GRADES[MANUALS[id].grade].mult;
       return { v: st.v, noZone: !('zone' in st) && !('seen' in st) && !('activeTrainingSkillId' in st), noXp: !Object.values(st.manuals).some(m => 'txp' in m || 'cxp' in m || 'gate' in m),
-        exp: st.exp, expect: Math.round(0.5 * STAR_EXP[2] * g('tonap')) + Math.round(STAR_EXP[4] * g('cheolpo')), exped: st.expedition && st.expedition.zone === null && Array.isArray(st.expeditions), buffs: st.buffs.length };
+        exp: st.exp, expect: Math.round(0.5 * STAR_EXP[2] * g('sm1a')) + Math.round(STAR_EXP[4] * g('gi1a')), exped: st.expedition && st.expedition.zone === null && Array.isArray(st.expeditions), buffs: st.buffs.length };
     });
     ok('10 저장 이전 v7→v8: 지도·연무장·수련치 제거', mig.v === 8 && mig.noZone && mig.noXp && mig.exped && mig.buffs === 0, JSON.stringify(mig));
     ok('10 쌓아 둔 진행 비율만큼 수련치로 돌려받음', mig.exp >= mig.expect, JSON.stringify(mig));

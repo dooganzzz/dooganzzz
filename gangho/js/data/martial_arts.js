@@ -9,6 +9,8 @@ const GRADES = {
   '절정': { mult: 3.4, cls: 'g0' },
   '초절정': { mult: 4.6, cls: 'gs' },
 };
+/* 1장: 이류까지만 공개. 일류 · 절정 · 초절정 비급은 봉인 (얻을 수도 익힐 수도 없고, 장경각에도 나오지 않는다) */
+const OPEN_GRADES = ['삼류', '이류'];
 
 const CATS = {
   mugong:     { name: '무공', hanja: '武功', desc: '초식 발동과 순간 피해' },
