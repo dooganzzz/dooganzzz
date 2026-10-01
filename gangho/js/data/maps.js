@@ -57,9 +57,10 @@ const TRAP = { text: '숨겨진 덫을 밟았습니다!', stamina: 5, hpPct: 0.0
    fight: 적 id → 전투, bonus: 이기면 추가로 받는 fx */
 
 /* 떠돌이 약장수의 등짐: 만날 때마다 이 가운데 pick개를 골라 정가에서 off만큼 싸게 판다 (제작 장비는 없다)
+   비쌀수록 드물다: 뽑힐 무게 = (rare / 정가)^2
    [아이템 또는 하급 장비 id, 정가(냥)] · 이미 익힌 비급 · 가진 비급은 내놓지 않는다 */
 const PEDDLER_WARES = {
-  pick: 2, off: 0.2,
+  pick: 1, off: 0.2, rare: 100,
   items: [
     ['pillLow', 80],
     ['bk_samjaeGwon', 60], ['bk_samjaeGeom', 60], ['bk_samjaeDo', 60], ['bk_samjaeChang', 60], ['bk_samjaePyo', 60], ['bk_tonap', 150],

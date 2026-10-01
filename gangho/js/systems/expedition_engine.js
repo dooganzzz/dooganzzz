@@ -138,7 +138,11 @@ function peddlerRoll() {
     ...W.items.filter(([id]) => { const u = ITEMS[id].use; return !(u && u.learn && (S.manuals[u.learn] || count(id))); }).map(([id, pr]) => ({ id, pr })),
     ...W.gear.map(([id, pr]) => ({ id, pr, gear: 1 }))];
   const out = [];
-  while (out.length < W.pick && pool.length) { const w = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; out.push({ ...w, pr: Math.round(w.pr * (1 - W.off)), list: w.pr }); }
+  while (out.length < W.pick && pool.length) {                    // 비쌀수록 드물게
+    const wt = pool.map(w => (W.rare / w.pr) ** 2); let r = Math.random() * wt.reduce((a, b) => a + b, 0), i = 0;
+    while (i < pool.length - 1 && (r -= wt[i]) >= 0) i++;
+    const w = pool.splice(i, 1)[0]; out.push({ ...w, pr: Math.round(w.pr * (1 - W.off)), list: w.pr });
+  }
   return out;
 }
 /* 기연의 선택지: 약장수는 등짐 물건을 [손사래] 앞에 끼운다 */
