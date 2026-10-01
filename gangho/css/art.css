@@ -456,7 +456,8 @@
 .live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; will-change: transform; }
 .live-strip img { height: 100%; width: auto; flex: none; display: block; }
 .live-hero.sp-hero { left: 10%; bottom: 9%; width: 31.8%; transition: none; }   /* 관찰 창 무대와 같은 구도 (ui_live.js LIVE_POS) */
-.live-where { position: absolute; right: 8px; top: 6px; z-index: 6; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; }
+.live-where { position: absolute; right: 2%; top: 4%; z-index: 6; display: flex; align-items: center; gap: .6%; height: 11%; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; pointer-events: none; }
+.live-where img { height: 100%; width: auto; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .9)) drop-shadow(0 0 4px rgba(0, 0, 0, .6)); }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .live-speed { flex-wrap: wrap; }
 .live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
@@ -562,12 +563,12 @@
   -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent); mask-image: linear-gradient(180deg, #000 40%, transparent); }
 .live-sky::before { content: ''; position: absolute; inset: 0; background: radial-gradient(1.5px 1.5px at 7.9% 20.3%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 37.9% 57.8%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 94.6% 55.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 47.5% 12.2%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 48.8% 88.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 48.1% 29.4%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 15.1% 68.0%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 73.6% 44.1%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 68.8% 47.4%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 21.1% 85.8%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 36.5% 62.7%, rgba(255, 250, 225, .95), transparent), radial-gradient(1.5px 1.5px at 90.6% 68.7%, rgba(255, 250, 225, .95), transparent); animation: liveTwinkle 3.2s ease-in-out infinite alternate; }
 @keyframes liveTwinkle { from { opacity: .15; } to { opacity: 1; } }
-.live-moon { position: absolute; right: 18%; top: 12%; width: 6.5%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; opacity: calc(.25 + var(--moonlit, 1) * .75);
-  background: radial-gradient(circle at 38% 36%, #fffbe8, #f3e6bd 55%, #d8c99c);
-  box-shadow: 0 0 14px 4px rgba(255, 244, 205, .55), 0 0 40px 14px rgba(255, 240, 200, .18); }
-/* 달의 위상: 하늘이 '밝게 더하기(screen)'로 얹히므로 검은 가림 원은 그 부분을 지운다 */
-.live-moon .moon-shade { position: absolute; inset: -2%; border-radius: 50%; background: #000; z-index: 1; transform: translateX(var(--moonx, -100%)); box-shadow: 0 0 6px 3px #000; }
-.live-moon::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 70% 60%, rgba(150, 140, 110, .25) 0 10%, transparent 11%), radial-gradient(circle at 40% 70%, rgba(150, 140, 110, .2) 0 7%, transparent 8%); }
+/* 달: 무대 왼쪽 위(지역 이름과 겹치지 않게). 그림자 원을 덧칠하지 않고, 가려진 쪽을 오려 내 빛나는 모양만 남긴다 (--moonx = 가림 원 자리) */
+.live-moon { position: absolute; left: 16%; top: 10%; width: 6.5%; aspect-ratio: 1; opacity: calc(.3 + var(--moonlit, 1) * .7);
+  filter: drop-shadow(0 0 5px rgba(255, 244, 205, .6)) drop-shadow(0 0 14px rgba(255, 240, 200, .25)); }
+.live-moon .moon-shade { position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 70% 60%, rgba(150, 140, 110, .25) 0 10%, transparent 11%), radial-gradient(circle at 40% 70%, rgba(150, 140, 110, .2) 0 7%, transparent 8%), radial-gradient(circle at 38% 36%, #fffbe8, #f3e6bd 55%, #d8c99c);
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at calc(50% + var(--moonx, -100%)) 50%, transparent 97%, #000 100%); mask-image: radial-gradient(ellipse 50% 50% at calc(50% + var(--moonx, -100%)) 50%, transparent 97%, #000 100%); }
 /* 날씨: 수묵 비 줄기 · 눈송이 · 안개 그림(fx/wx_*, 이음매 없는 타일)을 두 겹(가까이 크고 빠르게 · 멀리 작고 느리게)으로 흘린다.
    세기 --rain · --snow · --fog (서울 시각 3시간마다, 서서히 들고 난다) */
 .live-rain, .live-snow, .live-fog { position: absolute; inset: 0; z-index: 5; pointer-events: none; background-repeat: repeat; }

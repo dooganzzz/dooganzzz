@@ -421,6 +421,12 @@ function liveLoop(ts) {
   const q = liveAnim.queued;
   if (q && imgsReady([SPRITE_SRC.foe(q.eid), SPRITE_SRC.foe(q.eid, 1)])) { liveAnim.queued = null; liveAnim.show = liveShowStart(sc, { ...q }); }
 }
+/* 무대 지역 이름: 지도와 같은 무협 붓글씨 그림(탐험지 이름 + 단계 이름). 그림이 없는 단계는 글자로 */
+function liveWhere(zid, n) {
+  const has = STAGE_NAMES[zid] && STAGE_NAMES[zid][n - 1];
+  return `<span class="live-where" data-k="${zid}${n}" aria-label="${esc(stageName(zid, n))}">${has
+    ? `<img src="${ASSET.stageword(zid + '_0')}" alt=""><img src="${ASSET.stageword(zid + '_' + n)}" alt="">` : esc(stageName(zid, n))}</span>`;
+}
 function liveScene(r) {
   const zid = (r && r.zone) || S.expedition.zone || 'cheongpung', w = weaponType(), N = walkMeta(w).n, fast = runFast();
   const md = liveMode(), spr = cls => `<div class="${cls}" data-anim style="background-image:url('${ASSET[md](w)}');background-size:${N * 100}% 100%"></div>`;
@@ -439,7 +445,7 @@ function liveScene(r) {
     <i class="live-flies" style="opacity:var(--fly,0)">${LIVE_FLIES.map(([x, y, d]) => `<i style="left:${x}%;top:${y}%;animation-delay:-${d}s,-${(d * 1.7).toFixed(1)}s"></i>`).join('')}</i>
     <img class="live-enc" src="${ASSET.ui('b_encounter')}" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
-    <span class="live-where">${stageName(zid, r && r.live ? r.stage : S.expedition.stage || 1)}</span>
+    ${liveWhere(zid, r && r.live ? r.stage : S.expedition.stage || 1)}
     <span class="live-rest">${r && r.end === 'dead' && !r.claimed ? '쓰러져 돌아왔습니다' : '산문에서 대기 중'}</span>
   </div>`;
 }

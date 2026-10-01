@@ -17,6 +17,7 @@ const ASSET_KIND = {
   beast:    { dir: 'beasts/', ext: 'webp' },
   item:     { dir: 'items/', ext: 'webp' },
   ui:       { dir: 'ui/', ext: 'webp' },
+  stageword:{ dir: 'ui/stage/', ext: 'webp' },        // 강호행 무대 지역 이름 붓글씨: 탐험지_0 = 탐험지 이름, 탐험지_n = n단계 이름
   portrait: { dir: 'portraits/', ext: 'webp' },
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_cauldron
 };

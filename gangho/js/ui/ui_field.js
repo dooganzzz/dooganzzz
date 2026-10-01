@@ -15,7 +15,8 @@ Bus.on('tick', () => {
   const sc = $('#liveScene'), lr = liveRec();
   if (sc) {
     sc.classList.toggle('rest', liveDone(lr) && !liveHeld(lr));
-    const wh = sc.querySelector('.live-where'), X = S.expedition; if (wh && (lr ? lr.zone : X.zone)) wh.textContent = stageName(lr ? lr.zone : X.zone, lr && lr.live ? lr.stage : X.stage || 1);
+    const wh = sc.querySelector('.live-where'), X = S.expedition; const wz = lr ? lr.zone : X.zone, wn = lr && lr.live ? lr.stage : X.stage || 1;
+    if (wh && wz && wh.dataset.k !== wz + wn) wh.outerHTML = liveWhere(wz, wn);   // 지역 이름 붓글씨 (단계가 바뀔 때만)
   }
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
 });
