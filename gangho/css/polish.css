@@ -239,4 +239,10 @@ small { font-size: .82rem; }
 .buy-qty { margin-top: 12px; flex-wrap: wrap; }
 .set-range input, .buy-qty input { flex: 1; min-width: 140px; accent-color: #d4af37; height: 28px; }
 .set-val, .buy-qty span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* 기연 탭 */
+.enc-card { padding: 12px; margin: 10px 0; border-radius: 10px; background: rgba(255, 255, 255, .04); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .3); }
+.enc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.enc-btns { display: flex; flex-direction: column; gap: 6px; }
+.enc-choice { text-align: left; justify-content: flex-start; white-space: normal; }
+.enc-log { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 

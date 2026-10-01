@@ -33,6 +33,11 @@ function onClick(e) {
   if (!S) return;
   const d = t.dataset;
   if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); if (d.tab === 'field' && !activeRun() && !ui.modal) ui.modal = 'map'; render(); return; }   // 강호행 탭: 먼저 지도
+  if (d.encpick) {                                               // 기연 고르기
+    const [uid, ci] = d.encpick.split(':').map(Number), r = resolveEncounter(uid, ci);
+    if (r && r.fail) toast(r.fail); else if (r) { const g = encGainText(r); toast(`📜 ${r.text}${g ? ` (${g})` : ''}`); }
+    render(); return;
+  }
   if (d.mapzone) { if (!zoneUnlocked(d.mapzone)) return toast('앞 구역의 두목을 쓰러뜨리면 길이 열립니다.'); setDestination(d.mapzone); ui.modal = `mapgo:${d.mapzone}`; render(); return; }
   if (d.dest) return setDestination(d.dest);
   if (d.stage) { const n = +d.stage, run = activeRun(), X = S.expedition; if (run && run.zone === X.zone) stageGo(run, n); else if (n <= stageMax(X.zone)) { X.stage = n; } notify.save(); return render(); }

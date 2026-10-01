@@ -74,6 +74,7 @@ const TABS = [
   ['bag', '행낭', '行囊'],
   ['field', '강호행', '江湖行'],
   ['chronicle', '견문록', '見聞錄'],
+  ['encounter', '기연', '奇緣'],
   ['codex', '도감', '圖鑑'],
   ['settings', '설정', '設定'],
 ];
@@ -146,7 +147,7 @@ const questAlert = () => !!S && (tutorReady() || subqReadyCount() > 0);
 const alertDot = on => on ? '<i class="alert-dot" aria-label="받을 보상 있음"></i>' : '';
 function renderTabs() {
   const qa = questAlert(), loot = !!S && canClaim() && !(typeof liveHeld === 'function' && liveHeld(liveRec()));          // 강호행이 끝나 [최종보상확인]을 기다리면 강호행 탭에도
-  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : id === 'field' ? alertDot(loot) : ''}</button>`).join(''));
+  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : id === 'field' ? alertDot(loot) : id === 'encounter' ? alertDot(!!S && encountersWaiting().length > 0) : ''}</button>`).join(''));
 }
 
 /* 접기/펼치기 구역: 헤더를 누르면 본문에 .collapsed가 토글된다 (다시 그리지 않아 전환이 부드럽다) */
@@ -171,7 +172,7 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  setHTML(main, bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex, settings: viewSettings })[scr]());
+  setHTML(main, bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
   renderModal();
   typewriteAll();
   wireImages();

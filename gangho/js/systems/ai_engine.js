@@ -34,6 +34,7 @@ function aiAct(note) {
   aiPickGear(note);
   // 5. 문파 임무 · 무신상 공양
   for (const q of subqList()) if (subqReady(q.zid, q.n)) claimSubq(q.zid, q.n);
+  for (const E of encountersWaiting()) { const ev = EVENTS.find(x => x.id === E.ev), ok = ev.choices.map((c, i) => [c, i]).filter(([c]) => !reqFail(c.req)); resolveEncounter(E.uid, (ok.find(([c]) => c.req) || ok[0] || [0, 0])[1]); }   // 기연은 쌓이므로 AI가 고른다
   if (count('slag') >= GACHA.cost) pray(Math.floor(count('slag') / GACHA.cost));
   // 6. 돌파단 · 생혈고
   aiPills(note);

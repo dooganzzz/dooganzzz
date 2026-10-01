@@ -115,7 +115,39 @@ function stepGimmick(Z) {
   for (const [id, a, b] of g.reward) { if (id === 'silver') giveSilver(Math.max(1, Math.round(rint(a, b) * EXPEDITION.rewardMult))); else if (Math.random() < EXPEDITION.dropMult * 5) give(id, 1); }
   return { t: `⚙️ ${g.name} — 숨겨진 것을 찾아냈습니다`, cls: 'good' };
 }
-/* 기연: 제자가 조건을 채운 선택지 가운데 하나를 스스로 고른다 */
+/* 기연: 만나면 바로 정하지 않고 기연 탭에 쌓아 둔다 — 유저가 나중에 직접 고른다 (S.encounters, 기다리는 것은 ENCOUNTER_KEEP개까지) */
+const ENCOUNTER_KEEP = 10, ENCOUNTER_LOG = 10;
+function stepEncounter(rec, zid, used) {
+  const pool = eventPool(zid).filter(e => !used.has(e.id)), ev = pick(pool.length ? pool : eventPool(zid));
+  used.add(ev.id);
+  S.encounters = S.encounters || [];
+  S.encounters.push({ uid: S.uid++, ev: ev.id, zone: zid, at: rec.next || now() });
+  const wait = S.encounters.filter(e => !e.done);
+  if (wait.length > ENCOUNTER_KEEP) S.encounters.splice(S.encounters.indexOf(wait[0]), 1);   // 너무 쌓이면 가장 오래된 것은 지나간다
+  log(`📜 기연 「${ev.title}」 — ${ev.text}`, 'npc');
+  return { t: `📜 기연 「${ev.title}」 — 기연 탭에 쌓였습니다`, cls: 'npc' };
+}
+const encountersWaiting = () => (S.encounters || []).filter(e => !e.done);
+/* 기연 고르기: 조건 확인 → 값 치르기 → 결과(확률) → 효과 · 싸움. 얻고 잃은 것을 기록해 기연 탭에 남긴다 */
+function resolveEncounter(uid, ci) {
+  const E = (S.encounters || []).find(e => e.uid === uid && !e.done); if (!E) return null;
+  const ev = EVENTS.find(x => x.id === E.ev), ch = ev && ev.choices[ci]; if (!ch) return null;
+  const why = reqFail(ch.req); if (why) return { fail: why };
+  const b = { silver: S.silver, inv: { ...S.inv }, hp: S.hp };
+  if (ch.take && ch.req) { if (ch.req.item) take(ch.req.item[0], ch.req.item[1]); if (ch.req.silver) S.silver -= ch.req.silver; }
+  let r = Math.random() * ch.out.reduce((a, o) => a + o.w, 0), out = ch.out[0];
+  for (const o of ch.out) { r -= o.w; if (r < 0) { out = o; break; } }
+  log(`📜 「${ev.title}」 ▸ ${ch.label} — ${out.text}`, 'npc');
+  applyFx(out.fx || {});
+  let fightRes = null;
+  if (out.fight) { const f = fight(out.fight, { bonus: out.bonus }); if (S.hp < 1) S.hp = 1; fightRes = `${josa(f.name, '과와')} 싸워 ${f.win ? '이겼습니다' : '졌습니다'}`; }
+  const items = {}; for (const id of new Set([...Object.keys(S.inv), ...Object.keys(b.inv)])) { const d = (S.inv[id] || 0) - (b.inv[id] || 0); if (d) items[id] = d; }
+  E.done = { ci, label: ch.label, text: out.text, fight: fightRes, silver: S.silver - b.silver, hp: Math.round(S.hp - b.hp), items, at: now() };
+  const doneList = S.encounters.filter(e => e.done); while (doneList.length > ENCOUNTER_LOG) S.encounters.splice(S.encounters.indexOf(doneList.shift()), 1);
+  notify.refresh(); notify.save();
+  return E.done;
+}
+/* (예전 방식) 기연: 제자가 조건을 채운 선택지 가운데 하나를 스스로 고른다 — 지금은 쓰지 않음 */
 function stepEvent(rec, zid, used) {
   const pool = eventPool(zid).filter(e => !used.has(e.id)), ev = pick(pool.length ? pool : eventPool(zid));
   used.add(ev.id);
@@ -181,7 +213,7 @@ function runStep(rec, t) {
       r = stepBattle(rec, Z.boss);
     } else {
       k = weighted(W.weights);
-      if (k === 'event') { const used = new Set(rec.used); r = stepEvent(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
+      if (k === 'event') { const used = new Set(rec.used); r = stepEncounter(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
       else r = k === 'beast' ? stepBattle(rec, pickStageFoe(zid, rec.stage)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
     }
   } finally { r = r || {}; rec.steps.push({ k, at: t, t: r.t, enc: r.enc, cls: r.cls || '', b: r.b, d: RT.journal || [] }); RT.journal = null; }
