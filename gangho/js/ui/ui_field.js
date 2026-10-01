@@ -9,6 +9,7 @@ Bus.on('tick', () => {
   const sc = $('#liveScene'), lr = liveRec();
   if (sc) {
     sc.classList.toggle('rest', liveDone(lr));
+    const wh = sc.querySelector('.live-where'), X = S.expedition; if (wh && (lr ? lr.zone : X.zone)) wh.textContent = stageName(lr ? lr.zone : X.zone, lr && lr.live ? lr.stage : X.stage || 1);
     // 방금 드러난 걸음이 전투면 그 요수와 맞붙는 모습을 보여 준다 (결과는 견문록 · 결과보기에서)
     const n = lr ? lr.steps.length : 0, st = n ? lr.steps[n - 1] : null;
     if (st && st.b !== undefined && now() - stepAt(lr, n - 1) < 2600) { const bt = lr.battles[st.b]; if (bt) liveShowQueue(bt.eid, true, bt.boss); }
@@ -18,7 +19,19 @@ Bus.on('tick', () => {
 
 /* ───────── 실시간 강호행: 산길을 걷는 제자와 견문록 ───────── */
 let lastLiveSig = '';
-function liveSig() { return S ? S.expeditions.map(r => `${r.id}:${r.steps.length}${r.live ? 'L' : ''}${r.claimed ? 'c' : ''}${r.battles.filter(b => b.seen !== false).length}`).join(',') + `|${S.expedition.zone || ''}|${count('saenghyeol')}` : ''; }
+function liveSig() { const X = S && S.expedition; return S ? S.expeditions.map(r => `${r.id}:${r.steps.length}${r.live ? `L${r.stage}.${r.kills}` : ''}${r.claimed ? 'c' : ''}${r.battles.filter(b => b.seen !== false).length}`).join(',') + `|${X.zone || ''}|${X.stage}|${X.auto}|${stageCleared(X.zone)}|${count('saenghyeol')}` : ''; }
+/* 단계 줄: 1~10단계 (돌파 ✔ · 지금 · 잠김). 강호행 전에는 출발 단계를 고르고, 강호행 중에는 그 단계로 옮겨 간다 */
+function stageStrip() {
+  const X = S.expedition, zid = X.zone; if (!zid) return '';
+  const run = activeRun(), cur = run && run.zone === zid ? run.stage : X.stage, max = stageMax(zid), done = stageCleared(zid);
+  const cells = Array.from({ length: STAGE.count }, (_, i) => { const n = i + 1, open = n <= max;
+    return `<button class="stage-cell ${n === cur ? 'on' : ''} ${n <= done ? 'done' : ''} ${n === STAGE.count ? 'boss' : ''}" data-stage="${n}" ${open ? '' : 'disabled'} title="${open ? stageName(zid, n) : '앞 단계를 돌파하면 열립니다'}">${n === STAGE.count ? '頭' : n}</button>`; }).join('');
+  const seen = { ...((S.zoneLog[zid] || {}).seen || {}) }; if (run) for (const b of run.battles) seen[b.eid] = 1;
+  const foes = stageFoes(zid, cur).map(e => seen[e] ? ENEMIES[e].name : '？').join(' · ');
+  return `<div class="stage-strip">${cells}</div>
+    <p class="stage-info"><b>${stageName(zid, cur)}</b> <span class="muted">${cur >= STAGE.count ? '두목' : '요수'}: ${foes}</span>${run ? ` · 돌파까지 <b>${run.kills}</b> / ${stageNeed(run.stage)}승` : cur <= done ? ' <span class="good">돌파함</span>' : ''}
+      <button class="chip sm ${X.auto !== false ? 'on' : ''}" data-stageauto>${X.auto !== false ? '돌파하면 다음 단계로' : '이 단계에 머물기'}</button></p>`;
+}
 const runClockText = () => { const r = activeRun(); return r ? hhmmss(now() - r.at) : '—'; };
 /* 걷기: 병기별 걸음 시트 16칸이 두 걸음 한 주기(ms). 산길은 한 주기에 키(칸 높이)의 g배만큼 한 겹으로 흘러 발이 미끄러지지 않는다
    (주기와 g는 걷는 영상에서 디딘 발이 뒤로 밀리는 빠르기를 재어 정했다).
@@ -217,7 +230,7 @@ function liveScene(r) {
     <i class="live-tint"></i>
     <img class="live-enc" src="assets/art/ui/b_encounter.png" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
-    <span class="live-where">${ZONES[zid].name}</span>
+    <span class="live-where">${stageName(zid, r && r.live ? r.stage : S.expedition.stage || 1)}</span>
     <span class="live-rest">${r && r.end === 'dead' && !r.claimed ? '쓰러져 돌아왔습니다' : '산문에서 대기 중'}</span>
   </div>`;
 }
@@ -231,14 +244,15 @@ function liveSide() {
   const startBtn = `<button class="btn ${pend.length ? '' : 'primary'}" data-act="runstart" ${X.zone ? '' : 'disabled'}>강호행 시작</button>`;
   const claimBtn = pend.length ? `<button class="btn primary" data-act="claim">최종보상확인${pend.length > 1 ? ` (${pend.length}번)` : ''}</button>` : '';
   const pots = `생혈고 <b class="${count('saenghyeol') < 3 ? 'warn' : ''}">${count('saenghyeol')}</b>개`;
-  if (!r) return `<p class="muted live-empty">${X.zone ? `${josa(ZONES[X.zone].name, '으로')} 떠날 준비가 되었습니다. [강호행 시작]을 누르면 제자가 쓰러질 때까지 쭉 나아갑니다. (${pots})` : '아래 탐험지에서 갈 곳을 먼저 정하십시오.'}</p><div class="btns live-btns">${startBtn}</div>`;
+  if (!r) return `${stageStrip()}<p class="muted live-empty">${X.zone ? `${josa(stageName(X.zone, X.stage || 1), '으로')} 떠날 준비가 되었습니다. [강호행 시작]을 누르면 단계를 하나씩 돌파하며, 쓰러질 때까지 쭉 나아갑니다. (${pots})` : '아래 탐험지에서 갈 곳을 먼저 정하십시오.'}</p><div class="btns live-btns">${startBtn}</div>`;
   const rows = [];
   for (let i = r.steps.length - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
   const unseen = r.battles.filter(b => b.seen === false).length, st = calcStats(), hpP = clamp(S.hp / st.maxHp * 100, 0, 100);
-  const state = run ? `<b>${ZONES[r.zone].name}</b> 강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${r.steps.length} · 전투 ${r.battles.length}`
-    : r.end === 'dead' ? `<b class="warn">${ZONES[r.zone].name}에서 쓰러져 강호행이 끝났습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}`
-    : `<b>${ZONES[r.zone].name} 강호행을 마치고 돌아왔습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}`;
-  return `${run ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span>활력 ${fmt(Math.round(S.hp))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>` : ''}
+  const nm = stageName(r.zone, r.stage || 1), cl = r.cleared && r.cleared.length ? ` · 돌파 ${r.cleared.length}번` : '';
+  const state = run ? `강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`
+    : r.end === 'dead' ? `<b class="warn">${nm}에서 쓰러져 강호행이 끝났습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`
+    : `<b>${nm}에서 돌아왔습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`;
+  return `${stageStrip()}${run ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span>활력 ${fmt(Math.round(S.hp))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>` : ''}
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">
@@ -355,7 +369,7 @@ function viewField() {
     </div>
     <h4 class="prep-head">출정 준비</h4>
     ${prepPanel()}
-    <p class="story">${cur ? `[강호행 시작]을 누르면 제자가 ${josa(cur.name, '으로')} 나가 ${EXPEDITION.stepMs / 1000}초마다 한 걸음씩 싸우고 줍습니다. 활력은 걸음 사이에 차지 않고, 위급하면 생혈고를 바릅니다. 전투에서 지면 쓰러지고 강호행은 끝납니다. 자리를 비워도 최대 ${EXPEDITION.catchUp / 3600000}시간까지 이어지고, 얻은 것은 끝난 뒤 [최종보상확인]으로 받습니다.` : '아래에서 탐험지를 고른 뒤 [강호행 시작]을 누르십시오.'}</p>
+    <p class="story">${cur ? `탐험지마다 10단계가 있습니다. 단계마다 ${STAGE.kills}번 이기면 돌파하고 다음 단계가 열리며, 10단계에는 두목이 기다립니다. [강호행 시작]을 누르면 제자가 고른 단계에서 ${EXPEDITION.stepMs / 1000}초마다 한 걸음씩 싸우고 줍습니다. 활력은 걸음 사이에 차지 않고, 위급하면 생혈고를 바릅니다. 전투에서 지면 쓰러지고 강호행은 끝납니다. 자리를 비워도 최대 ${EXPEDITION.catchUp / 3600000}시간까지 이어지고, 얻은 것은 끝난 뒤 [최종보상확인]으로 받습니다.` : '아래에서 탐험지를 고른 뒤 [강호행 시작]을 누르십시오.'}</p>
   </section>
   <section class="panel">${head('탐험지', '行先')}<p class="muted">어느 곳이 얼마나 위험한지는 알려 주지 않습니다. 다녀오며 몸으로 익히십시오.</p><div class="zones">${ZONE_ORDER.map(zoneCard).join('')}</div></section>
   <section class="panel">${head('탐험 기록', '見聞', `<span class="num muted">최근 ${S.expeditions.length} / ${EXPEDITION.keep}번</span>`)}

@@ -18,7 +18,7 @@ function newState(name, mugongId, opts = {}) {
     v: 8, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, exp: 0,
     attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), talent: TALENTS[opts.talent] ? opts.talent : null,
-    expedition: { zone: null, run: null }, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
+    expedition: { zone: null, run: null, stage: 1, auto: true }, stages: {}, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
     inv: { saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_tonap: 1, bk_pocheolsak: 1, bk_cheolpo: 1 },
     gear: [], equip: {},
@@ -26,7 +26,7 @@ function newState(name, mugongId, opts = {}) {
     perm: { maxHp: 0, maxMp: 0, attr: {} },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
-    buffs: [], missions: [], arin: {}, supplyDay: '', uid: 1, bossPity: {}, codexRewards: {},
+    buffs: [], missions: [], arin: {}, supplyDay: '', uid: 1, codexRewards: {},
     questRefreshCount: 0, lastQuestResetDate: '', statueResidueCount: 0,
     kills: 0, log: [],
   };
@@ -216,7 +216,7 @@ function migrate(st) {
   if (st.attr && st.attr.agi === undefined) st.attr.agi = ATTR_BASE;                 // 민첩은 기본 6 (합계 24)
   st.talent = { smelt: 'forge', medic: 'alchemy', forge: 'forge', alchemy: 'alchemy' }[st.talent] || null;   // 채집은 주력 없음
   for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && (it.shop === 'badge2' || it.shop === 'badge3')) it.stats = { ...SHOP_GEAR.find(g => g.id === it.shop).stats };
-  st.bossPity = st.bossPity || {}; st.codexRewards = st.codexRewards || {};
+  st.codexRewards = st.codexRewards || {};
   delete st.restCd;
   // 문파 임무는 토벌만 · 비급/무신상 영구 보너스
   if (st.missions) st.missions = st.missions.filter(m => m.type === 'kill');
@@ -243,6 +243,10 @@ function migrate(st) {
   // 강호행 개편: 매시 정각 · 배속이 없어지고 [강호행 시작]부터 쓰러질 때까지 이어진다. 생혈고 10개를 한 번 지급한다
   if (st.expedition) { delete st.expedition.nextAt; if (st.expedition.run === undefined) st.expedition.run = null; }
   delete st.liveSpeed;
+  // 스테이지 개편: 이미 두목을 쓰러뜨린 탐험지는 10단계까지 돌파한 것으로
+  if (!st.stages) { st.stages = {}; for (const [z, f] of [['cheongpung', 'boss1'], ['yeomhwa', 'boss2'], ['suryong', 'boss3']]) if (st.flags && st.flags[f]) st.stages[z] = 10; }
+  if (st.expedition) { if (!st.expedition.stage) st.expedition.stage = Math.min(10, (st.stages[st.expedition.zone] || 0) + 1); if (st.expedition.auto === undefined) st.expedition.auto = true; }
+  delete st.bossPity;
   for (const r of st.expeditions || []) { if (r.live === undefined) r.live = false; delete r.shownAll; delete r.shownAt; }
   if (!st.potGift) { st.potGift = true; st.inv.saenghyeol = (st.inv.saenghyeol || 0) + 10; st.migratedPot = true; }
   ensureCloudId(st);

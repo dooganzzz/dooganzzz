@@ -9,22 +9,28 @@ function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags
 function myTerrain() { const id = S.active.gyeonggong; return (id && MANUALS[id] && MANUALS[id].terrain) || null; }
 function terrainMult(zid) { const t = myTerrain(), Z = ZONES[zid]; if (!t || !Z || !Z.terrain) return 1; return Z.terrain.includes(t) ? AFFINITY.terrainMatch : AFFINITY.terrainMiss; }
 
-/* 이번 탐험에서 전투 조우 한 번이 두목일 확률 */
-function bossChanceNow(zid) { const W = EXPEDITION; return Math.min(W.bossMax, W.bossChance + ((S.bossPity || {})[zid] || 0) * W.bossPity); }
-
 function weighted(table) {
   let r = Math.random() * Object.values(table).reduce((a, b) => a + b, 0);
   for (const [k, w] of Object.entries(table)) { r -= w; if (r < 0) return k; }
   return Object.keys(table)[0];
 }
 
-/* 요수: 지역 요수 중 하나를 가중치로 고른다. 강호행 안쪽으로 깊이 들어갈수록(치른 전투 수) 강한 단계가 잦다 */
-function pickBeast(Z, fought = 0) {
-  const d = Math.min(1, fought / TIER_DEPTH), mix = k => TIER_WEIGHT_START[k] * (1 - d) + TIER_WEIGHT[k] * d;
-  const tiers = Object.fromEntries(Object.keys(TIER_WEIGHT).filter(k => Z.enemies.some(e => (ENEMIES[e].tier || 2) === +k)).map(k => [k, mix(k)]));   // 이 구역에 있는 단계만
-  const tier = +weighted(tiers);
-  return pick(Z.enemies.filter(e => (ENEMIES[e].tier || 2) === tier));
+/* ───────── 스테이지 ───────── */
+/* 탐험지 요수를 약한 순서로 (활력 × 공격 × 방어 보정) */
+const foePower = e => { const E = ENEMIES[e]; return E.hp * E.atk * (1 + E.def / 50); };
+function zoneLadder(zid) { return ZONES[zid].enemies.filter(e => ENEMIES[e]).sort((a, b) => foePower(a) - foePower(b)); }
+const stageName = (zid, n) => `${ZONES[zid].name} ${(STAGE_NAMES[zid] || [])[n - 1] || `${n}단계`}`;
+const stageCleared = zid => (S.stages || {})[zid] || 0;
+/* 고를 수 있는 가장 높은 단계: 돌파한 단계의 다음 (10단계까지) */
+const stageMax = zid => Math.min(STAGE.count, stageCleared(zid) + 1);
+const stageNeed = n => n >= STAGE.count ? 1 : STAGE.kills;
+/* n단계의 요수: n번째로 약한 요수를 주로(newFoe), 바로 앞 단계 요수를 가끔. 10단계는 두목 */
+function stageFoes(zid, n) {
+  if (n >= STAGE.count) return [ZONES[zid].boss];
+  const L = zoneLadder(zid), i = Math.min(L.length - 1, n - 1);
+  return i > 0 ? [L[i], L[i - 1]] : [L[0]];
 }
+function pickStageFoe(zid, n) { const f = stageFoes(zid, n); return f.length > 1 && Math.random() >= STAGE.newFoe ? f[1] : f[0]; }
 
 /* ───────── 사냥터 사건 (기연) ───────── */
 function eventPool(zid) { return EVENTS.filter(e => e.zones === 'all' || e.zones.includes(zid)); }
@@ -149,14 +155,15 @@ function startRun(t = now()) {
   const X = S.expedition; if (!X.zone || !zoneUnlocked(X.zone) || activeRun()) return null;
   const zid = X.zone, Z = ZONES[zid], st = calcStats(), tm = terrainMult(zid);
   S.hp = st.maxHp; S.mp = st.maxMp; S.stamina = st.maxSta;      // 몸을 추스르고 출발
-  const rec = { id: S.uid++, at: t, zone: zid, live: true, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [], bossSeen: false,
+  const stage = clamp(X.stage || 1, 1, stageMax(zid));
+  const rec = { id: S.uid++, at: t, zone: zid, stage, startStage: stage, kills: 0, live: true, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [],
     gain: { silver: 0, exp: 0, contrib: 0, items: {}, used: {}, gear: [] }, pend: { silver: 0, exp: 0, contrib: 0, items: {}, gear: [] },
     defeats: 0, villages: 0, rests: 0, wins: 0, losses: 0,
     terrain: { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(tm * (1 - (st.staSave || 0) / 100) * 1000) / 1000, extra: 0 } };
   X.run = rec.id; S.expeditions.push(rec);
   // 기록은 최근 EXPEDITION.keep번만 (받지 않은 보상이 있는 기록은 남긴다)
   while (S.expeditions.length > EXPEDITION.keep) { const i = S.expeditions.findIndex(r => !r.live && (!r.pend || r.claimed)); if (i < 0) break; S.expeditions.splice(i, 1); }
-  log(`⛰️ ${josa(Z.name, '으로')} 강호행을 떠납니다. ${pick(EXP_TEXT.depart)}`, 'place', t);
+  log(`⛰️ ${josa(stageName(zid, stage), '으로')} 강호행을 떠납니다. ${pick(EXP_TEXT.depart)}`, 'place', t);
   notify.refresh(); notify.save();
   return rec;
 }
@@ -172,25 +179,45 @@ function runStep(rec, t) {
       k = 'rest'; S.stamina = calcStats().maxSta; rec.rests++;
       log(EXP_TEXT.rest, 'muted', t);
       r = { t: '🏕️ 바위 그늘에서 숨을 고르며 기력을 되찾았습니다', cls: 'muted' };
+    } else if (rec.stage >= STAGE.count) {                         // 10단계: 두목과 맞선다
+      k = 'boss'; spend(STAGE_BOSS_STA);
+      r = stepBattle(rec, Z.boss);
     } else {
       k = weighted(W.weights);
-      S.bossPity = S.bossPity || {};
-      if (k === 'beast' && Z.boss && !rec.bossSeen && rec.battles.length >= W.bossDepth && Math.random() < bossChanceNow(zid)) {   // 두목: 낮은 확률 · 못 만날수록 오른다 (천장) · 한 강호행에 한 번
-        k = 'boss'; rec.bossSeen = true; S.bossPity[zid] = 0; spend(STAMINA_COST.boss);
-        r = stepBattle(rec, Z.boss);
-      } else {
-        if (k === 'beast' && rec.battles.length >= W.bossDepth) S.bossPity[zid] = (S.bossPity[zid] || 0) + 1;
-        spend(COST[k]);
-        if (k === 'event') { const used = new Set(rec.used); r = stepEvent(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
-        else r = k === 'beast' ? stepBattle(rec, pickBeast(Z, rec.battles.length)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
-      }
+      spend(COST[k]);
+      if (k === 'event') { const used = new Set(rec.used); r = stepEvent(rec, zid, used); rec.used = [...used]; if (rec.used.length >= eventPool(zid).length) rec.used = []; }
+      else r = k === 'beast' ? stepBattle(rec, pickStageFoe(zid, rec.stage)) : k === 'vault' ? stepVault(Z) : k === 'trap' ? stepTrap() : stepGimmick(Z);
     }
   } finally { r = r || {}; rec.steps.push({ k, at: t, t: r.t, enc: r.enc, cls: r.cls || '', b: r.b, d: RT.journal || [] }); RT.journal = null; }
   holdStep(rec, b);
   const si = rec.steps.length - 1, s = rec.steps[si];
+  s.stage = rec.stage;
   log(`${stepText(rec, s)}`, `exp-step ${s.b !== undefined ? '' : s.cls}`, t, { r: rec.id, s: si });
+  if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { rec.kills++; if (rec.kills >= stageNeed(rec.stage)) stageClear(rec, t); }
   if (r.lost) { rec.defeats = 1; s.d.push({ text: EXP_TEXT.defeat, cls: 'bad' }); endRun(rec, t, 'dead'); }
   return s;
+}
+/* 단계 돌파: 처음이면 보상 · 다음 단계가 열린다. 자동 진행이면 올라가고, 아니면 머물며 계속 사냥한다 */
+const STAGE_BOSS_STA = 25;
+function stageClear(rec, t) {
+  const zid = rec.zone, n = rec.stage, Z = ZONES[zid], first = n > stageCleared(zid);
+  rec.kills = 0; rec.cleared = rec.cleared || []; rec.cleared.push(n);
+  if (first) {
+    S.stages = S.stages || {}; S.stages[zid] = n;
+    const silver = Math.round(STAGE.firstSilver * n * Z.tier), exp = Math.round(STAGE.firstExp * n * Z.tier);
+    S.silver += silver; S.exp += exp; give('saenghyeol', STAGE.firstPot, true);
+    rec.steps[rec.steps.length - 1].d.push({ text: `🏯 ${stageName(zid, n)} 첫 돌파 — 은자 ${silver} · 수련치 ${exp} · 생혈고 ${STAGE.firstPot}`, cls: 'gold' });
+    log(`🏯 ${stageName(zid, n)}${n >= STAGE.count ? '의 두목을 쓰러뜨려 탐험지를 평정했습니다' : '을 돌파했습니다'}! 첫 돌파 보상: ${hlSilver(silver)} · 수련치 +${exp} · 생혈고 ${STAGE.firstPot}`, 'gold', t);
+  }
+  if (n < STAGE.count && S.expedition.auto !== false) stageGo(rec, n + 1, t);
+}
+function stageGo(rec, n, t = now()) {
+  if (!rec || !rec.live || n < 1 || n > stageMax(rec.zone) || n === rec.stage) return false;
+  const up = n > rec.stage;
+  rec.stage = n; rec.kills = 0; S.expedition.stage = n;
+  log(`⛰️ ${josa(stageName(rec.zone, n), '으로')} ${up ? '올라갑니다' : '내려갑니다'}.`, 'place', t);
+  notify.refresh();
+  return true;
 }
 /* 강호행 끝: dead = 쓰러짐 · recall = 귀환 */
 function endRun(rec, t, why) {
@@ -205,7 +232,7 @@ function endRun(rec, t, why) {
   zl.trips++; zl.wins += rec.wins; zl.losses += rec.losses; zl.lastAt = t; zl.defeats += rec.defeats;
   for (const b of rec.battles) { zl.seen[b.eid] = (zl.seen[b.eid] || 0) + 1; if (b.boss) { zl.bossMet++; if (b.win) zl.bossWon++; } }
   const g = rec.gain, items = Object.entries(g.items).map(([id, n]) => `${ITEMS[id].name} ×${n}`);
-  log(`${why === 'dead' ? '💀' : '🏯'} ${ZONES[zid].name} 강호행 ${why === 'dead' ? '— 쓰러져 실려 돌아왔습니다' : '— 스스로 돌아왔습니다'} · ${rec.wins}승 ${rec.losses}패 · ${hlSilver(Math.max(0, rec.pend.silver))}${rec.pend.exp ? ` · 수련치 +${fmt(rec.pend.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}`, 'exp-head', t, { r: rec.id });
+  log(`${why === 'dead' ? '💀' : '🏯'} ${stageName(zid, rec.stage)}에서 ${why === 'dead' ? '쓰러져 실려 돌아왔습니다' : '스스로 돌아왔습니다'}${rec.cleared && rec.cleared.length ? ` · 돌파 ${rec.cleared.length}번` : ''} · ${rec.wins}승 ${rec.losses}패 · ${hlSilver(Math.max(0, rec.pend.silver))}${rec.pend.exp ? ` · 수련치 +${fmt(rec.pend.exp)}` : ''}${items.length ? ` · ${hlItem(items.slice(0, 3).join(', ') + (items.length > 3 ? ` 외 ${items.length - 3}종` : ''))}` : ''}`, 'exp-head', t, { r: rec.id });
   notify.trace('sys', `강호행 ${zid} 끝(${why}): ${rec.steps.length}걸음 · ${rec.wins}승 ${rec.losses}패 · 은자 ${rec.pend.silver} · 수련치 ${rec.pend.exp}`);
   notify.refresh(); notify.save();
 }
@@ -224,7 +251,7 @@ function advanceRun(t = now()) {
 function setDestination(zid) {
   if (!ZONES[zid] || !zoneUnlocked(zid)) return false;
   const X = S.expedition; if (X.zone === zid) return false;
-  X.zone = zid;
+  X.zone = zid; X.stage = stageMax(zid);
   log(`🧭 탐험지를 ${josa(ZONES[zid].name, '으로')} 정했습니다.${activeRun() ? ' 지금 강호행을 마치면 다음부터 그곳으로 갑니다.' : ' 강호행 탭에서 [강호행 시작]을 누르면 길을 떠납니다.'}`, 'place');
   notify.refresh();
   return true;

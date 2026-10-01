@@ -1,17 +1,15 @@
 /* [데이터] 탐험 규칙 · 조우 가중치 · 금고 보상 풀 · 사건(기연) 표 — 순수 정적 데이터 (로직 없음) */
 
-/* 강호행: [강호행 시작]을 누르면 제자가 고른 구역으로 나가, 쓰러지거나 귀환할 때까지 걸음을 이어 간다.
+/* 강호행: [강호행 시작]을 누르면 제자가 고른 탐험지의 고른 단계(스테이지)에서, 쓰러지거나 귀환할 때까지 걸음을 이어 간다.
    stepMs: 걸음 하나의 간격(ms) · firstMs: 출발 뒤 첫 걸음까지 · restMs: 기력이 바닥나 쉬어 가는 걸음의 길이
    catchUp: 자리를 비운 동안 따라잡아 치르는 최대 시간 · keep: 보관하는 강호행 기록 수
    weights: 한 걸음마다 무엇을 만날지 (금고는 전리품이 크므로 드물게)
-   bossChance: 전투 조우 한 번이 두목일 확률 (히든 강적) · bossPity: 두목이 아닌 전투마다 더해지는 확률 (천장, 만나면 초기화) · bossMax: 확률 상한
-   bossDepth: 두목은 한 강호행에서 전투를 이만큼 치러 깊이 들어간 뒤에야 나타난다
    potionAt: 활력이 이 비율 아래면 생혈고를 바름 (한 전투에 potionPerFight개까지) · breathe: 이길 때마다 숨을 고르며 되찾는 활력 비율 (걸음 사이에 활력은 차지 않는다)
    minStamina: 기력이 이만큼 아래면 쉬어 가는 걸음 (기력만 가득 찬다) · 전투에서 지면 쓰러지고 강호행은 끝난다 */
 const EXPEDITION = {
   stepMs: 30000, firstMs: 3000, restMs: 60000, catchUp: 8 * 3600000, keep: 8,
-  weights: { beast: 60, vault: 10, event: 6, trap: 12, gimmick: 12 },
-  bossChance: 0.02, bossPity: 0.004, bossMax: 0.25, bossDepth: 12, potionAt: 0.35, potionPerFight: 3, breathe: 0.06, minStamina: 3, maxRounds: 60,
+  weights: { beast: 70, vault: 8, event: 6, trap: 8, gimmick: 8 },
+  potionAt: 0.35, potionPerFight: 3, breathe: 0.06, minStamina: 3, maxRounds: 60,
   rewardMult: 0.1,   // 원정 은자·수련치 획득 배율 (인플레이션 억제, 반올림)
   dropMult: 0.1,     // 요수 전리품·채집 재료 드랍 확률 배율 (1회 1개). 두목의 확정 드랍은 그대로
 };
@@ -22,11 +20,15 @@ const EXP_TEXT = {
   defeat: '눈앞이 캄캄해집니다… 지나던 약초꾼이 쓰러진 제자를 업어 산문까지 데려다주었습니다. 강호행은 여기까지입니다.',
 };
 
-/* 요수 조우 비율 (단계별 %): 1 최약체 · 2 일반 · 3 정예 · 4 위험 강적 (두목은 따로 확률 천장).
-   강호행 초입(TIER_WEIGHT_START)에서 시작해, 전투를 TIER_DEPTH번 치를 만큼 깊이 들어가면 TIER_WEIGHT가 된다 (그 사이는 고르게 섞음) */
-const TIER_WEIGHT_START = { 1: 55, 2: 35, 3: 8, 4: 2 };
-const TIER_WEIGHT = { 1: 25, 2: 40, 3: 23, 4: 12 };
-const TIER_DEPTH = 24;
+/* 스테이지: 탐험지마다 10단계. 1~9단계는 그 탐험지 요수를 약한 순서로 하나씩 새로 만나고(바로 앞 단계 요수도 섞여 나옴), 10단계는 두목.
+   kills: 한 단계를 돌파하려면 이겨야 하는 전투 수 (10단계는 두목 1번) · 처음 돌파하면 은자 · 수련치 · 생혈고를 받는다 (first*: 단계 × 탐험지 티어 배)
+   돌파하면 다음 단계가 열린다. [자동 진행]이면 곧바로 올라가고, 끄면 그 단계에 머물며 계속 사냥한다 */
+const STAGE = { count: 10, kills: 5, newFoe: 0.65, firstSilver: 8, firstExp: 15, firstPot: 1 };
+const STAGE_NAMES = {
+  cheongpung: ['초입', '돌바위', '솔숲길', '약초 비탈', '흑풍채 초소', '외나무다리', '멧돼지 골', '안개 골짜기', '청령목 숲', '적염호 굴'],
+  yeomhwa: ['어귀', '붉은 협곡', '벼랑길', '화포 진지', '벌목장', '돌격대 막사', '도부수 연병장', '열화 성문', '염화석 갱도', '채주의 대청'],
+  suryong: ['갈대 나루', '투망 어장', '강습대 초소', '뗏목 선착장', '잠영 수로', '뻘밭', '독지네 소택', '얼음 동굴', '철퇴 망루', '수룡방 본채'],
+};
 
 /* 금고(金庫): 열면 네 가지 중 하나 */
 const VAULTS = [

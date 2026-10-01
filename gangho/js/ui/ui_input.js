@@ -29,6 +29,8 @@ function onClick(e) {
   const d = t.dataset;
   if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); render(); return; }
   if (d.dest) return setDestination(d.dest);
+  if (d.stage) { const n = +d.stage, run = activeRun(), X = S.expedition; if (run && run.zone === X.zone) stageGo(run, n); else if (n <= stageMax(X.zone)) { X.stage = n; } notify.save(); return render(); }
+  if (d.stageauto !== undefined) { S.expedition.auto = S.expedition.auto === false; notify.save(); return render(); }
   if (d.chron) { ui.chronFilter = d.chron; return render(); }
   if (d.codextab) { ui.codexTab = d.codextab; return render(); }
   if (d.watch) return openReplay(d.watch);

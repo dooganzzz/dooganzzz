@@ -13,7 +13,7 @@ const AI_HOUR = 3600000;
 
 function aiSnapshot() {
   const best = Object.entries(S.manuals).filter(([id]) => MANUALS[id].cat === 'mugong').sort((a, b) => b[1].star - a[1].star)[0];
-  return { cp: calculateCombatPower(S), silver: S.silver, exp: S.exp, contrib: S.contrib, zone: S.expedition.zone,
+  return { cp: calculateCombatPower(S), silver: S.silver, exp: S.exp, contrib: S.contrib, zone: S.expedition.zone, stage: S.expedition.zone ? stageCleared(S.expedition.zone) : 0,
     star: best ? best[1].star : 0, stars: Object.fromEntries(CAT_ORDER.map(c => [c, S.active[c] ? S.manuals[S.active[c]].star : 0])),
     wins: 0, losses: 0, defeats: 0, runs: 0, bosses: 0 };
 }
@@ -47,8 +47,12 @@ function aiAct(note) {
   }
   // 8. 탐험지: 두목을 쓰러뜨려 다음 구역이 열리고 최근 탐험이 순조로우면 올라가고, 거듭 쓰러지면 내려온다
   aiZone(note);
-  // 9. 강호행 중이 아니면 다시 떠난다
-  if (!activeRun() && S.expedition.zone) startRun(t);
+  // 9. 강호행 중이 아니면 다시 떠난다: 쓰러진 단계보다 한 단계 아래에서 (자동 진행 켬)
+  if (!activeRun() && S.expedition.zone) {
+    const X = S.expedition, last = S.expeditions.filter(r => r.zone === X.zone && !r.live).slice(-1)[0];
+    X.auto = true; X.stage = last && last.end === 'dead' && !(last.cleared || []).length ? Math.max(1, last.stage - 1) : stageMax(X.zone);
+    startRun(t);
+  }
 }
 
 function aiPickManuals(note) {
@@ -110,13 +114,8 @@ function aiPotions() {
 }
 function aiZone(note) {
   const cur = S.expedition.zone, i = ZONE_ORDER.indexOf(cur);
-  const recent = S.expeditions.filter(r => r.zone === cur && !r.live).slice(-3);
-  if (!recent.length) return;
   const next = ZONE_ORDER[i + 1];
-  const good = recent.length >= 2 && recent.slice(-2).every(r => r.wins >= 20);            // 오래 버티면 올라간다
-  if (next && zoneUnlocked(next) && good) { setDestination(next); note(`탐험지 이동 → ${ZONES[next].name}`); return; }
-  const bad = recent.length >= 2 && recent.slice(-2).every(r => r.defeats && r.wins < 4);
-  if (bad && i > 0) { setDestination(ZONE_ORDER[i - 1]); note(`탐험지 후퇴 → ${ZONES[ZONE_ORDER[i - 1]].name} (거듭 쓰러짐)`); }
+  if (next && zoneUnlocked(next) && stageCleared(cur) >= STAGE.count) { setDestination(next); note(`탐험지 이동 → ${ZONES[next].name} (${ZONES[cur].name} 평정)`); }
 }
 
 /* N일 자동 플레이. onDay(report, dayIndex)로 하루씩 알린다. 끝나면 시계를 지금으로 돌린다 */
