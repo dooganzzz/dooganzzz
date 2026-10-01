@@ -247,7 +247,7 @@ function migrate(st) {
   if (!st.stages) { st.stages = {}; for (const [z, f] of [['cheongpung', 'boss1'], ['yeomhwa', 'boss2'], ['suryong', 'boss3']]) if (st.flags && st.flags[f]) st.stages[z] = 10; }
   if (st.expedition) { if (!st.expedition.stage) st.expedition.stage = Math.min(10, (st.stages[st.expedition.zone] || 0) + 1); if (st.expedition.auto === undefined) st.expedition.auto = true; }
   delete st.bossPity;
-  for (const r of st.expeditions || []) { if (r.live === undefined) r.live = false; delete r.shownAll; delete r.shownAt; }
+  for (const r of st.expeditions || []) { if (r.live === undefined) r.live = false; delete r.shownAll; delete r.shownAt; for (const b of r.battles || []) b.seen = true; }   // 전투 결과는 이제 곧바로 보인다
   if (!st.potGift) { st.potGift = true; st.inv.saenghyeol = (st.inv.saenghyeol || 0) + 10; st.migratedPot = true; }
   ensureCloudId(st);
   return st;

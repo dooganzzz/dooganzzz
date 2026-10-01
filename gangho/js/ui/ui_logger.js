@@ -84,7 +84,7 @@ function chronLive(e) {
   const st = rec.steps[e.ref.s];
   if (!st) return null;
   const seen = st.b === undefined || battleSeen(rec, st.b);
-  const btn = st.b !== undefined ? ` <button class="watch ${seen ? '' : 'unseen'}" data-watch="${rec.id}:${st.b}">${seen ? '다시보기' : '결과보기'}</button>` : '';
+  const btn = st.b !== undefined ? ` <button class="watch ${seen ? '' : 'unseen'}" data-watch="${rec.id}:${st.b}">관찰</button>` : '';
   return { ...e, t: stepAt(rec, e.ref.s), text: stepText(rec, st) + btn, cls: `exp-step ${seen ? st.cls : 'enc'}` };
 }
 function viewChronicle() {

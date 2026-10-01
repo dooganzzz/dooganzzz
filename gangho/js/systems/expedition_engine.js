@@ -92,7 +92,7 @@ function openVault(Z) {
 function stepBattle(rec, eid, bonus) {
   const b = fight(eid, { bonus });
   if (b.win) { const st = calcStats(); S.hp = Math.min(st.maxHp, S.hp + Math.round(st.maxHp * (EXPEDITION.breathe + (st.breathe || 0) / 100))); }   // 숨 고르기 (흑사 편직 요대 등)
-  rec.battles.push({ eid, seen: false, name: b.name, boss: b.boss, win: b.win, fled: !!b.fled, intro: b.intro, start: b.start, rounds: b.rounds, exp: b.exp, silver: b.silver, cause: b.cause || null });
+  rec.battles.push({ eid, seen: true, name: b.name, boss: b.boss, win: b.win, fled: !!b.fled, intro: b.intro, start: b.start, rounds: b.rounds, exp: b.exp, silver: b.silver, cause: b.cause || null });
   const res = b.win ? '승리' : b.fled ? '무승부' : '패배';
   return { t: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 전투에서 ${res}${b.cause ? ` — ${b.cause}` : ''}`, enc: `${b.boss ? '👹' : '⚔️'} ${josa(b.name, '과와')} 조우했습니다`, cls: b.win ? (b.boss ? 'gold' : 'good') : 'bad', b: rec.battles.length - 1, lost: !b.win && !b.fled };
 }
@@ -135,7 +135,7 @@ function stepEvent(rec, zid, used) {
    이기면 숨을 조금 고르고(breathe), 위급하면 생혈고를 스스로 바른다. 전투에서 지면 쓰러지고 강호행은 거기서 끝난다.
    기력이 바닥나면 쉬어 가는 걸음(EXPEDITION.restMs)으로 기력만 되찾는다 (경공 지형 상성이 쉬는 횟수를 정한다).
    자리를 비워도 이어지고(최대 EXPEDITION.catchUp만큼 따라잡음), 얻은 것은 보관했다가 끝난 뒤 [최종보상확인]으로 받는다.
-   전투 결과는 미리 적지 않는다: '조우했습니다'만 적고, [결과보기]로 관찰해야 결과가 적힌다 */
+   전투는 실시간 강호행 무대에서 기록 그대로 재생되고, 견문록에는 결과와 [관찰](전투 장면 · 합 로그)이 남는다 */
 const findExpedition = id => S.expeditions.find(r => r.id === id);
 function activeRun() { const id = S.expedition && S.expedition.run, r = id != null ? findExpedition(id) : null; return r && r.live ? r : null; }
 const runSnap = () => ({ silver: S.silver, exp: S.exp, contrib: S.contrib, inv: { ...S.inv }, gear: S.gear.length });
