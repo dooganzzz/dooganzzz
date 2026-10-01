@@ -588,10 +588,10 @@
 @keyframes liveFogNear { to { background-position: 1000px 40%; } }
 /* 반딧불이: 저녁 · 밤에 풀숲 위를 떠돈다 (세기 --star) */
 .live-flies { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-.live-flies i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #f4ffb0; box-shadow: 0 0 6px 2px rgba(214, 255, 120, .75), 0 0 14px 5px rgba(190, 255, 110, .3);
+.live-flies i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #f6ffd0; box-shadow: 0 0 3px 1px rgba(214, 255, 140, .55), 0 0 7px 2px rgba(190, 255, 120, .18);
   animation: liveFly 6s ease-in-out infinite alternate, liveFlyBlink 2.3s ease-in-out infinite; }
 @keyframes liveFly { 0% { transform: translate(0, 0); } 33% { transform: translate(14px, -10px); } 66% { transform: translate(-8px, -18px); } 100% { transform: translate(10px, 4px); } }
-@keyframes liveFlyBlink { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+@keyframes liveFlyBlink { 0%, 100% { opacity: .08; } 50% { opacity: .6; } }
 /* 두목 출현: 무대가 어두워지고 큰 이름 깃발 */
 .live-boss { position: absolute; z-index: 8; left: 50%; top: 14%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; opacity: 0; pointer-events: none; color: #fff; text-shadow: 0 0 8px #000, 0 0 2px #000; white-space: nowrap; }
 .live-boss small { font: 700 13px/1 serif; letter-spacing: .5em; color: #ffcf7a; }
