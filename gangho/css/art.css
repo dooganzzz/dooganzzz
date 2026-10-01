@@ -456,7 +456,7 @@
 .live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; will-change: transform; }
 .live-strip img { height: 100%; width: auto; flex: none; display: block; }
 .live-hero.sp-hero { left: 22%; bottom: 7%; width: 44%; transition: none; }
-.live-where { position: absolute; right: 8px; top: 6px; z-index: 3; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; }
+.live-where { position: absolute; right: 8px; top: 6px; z-index: 6; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .live-speed { flex-wrap: wrap; }
 .live-prog { height: 5px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
@@ -513,6 +513,21 @@
 .live-skname.n2 { color: #ffe08a; font-size: 26px; text-shadow: 0 0 10px #a86a00, 0 0 3px #000; }
 @keyframes liveSk { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.9); } 20% { opacity: 1; transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
 .live-scene.shake { animation: spStageShake .32s 2; }
-.live-enc { position: absolute; z-index: 4; left: 40%; top: 8%; width: 13%; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
+/* 시간대 빛깔: 새벽 분홍 · 해 질 녘 노을 · 밤 남빛 (그림 위에 곱하기로 덧씌운다) */
+.live-tint { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: multiply; opacity: 0; transition: opacity 2s, background 2s; }
+.live-scene[data-tod="dawn"] .live-tint { opacity: 1; background: linear-gradient(180deg, rgba(255, 196, 200, .55), rgba(255, 226, 200, .25) 60%, rgba(255, 240, 225, .1)); }
+.live-scene[data-tod="dusk"] .live-tint { opacity: 1; background: linear-gradient(180deg, rgba(240, 130, 80, .6), rgba(250, 175, 110, .4) 55%, rgba(170, 110, 90, .3)); }
+.live-scene[data-tod="night"] .live-tint { opacity: 1; background: linear-gradient(180deg, rgba(40, 52, 110, .78), rgba(60, 70, 120, .62) 60%, rgba(40, 45, 80, .7)); }
+.live-scene[data-tod="night"]::after { content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(ellipse 30% 40% at 42% 78%, rgba(255, 210, 140, .22), transparent 70%); }
+/* 두목 출현: 무대가 어두워지고 큰 이름 깃발 */
+.live-boss { position: absolute; z-index: 8; left: 50%; top: 14%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; opacity: 0; pointer-events: none; color: #fff; text-shadow: 0 0 8px #000, 0 0 2px #000; white-space: nowrap; }
+.live-boss small { font: 700 13px/1 serif; letter-spacing: .5em; color: #ffcf7a; }
+.live-boss b { font: 900 30px/1.1 serif; letter-spacing: .14em; padding: 2px 18px; border-top: 2px solid rgba(200, 50, 30, .9); border-bottom: 2px solid rgba(200, 50, 30, .9); background: linear-gradient(90deg, transparent, rgba(60, 10, 5, .7) 20%, rgba(60, 10, 5, .7) 80%, transparent); }
+.live-scene.boss .live-boss { animation: liveBoss 3.2s ease-out forwards; }
+.live-scene.boss::before { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(ellipse at 55% 60%, transparent 30%, rgba(20, 0, 0, .65)); animation: liveBossDim 3.2s ease-out forwards; }
+@keyframes liveBoss { 0% { opacity: 0; transform: translateX(-50%) scale(1.6); filter: blur(4px); } 12% { opacity: 1; transform: translateX(-50%) scale(1); filter: none; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-8px); } }
+@keyframes liveBossDim { 0% { opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+@media (max-width: 640px) { .live-boss b { font-size: 22px; } }
+.live-enc { position: absolute; z-index: 6; left: 40%; top: 8%; width: 13%; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
 .live-scene.enc .live-enc { animation: liveEnc 2.6s ease-out forwards; }
 @keyframes liveEnc { 0% { opacity: 0; transform: scale(.4) rotate(-20deg); } 12% { opacity: 1; transform: scale(1.15) rotate(4deg); } 22% { transform: scale(1) rotate(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10%); } }

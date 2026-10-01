@@ -3,6 +3,7 @@
 /* 1초마다 남은 시간만 바꿔 쓴다 (화면 전체를 다시 그리지 않는다) */
 Bus.on('tick', () => {
   for (const el of document.querySelectorAll('[data-countdown]')) el.textContent = countdownText();
+  const scn = $('#liveScene'); if (scn && scn.dataset.tod !== liveTod()) scn.dataset.tod = liveTod();   // 시간대 빛깔
   const sig = liveSig(); if (sig === lastLiveSig) return; lastLiveSig = sig;   // 새 걸음이 드러났을 때만
   const box = $('#liveSide'); if (box) setHTML(box, liveSide());
   const sc = $('#liveScene'), lr = liveRec();
@@ -10,7 +11,7 @@ Bus.on('tick', () => {
     sc.classList.toggle('rest', liveDone(lr));
     // 방금 드러난 걸음이 전투면 그 요수와 맞붙는 모습을 보여 준다 (결과는 견문록 · 결과보기에서)
     const n = lr && lr.pend ? shownSteps(lr) : 0, st = n ? lr.steps[n - 1] : null;
-    if (st && st.b !== undefined && !lr.shownAll && now() - stepAt(lr, n - 1) < 2600) liveShowQueue(lr.battles[st.b] && lr.battles[st.b].eid, true);
+    if (st && st.b !== undefined && !lr.shownAll && now() - stepAt(lr, n - 1) < 2600) { const bt = lr.battles[st.b]; if (bt) liveShowQueue(bt.eid, true, bt.boss); }
   }
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
 });
@@ -26,9 +27,11 @@ const WALK_META = { sword: { n: 16, ms: 1375, g: .64 }, blade: { n: 16, ms: 1500
 const walkMeta = w => WALK_META[w] || WALK_DEF;
 let liveAnim = { f: 0, last: 0, acc: 0, x: 0, raf: 0, breath: 0, walkMs: 0, nextShow: 0, show: null, queued: null };
 /* 연출 전투 예약: real = 방금 드러난 실제 전투 (그 요수로, 끝은 안개 속으로 — 승패는 견문록에서) */
-function liveShowQueue(eid, real) {
+/* 산길 시간대: 지금 시각으로 새벽 · 낮 · 해 질 녘 · 밤 */
+function liveTod(t = now()) { const h = new Date(t).getHours(); return h >= 5 && h < 7 ? 'dawn' : h >= 7 && h < 17 ? 'day' : h >= 17 && h < 20 ? 'dusk' : 'night'; }
+function liveShowQueue(eid, real, boss) {
   if (!eid || !ENEMIES[eid] || (liveAnim.show && liveAnim.show.real)) return;
-  liveAnim.queued = { eid, real: !!real };
+  liveAnim.queued = { eid, real: !!real, boss: !!boss };
   preloadImgs([SPRITE_SRC.foe(eid), SPRITE_SRC.foe(eid, 1)]);
 }
 function liveShowPick(zid) {
@@ -56,7 +59,7 @@ function liveShowPlan(sh, w) {
     return t0 + 820;
   };
   let t = 900;                                        // 조우 깃발이 뜨는 동안 서로 겨눈다
-  const rounds = 2 + Math.floor(Math.random() * 2);
+  const rounds = (sh.boss ? 3 : 2) + Math.floor(Math.random() * 2);
   for (let i = 0; i < rounds; i++) { t = heroAtk(t, false); t = foeAtk(t + 120, Math.random() < .4); t += 200; }
   t = heroAtk(t, true);
   q.push({ at: t, k: sh.real ? 'mist' : 'ko' });
@@ -73,8 +76,9 @@ function liveSkill(sc, sk) {
   const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}`; lab.textContent = `「${sk.name}」`;
   const v = document.createElement('img'); v.className = `live-skill n${sk.tier}`; v.src = SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`); v.alt = '';
   sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
-  if (sk.tier === 2) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); setTimeout(() => sc.classList.remove('shake'), 500); }
+  if (sk.tier === 2) liveShake(sc);
 }
+function liveShake(sc) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); clearTimeout(sc._shakeT); sc._shakeT = setTimeout(() => sc.classList.remove('shake'), 650); }
 function liveNum(sc, t, left, cls) {
   const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.textContent = t; n.style.left = (left - 4 + Math.random() * 8) + '%';
   sc.appendChild(n); setTimeout(() => n.remove(), 1000);
@@ -92,7 +96,7 @@ function liveShowStart(sc, sh) {
   spr.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid)}')`; spr.style.backgroundSize = `${n * 100}% 100%`;
   atk.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid, 1)}')`; atk.style.backgroundSize = '300% 100%';
   const sk = liveSkillOf(); if (sk) preloadImgs([SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`)]);
-  Object.assign(sh, { n, skill: sk, base: Math.max(4, Math.round(calculateCombatPower(S) / 12)), phase: 'approach', x0: liveAnim.x, t0: 0, q: null, bf: 0, bt: 0 });
+  Object.assign(sh, { n, skill: sk, heavy: sh.boss || size >= 1.05, base: Math.max(4, Math.round(calculateCombatPower(S) / 12)), phase: 'approach', x0: liveAnim.x, t0: 0, q: null, bf: 0, bt: 0 });
   sc.classList.add('approach');
   return sh;
 }
@@ -107,7 +111,11 @@ function liveShowStep(sc, sh, ts, dt) {
     foe.style.left = '60%'; sh.phase = 'fight'; sh.t0 = ts; sh.q = liveShowPlan(sh, hero.dataset.w || weaponType());
     sc.classList.remove('approach'); sc.classList.add('fight');
     hero.style.left = '22%'; hero.dataset.f = 0;
-    sc.classList.remove('enc'); void sc.offsetWidth; sc.classList.add('enc'); setTimeout(() => sc.classList.remove('enc'), 2600);
+    if (sh.boss) {                                    // 두목: 무대가 어두워지고 큰 깃발 · 땅울림
+      const bn = sc.querySelector('.live-boss'); if (bn) bn.querySelector('b').textContent = ENEMIES[sh.eid].name;
+      sc.classList.remove('boss'); void sc.offsetWidth; sc.classList.add('boss'); setTimeout(() => sc.classList.remove('boss'), 3200);
+      liveShake(sc); setTimeout(() => liveShake(sc), 380);
+    } else { sc.classList.remove('enc'); void sc.offsetWidth; sc.classList.add('enc'); setTimeout(() => sc.classList.remove('enc'), 2600); }
     return false;
   }
   const el = ts - sh.t0;
@@ -124,7 +132,8 @@ function liveShowStep(sc, sh, ts, dt) {
       spFlash(foe); liveNum(sc, fmt(n), 70, sk || crit ? 'crit' : '');
       if (!sk) liveVfx(sc, e.big || crit ? 'crit' : 'hit', 66, e.big || crit ? 'crit' : '');
     }
-    else if (e.k === 'hurt') { hero.dataset.f = 7; spFlash(hero); liveVfx(sc, 'hit', 30, 'small'); liveNum(sc, fmt(Math.max(1, Math.round(sh.base * (.3 + Math.random() * .2)))), 30, 'me'); }
+    else if ((e.k === 'hurt' || e.k === 'dodge') && sh.heavy) liveShake(sc);   // 덩치 큰 요수 · 두목의 반격은 땅이 울린다
+    if (e.k === 'hurt') { hero.dataset.f = 7; spFlash(hero); liveVfx(sc, 'hit', 30, 'small'); liveNum(sc, fmt(Math.max(1, Math.round(sh.base * (.3 + Math.random() * .2)))), 30, 'me'); }
     else if (e.k === 'dodge') { hero.dataset.f = 8; liveNum(sc, '회피', 30, 'miss'); }
     else if (e.k === 'ko') foe.classList.add('ko');
     else if (e.k === 'mist') foe.classList.add('mist');
@@ -193,12 +202,14 @@ function liveScene(r) {
   const zid = (r && r.zone) || S.expedition.zone || 'cheongpung', w = weaponType(), N = walkMeta(w).n;
   const img = () => `<img src="assets/art/travel/${zid}.jpg" alt="">`;   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
-  return `<div class="live-scene ${liveDone(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}">
+  return `<div class="live-scene ${liveDone(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}">
     <div class="live-world"><div class="live-strip" data-anim>${img()}${img()}</div></div>
     <div class="sp-fighter live-walker" id="liveWalker_${w}" data-w="${w}"><i class="sp-shadow"></i><div class="walk-spr" data-anim style="background-image:url('assets/art/sprites/walk_${w}.webp');background-size:${N * 100}% 100%"></div></div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0" data-w="${w}" data-anim><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
+    <i class="live-tint"></i>
     <img class="live-enc" src="assets/art/ui/b_encounter.png" alt="">
+    <div class="live-boss"><small>頭目 出現</small><b></b></div>
     <span class="live-where">${ZONES[zid].name}</span>
   </div>`;
 }
