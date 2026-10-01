@@ -165,7 +165,7 @@ small { font-size: .82rem; }
 .header-hero::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: multiply;
   background: linear-gradient(180deg, var(--tt, transparent), var(--tm, transparent) 60%, var(--tb, transparent)); }
 .header-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, rgba(15, 13, 11, 0) 55%, rgba(15, 13, 11, .55) 82%, #0f0d0b 100%), linear-gradient(to right, rgba(15, 13, 11, .35), transparent 12%, transparent 88%, rgba(15, 13, 11, .35)); }
-.main-header .header-banner { position: absolute; left: 50%; top: calc(clamp(4px, 1.2vw, 16px) - 1px); transform: translateX(-50%); z-index: 1; flex-direction: column; gap: 2px; text-align: center; pointer-events: none; order: 0; flex-basis: auto; justify-content: center; }
+.main-header .header-banner { position: absolute; left: 50%; top: calc(clamp(4px, 1.2vw, 16px) - 4px); transform: translateX(-50%); z-index: 1; flex-direction: column; gap: 2px; text-align: center; pointer-events: none; order: 0; flex-basis: auto; justify-content: center; }
 .main-header .header-banner .brand-symbol { position: absolute; right: -28px; top: 4px; width: 22px; height: 22px; font-size: 11px; font-weight: 900; color: #fff4ec; background: #b3261e; border: none; border-radius: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); transform: rotate(4deg); }
 .main-header .brand-title, .main-header .brand h1.brand-title { font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-weight: 400; font-size: clamp(40px, 4.77vw, 72px); line-height: .95; color: #15110d; letter-spacing: .08em; text-shadow: 0 0 18px rgba(245, 242, 235, .95), 0 0 6px rgba(245, 242, 235, .9); }
 .main-header .brand-sub, .main-header .brand small.brand-sub { font-size: clamp(9px, .8vw, 11px); color: #2b241c; letter-spacing: .18em; font-weight: 700; text-shadow: 0 0 8px rgba(245, 242, 235, 1); }
@@ -208,7 +208,7 @@ small { font-size: .82rem; }
 .npc-face { display: inline-block; width: 26px; height: 26px; margin: -5px 6px 0 0; border-radius: 50%; border: 1.5px solid rgba(212, 175, 55, .7); background: #1b1612 center 20% / cover no-repeat; vertical-align: middle; }
 .chron-text .item-ico.sm, .chron-detail .item-ico.sm { width: 20px; height: 20px; margin: -3px 2px 0 0; }
 .main-header .brand-title { white-space: nowrap; }
-@media (max-width: 640px) { .main-header .brand-title, .main-header .brand h1.brand-title { font-size: 35px; letter-spacing: .02em; } .main-header .header-banner { top: calc(clamp(4px, 1.2vw, 16px) + 16px); } .header-hero { height: 72px; } .main-header .brand-sub { display: none; } }
+@media (max-width: 640px) { .main-header .brand-title, .main-header .brand h1.brand-title { font-size: 35px; letter-spacing: .02em; } .main-header .header-banner { top: calc(clamp(4px, 1.2vw, 16px) + 12px); } .header-hero { height: 72px; } .main-header .brand-sub { display: none; } }
 
 /* 로그인 · 회원가입 */
 .auth-sheet { max-width: 420px; }

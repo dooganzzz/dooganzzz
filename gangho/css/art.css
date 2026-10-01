@@ -707,3 +707,17 @@
 .live-panel.enter { animation: liveEnter .9s ease-out; }
 @keyframes liveEnter { from { opacity: 0; filter: blur(6px) brightness(.4); transform: scale(.985); } to { opacity: 1; filter: none; transform: none; } }
 .map-open .btn { width: 100%; }
+
+/* 쓰러짐: 강호행이 쓰러져 끝나면(보상 받기 전) 제자가 땅에 엎어지고, 놓친 병기가 머리맡에 떨어져 뒹군다 */
+.live-fallen { position: absolute; left: 9%; bottom: 9.5%; width: 23%; aspect-ratio: 640 / 150; z-index: 2; display: none; pointer-events: none; }
+.live-scene.dead .live-fallen { display: block; }
+.live-scene.dead .live-hero { display: none; }
+.live-fallen .lf-body { position: absolute; inset: 0; width: 100%; height: 100%; animation: lfDown .7s cubic-bezier(.5, 0, .7, .4) both; transform-origin: 30% 100%; }
+.live-fallen .sp-shadow { left: 4%; right: 4%; bottom: -6%; width: auto; height: 22%; transform: none; }
+.live-fallen .lf-weapon { position: absolute; left: 100%; bottom: -26%; width: 34%; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .45)); transform: rotate(var(--r, 45deg)) scaleY(.75); animation: lfDrop .9s cubic-bezier(.3, .6, .4, 1) .45s both; }
+.live-fallen .lf-weapon.w-spear { width: 50%; left: 96%; bottom: -34%; --r: 46deg; }
+.live-fallen .lf-weapon.w-blade { --r: 40deg; }
+.live-fallen .lf-weapon.w-hidden { width: 24%; bottom: -16%; --r: 0deg; }
+@keyframes lfDown { 0% { opacity: 0; transform: translateY(-14%) rotate(-6deg); } 70% { opacity: 1; transform: translateY(2%) rotate(1deg); } 100% { opacity: 1; transform: none; } }
+@keyframes lfDrop { 0% { opacity: 0; transform: translate(-30%, -160%) rotate(calc(var(--r, 45deg) - 120deg)); } 55% { opacity: 1; transform: translate(0, 0) rotate(var(--r, 45deg)) scaleY(.75); } 72% { transform: translate(6%, -18%) rotate(calc(var(--r, 45deg) + 8deg)) scaleY(.75); } 88%, 100% { opacity: 1; transform: rotate(var(--r, 45deg)) scaleY(.75); } }
+@media (prefers-reduced-motion: reduce) { .live-fallen .lf-body, .live-fallen .lf-weapon { animation: none; } }

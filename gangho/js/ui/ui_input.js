@@ -44,6 +44,8 @@ function onClick(e) {
   if (d.stageauto !== undefined) { S.expedition.auto = S.expedition.auto === false; notify.save(); return render(); }
   if (d.chron) { ui.chronFilter = d.chron; return render(); }
   if (d.codextab) { ui.codexTab = d.codextab; return render(); }
+  if (d.codexzone) { ui.codexZone = d.codexzone; return render(); }
+  if (d.codexcat) { ui.codexCat = d.codexcat; return render(); }
   if (d.watch) return openReplay(d.watch);
   if (d.rp) return replayControl(d.rp, d.x);
   if (d.starup) return askStarUp(d.starup);

@@ -77,18 +77,20 @@ function liveShowQueue(eid, real, boss, ref) {
     const bt = (S.expeditions.find(x => x.id === ref.rid) || { battles: [] }).battles[ref.bi];
     liveAnim.hold = { rid: ref.rid, i: ref.si, until: now() + 40000, hp: bt && bt.start ? bt.start.me.hp : null };
     const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
-    const sc = document.getElementById('liveScene'); if (sc) sc.classList.remove('rest');
+    const sc = document.getElementById('liveScene'); if (sc) sc.classList.remove('rest', 'dead');
   }
 }
 /* 화면에 띄울 걸음 수: 맞붙는 중인 전투 걸음부터는 숨긴다 (맞붙기가 끝나면 liveShowEnd가 풀고 다시 그린다) */
 function liveShown(r) { const h = liveAnim.hold; return r && h && h.rid === r.id && now() < h.until ? Math.min(h.i, r.steps.length) : r ? r.steps.length : 0; }
+/* 쓰러져 끝난 강호행(보상 받기 전): 무대에 쓰러진 제자와 놓친 병기를 눕힌다 */
+function liveDead(r) { return !!r && r.end === 'dead' && !r.claimed && liveDone(r) && !liveHeld(r); }
 function liveHeld(r) { return !!r && liveShown(r) < r.steps.length; }
 function liveRelease() {
   if (!liveAnim.hold) return; liveAnim.hold = null;
   const q = liveAnim.gimQ; liveAnim.gimQ = null;             // 기다리던 기믹이 있으면 이어서 (그 결과는 다시 가린다)
   if (q && now() - q.at < 60000) { const r = findExpedition(q.rid); if (r && r.steps[q.si]) liveGimQueue(r, q.si); }
   const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
-  const sc = document.getElementById('liveScene'), lr = liveRec(); if (sc) sc.classList.toggle('rest', liveDone(lr));
+  const sc = document.getElementById('liveScene'), lr = liveRec(); if (sc) { sc.classList.toggle('rest', liveDone(lr)); sc.classList.toggle('dead', liveDead(lr)); }
   if (typeof renderTabs === 'function') renderTabs();
 }
 function liveShowPick(zid) {
@@ -433,12 +435,13 @@ function liveScene(r) {
   const md = liveMode(), spr = cls => `<div class="${cls}" data-anim style="background-image:url('${ASSET[md](w)}');background-size:${N * 100}% 100%"></div>`;
   const img = () => `<img src="${ASSET.travel(zid)}" alt="">`, gnd = () => `<img src="${ASSET.ground(zid)}" alt="">`;   // 먼 겹 = 산길 전체, 앞 겹 = 땅만 (같은 크기라 이음매 없이 되풀이)   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
-  return `<div class="live-scene ${liveDone(r) && !liveHeld(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}" style="${liveTodVars()}">
+  return `<div class="live-scene ${liveDone(r) && !liveHeld(r) ? 'rest' : ''} ${liveDead(r) ? 'dead' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}" style="${liveTodVars()}">
     <div class="live-world far"><div class="live-strip" data-far="1" data-anim>${img()}${img()}</div></div>
     <div class="live-world near"><div class="live-strip" data-anim>${gnd()}${gnd()}</div></div>
     <i class="live-mist"></i>
     <div class="sp-fighter live-walker ${fast ? 'fast' : ''} ${md === 'walk' ? 'walking' : ''}" id="liveWalker_${w}${fast ? '_f' : ''}" data-w="${w}" data-mode="${md}" ${fast ? 'data-fast="1"' : ''}>${fast ? spr('walk-spr walk-ghost g1') + spr('walk-spr walk-ghost g2') : ''}<i class="sp-shadow"></i>${spr('walk-spr')}</div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0" data-w="${w}" data-anim><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
+    <div class="live-fallen" aria-hidden="true"><i class="sp-shadow"></i><img class="lf-body" src="${ASSET.hero('fallen')}" alt="">${w === 'fist' ? '' : `<img class="lf-weapon w-${w}" src="${ASSET.item('w_' + w)}" alt="">`}</div>
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
     <div class="live-hp me" data-anim><span class="lh-face" style="background-image:url('${ASSET.portrait('hero')}')"></span><div class="lh-body"><b>${esc(S.name)}</b><span class="lh-bar"><i></i></span><em></em></div></div>
     <div class="live-hp foe" data-anim><span class="lh-face"></span><div class="lh-body"><b></b><span class="lh-bar"><i></i></span><em></em></div></div>
@@ -446,6 +449,6 @@ function liveScene(r) {
     <i class="live-flies" style="opacity:var(--fly,0)">${LIVE_FLIES.map(([x, y, d]) => `<i style="left:${x}%;top:${y}%;animation-delay:-${d}s,-${(d * 1.7).toFixed(1)}s"></i>`).join('')}</i>
     <img class="live-enc" src="${ASSET.ui('b_encounter')}" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
-    <span class="live-rest">${r && r.end === 'dead' && !r.claimed ? '쓰러져 돌아왔습니다' : '산문에서 대기 중'}</span>
+    ${r && r.end === 'dead' && !r.claimed ? '' : '<span class="live-rest">산문에서 대기 중</span>'}
   </div>`;
 }

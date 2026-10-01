@@ -16,32 +16,37 @@ const bonusText = o => Object.entries(o || {}).filter(([, v]) => v).map(([k, v])
 
 const CODEX_EMPTY = '<p class="story muted">아직 강호에서 견문을 넓히지 못했습니다.</p>';
 
-/* 몬스터: 사냥터별. 만난 요수만 적는다 (총 몇 종인지·못 만난 요수는 드러내지 않는다). 다 만나면 [도감 완성] */
+/* 몬스터: 사냥터별 탭. 요수를 하나라도 만난 사냥터만 탭으로 띄우고, 만난 요수만 적는다 (총 몇 종인지·못 만난 요수는 드러내지 않는다).
+   다 만나면 받은 영구 보너스를 [강적 영혼흡수 효과]로 적는다 */
 function codexMonsters() {
   const bs = S.bestiary || {};
-  const cols = ZONE_ORDER.map(z => {
-    const Z = ZONES[z], met = [...Z.enemies, Z.boss].filter(e => bs[e]);
-    if (!met.length) return '';
-    const done = (S.codexRewards || {})[z], R = CODEX_REWARDS[z];
-    const rows = met.map(e => { const E = ENEMIES[e];
-      return `<li>${beastArt(e, 'mini')}<b>${E.name}</b>${E.boss ? ' <span class="pill warn">두목</span>' : ''}${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small>${E.trait ? `<em class="trait">${E.trait}</em>` : ''}</li>`; }).join('');
-    return `<article class="codex-col ${done ? 'complete' : ''}"><h3>${label(Z.name, Z.hanja)}${done ? ' <span class="pill codex-done">도감 완성</span>' : ''}</h3>
-      ${done ? `<p class="codex-bonus">✦ ${R.text}</p>` : ''}<p class="muted zone-terrain">지형 ${Z.terrain.map(terrainTag).join('')}</p><ul class="beasts">${rows}</ul></article>`;
-  }).join('');
-  return `<p class="muted">강호에서 직접 마주친 상대만 기록됩니다. 오행과 병기는 겨뤄 본 자만이 알 수 있습니다.</p>${cols ? `<div class="codex">${cols}</div>` : CODEX_EMPTY}`;
+  const zones = ZONE_ORDER.filter(z => [...ZONES[z].enemies, ZONES[z].boss].some(e => bs[e]));
+  const intro = '<p class="muted">강호에서 직접 마주친 상대만 기록됩니다. 오행과 병기는 겨뤄 본 자만이 알 수 있습니다.</p>';
+  if (!zones.length) return intro + CODEX_EMPTY;
+  const z = zones.includes(ui.codexZone) ? ui.codexZone : zones[0];
+  const zbar = `<div class="subtabs codex-zones" role="tablist" aria-label="사냥터" style="--n:${zones.length}">${zones.map(k =>
+    `<button class="subtab ${k === z ? 'on' : ''}" role="tab" aria-selected="${k === z}" data-codexzone="${k}">${label(ZONES[k].name, ZONES[k].hanja)}</button>`).join('')}</div>`;
+  const Z = ZONES[z], met = [...Z.enemies, Z.boss].filter(e => bs[e]);
+  const done = (S.codexRewards || {})[z], R = CODEX_REWARDS[z];
+  const rows = met.map(e => { const E = ENEMIES[e];
+    return `<li>${beastArt(e, 'mini')}<b>${E.name}</b>${E.boss ? ' <span class="pill warn">두목</span>' : ''}${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small>${E.trait ? `<em class="trait">${E.trait}</em>` : ''}</li>`; }).join('');
+  return `${intro}${zbar}<div class="codex"><article class="codex-col">
+    ${done ? `<p class="codex-bonus"><b class="cb-label">강적 영혼흡수 효과</b>${R.text}</p>` : ''}<p class="muted zone-terrain">지형 ${Z.terrain.map(terrainTag).join('')}</p><ul class="beasts">${rows}</ul></article></div>`;
 }
 
-/* 비급: 분류별. 독파한 비급만. 비급마다 몸에 새겨진 영구 보너스(장착 여부 무관)와 그 합계 */
+/* 비급: 분류별 탭. 독파한 비급이 있는 분류만 탭으로 띄운다. 비급마다 몸에 새겨진 영구 보너스(장착 여부 무관)와 그 합계 */
 function codexMartial() {
-  const cols = CAT_ORDER.map(cat => {
-    const got = Object.keys(MANUALS).filter(id => MANUALS[id].cat === cat && S.manuals[id]);
-    if (!got.length) return '';
-    const rows = got.map(id => { const M = MANUALS[id], m = S.manuals[id];
-      return `<li>${manualIco(id, 'mini')}<button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.passiveBonus ? `<small class="passive">각인 ${bonusText(M.passiveBonus)}</small>` : ''}${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
-    return `<article class="codex-col"><h3>${label(CATS[cat].name, CATS[cat].hanja)}</h3><ul class="beasts">${rows}</ul></article>`;
-  }).join('');
+  const cats = CAT_ORDER.filter(cat => Object.keys(MANUALS).some(id => MANUALS[id].cat === cat && S.manuals[id]));
   const P = manualPassive(), sum = bonusText({ ...P.attr, ...P.stats });
-  return `<p class="muted">독파하여 깨우친 비급의 비결이 온전히 기록되며, 몸에 영구히 각인됩니다.</p>${sum ? `<p class="passive-sum">몸에 새겨진 각인 합계: <b>${sum}</b></p>` : ''}${cols ? `<div class="codex">${cols}</div>` : CODEX_EMPTY}`;
+  const intro = `<p class="muted">독파하여 깨우친 비급의 비결이 온전히 기록되며, 몸에 영구히 각인됩니다.</p>${sum ? `<p class="passive-sum">몸에 새겨진 각인의 효과: <b>${sum}</b></p>` : ''}`;
+  if (!cats.length) return intro + CODEX_EMPTY;
+  const cat = cats.includes(ui.codexCat) ? ui.codexCat : cats[0];
+  const cbar = `<div class="subtabs codex-zones" role="tablist" aria-label="비급 분류" style="--n:${cats.length}">${cats.map(k =>
+    `<button class="subtab ${k === cat ? 'on' : ''}" role="tab" aria-selected="${k === cat}" data-codexcat="${k}">${label(CATS[k].name, CATS[k].hanja)}</button>`).join('')}</div>`;
+  const got = Object.keys(MANUALS).filter(id => MANUALS[id].cat === cat && S.manuals[id]);
+  const rows = got.map(id => { const M = MANUALS[id], m = S.manuals[id];
+    return `<li>${manualIco(id, 'mini')}<button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.passiveBonus ? `<small class="passive">각인 ${bonusText(M.passiveBonus)}</small>` : ''}${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
+  return `${intro}${cbar}<div class="codex"><article class="codex-col"><ul class="beasts">${rows}</ul></article></div>`;
 }
 
 /* 단조·연단 비법: 화로에서 한 번이라도 성공한 비법만. 필요 재료와 결과물을 모두 공개 */

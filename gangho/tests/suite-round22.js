@@ -91,7 +91,7 @@ module.exports = async (b) => {
     await p.click('[data-codextab="martial"]');
     ok('4 무공: 익힌 무공만 공개', await p.evaluate(() => document.querySelectorAll('.codex-panel .beasts li:not(.unknown)').length === Object.keys(S.manuals).length && !document.querySelector('.codex-panel .beasts li.unknown')));
     await p.click('[data-codextab="monster"]');
-    ok('4 몬스터: 만난 요수가 있는 사냥터만 · ??? 없음', await p.evaluate(() => document.querySelectorAll('.codex-panel .codex-col').length === ZONE_ORDER.filter(z => [...ZONES[z].enemies, ZONES[z].boss].some(e => S.bestiary[e])).length && !/\?\?\?/.test(document.querySelector('.codex-panel').textContent)));
+    ok('4 몬스터: 만난 요수가 있는 사냥터만 탭 · ??? 없음', await p.evaluate(() => document.querySelectorAll('.codex-panel [data-codexzone]').length === ZONE_ORDER.filter(z => [...ZONES[z].enemies, ZONES[z].boss].some(e => S.bestiary[e])).length && !/\?\?\?/.test(document.querySelector('.codex-panel').textContent)));
 
     // 5. 탐험 루프: 기력이 다할 때까지 (조우·패배·마을 치료가 모두 기력을 깎는다)
     const lp = await p.evaluate(() => {

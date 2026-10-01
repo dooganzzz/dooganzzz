@@ -626,9 +626,9 @@ body {
 .dslot .slot-n { position: absolute; top: 3px; right: 5px; font-style: normal; font-size: .68rem; font-weight: 700; color: var(--jade); }
 .slot-help { font-size: .8rem; }
 .chron-row.chron-open { outline: 1px solid var(--gold); background: rgba(212, 175, 55, .08); }
-.codex-col.complete { border-color: var(--gold); }
-.codex-done { border-color: var(--gold); color: var(--gold-2); }
-.codex-bonus { font-size: .82rem; color: var(--gold-2); }
+.codex-bonus { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: .82rem; color: var(--gold-2); }
+.codex-bonus .cb-label { padding: 1px 8px; border: 1px solid var(--gold); border-radius: 4px; font-size: .76rem; font-weight: 700; color: var(--gold); }
+.codex-zones { margin-top: 2px; }
 
 /* 상단 재화·스탯 인디케이터: 전투 · 경험 · 은자 · 공헌을 한 줄에 가로 정렬 (한글 뱃지) */
 .user-status-bar { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; min-width: 0; }
