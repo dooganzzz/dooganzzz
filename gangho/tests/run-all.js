@@ -1,7 +1,21 @@
 /* 모든 검사 묶음을 차례로 실행한다. 실패가 하나라도 있으면 종료 코드 1. */
 'use strict';
 const { playwright, result, ok } = require('./lib');
-const SUITES = ['suite-core', 'suite-map-craft', 'suite-martial', 'suite-round7', 'suite-round8', 'suite-round9', 'suite-round10', 'suite-round11', 'suite-round12', 'suite-round13', 'suite-round14', 'suite-round15', 'suite-round16', 'suite-round17', 'suite-round18', 'suite-round19', 'suite-round20', 'suite-round21', 'suite-round22', 'suite-round23', 'suite-round24'];
+/* 기능별 묶음 (이름 일부로 골라 돌릴 수 있다: node tests/run-all.js gm) */
+const SUITES = [
+  // 기본 · 화면 틀
+  'suite-core', 'suite-status-tab', 'suite-sect-tab', 'suite-compact-library',
+  // 무공 · 성장
+  'suite-manuals-db', 'suite-martial-slots', 'suite-growth-drops', 'suite-combat-power',
+  // 전투
+  'suite-combat-branches', 'suite-hit-feedback', 'suite-world-affinity',
+  // 강호행 · 기연 · 견문록
+  'suite-zones-rules', 'suite-prep-notes', 'suite-encounters', 'suite-chronicle-replay',
+  // 화로 · 전방 · 도감
+  'suite-furnace-zones', 'suite-shop', 'suite-shop-enhance', 'suite-codex-gear',
+  // 운영자 콘솔
+  'suite-gm-console', 'suite-gm-window',
+];
 
 (async () => {
   const only = process.argv[2];

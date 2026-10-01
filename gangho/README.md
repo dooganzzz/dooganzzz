@@ -42,7 +42,8 @@ js/
     encyclopedia_rewards.js  (data) 지역 도감 완성 보상
     ui_logger.js         견문록 탭(날짜별·분류·결산/상세 펼치기). 모든 기록은 여기 한 곳에만
     ui_feedback.js       성취 현판, 토스트, 플로팅 대미지, 섬광·셰이크, 타자기
-    ui_views.js          정청·연무장·무신상·전방·무장·무공·행낭 화면
+    ui_views.js          공용 도우미(그림 · 등급 · 상성 표식 · 투력 카드) · 무장 · 무공 · 행낭 화면
+    ui_views_sect.js     청풍문 화면: 정청 · 연무장 · 무신상 · 전방
     ui_art.js            그림·모션: 사냥터 수묵 풍경 · 요수 실루엣 · 무신상 · 장비 칸 아이콘 · 화면 전환·화로·공양 연출 · 향 시계 · 움직임 줄이기
     ui_furnace.js        화로: [ 단조 ] | [ 단약 ] 탭, 재료 슬롯, 연구 노트
     ui_encyclopedia.js   도감: [ 강적 ] | [ 비급 ] | [ 단조 비법 ] | [ 연단 비법 ]
@@ -184,5 +185,5 @@ assets/                  무장 실루엣과 NPC 초상화. 없는 파일은 대
 cd gangho
 npm install          # playwright 설치 (처음 한 번)
 npm test             # 전체 검사, 실패가 있으면 종료 코드 1
-node tests/run-all.js round10  # 이름에 round10이 들어간 묶음만
+node tests/run-all.js gm       # 이름에 gm이 들어간 묶음만 (suite-gm-console · suite-gm-window)
 ```
