@@ -12,11 +12,12 @@ const ASSET_KIND = {
   prop:     { dir: 'props/', ext: 'webp' },
   fx:       { dir: 'fx/', ext: 'webp' },
   zone:     { dir: 'zones/', ext: 'jpg' },
-  beast:    { dir: 'beasts/', ext: 'png' },
-  item:     { dir: 'items/', ext: 'png' },
-  ui:       { dir: 'ui/', ext: 'png' },
-  portrait: { dir: 'portraits/', ext: 'png' },
-  scene:    { dir: '', ext: 'png' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_cauldron
+  beast:    { dir: 'beasts/', ext: 'webp' },
+  item:     { dir: 'items/', ext: 'webp' },
+  ui:       { dir: 'ui/', ext: 'webp' },
+  portrait: { dir: 'portraits/', ext: 'webp' },
+  scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_cauldron
 };
 /* 확장자가 기본과 다른 파일 (종류:이름) */
-const ASSET_EXT = { 'hero:sword': 'png', 'foe:viper': 'png', 'foe:viper_atk': 'png', 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg' };
+const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg' };
+/* PNG는 모두 무손실 WebP로 바꿨다 (픽셀 동일, 약 37% 작음). 이미 손실 압축된 WebP · JPG는 다시 압축하지 않는다 */
