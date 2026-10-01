@@ -20,7 +20,7 @@ const supaSource = () => /claude|claudeusercontent/.test(location.hostname) ? 'c
 
 /* 계정: 회원가입 · 로그인 · 저장 불러오기/하기 (gangho_accounts, 비밀번호는 서버에서 bcrypt) */
 const accountSignup = (id, pass) => supaRpc('gangho_signup', { p_id: id, p_pass: pass });
-const accountLogin = (id, pass) => supaRpc('gangho_login', { p_id: id, p_pass: pass });
+const accountLogin = (id, pass) => supaRpc('gangho_login', { p_id: id, p_pass: pass }).then(r => { if (r && r.error) throw new Error(r.error); return r; });   // 틀리면 서버가 {error}를 돌려준다 (오류를 던지면 틀린 횟수 기록까지 되돌려지므로)
 const accountLoad = (id, token) => supaRpc('gangho_load', { p_id: id, p_token: token });
 const accountSave = (id, token, save) => supaRpc('gangho_save', { p_id: id, p_token: token, p_save: save });
 const accountLogoutAll = pass => supaRpc('gangho_logout_all', { p_pass: pass });

@@ -191,6 +191,7 @@ function runStep(rec, t) {
   if (s.b === undefined) {                                     // 기믹 걸음: 무대에 보일 얻은 것 · 잃은 활력
     if (Object.keys(one.items).length || one.silver || one.gear) s.g = one;
     const dh = Math.round(S.hp - b.hp); if (dh < 0) s.dh = dh;
+    const ds = Math.round(S.silver - b.silver); if (ds < 0) s.ds = ds;   // 기연에서 쓴 은자
   }
   log(`${stepText(rec, s)}`, `exp-step ${s.b !== undefined ? '' : s.cls}`, t, { r: rec.id, s: si });
   if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { subqAdd(zid, rec.stage); rec.kills++; if (rec.kills >= stageNeed(rec.stage)) stageClear(rec, t); }   // 서브 퀘스트(단계 토벌) 진행

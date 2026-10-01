@@ -163,13 +163,11 @@ const EVENTS = [
       { label: '못 들은 척한다', out: [{ w: 1, text: '"겁쟁이 같으니." 향주가 코웃음을 칩니다.', fx: {} }] },
     ] },
   { id: 'peddler', zones: 'all', title: '떠돌이 약장수',
-    text: '등짐을 멘 약장수가 손짓합니다. "청풍문 도령! 산에서 캔 귀한 단약이 있소. 오늘만 반값이오!"',
+    // 행상인: 전방 물건을 20% 싸게 판다 (기력단 50 → 40냥, 생혈고 5통 25 → 20냥)
+    text: '등짐을 멘 약장수가 손짓합니다. "청풍문 도령! 전방보다 두 푼 싸게 드리리다. 산길엔 이게 제일이오!"',
     choices: [
-      { label: '은자 60냥에 산다', req: { silver: 60 }, take: true, out: [
-        { w: 2, text: '진짜 소성 돌파단입니다! 운이 좋았습니다.', fx: { items: { pillLow: 1 } } },
-        { w: 2, text: '열어 보니 생혈고 한 통. 반값은 아니었지만 쓸모는 있습니다.', fx: { items: { saenghyeol: 1 } } },
-        { w: 1, text: '밀가루 덩어리였습니다. 약장수는 이미 사라졌습니다.', fx: {} }] },
-      { label: '약재를 사겠다고 한다', req: { silver: 10 }, take: true, out: [{ w: 1, text: '약장수가 등짐을 풀어 약재를 한 줌 덜어 줍니다.', fx: { items: { herb: 3, lingzhi: 1 } } }] },
+      { label: '기력단을 40냥에 산다 (전방가 50냥)', req: { silver: 40 }, take: true, out: [{ w: 1, text: '약장수가 기력단 한 알을 종이에 싸 건넵니다.', fx: { items: { gigeokdan: 1 } } }] },
+      { label: '생혈고 다섯 통을 20냥에 산다 (전방가 25냥)', req: { silver: 20 }, take: true, out: [{ w: 1, text: '약장수가 생혈고 다섯 통을 끈으로 묶어 줍니다.', fx: { items: { saenghyeol: 5 } } }] },
       { label: '손사래 친다', out: [{ w: 1, text: '"후회할 거요!" 약장수가 투덜대며 멀어집니다.', fx: {} }] },
     ] },
   { id: 'monk', zones: 'all', title: '행각승의 수수께끼',

@@ -252,7 +252,13 @@ function liveGimFire(sc, G) {
   const st = G.st, walker = sc.querySelector('.live-walker'); G.el.classList.add('hit');
   let d = 0;
   if (st.k === 'trap') { liveVfx(sc, 'hit', 24, 'small'); if (walker) spFlash(walker); liveShake(sc); liveGain(sc, `활력 ${st.dh || ''}`.trim(), '', 'bad', 0); d = 1; }
-  else if (st.k === 'event') { liveVfx(sc, 'crit', 26, 'small kata'); liveGain(sc, (st.t || '기연').replace(/^\S+\s/, '').split(' — ')[0], ASSET.ui('c_star'), 'npc', 0); d = 1; }
+  else if (st.k === 'event') {                       // 기연: 이름 → 제자가 고른 선택 → 쓴 은자 → 얻은 것
+    const m = (st.t || '').match(/「([^」]+)」\s*—\s*([^→]+)/);
+    liveVfx(sc, 'crit', 26, 'small kata');
+    liveGain(sc, m ? `기연 「${m[1]}」` : '기연', ASSET.ui('c_star'), 'npc', 0); d = 1;
+    if (m) liveGain(sc, `▸ ${m[2].trim()}`, '', 'npc', d++ * 420);
+    if (st.ds) liveGain(sc, `은자 ${fmt(st.ds)}`, ASSET.ui('h_silver'), 'bad', d++ * 420);
+  }
   else liveVfx(sc, 'crit', 26, 'small kata');
   const g = st.g;
   if (g) {
