@@ -504,8 +504,7 @@
 .live-world { position: absolute; inset: -4% 0 0 0; }
 /* 원근 두 겹: 먼 겹은 살짝 흐리고 느리게, 가까운 겹은 발밑 땅만 (위쪽은 부드럽게 사라진다) */
 .live-world.far { filter: blur(.6px) saturate(.9); }
-.live-world.near { -webkit-mask-image: linear-gradient(to bottom, transparent 78%, #000 81%); mask-image: linear-gradient(to bottom, transparent 78%, #000 81%); }
-/* 두 겹 이음매: 땅안개로 덮고 살짝 흐려 잔상이 안 보이게 */
+/* 앞 겹(땅) 둔덕 윗선 위를 옅은 땅안개로 */
 .live-mist { position: absolute; left: 0; right: 0; top: 73%; height: 12%; z-index: 1; pointer-events: none; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
   background: linear-gradient(to bottom, rgba(236, 230, 214, 0), rgba(236, 230, 214, .22) 50%, rgba(236, 230, 214, 0));
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 65%, transparent); mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 65%, transparent); }

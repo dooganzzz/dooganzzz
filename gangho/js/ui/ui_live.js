@@ -101,7 +101,7 @@ function liveVfx(sc, name, left, cls) {
 }
 function liveShowStart(sc, sh) {
   const foe = sc.querySelector('.live-foe'); if (!foe) return null;
-  const n = FOE_SHEET[sh.eid] || 6, size = foeSize(sh.eid);
+  const n = FOE_SHEET[sh.eid] || 6, size = Math.max(.8, foeSize(sh.eid));   // 작은 요수도 폰에서 보이게 0.8배 이상
   foe.className = 'sp-fighter sp-foe flip fsheet live-foe';
   foe.style.width = (LIVE_POS.foeW * size).toFixed(1) + '%'; foe.style.left = '104%';
   sh.foeX = 100 - LIVE_POS.foeR - LIVE_POS.foeW * size;   // 맞붙는 자리 (왼쪽 끝 %)
@@ -266,11 +266,11 @@ function liveLoop(ts) {
 function liveScene(r) {
   const zid = (r && r.zone) || S.expedition.zone || 'cheongpung', w = weaponType(), N = walkMeta(w).n, fast = runFast();
   const spr = cls => `<div class="${cls}" data-anim style="background-image:url('${ASSET.run(w)}');background-size:${N * 100}% 100%"></div>`;
-  const img = () => `<img src="${ASSET.travel(zid)}" alt="">`;   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
+  const img = () => `<img src="${ASSET.travel(zid)}" alt="">`, gnd = () => `<img src="${ASSET.ground(zid)}" alt="">`;   // 먼 겹 = 산길 전체, 앞 겹 = 땅만 (같은 크기라 이음매 없이 되풀이)   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
   return `<div class="live-scene ${liveDone(r) && !liveHeld(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}">
     <div class="live-world far"><div class="live-strip" data-far="1" data-anim>${img()}${img()}</div></div>
-    <div class="live-world near"><div class="live-strip" data-anim>${img()}${img()}</div></div>
+    <div class="live-world near"><div class="live-strip" data-anim>${gnd()}${gnd()}</div></div>
     <i class="live-mist"></i>
     <div class="sp-fighter live-walker ${fast ? 'fast' : ''}" id="liveWalker_${w}${fast ? '_f' : ''}" data-w="${w}" ${fast ? 'data-fast="1"' : ''}>${fast ? spr('walk-spr walk-ghost g1') + spr('walk-spr walk-ghost g2') : ''}<i class="sp-shadow"></i>${spr('walk-spr')}</div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0" data-w="${w}" data-anim><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>

@@ -9,6 +9,7 @@ const ASSET_KIND = {
   run:      { dir: 'sprites/run_', ext: 'webp' },    // 병기별 달리기 16컷 (강호행)
   stage:    { dir: 'stages/', ext: 'jpg' },
   travel:   { dir: 'travel/', ext: 'jpg' },
+  ground:   { dir: 'travel/ground_', ext: 'webp' },  // 강호행 앞 겹: 산길 그림의 땅만 (윗선은 둔덕 모양, 위는 투명)
   prop:     { dir: 'props/', ext: 'webp' },
   fx:       { dir: 'fx/', ext: 'webp' },
   zone:     { dir: 'zones/', ext: 'jpg' },

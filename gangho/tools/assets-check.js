@@ -12,7 +12,7 @@ let total = 0, unused = 0; const rows = [];
 for (const f of walk(ART)) {
   if (!/\.(png|jpe?g|webp|gif|svg)$/.test(f)) continue;
   const size = fs.statSync(f).size; total += size;
-  const stem = path.basename(f).replace(/\.\w+$/, ''), id = stem.replace(/^(hero|foe|walk|run|emb|w|s|b|h)_/, '').replace(/_(atk|[12])$/, '');
+  const stem = path.basename(f).replace(/\.\w+$/, ''), id = stem.replace(/^(hero|foe|walk|run|ground|emb|w|s|b|h)_/, '').replace(/_(atk|[12])$/, '');
   if (!has(stem) && !has(id)) { unused += size; rows.push(`${(size / 1024).toFixed(0).padStart(6)}KB  ${path.relative(ROOT, f)}`); }
 }
 console.log(rows.length ? `안 쓰는 후보 ${rows.length}개:\n${rows.join('\n')}` : '안 쓰는 그림 없음');
