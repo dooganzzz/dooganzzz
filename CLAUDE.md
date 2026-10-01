@@ -8,14 +8,14 @@
 
 ## 유저 규칙
 - 수정사항은 건의만 하고 임의로 고치지 않는다 (명백한 모순은 판단해서 고친다).
-- 보고는 한국어, 끝에 "제가 판단해서 정한 것"과 "건의".
+- 보고는 한국어, 끝에 "제가 판단해서 정한 것"과 "건의". 건의는 바로 고를 수 있게 보기(AskUserQuestion, 여러 개 선택)로 내고, 마지막에 추가 입력 칸을 둔다.
 - 비밀값을 붙여 넣게 하지 않는다. GM 암호는 환경변수 GANGHO_GM_PASS로만. 필요한 SQL은 `supabase/pending/`에 모아 둔다.
 
 ## 코드 구조 (관심사 분리 · 계층형)
 - 읽는 순서 core → data → systems → ui → app. `gangho/tests/check-layers.js`가 지킨다.
 - data/: 순수 데이터만. systems/: 규칙, DOM 금지. ui/: 화면, localStorage 금지. app.js: 상태 · 저장 · 틱.
 - 그림 경로는 `js/data/assets.js`(목록) + `js/ui/ui_assets.js`(`ASSET.종류(이름)`)에서만. 그 밖에 'assets/' 직접 쓰기 금지.
-  새 그림은 `assets/art/<종류>/`에 넣고, 안 쓰는 그림은 `node gangho/tools/assets-check.js`로 찾는다.
+  새 그림은 `assets/art/<종류>/`에 넣고(PNG는 무손실 WebP로 바꿔서, 손실 WebP · JPG는 다시 압축하지 않음), 안 쓰는 그림은 `node gangho/tools/assets-check.js`로 찾는다.
 - 강호행 화면: ui_field.js(패널 · 기록) · ui_live.js(무대 · 걷기 · 실시간 전투) · ui_replay.js(관찰 창).
 
 ## 배포 순서
