@@ -15,17 +15,19 @@ function preloadImgs(urls) {
 }
 const imgsReady = urls => urls.every(u => IMG_CACHE.has(u) && IMG_CACHE.get(u).ok);
 function spriteUrls(zid, eid) { return ASSET_SET.battle(zid, eid, weaponType()); }
-/* 쉬는 틈에 지금 탐험지의 무대 · 요수 · 제자 · 산길 그림을 미리 풀어 둔다 */
+/* 쉬는 틈에 강호행 그림을 미리 풀어 둔다: 강호행 화면을 보거나 강호행 중일 때만, 지금 단계와 다음 단계 요수만
+   (다른 요수는 조우할 때 liveShowQueue가 불러온다) */
 function prewarmSprites() {
   if (typeof S === 'undefined' || !S || !S.expedition) return;
-  const z = S.expedition.zone || 'cheongpung', Z = ZONES[z];
+  const run = activeRun(); if (!run && !(typeof ui !== 'undefined' && ui.tab === 'field')) return;
+  const z = (run && run.zone) || S.expedition.zone || 'cheongpung', n = (run && run.stage) || S.expedition.stage || 1;
   const urls = ASSET_SET.live(z, weaponType());
-  for (const e of [...Z.enemies, Z.boss].filter(Boolean)) urls.push(SPRITE_SRC.foe(e), SPRITE_SRC.foe(e, 1));
+  for (const e of new Set([...stageFoes(z, n), ...stageFoes(z, Math.min(STAGE.count, n + 1))])) urls.push(SPRITE_SRC.foe(e), SPRITE_SRC.foe(e, 1));
   const id = S.active.mugong; if (id && MANUALS[id].weapon) urls.push(SPRITE_SRC.fx(id + '_1'), SPRITE_SRC.fx(id + '_2'));
   preloadImgs(urls);
 }
 setTimeout(() => (window.requestIdleCallback || setTimeout)(prewarmSprites), 2500);
-setInterval(() => (window.requestIdleCallback || setTimeout)(prewarmSprites), 60000);
+setInterval(() => (window.requestIdleCallback || setTimeout)(prewarmSprites), 20000);
 
 /* 요수 숨쉬기 칸 수 (흑비단독사는 똬리를 늘였다 줄이는 8칸, 나머지는 6칸) */
 const FOE_SHEET = { viper: 8 };
