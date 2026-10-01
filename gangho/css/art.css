@@ -505,7 +505,7 @@
 /* 원근 두 겹: 먼 겹은 살짝 흐리고 느리게, 가까운 겹은 발밑 땅만 (위쪽은 부드럽게 사라진다) */
 .live-world.far { filter: blur(.6px) saturate(.9); }
 /* 앞 겹(땅) 둔덕 윗선 위를 옅은 땅안개로 */
-.live-mist { position: absolute; left: 0; right: 0; top: 73%; height: 12%; z-index: 1; pointer-events: none; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+.live-mist { position: absolute; left: 0; right: 0; top: 77%; height: 13%; z-index: 1; pointer-events: none; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
   background: linear-gradient(to bottom, rgba(236, 230, 214, 0), rgba(236, 230, 214, .22) 50%, rgba(236, 230, 214, 0));
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 65%, transparent); mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 65%, transparent); }
 
@@ -560,10 +560,22 @@
 .stage-info { margin: 0; font-size: 12.5px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .stage-info .chip.sm { padding: 1px 8px; font-size: 11.5px; margin-left: auto; }
 /* 맞붙는 동안 무대 위 활력 막대 · 회복 숫자 */
-.live-hp { position: absolute; z-index: 6; top: 22%; width: 22%; display: none; pointer-events: none; }
-.live-hp.me { left: 22%; } .live-hp.foe { left: 60%; }
-.live-scene.fight .live-hp { display: block; }
-.live-hp b { display: block; font: 700 10.5px/1.3 sans-serif; color: #fff; text-shadow: 0 1px 2px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.live-hp i { display: block; height: 5px; border-radius: 3px; background: linear-gradient(90deg, #8a2a1a, #e05a3a); box-shadow: 0 0 0 1px rgba(0, 0, 0, .55); transition: width .25s; }
-.live-hp.me i { background: linear-gradient(90deg, #2a6a3a, #5ac06a); }
+.live-hp { position: absolute; z-index: 6; top: 8px; width: 40%; max-width: 230px; display: none; align-items: center; gap: 6px; padding: 4px 8px 4px 4px; pointer-events: none;
+  border-radius: 999px 10px 10px 999px; background: linear-gradient(90deg, rgba(18, 16, 14, .78), rgba(18, 16, 14, .5)); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .55), 0 2px 6px rgba(0, 0, 0, .35); }
+.live-hp.me { left: 8px; }
+.live-hp.foe { right: 8px; flex-direction: row-reverse; padding: 4px 4px 4px 8px; border-radius: 10px 999px 999px 10px; background: linear-gradient(270deg, rgba(18, 16, 14, .78), rgba(18, 16, 14, .5)); }
+.live-scene.fight .live-hp { display: flex; }
+.live-scene.fight .live-where { opacity: 0; }
+.lh-face { flex: none; width: 30px; height: 30px; border-radius: 50%; background: #2a241c center 18% / cover no-repeat; box-shadow: 0 0 0 1.5px #d4af37, 0 0 6px rgba(212, 175, 55, .45); }
+.live-hp.foe .lh-face { background-size: contain; background-position: center; background-color: #e8e0cc; }
+.lh-body { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 6px; row-gap: 2px; }
+.live-hp.foe .lh-body b { text-align: right; } .live-hp.foe .lh-body em { order: -1; }
+.lh-body b { font: 700 11px/1.2 serif; color: #f3e6c4; letter-spacing: .04em; text-shadow: 0 1px 2px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lh-body em { font: 600 9.5px/1.2 sans-serif; font-style: normal; white-space: nowrap; color: rgba(243, 230, 196, .75); font-variant-numeric: tabular-nums; }
+.lh-bar { grid-column: 1 / -1; position: relative; height: 6px; border-radius: 3px; background: rgba(0, 0, 0, .55); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .3); overflow: hidden; }
+.lh-bar i { position: absolute; inset: 0 auto 0 0; display: block; border-radius: 3px; background: linear-gradient(180deg, #ef7a5a, #b8321e); transition: width .3s; }
+.live-hp.foe .lh-bar i { left: auto; right: 0; }
+.live-hp.me .lh-bar i { background: linear-gradient(180deg, #8fd88a, #2f8a42); }
+.live-hp.low .lh-bar i { animation: lhLow 1s ease-in-out infinite; }
+@keyframes lhLow { 50% { filter: brightness(1.5); } }
 .sp-num.heal { color: #7ee08a; }

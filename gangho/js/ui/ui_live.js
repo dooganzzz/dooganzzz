@@ -114,6 +114,7 @@ function liveShowStart(sc, sh) {
   for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) preloadImgs([SPRITE_SRC.fx(`${f.mid}_${Math.min(2, f.n)}`)]);
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1);
   liveHp(sc, 'foe', sh.rec ? sh.rec.start.foe.hp : 1, sh.rec ? sh.rec.start.foe.maxHp : 1, ENEMIES[sh.eid].name);
+  const ff = sc.querySelector('.live-hp.foe .lh-face'); if (ff) ff.style.backgroundImage = `url('${ASSET.beast(sh.eid)}')`;
   Object.assign(sh, { n, skill: sk, heavy: sh.boss || size >= 1.05, base: Math.max(4, Math.round(calculateCombatPower(S) / 12)), phase: 'approach', x0: liveAnim.x, t0: 0, q: null, bf: 0, bt: 0 });
   sc.classList.add('approach');
   return sh;
@@ -129,7 +130,6 @@ function liveShowStep(sc, sh, ts, dt) {
     foe.style.left = sh.foeX + '%'; sh.phase = 'fight'; sh.t0 = ts; sh.q = liveShowPlan(sh, hero.dataset.w || weaponType());
     sc.classList.remove('approach'); sc.classList.add('fight');
     hero.style.left = LIVE_POS.hero + '%'; hero.dataset.f = 0;
-    livePlaceHp(sc, hero, foe, sh.eid);              // 제자 · 요수가 보인 뒤에 머리 위 자리를 잰다
     if (sh.boss) {                                    // 두목: 무대가 어두워지고 큰 깃발 · 땅울림
       const bn = sc.querySelector('.live-boss'); if (bn) bn.querySelector('b').textContent = ENEMIES[sh.eid].name;
       sc.classList.remove('boss'); void sc.offsetWidth; sc.classList.add('boss'); setTimeout(() => sc.classList.remove('boss'), 3200);
@@ -166,19 +166,12 @@ function liveShowStep(sc, sh, ts, dt) {
   return false;
 }
 /* 무대 위 활력 막대 (맞붙는 동안만): who = me · foe */
-/* 체력바를 인물 머리 위에 (그림 칸 안 머리 높이는 FOE_TOP · 제자 0.03) */
-function livePlaceHp(sc, hero, foe, eid) {
-  const R = sc.getBoundingClientRect(); if (!R.width) return;
-  for (const [el, who, top] of [[hero, 'me', .03], [foe, 'foe', FOE_TOP[eid] ?? .1]]) {
-    const b = sc.querySelector(`.live-hp.${who}`), r = el && el.getBoundingClientRect(); if (!b || !r || !r.width) continue;
-    const cx = (r.left + r.width * (who === 'me' ? .43 : .5) - R.left) / R.width * 100, y = (r.top + r.height * top - R.top) / R.height * 100;
-    b.style.left = clamp(cx - 11, 1, 77) + '%'; b.style.top = 'auto'; b.style.bottom = clamp(100 - y + .5, 0, 88) + '%';
-  }
-}
 function liveHp(sc, who, hp, max, name) {
   const el = sc.querySelector(`.live-hp.${who}`); if (!el) return;
   if (max) { el.dataset.max = max; if (name !== undefined) el.querySelector('b').textContent = name; }
-  const m = +el.dataset.max || 1; el.querySelector('i').style.width = clamp(hp / m * 100, 0, 100).toFixed(1) + '%';
+  const m = +el.dataset.max || 1, r = clamp(hp / m, 0, 1);
+  el.querySelector('i').style.width = (r * 100).toFixed(1) + '%'; el.classList.toggle('low', r < .3);
+  const n = el.querySelector('em'); if (n) n.textContent = `${fmt(Math.max(0, Math.round(hp)))} / ${fmt(m)}`;
   if (who === 'me' && liveAnim.hold) {                // 옆 패널 활력 막대도 무대와 같이
     liveAnim.hold.hp = hp; const mx = calcStats().maxHp, bar = document.querySelector('#liveSide .live-prog.hp span'), tx = document.querySelector('#liveSide .live-vit-hp');
     if (bar) bar.style.width = clamp(hp / mx * 100, 0, 100).toFixed(1) + '%'; if (tx) tx.textContent = `활력 ${fmt(Math.round(hp))} / ${fmt(mx)}`;
@@ -275,7 +268,8 @@ function liveScene(r) {
     <div class="sp-fighter live-walker ${fast ? 'fast' : ''}" id="liveWalker_${w}${fast ? '_f' : ''}" data-w="${w}" ${fast ? 'data-fast="1"' : ''}>${fast ? spr('walk-spr walk-ghost g1') + spr('walk-spr walk-ghost g2') : ''}<i class="sp-shadow"></i>${spr('walk-spr')}</div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0" data-w="${w}" data-anim><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
-    <div class="live-hp me" data-anim><b>${esc(S.name)}</b><i></i></div><div class="live-hp foe" data-anim><b></b><i></i></div>
+    <div class="live-hp me" data-anim><span class="lh-face" style="background-image:url('${ASSET.portrait('hero')}')"></span><div class="lh-body"><b>${esc(S.name)}</b><span class="lh-bar"><i></i></span><em></em></div></div>
+    <div class="live-hp foe" data-anim><span class="lh-face"></span><div class="lh-body"><b></b><span class="lh-bar"><i></i></span><em></em></div></div>
     <i class="live-tint"></i>
     <img class="live-enc" src="${ASSET.ui('b_encounter')}" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
