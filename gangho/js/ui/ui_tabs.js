@@ -28,6 +28,7 @@ function morphNode(a, b) {
   if (a.nodeType !== b.nodeType || a.nodeName !== b.nodeName) { a.replaceWith(b); return; }
   if (a.nodeType !== 1) { if (a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; return; }
   if (a.isEqualNode(b)) return;
+  if (a.tagName === 'IMG' && a.getAttribute('src') !== b.getAttribute('src')) { a.replaceWith(b); return; }   // 그림이 바뀌면 옛 그림을 걷어 내고 새로 붙인다 (src만 바꾸면 새 그림이 뜰 때까지 옛 그림이 남는다)
   morphAttrs(a, b);
   if (a.tagName !== 'TEXTAREA') morphChildren(a, b);
 }

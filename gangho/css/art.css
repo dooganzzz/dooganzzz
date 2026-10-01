@@ -227,7 +227,7 @@
 
 /* ───────── 화로 결과 연출 ───────── */
 .craft-fx { position: absolute; inset: 0; z-index: 3; pointer-events: none; --ox: 50%; --oy: 64%; }
-.craft-fx.alchemy { --oy: 118px; }
+.craft-fx.alchemy { --oy: 37%; }                 /* 배경 그림 속 단로 뚜껑 */
 .craft-fx i, .craft-fx .fx-flash { position: absolute; left: var(--ox); top: var(--oy); }
 .craft-fx .fx-flash { width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; opacity: 0; }
 /* 단조 성공: 불똥 */
@@ -237,7 +237,7 @@
 /* 연단 성공: 뚜껑에서 금빛 김 + 단로 광배가 금빛으로 */
 .craft-fx.alchemy.ok i { width: 16px; height: 46px; margin: -23px 0 0 -8px; border-radius: 50%; background: radial-gradient(ellipse, rgba(255, 226, 140, .9), rgba(255, 200, 90, 0) 70%); filter: blur(2px); opacity: 0; animation: steamRise var(--t) ease-out var(--dl) forwards; }
 @keyframes steamRise { 0% { opacity: 0; transform: translate(0, 0) scale(calc(var(--s) * .6)); } 25% { opacity: .95; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--h) * -1)) scale(calc(var(--s) * 1.8)); } }
-.craft-fx.alchemy.ok .fx-flash { top: 190px; width: 360px; height: 360px; margin: -180px 0 0 -180px; background: radial-gradient(circle, rgba(255, 220, 120, .45), rgba(255, 200, 90, .12) 45%, transparent 68%); animation: fxFlash 2s ease-out forwards; }
+.craft-fx.alchemy.ok .fx-flash { top: 50%; width: 300px; height: 300px; margin: -150px 0 0 -150px; background: radial-gradient(circle, rgba(255, 220, 120, .45), rgba(255, 200, 90, .12) 45%, transparent 68%); animation: fxFlash 2s ease-out forwards; }
 @keyframes fxFlash { 0% { opacity: 0; transform: scale(.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(2.2); } }
 /* 실패: 검은 연기 */
 .craft-fx.fail i { width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: radial-gradient(circle, rgba(18, 16, 14, .9), rgba(30, 28, 26, 0) 70%); filter: blur(3px); opacity: 0; animation: smokeRise var(--t) ease-out var(--dl) forwards; }
