@@ -242,7 +242,7 @@ function liveStepRow(r, i, t) {
 function liveSide() {
   const r = liveRec(), t = now(), run = activeRun(), pend = pendingRecs(), X = S.expedition;
   const startBtn = `<button class="btn ${pend.length ? '' : 'primary'}" data-act="runstart" ${X.zone ? '' : 'disabled'}>강호행 시작</button>`;
-  const claimBtn = pend.length ? `<button class="btn primary" data-act="claim">최종보상확인${pend.length > 1 ? ` (${pend.length}번)` : ''}</button>` : '';
+  const claimBtn = pend.length ? `<button class="btn primary" data-act="claim">최종보상확인${pend.length > 1 ? ` (${pend.length}번)` : ''}${alertDot(true)}</button>` : '';
   const pots = `생혈고 <b class="${count('saenghyeol') < 3 ? 'warn' : ''}">${count('saenghyeol')}</b>개`;
   if (!r) return `${stageStrip()}<p class="muted live-empty">${X.zone ? `${josa(stageName(X.zone, X.stage || 1), '으로')} 떠날 준비가 되었습니다. [강호행 시작]을 누르면 단계를 하나씩 돌파하며, 쓰러질 때까지 쭉 나아갑니다. (${pots})` : '아래 탐험지에서 갈 곳을 먼저 정하십시오.'}</p><div class="btns live-btns">${startBtn}</div>`;
   const rows = [];
