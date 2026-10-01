@@ -42,7 +42,8 @@ function liveShowPlan(sh, w) {
   const heroF = (at, f) => q.push({ at, k: 'hf', f });
   const heroAtk = (t0, big) => {
     if (!ranged) { q.push({ at: t0, k: 'hx', x: 36 }); heroF(t0, 1); heroF(t0 + 110, 2); heroF(t0 + 220, 1); }
-    const s = ranged ? t0 : t0 + 330;
+    let s = ranged ? t0 : t0 + 330;
+    if (big && sh.skill) { q.push({ at: s, k: 'skill' }); heroF(s, 4); s += sh.skill.tier === 2 ? 700 : 420; }   // 마무리는 익힌 초식으로 (6성 제1초식 · 12성 제2초식)
     heroF(s, 4); heroF(s + 120, 5); q.push({ at: s + 150, k: 'hit', big }); heroF(s + 300, 6);
     if (!ranged) q.push({ at: s + 520, k: 'hx', x: 22 });
     heroF(s + 560, 0);
@@ -62,6 +63,22 @@ function liveShowPlan(sh, w) {
   q.push({ at: t + 1300, k: 'end' });
   return q;
 }
+/* 지금 무공에서 열린 가장 높은 초식 (없으면 null) */
+function liveSkillOf() {
+  const id = S.active.mugong, M = id && MANUALS[id]; if (!M || !M.weapon || !M.stances) return null;
+  const tier = unlockedMoves(S.manuals[id].star); if (!tier) return null;
+  return { mid: id, tier, name: M.stances[tier - 1].name };
+}
+function liveSkill(sc, sk) {
+  const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}`; lab.textContent = `「${sk.name}」`;
+  const v = document.createElement('img'); v.className = `live-skill n${sk.tier}`; v.src = SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`); v.alt = '';
+  sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
+  if (sk.tier === 2) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); setTimeout(() => sc.classList.remove('shake'), 500); }
+}
+function liveNum(sc, t, left, cls) {
+  const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.textContent = t; n.style.left = (left - 4 + Math.random() * 8) + '%';
+  sc.appendChild(n); setTimeout(() => n.remove(), 1000);
+}
 function liveVfx(sc, name, left, cls) {
   const v = document.createElement('img'); v.className = `live-vfx ${cls || ''}`; v.src = SPRITE_SRC.fx(name); v.alt = ''; v.style.left = left + '%';
   sc.appendChild(v); setTimeout(() => v.remove(), 650);
@@ -74,7 +91,8 @@ function liveShowStart(sc, sh) {
   const spr = foe.querySelector('.sp-fspr'), atk = foe.querySelector('.sp-fatk');
   spr.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid)}')`; spr.style.backgroundSize = `${n * 100}% 100%`;
   atk.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid, 1)}')`; atk.style.backgroundSize = '300% 100%';
-  Object.assign(sh, { n, phase: 'approach', x0: liveAnim.x, t0: 0, q: null, bf: 0, bt: 0 });
+  const sk = liveSkillOf(); if (sk) preloadImgs([SPRITE_SRC.fx(`${sk.mid}_${sk.tier}`)]);
+  Object.assign(sh, { n, skill: sk, base: Math.max(4, Math.round(calculateCombatPower(S) / 12)), phase: 'approach', x0: liveAnim.x, t0: 0, q: null, bf: 0, bt: 0 });
   sc.classList.add('approach');
   return sh;
 }
@@ -99,9 +117,15 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'hx') hero.style.left = e.x + '%';
     else if (e.k === 'fx') foe.style.left = (60 + e.x) + '%';
     else if (e.k === 'fa') foe.classList.toggle('striking', e.f >= 0), e.f >= 0 && (foe.querySelector('.sp-fatk').style.backgroundPositionX = e.f * 50 + '%');
-    else if (e.k === 'hit') { spFlash(foe); liveVfx(sc, e.big ? 'crit' : 'hit', 66, e.big ? 'crit' : ''); }
-    else if (e.k === 'hurt') { hero.dataset.f = 7; spFlash(hero); liveVfx(sc, 'hit', 30, 'small'); }
-    else if (e.k === 'dodge') hero.dataset.f = 8;
+    else if (e.k === 'skill') liveSkill(sc, sh.skill);
+    else if (e.k === 'hit') {
+      const sk = e.big && sh.skill, crit = !e.big && Math.random() < .2;
+      const n = Math.round(sh.base * (sk ? [1.8, 3.4][sk.tier - 1] : e.big ? 1.5 : 1) * (crit ? 1.6 : 1) * (.85 + Math.random() * .3));
+      spFlash(foe); liveNum(sc, fmt(n), 70, sk || crit ? 'crit' : '');
+      if (!sk) liveVfx(sc, e.big || crit ? 'crit' : 'hit', 66, e.big || crit ? 'crit' : '');
+    }
+    else if (e.k === 'hurt') { hero.dataset.f = 7; spFlash(hero); liveVfx(sc, 'hit', 30, 'small'); liveNum(sc, fmt(Math.max(1, Math.round(sh.base * (.3 + Math.random() * .2)))), 30, 'me'); }
+    else if (e.k === 'dodge') { hero.dataset.f = 8; liveNum(sc, '회피', 30, 'miss'); }
     else if (e.k === 'ko') foe.classList.add('ko');
     else if (e.k === 'mist') foe.classList.add('mist');
     else if (e.k === 'end') return true;
@@ -113,6 +137,24 @@ function liveShowEnd(sc) {
   const foe = sc.querySelector('.live-foe'); if (foe) foe.className = 'sp-fighter sp-foe flip fsheet live-foe';
   const hero = document.getElementById('liveHero'); if (hero) { hero.style.left = ''; hero.dataset.f = 0; }
   liveAnim.show = null; liveAnim.walkMs = 0; liveAnim.nextShow = 18000 + Math.random() * 14000;
+}
+/* 길가 소품: 걷는 동안 가끔 표지석 · 돌탑 · 이정표 · 사당 · 주막 깃발이 땅과 같은 빠르기로 지나간다 (h = 제자 키 대비 높이) */
+const LIVE_PROPS = { stele: .5, cairn: .42, signpost: .56, shrine: .5, tavern: 1.05 };
+const LIVE_PROP_ZONE = { cheongpung: ['stele', 'cairn', 'signpost', 'shrine', 'tavern'], suryong: ['stele', 'cairn', 'signpost', 'tavern'], yeomhwa: ['stele', 'signpost', 'cairn'] };
+function liveProps(sc, walker, dt) {
+  const W = sc.offsetWidth || 1, h = walker ? walker.offsetHeight : 120;
+  for (const p of sc.querySelectorAll('.live-prop')) {
+    const x = +p.dataset.x0 - (liveAnim.x - +p.dataset.at);
+    if (x < -p.offsetWidth - 10) p.remove(); else p.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+  }
+  liveAnim.propMs = (liveAnim.propMs || 0) + dt;
+  if (!liveAnim.nextProp) liveAnim.nextProp = 4000 + Math.random() * 6000;
+  if (liveAnim.propMs < liveAnim.nextProp) return;
+  liveAnim.propMs = 0; liveAnim.nextProp = 9000 + Math.random() * 12000;
+  const pool = LIVE_PROP_ZONE[sc.dataset.zone] || LIVE_PROP_ZONE.cheongpung, k = pool[Math.floor(Math.random() * pool.length)];
+  const im = document.createElement('img'); im.className = 'live-prop'; im.src = `assets/art/props/${k}.webp`; im.alt = '';
+  im.style.height = (h * LIVE_PROPS[k]).toFixed(0) + 'px'; im.dataset.x0 = W + 10; im.dataset.at = liveAnim.x;
+  im.style.transform = `translate3d(${W + 10}px,0,0)`; sc.appendChild(im);
 }
 function liveLoop(ts) {
   liveAnim.raf = requestAnimationFrame(liveLoop);
@@ -138,6 +180,7 @@ function liveLoop(ts) {
     liveAnim.x += dt * (h * W.g) / W.ms;
     if (wImg) strip.style.transform = `translate3d(${-(liveAnim.x % wImg).toFixed(1)}px,0,0)`;
   }
+  liveProps(sc, walker, dt);
   // 연출 전투: 실제 전투가 드러났으면 그 요수로 곧바로, 아니면 18~32초 걸을 때마다 한 번
   if (liveAnim.show) { liveShowStep(sc, liveAnim.show, ts, dt); return; }
   liveAnim.walkMs += dt;
@@ -151,7 +194,7 @@ function liveScene(r) {
   const img = () => `<img src="assets/art/travel/${zid}.jpg" alt="">`;   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
   return `<div class="live-scene ${liveDone(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}">
-    <div class="live-world"><div class="live-strip" data-anim>${img()}${img()}${img()}</div></div>
+    <div class="live-world"><div class="live-strip" data-anim>${img()}${img()}</div></div>
     <div class="sp-fighter live-walker" id="liveWalker_${w}" data-w="${w}"><i class="sp-shadow"></i><div class="walk-spr" data-anim style="background-image:url('assets/art/sprites/walk_${w}.webp');background-size:${N * 100}% 100%"></div></div>
     <div class="sp-fighter sp-hero live-hero" id="liveHero" data-f="0" data-w="${w}" data-anim><i class="sp-shadow"></i><div class="sp-spr" style="background-image:url('${SPRITE_SRC.hero(w)}')"></div></div>
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
