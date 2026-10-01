@@ -663,17 +663,18 @@
 .map-box > img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; user-select: none; }
 .map-spot { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; cursor: pointer; z-index: 2; }
 .map-spot:focus-visible { outline: none; }
-/* 사냥터 모양 금빛 테두리: 오려 낸 그림의 윤곽을 따라 금빛 그림자를 두르고 살짝 밝힌다 */
-.map-box > .map-glow { position: absolute; z-index: 1; border-radius: 0; object-fit: fill; pointer-events: none; opacity: 0; transition: opacity .18s;
-  filter: brightness(1.1) drop-shadow(0 0 1px #fff0b0) drop-shadow(0 0 1px #ffd24a) drop-shadow(0 0 2px #e9b530) drop-shadow(0 0 7px rgba(255, 196, 60, .9)); }
-.map-spot:hover + .map-glow, .map-spot:focus-visible + .map-glow { opacity: 1; }
-.map-box > .map-glow.locked { filter: drop-shadow(0 0 1px #f2ecdc) drop-shadow(0 0 2px #cfc6b0) drop-shadow(0 0 6px rgba(210, 200, 180, .8)); }
+/* 황금 기둥: 손을 댄 사냥터 밑동에서 금빛 기둥이 아래부터 솟아오르고, 솟은 뒤에는 천천히 일렁인다 (열린 곳만) */
+.map-box > .map-pillar { position: absolute; z-index: 2; width: 19%; height: auto; aspect-ratio: .82; border-radius: 0; object-fit: fill; pointer-events: none; transform: translate(-50%, -96%); transform-origin: 50% 100%; opacity: 0; clip-path: inset(100% 0 0 0); }
+.map-box > .map-pillar.locked { display: none; }
+.map-spot:hover + .map-pillar, .map-spot:focus-visible + .map-pillar { animation: mapPillarRise .75s cubic-bezier(.2, .8, .3, 1) forwards, mapPillarShimmer 2.2s ease-in-out .75s infinite alternate; }
+@keyframes mapPillarRise { 0% { opacity: 0; clip-path: inset(100% 0 0 0); transform: translate(-50%, -96%) scaleY(.35); } 35% { opacity: 1; } 100% { opacity: 1; clip-path: inset(0 0 0 0); transform: translate(-50%, -96%) scaleY(1); } }
+@keyframes mapPillarShimmer { from { opacity: 1; clip-path: inset(0 0 0 0); transform: translate(-50%, -96%) scaleY(1); filter: brightness(1); } to { opacity: .88; clip-path: inset(0 0 0 0); transform: translate(-50%, -96%) scaleY(1.03); filter: brightness(1.18); } }
 .map-spot.locked { cursor: not-allowed; }
 /* 지도 글씨: 붓글씨 그림(ui/map_*)만 — 작게, 배경 · 테두리 없이 먹이 종이에 스며든 듯(곱하기), 각 그림의 머리 위쪽에 */
 .map-box > .map-word { position: absolute; z-index: 3; border-radius: 0; object-fit: contain; transform: translate(-50%, -50%); width: 10%; height: auto; pointer-events: none; mix-blend-mode: multiply; opacity: 1; transition: opacity .2s, filter .2s; }
 .map-box > .map-word.home { width: 9%; }
 .map-box > .map-word.locked { opacity: .88; }
-.map-spot:hover + .map-glow + .map-word, .map-spot:focus-visible + .map-glow + .map-word { opacity: 1; filter: drop-shadow(0 0 4px rgba(255, 225, 150, .9)); mix-blend-mode: normal; }
+.map-spot:hover + .map-pillar + .map-word, .map-spot:focus-visible + .map-pillar + .map-word { opacity: 1; filter: drop-shadow(0 0 4px rgba(255, 225, 150, .9)); mix-blend-mode: normal; }
 .map-hint { margin: 8px 2px 0; font-size: 12px; }
 .map-go { width: min(640px, 96vw); }
 .map-vit { font-size: 13px; }
