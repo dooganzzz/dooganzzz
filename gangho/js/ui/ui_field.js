@@ -3,7 +3,7 @@
 /* 1초마다 흐른 시간만 바꿔 쓴다 (화면 전체를 다시 그리지 않는다) */
 Bus.on('tick', () => {
   for (const el of document.querySelectorAll('[data-runclock]')) el.textContent = runClockText();
-  const scn = $('#liveScene'); if (scn && scn.dataset.tod !== liveTod()) scn.dataset.tod = liveTod();   // 시간대 빛깔
+  const scn = $('#liveScene'); liveTodApply(scn);   // 시간대 빛깔 (서울 시각에 따라 서서히)
   // 방금 치른 전투는 무대에서 기록 그대로 재생한다 (다시 그리기와 상관없이, 전투마다 한 번)
   { const lr = liveRec(), st = lr && lr.steps.length ? lr.steps[lr.steps.length - 1] : null, key = st && st.b !== undefined ? `${lr.id}:${st.b}` : null;
     if (scn && key && key !== liveAnim.lastBattle && now() - stepAt(lr, lr.steps.length - 1) < 6000) { liveAnim.lastBattle = key; const bt = lr.battles[st.b]; liveShowQueue(bt.eid, true, bt.boss, { rid: lr.id, bi: st.b, si: lr.steps.length - 1 }); } }

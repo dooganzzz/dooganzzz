@@ -19,7 +19,21 @@ const LIVE_POS = { hero: 10, lunge: 38, foeR: 10, foeW: 21.2, k: .72 }, LIVE_FAR
 let liveAnim = { f: 0, last: 0, acc: 0, x: 0, raf: 0, breath: 0, walkMs: 0, nextShow: 0, show: null, queued: null };
 /* 연출 전투 예약: real = 방금 드러난 실제 전투 (그 요수로, 끝은 안개 속으로 — 승패는 견문록에서) */
 /* 산길 시간대: 지금 시각으로 새벽 · 낮 · 해 질 녘 · 밤 */
-function liveTod(t = now()) { const h = new Date(t).getHours(); return h >= 5 && h < 7 ? 'dawn' : h >= 7 && h < 17 ? 'day' : h >= 17 && h < 20 ? 'dusk' : 'night'; }
+/* 하루의 빛: 서울 표준시(KST) 기준 — 새벽 · 낮 · 저녁 · 밤이 시각에 따라 서서히 바뀐다 (빛깔 마디 사이를 고르게 섞는다)
+   마디: [KST 분, 위 · 가운데 · 아래 빛깔 rgba, 등불 빛] — 그림 위에 곱하기로 덧씌운다 */
+const TOD_NIGHT = [[40, 52, 110, .78], [60, 70, 120, .62], [40, 45, 80, .7], .22];
+const TOD_DAWN = [[255, 196, 200, .55], [255, 226, 200, .25], [255, 240, 225, .1], 0];
+const TOD_DAY = [[255, 255, 255, 0], [255, 255, 255, 0], [255, 255, 255, 0], 0];
+const TOD_DUSK = [[240, 130, 80, .6], [250, 175, 110, .4], [170, 110, 90, .3], .08];
+const TOD_KEYS = [[0, TOD_NIGHT], [270, TOD_NIGHT], [360, TOD_DAWN], [450, TOD_DAY], [990, TOD_DAY], [1110, TOD_DUSK], [1200, TOD_NIGHT], [1440, TOD_NIGHT]];
+const kstMin = (t = now()) => { const d = new Date(t); return (d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60 + 540) % 1440; };
+function liveTod(t = now()) { const m = kstMin(t); return m >= 300 && m < 420 ? 'dawn' : m >= 420 && m < 1050 ? 'day' : m >= 1050 && m < 1170 ? 'dusk' : 'night'; }
+function liveTodVars(t = now()) {
+  const m = kstMin(t), i = TOD_KEYS.findIndex(k => k[0] > m), [m0, A] = TOD_KEYS[i - 1], [m1, B] = TOD_KEYS[i], f = (m - m0) / (m1 - m0);
+  const mix = (a, b) => `rgba(${a.map((v, j) => (j < 3 ? Math.round(v + (b[j] - v) * f) : +(v + (b[j] - v) * f).toFixed(3))).join(',')})`;
+  return `--tt:${mix(A[0], B[0])};--tm:${mix(A[1], B[1])};--tb:${mix(A[2], B[2])};--glow:${(A[3] + (B[3] - A[3]) * f).toFixed(3)}`;
+}
+function liveTodApply(sc) { if (!sc) return; const v = liveTodVars(); if (sc._tod !== v) { sc._tod = v; for (const kv of v.split(';')) { const [k, x] = kv.split(':'); sc.style.setProperty(k, x); } } sc.dataset.tod = liveTod(); }
 /* 맞붙는 모습 예약: ref = 강호행에서 방금 치른 전투 { rid, bi } — 그 기록(합 · 피해 · 회피 · 생혈고 · 초식 · 승패)을 무대에서 그대로 재생한다 */
 function liveShowQueue(eid, real, boss, ref) {
   if (!eid || !ENEMIES[eid] || (liveAnim.show && liveAnim.show.real)) return;
@@ -378,7 +392,7 @@ function liveScene(r) {
   const md = liveMode(), spr = cls => `<div class="${cls}" data-anim style="background-image:url('${ASSET[md](w)}');background-size:${N * 100}% 100%"></div>`;
   const img = () => `<img src="${ASSET.travel(zid)}" alt="">`, gnd = () => `<img src="${ASSET.ground(zid)}" alt="">`;   // 먼 겹 = 산길 전체, 앞 겹 = 땅만 (같은 크기라 이음매 없이 되풀이)   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
-  return `<div class="live-scene ${liveDone(r) && !liveHeld(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}">
+  return `<div class="live-scene ${liveDone(r) && !liveHeld(r) ? 'rest' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}" style="${liveTodVars()}">
     <div class="live-world far"><div class="live-strip" data-far="1" data-anim>${img()}${img()}</div></div>
     <div class="live-world near"><div class="live-strip" data-anim>${gnd()}${gnd()}</div></div>
     <i class="live-mist"></i>

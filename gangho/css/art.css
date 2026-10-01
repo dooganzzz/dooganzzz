@@ -543,12 +543,11 @@
 @keyframes liveSk { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.9); } 20% { opacity: 1; transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
 .live-scene.shake { animation: liveShakeSoft .3s 1; }   /* 멀미 줄이기: 위아래로만 살짝 */
 @keyframes liveShakeSoft { 30% { transform: translateY(1.5px); } 65% { transform: translateY(-1px); } }
-/* 시간대 빛깔: 새벽 분홍 · 해 질 녘 노을 · 밤 남빛 (그림 위에 곱하기로 덧씌운다) */
-.live-tint { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: multiply; opacity: 0; transition: opacity 2s, background 2s; }
-.live-scene[data-tod="dawn"] .live-tint { opacity: 1; background: linear-gradient(180deg, rgba(255, 196, 200, .55), rgba(255, 226, 200, .25) 60%, rgba(255, 240, 225, .1)); }
-.live-scene[data-tod="dusk"] .live-tint { opacity: 1; background: linear-gradient(180deg, rgba(240, 130, 80, .6), rgba(250, 175, 110, .4) 55%, rgba(170, 110, 90, .3)); }
-.live-scene[data-tod="night"] .live-tint { opacity: 1; background: linear-gradient(180deg, rgba(40, 52, 110, .78), rgba(60, 70, 120, .62) 60%, rgba(40, 45, 80, .7)); }
-.live-scene[data-tod="night"]::after { content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(ellipse 30% 40% at 42% 78%, rgba(255, 210, 140, .22), transparent 70%); }
+/* 시간대 빛깔: 서울 시각에 따라 새벽 분홍 → 낮 → 저녁 노을 → 밤 남빛으로 서서히 (값은 ui_live.js liveTodVars, 그림 위에 곱하기로 덧씌운다) */
+.live-tint { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: multiply;
+  background: linear-gradient(180deg, var(--tt, transparent), var(--tm, transparent) 60%, var(--tb, transparent)); }
+.live-scene::after { content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none; opacity: calc(var(--glow, 0) / .22);
+  background: radial-gradient(ellipse 30% 40% at 42% 78%, rgba(255, 210, 140, .22), transparent 70%); }
 /* 두목 출현: 무대가 어두워지고 큰 이름 깃발 */
 .live-boss { position: absolute; z-index: 8; left: 50%; top: 14%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; opacity: 0; pointer-events: none; color: #fff; text-shadow: 0 0 8px #000, 0 0 2px #000; white-space: nowrap; }
 .live-boss small { font: 700 13px/1 serif; letter-spacing: .5em; color: #ffcf7a; }
