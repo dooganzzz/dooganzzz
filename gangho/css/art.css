@@ -455,6 +455,12 @@
 .live-prog.hp span { background: linear-gradient(90deg, #8a2a1a, #d0503a); }
 .live-vit { margin: 0; display: flex; justify-content: space-between; gap: 8px; font-size: 12px; opacity: .9; }
 .live-log { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow: auto; display: flex; flex-direction: column; gap: 3px; }
+@media (min-width: 761px) {   /* 견문록 창 = 무대 높이 (목록이 남는 높이를 채우고 안에서 스크롤) */
+  .live-wrap { align-items: stretch; }
+  .live-scene { align-self: stretch; }   /* 패널이 더 길면 무대도 같이 늘어남 */
+  .live-side { min-height: 100%; }
+  .live-log { flex: 1 1 0; height: 0; min-height: 80px; max-height: none; }
+}
 .live-log li { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 6px; background: rgba(255, 255, 255, .045); font-size: 13px; line-height: 1.4; }
 .live-log li time { flex: none; font-size: 11px; opacity: .6; font-variant-numeric: tabular-nums; }
 .live-log li span { flex: 1; min-width: 0; }
