@@ -1,12 +1,20 @@
 from PIL import Image, ImageFilter
 import numpy as np, potrace, sys
+from scipy import ndimage
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 SP=sys.argv[1]   # 사용: python3 tools/brush-font.py <syl0~6.png가 있는 폴더> — 글자 시트(5x3, seq 순서)를 따서 폰트를 만든다
 seq='청풍산염화채수룡방초입돌바위솔숲길약비탈흑소외나무다리멧돼지골안개짜기령목적호굴어귀붉은협곡벼랑포진벌장격대막사도부연병열성문석갱주의갈루투망강습뗏선착잠영로뻘밭독네택얼음동철퇴본견록제편전정단서공경각신상회원'
 UPM=1000; BOX=820; ASC=880; DESC=120   # 글자 칸 820, 밑선 위 880 · 아래 120
 names=['.notdef','space']; cmap={32:'space'}; chars={}
+SPECK=0.025   # 획에서 떨어진 먹물 점: 글자 먹 전체의 2.5%보다 작은 덩어리는 지운다
 def glyph_from(g):
+    g=ndimage.grey_opening(g, footprint=np.array([[0,1,1,1,0],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0]]))   # 획 가장자리의 가는 먹 튐 · 실오라기를 깎는다
+    lab,n=ndimage.label(g>110, structure=np.ones((3,3)))
+    if n>1:
+        area=ndimage.sum(np.ones_like(lab),lab,range(1,n+1))
+        small=np.isin(lab, 1+np.nonzero(area<area.sum()*SPECK)[0])
+        g=np.where(small,0,g)
     rows=(g>60).sum(1); cols=(g>60).sum(0)
     rr=np.nonzero(rows>rows.max()*.08)[0]; cc=np.nonzero(cols>cols.max()*.08)[0]
     g=g[rr.min():rr.max()+1, cc.min():cc.max()+1]
