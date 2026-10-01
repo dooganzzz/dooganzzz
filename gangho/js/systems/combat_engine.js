@@ -127,7 +127,7 @@ function fight(eid, opts = {}) {
   }
   bLine(`☯ 상성 — ${affinityText(b.aff)}`, 'aff');
   const Q = MANUALS[S.active.gigong];
-  if (Q && Q.stances) bLine(stanceFill(Q.stances[0].desc, stanceVars(b)), 'log-stance-desc qi');
+  if (Q && Q.stances) bLine(stanceCall(0, Q.stances[0].name), 'log-stance-desc qi');
   const mt = MANUALS[S.active.mugong];
   if (!mt) bLine('장착한 무공이 없어 맨손으로 맞섭니다.', 'muted');
   else if (mt.weapon !== weaponType()) bLine(`《${mt.name}》은 ${WEAPON_TYPES[mt.weapon]} 무공입니다. 병기가 맞지 않아 초식을 펼칠 수 없습니다.`, 'muted');
@@ -224,14 +224,16 @@ function stanceVars(b, foe) {
   const me = S.name || '제자', weapon = S.equip.weapon ? S.equip.weapon.name : '맨주먹';
   return foe ? { attacker: b.e.name, weapon: '', target: me } : { attacker: me, weapon, target: b.e.name };
 }
-/* 한 번의 타격. o: { title, desc, cls, banner } (문자열이면 지문만) */
+/* 초식이 발동할 때 외치는 문구: '제1초식 응한 (凝寒) !' (설명 없이 이름만) */
+const stanceCall = (i, name) => `${MOVE_NAME[i] || ''} ${name.replace(/\s*\(/, ' (')} !`.trim();
+/* 한 번의 타격. o: { title, desc, cls, banner } (문자열이면 지문만 · desc가 없으면 지문 줄 없음) */
 function playerHit(b, mult, o) {
   if (typeof o === 'string') o = { desc: o };
   const e = b.e, st = b.st, A = b.aff || NO_AFF, v = stanceVars(b);
   const hitChance = Math.max(55, 95 - e.eva) + A.myHit + (st.acc || 0);
   if (o.banner && b.fx) b.fx.push({ side: 'banner', t: o.banner, k: o.cls === 'counter' ? 'counter' : 'move', w: o.w || weaponType(), n: o.n || 0, mid: o.mid });   // w·n: 관찰 창 초식 연출(병기 · 몇 번째 초식)
   if (o.title) bLine(o.title, `log-stance-title ${o.cls || ''}`);
-  bLine(stanceFill(o.desc, v), 'log-stance-desc');
+  if (o.desc) bLine(stanceFill(o.desc, v), 'log-stance-desc');
   if (A.wp > 0 && !b.affSaid) { b.affSaid = true; bLine('[상성 우위] 병기의 이점을 살린 궤적이 적의 빈틈을 파고든다!', 'log-stance-desc aff-up'); }
   if (Math.random() * 100 >= hitChance) {
     bLine(`${josa(e.name, '이가')} 몸을 틀어 궤적을 벗어났다. 허공만 가른다. <span class="dmg">(빗나감)</span>`, 'log-stance-result miss');
@@ -282,7 +284,7 @@ function playerAttack(b) {
       S.mp -= cost;
       comboDone = true;
       const sc = M.stances[i];
-      const ok = playerHit(b, mults[i], { title: `【 ${M.name} ${i === 2 ? '오의' : ''} - ${sc.name} !! 】`.replace('  ', ' '), desc: sc.desc || STANCE_DEFAULT[M.weapon][i], cls: `m${i + 1}`, banner: (i === 2 ? '奧義 · ' : '') + stanceShort(sc.name), w: M.weapon, n: i + 1, mid: id,
+      const ok = playerHit(b, mults[i], { title: stanceCall(i, sc.name), cls: `m${i + 1}`, banner: (i === 2 ? '奧義 · ' : '') + stanceShort(sc.name), w: M.weapon, n: i + 1, mid: id,
         critUp: (M.chainCrit || 0) * hitsInRow, weaken: M.weaken, stanceBleed: M.stanceBleed });
       if (ok) hitsInRow++;
       if (!ok || b.e.hpNow <= 0) break;
@@ -304,7 +306,7 @@ function enemyTurn(b) {
     // 1) 회피 성공: 피해 0 (경공 지문)
     if (Math.random() * 100 >= hitChance) {
       const G = MANUALS[S.active.gyeonggong], sc = G && G.stances && G.stances[0];
-      bLine(`${sc ? stanceFill(sc.desc, stanceVars(b)) + ' ' : ''}공격을 비스듬히 흘려냈습니다! <span class="dmg">(회피)</span>`, 'log-stance-result dodge');
+      bLine(`${sc ? stanceCall(0, sc.name) + ' ' : ''}공격을 비스듬히 흘려냈습니다! <span class="dmg">(회피)</span>`, 'log-stance-result dodge');
       if (b.fx) b.fx.push({ side: 'me', t: '회피!', k: 'dodge' });
       continue;
     }
