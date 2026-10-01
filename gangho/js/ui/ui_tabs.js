@@ -16,9 +16,10 @@ Bus.on('tick', () => renderHeader());
 const MORPH_KEEP = new Set(['data-wired']);            // 그린 뒤 스크립트가 붙이는 속성은 지우지 않는다
 const morphKey = n => n.nodeType === 1 ? (n.id || n.getAttribute('data-key') || null) : null;
 function morphAttrs(a, b) {
-  const anim = a.hasAttribute('data-anim');                // 스크립트가 매 프레임 움직이는 노드: style은 건드리지 않는다
-  for (const { name } of [...a.attributes]) if (anim && name === 'style') continue; else if (!b.hasAttribute(name) && !MORPH_KEEP.has(name) && !(name === 'open' && a.tagName === 'DETAILS')) a.removeAttribute(name);
-  for (const { name, value } of b.attributes) if (!(anim && name === 'style') && a.getAttribute(name) !== value) a.setAttribute(name, value);
+  const anim = a.hasAttribute('data-anim');                // 스크립트가 매 프레임 움직이는 노드: style · class · 칸 번호는 건드리지 않는다
+  const own = n => anim && (n === 'style' || n === 'class' || n === 'data-f');
+  for (const { name } of [...a.attributes]) if (own(name)) continue; else if (!b.hasAttribute(name) && !MORPH_KEEP.has(name) && !(name === 'open' && a.tagName === 'DETAILS')) a.removeAttribute(name);
+  for (const { name, value } of b.attributes) if (!own(name) && a.getAttribute(name) !== value) a.setAttribute(name, value);
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && document.activeElement !== a) {
     if (a.type === 'checkbox' || a.type === 'radio') a.checked = b.checked; else if (a.value !== b.value) a.value = b.value;
   }

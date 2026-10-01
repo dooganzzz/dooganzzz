@@ -485,19 +485,26 @@
 /* 탭 버튼 · 하위 탭 전환은 색만 부드럽게 */
 .tab, .subtab { transition: color .15s, background-color .15s, border-color .15s; }
 
-/* 걷는 제자 (8컷 걸음 시트, 칸 400×380) · 쉬면 대기 시트로 바뀐다 */
+/* 걷는 제자 (걸음 시트 16칸, 칸 400×380) · 쉬면 대기 시트로 바뀐다 */
 .live-walker { left: 30%; bottom: 7%; width: 26%; aspect-ratio: 400 / 380; transition: none; }
 .walk-spr { width: 100%; height: 100%; background: 0 0 / 800% 100% no-repeat; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
 .live-walker .sp-shadow { width: 42%; }
-.live-scene.rest .live-walker, .live-scene:not(.rest):not(.enc) .live-hero { display: none; }
+.live-scene:not(.rest):not(.fight) .live-hero, .live-scene.rest .live-walker, .live-scene.fight .live-walker { display: none; }
+.live-hero.sp-hero { transition: left .3s cubic-bezier(.3, .7, .3, 1); }
 
-/* 산길 두 겹 (먼 산은 느리게 · 가까운 땅은 발걸음대로) · 오르막 기울기 · 조우 연출 */
-.live-world { position: absolute; inset: -6% -4%; transform: rotate(-2.2deg); transform-origin: 40% 70%; }
-.live-strip.far { filter: saturate(.9) brightness(1.02); }
-.live-strip.near { -webkit-mask-image: linear-gradient(to bottom, transparent 52%, #000 64%); mask-image: linear-gradient(to bottom, transparent 52%, #000 64%); }
-.live-walker { transform: rotate(-1.5deg); transform-origin: 50% 100%; }
-.live-scene.enc .live-walker { display: none; }
-.live-scene.enc .live-hero { display: block; }
+/* 산길 한 겹: 그림 한 장이 통째로 흐른다 (겹을 나눠 자르면 나무 · 물가가 위아래로 어긋나 보인다) */
+.live-world { position: absolute; inset: -4% 0 0 0; }
+
+/* 연출 전투: 산길에 선 요수가 다가오고, 멈춰 서서 몇 합 주고받는다 */
+.live-foe { display: none; right: auto; left: 104%; bottom: 5%; transition: left .26s cubic-bezier(.3, .7, .3, 1), opacity .9s, filter .9s; }
+.live-scene.approach .live-foe { display: block; transition: none; }
+.live-scene.fight .live-foe { display: block; }
+.live-foe.mist { opacity: 0; filter: blur(4px) brightness(1.3); }
+.live-foe.ko { opacity: 0; transition: transform .7s, opacity 1.1s; }
+.live-vfx { position: absolute; z-index: 5; bottom: 20%; width: 22%; transform: translateX(-50%); pointer-events: none; animation: liveVfx .6s ease-out forwards; }
+.live-vfx.crit { width: 32%; }
+.live-vfx.small { width: 15%; }
+@keyframes liveVfx { from { opacity: 1; transform: translateX(-50%) scale(.7); } to { opacity: 0; transform: translateX(-50%) scale(1.2); } }
 .live-enc { position: absolute; z-index: 4; left: 40%; top: 8%; width: 13%; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
 .live-scene.enc .live-enc { animation: liveEnc 2.6s ease-out forwards; }
 @keyframes liveEnc { 0% { opacity: 0; transform: scale(.4) rotate(-20deg); } 12% { opacity: 1; transform: scale(1.15) rotate(4deg); } 22% { transform: scale(1) rotate(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10%); } }

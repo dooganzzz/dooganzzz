@@ -24,7 +24,7 @@ function spriteUrls(zid, eid) { return [SPRITE_SRC.stage(zid), SPRITE_SRC.hero(w
 function prewarmSprites() {
   if (typeof S === 'undefined' || !S || !S.expedition) return;
   const z = S.expedition.zone || 'cheongpung', Z = ZONES[z];
-  const urls = [SPRITE_SRC.stage(z), SPRITE_SRC.hero(weaponType()), `assets/art/travel/${z}.jpg`, 'assets/portraits/hero.png', SPRITE_SRC.fx('hit'), SPRITE_SRC.fx('crit')];
+  const urls = [SPRITE_SRC.stage(z), SPRITE_SRC.hero(weaponType()), `assets/art/sprites/walk_${weaponType()}.webp`, `assets/art/travel/${z}.jpg`, 'assets/portraits/hero.png', SPRITE_SRC.fx('hit'), SPRITE_SRC.fx('crit')];
   for (const e of [...Z.enemies, Z.boss].filter(Boolean)) urls.push(SPRITE_SRC.foe(e), SPRITE_SRC.foe(e, 1));
   const id = S.active.mugong; if (id && MANUALS[id].weapon) urls.push(SPRITE_SRC.fx(id + '_1'), SPRITE_SRC.fx(id + '_2'));
   preloadImgs(urls);
