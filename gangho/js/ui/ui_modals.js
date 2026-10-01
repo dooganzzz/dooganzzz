@@ -208,8 +208,8 @@ function showIntro() {
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';
   const left = () => ATTR_TOTAL - Object.values(attr).reduce((a, b) => a + b, 0);
   const step = (n, html) => stage >= n ? `<section class="intro-step ${fresh === n ? 'reveal' : ''}" data-step="${n}">${html}</section>` : '';
-  // 입문 무공은 가장 화려한 비급 표지(일류) 위에 병기 문양으로
-  const starterIco = id => icoWrap([[ITEM_ART('book_g1'), 'cover'], [ITEM_ART('emb_' + MANUALS[id].weapon), 'emb']], '📘', 'book g1 starter-ico');
+  // 입문 무공은 그 비급의 표지 그대로 (삼류: 회색 · 낡은 책)
+  const starterIco = id => manualIco(id, 'starter-ico');
   const TALENT_ICO = { forge: ASSET.ui('c_hammer'), alchemy: ART_SRC.cauldron() };
   const draw = () => {
     const name = $('#pname') ? $('#pname').value : '이름 없는 제자';

@@ -146,9 +146,6 @@
 .item-ico.card { width: 40px; height: 40px; margin-right: 8px; }
 /* 비급: 등급별 표지 위, 표지 가운데 이름표 자리에 분류 문양 */
 /* 문양은 표지 한가운데에 크게, 먹빛으로. 이류는 상아빛 테, 일류는 금빛 광채 */
-.item-ico.book > .emb { inset: 20% 26% 24%; width: 48%; height: 56%; filter: drop-shadow(0 0 1px rgba(255, 255, 255, .7)); }
-.item-ico.book.g2 > .emb { filter: drop-shadow(0 0 1px rgba(255, 240, 210, .95)) drop-shadow(0 0 2px rgba(255, 240, 210, .6)); }
-.item-ico.book.g1 > .emb { filter: drop-shadow(0 0 1px #fff6dc) drop-shadow(0 0 2px rgba(255, 240, 200, .95)) drop-shadow(0 0 5px rgba(240, 207, 130, .8)); }
 .item .icon .item-ico.book, .ware .icon .item-ico.book { width: 46px; height: 46px; }
 .item-ico.book.mini { width: 40px; height: 40px; }
 .item .icon, .ware .icon { display: grid; place-items: center; }
@@ -263,7 +260,6 @@
 .starter-books { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .starter-books .starter { flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 10px 6px; text-align: center; }
 .starter-books .starter .starter-ico { width: 78px; height: 78px; }
-.starter-books .starter .starter-ico > .emb { inset: 18% 22% 22%; width: 56%; height: 60%; }
 .starter-books .starter b { font-size: .92rem; }
 .starter-books .starter.on .starter-ico > img.cover { filter: drop-shadow(0 0 8px rgba(240, 207, 130, .8)); }
 /* 기예: 대장간 망치·모루 / 단로 */
