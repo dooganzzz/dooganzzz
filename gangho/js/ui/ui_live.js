@@ -423,7 +423,7 @@ function liveLoop(ts) {
   const q = liveAnim.queued;
   if (q && imgsReady([SPRITE_SRC.foe(q.eid), SPRITE_SRC.foe(q.eid, 1)])) { liveAnim.queued = null; liveAnim.show = liveShowStart(sc, { ...q }); }
 }
-/* 강호행 제목 옆 지역 이름: 붓글씨 폰트(Gangho Brush, 90글자)로 쓴다. 폰트에 없는 글자는 기본 글씨로 */
+/* 강호행 제목 옆 지역 이름: 붓글씨 폰트(Gangho Brush, 105글자)로 쓴다 — 머리 배너 '강호견문록'도 이 폰트. 폰트에 없는 글자는 기본 글씨로 */
 if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush', `url(${ASSET.font('gangho_brush')})`).load().then(f => document.fonts.add(f)).catch(() => {});
 function liveWhere(zid, n) {
   return `<span class="live-where" data-k="${zid}${n}">${esc(stageName(zid, n))}</span>`;

@@ -2,8 +2,8 @@ from PIL import Image, ImageFilter
 import numpy as np, potrace, sys
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.t2CharStringPen import T2CharStringPen
-SP=sys.argv[1]   # 사용: python3 tools/brush-font.py <syl0~5.png가 있는 폴더> — 글자 시트(5x3, seq 순서)를 따서 폰트를 만든다
-seq='청풍산염화채수룡방초입돌바위솔숲길약비탈흑소외나무다리멧돼지골안개짜기령목적호굴어귀붉은협곡벼랑포진벌장격대막사도부연병열성문석갱주의갈루투망강습뗏선착잠영로뻘밭독네택얼음동철퇴본'
+SP=sys.argv[1]   # 사용: python3 tools/brush-font.py <syl0~6.png가 있는 폴더> — 글자 시트(5x3, seq 순서)를 따서 폰트를 만든다
+seq='청풍산염화채수룡방초입돌바위솔숲길약비탈흑소외나무다리멧돼지골안개짜기령목적호굴어귀붉은협곡벼랑포진벌장격대막사도부연병열성문석갱주의갈루투망강습뗏선착잠영로뻘밭독네택얼음동철퇴본견록제편전정단서공경각신상회원'
 UPM=1000; BOX=820; ASC=880; DESC=120   # 글자 칸 820, 밑선 위 880 · 아래 120
 names=['.notdef','space']; cmap={32:'space'}; chars={}
 def glyph_from(g):
@@ -28,7 +28,7 @@ def glyph_from(g):
     return pen.getCharString(), adv
 cs={}; adv={'.notdef':500,'space':260}
 cs['.notdef']=T2CharStringPen(500,None).getCharString(); cs['space']=T2CharStringPen(260,None).getCharString()
-for k in range(6):
+for k in range(len(seq) // 15):
     a=255-np.asarray(Image.open(f'{SP}/syl{k}.png').convert('L')).astype(float)
     a=np.clip((a-14)*255/(255-14),0,255); h,w=a.shape
     for i in range(15):
