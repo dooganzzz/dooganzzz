@@ -138,7 +138,7 @@ function gauge(cls, cur, max, name) {
 const questAlert = () => !!S && (tutorReady() || subqReadyCount() > 0);
 const alertDot = on => on ? '<i class="alert-dot" aria-label="받을 보상 있음"></i>' : '';
 function renderTabs() {
-  const qa = questAlert(), loot = !!S && canClaim();          // 강호행이 끝나 [최종보상확인]을 기다리면 강호행 탭에도
+  const qa = questAlert(), loot = !!S && canClaim() && !(typeof liveHeld === 'function' && liveHeld(liveRec()));          // 강호행이 끝나 [최종보상확인]을 기다리면 강호행 탭에도
   setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : id === 'field' ? alertDot(loot) : ''}</button>`).join(''));
 }
 

@@ -8,6 +8,14 @@ function runFast() { const id = S.active.gyeonggong, g = id && MANUALS[id] && MA
 function walkMeta(w) { const g = RUN_G[w] || RUN_G.sword, k = runFast() ? RUN_FAST.k : 1; return { n: 16, g, ms: g / RUN_SPEED * 1000 / k }; }
 /* 원근: 인물은 0.78배로 작게, 서 있는 자리(%)는 달릴 때 · 맞붙을 때 · 쉴 때 같다 */
 const LIVE_POS = { k: .78, hero: 20, lunge: 31, foe: 50 }, LIVE_FAR = .35;
+/* 멀미 설정 (무대 구석 단추): 보통 · 천천히(0.6배) · 멈춤(배경을 세우고 결과는 바로) */
+const LIVE_PACE = { normal: { v: 1, label: '보통' }, slow: { v: .6, label: '천천히' }, still: { v: 0, label: '멈춤' } };
+const livePace = () => (S && S.settings && LIVE_PACE[S.settings.livePace]) ? S.settings.livePace : 'normal';
+function liveCalmNext() {
+  const order = Object.keys(LIVE_PACE), next = order[(order.indexOf(livePace()) + 1) % order.length];
+  S.settings = { ...(S.settings || {}), livePace: next }; liveAnim.v = 0;
+  toast(`강호행 화면 움직임: ${LIVE_PACE[next].label}`); render();
+}
 let liveAnim = { f: 0, last: 0, acc: 0, x: 0, raf: 0, breath: 0, walkMs: 0, nextShow: 0, show: null, queued: null };
 /* 연출 전투 예약: real = 방금 드러난 실제 전투 (그 요수로, 끝은 안개 속으로 — 승패는 견문록에서) */
 /* 산길 시간대: 지금 시각으로 새벽 · 낮 · 해 질 녘 · 밤 */
@@ -18,7 +26,8 @@ function liveShowQueue(eid, real, boss, ref) {
   liveAnim.queued = { eid, real: !!real, boss: !!boss, ref };
   preloadImgs([SPRITE_SRC.foe(eid), SPRITE_SRC.foe(eid, 1)]);
   if (ref && ref.si !== undefined) {                  // 무대에서 맞붙는 동안 그 걸음(결과)은 견문록에 아직 안 띄운다
-    liveAnim.hold = { rid: ref.rid, i: ref.si, until: now() + 40000 };
+    const bt = (S.expeditions.find(x => x.id === ref.rid) || { battles: [] }).battles[ref.bi];
+    liveAnim.hold = { rid: ref.rid, i: ref.si, until: now() + 40000, hp: bt && bt.start ? bt.start.me.hp : null };
     const box = document.getElementById('liveSide'); if (box) setHTML(box, liveSide());
     const sc = document.getElementById('liveScene'); if (sc) sc.classList.remove('rest');
   }
@@ -165,6 +174,10 @@ function liveHp(sc, who, hp, max, name) {
   const el = sc.querySelector(`.live-hp.${who}`); if (!el) return;
   if (max) { el.dataset.max = max; if (name !== undefined) el.querySelector('b').textContent = name; }
   const m = +el.dataset.max || 1; el.querySelector('i').style.width = clamp(hp / m * 100, 0, 100).toFixed(1) + '%';
+  if (who === 'me' && liveAnim.hold) {                // 옆 패널 활력 막대도 무대와 같이
+    liveAnim.hold.hp = hp; const mx = calcStats().maxHp, bar = document.querySelector('#liveSide .live-prog.hp span'), tx = document.querySelector('#liveSide .live-vit-hp');
+    if (bar) bar.style.width = clamp(hp / mx * 100, 0, 100).toFixed(1) + '%'; if (tx) tx.textContent = `활력 ${fmt(Math.round(hp))} / ${fmt(mx)}`;
+  }
 }
 function liveShowEnd(sc) {
   sc.classList.remove('fight', 'approach');
@@ -196,7 +209,7 @@ function liveLoop(ts) {
   const sc = document.getElementById('liveScene'); if (!sc) { cancelAnimationFrame(liveAnim.raf); liveAnim.raf = 0; liveAnim.show = null; return; }
   const dt = liveAnim.last ? Math.min(100, ts - liveAnim.last) : 16; liveAnim.last = ts;
   const walker = sc.querySelector('.live-walker'), hero = document.getElementById('liveHero'), strips = sc.querySelectorAll('.live-strip');
-  const rest = sc.classList.contains('rest'), still = reduceMotion();
+  const rest = sc.classList.contains('rest'), still = reduceMotion() || livePace() === 'still';
   if (liveAnim.show) { sc.classList.toggle('fight', liveAnim.show.phase === 'fight'); sc.classList.toggle('approach', liveAnim.show.phase === 'approach'); }   // 다시 그려져도 연출 상태를 잇는다
   if (liveAnim.show && liveAnim.show.phase === 'fight') { if (liveShowStep(sc, liveAnim.show, ts, dt)) liveShowEnd(sc); return; }   // 맞붙는 동안 산길은 멈춘다
   if (rest || still) {                                // 쉬는 중: 숨을 고르다가 몇 초마다 제자리에서 초식을 연습한다 (다음 출발까지 남은 시간은 무대 위에)
@@ -219,7 +232,7 @@ function liveLoop(ts) {
   const W = walkMeta(walker && walker.dataset.w), N = W.n;
   // 멀미 줄이기: 출발은 천천히 붙고, 요수 앞에서는 미리 늦춘다 (걸음 칸과 산길이 같은 v로 움직여 발은 미끄러지지 않는다)
   const sh0 = liveAnim.show, near = sh0 && sh0.phase === 'approach' && parseFloat((sc.querySelector('.live-foe') || {}).style?.left) < LIVE_POS.foe + 14;
-  liveAnim.v = (liveAnim.v || 0) + ((near ? .35 : 1) - (liveAnim.v || 0)) * Math.min(1, dt / 450);
+  liveAnim.v = (liveAnim.v || 0) + ((near ? .35 : 1) * LIVE_PACE[livePace()].v - (liveAnim.v || 0)) * Math.min(1, dt / 450);
   const vdt = dt * liveAnim.v;
   liveAnim.acc = (liveAnim.acc + vdt) % W.ms;
   const fr = Math.floor(liveAnim.acc / (W.ms / N)) % N;
@@ -260,6 +273,7 @@ function liveScene(r) {
     <i class="live-tint"></i>
     <img class="live-enc" src="${ASSET.ui('b_encounter')}" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
+    <button class="live-pace" data-act="livecalm" title="멀미가 나면 움직임을 줄이세요">움직임 · ${LIVE_PACE[livePace()].label}</button>
     <span class="live-where">${stageName(zid, r && r.live ? r.stage : S.expedition.stage || 1)}</span>
     <span class="live-rest">${r && r.end === 'dead' && !r.claimed ? '쓰러져 돌아왔습니다' : '산문에서 대기 중'}</span>
   </div>`;

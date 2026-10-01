@@ -49,12 +49,13 @@ function liveSide() {
   for (let i = shown - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
   if (held) rows.unshift(`<li class="enc fresh"><time>${hhmm(stepAt(r, shown))}</time><span>요수와 맞붙었습니다…</span></li>`);
   const nb = r.steps.slice(0, shown).filter(s => s.b !== undefined).length;
-  const unseen = r.battles.filter(b => b.seen === false).length, st = calcStats(), hpP = clamp(S.hp / st.maxHp * 100, 0, 100);
+  const hpNow = held && liveAnim.hold.hp != null ? liveAnim.hold.hp : S.hp;   // 맞붙는 동안은 무대의 활력
+  const unseen = r.battles.filter(b => b.seen === false).length, st = calcStats(), hpP = clamp(hpNow / st.maxHp * 100, 0, 100);
   const nm = stageName(r.zone, r.stage || 1), cl = r.cleared && r.cleared.length ? ` · 돌파 ${r.cleared.length}번` : '';
   const state = run || held ? `강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${shown} · 전투 ${nb}${cl}`
     : r.end === 'dead' ? `<b class="warn">${nm}에서 쓰러져 강호행이 끝났습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`
     : `<b>${nm}에서 돌아왔습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`;
-  return `${stageStrip()}${run ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span>활력 ${fmt(Math.round(S.hp))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>` : ''}
+  return `${stageStrip()}${run || held ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span class="live-vit-hp">활력 ${fmt(Math.round(hpNow))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>` : ''}
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">

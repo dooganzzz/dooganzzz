@@ -503,6 +503,7 @@
 /* 산길 한 겹: 그림 한 장이 통째로 흐른다 (겹을 나눠 자르면 나무 · 물가가 위아래로 어긋나 보인다) */
 .live-world { position: absolute; inset: -4% 0 0 0; }
 /* 원근 두 겹: 먼 겹은 살짝 흐리고 느리게, 가까운 겹은 발밑 땅만 (위쪽은 부드럽게 사라진다) */
+.live-pace { position: absolute; left: 8px; bottom: 8px; z-index: 7; font: 600 11px/1 inherit; padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .35); background: rgba(20, 20, 24, .55); color: #f3ead6; cursor: pointer; }
 .live-world.far { filter: blur(.6px) saturate(.9); }
 .live-world.near { -webkit-mask-image: linear-gradient(to bottom, transparent 72%, #000 86%); mask-image: linear-gradient(to bottom, transparent 72%, #000 86%); }
 
