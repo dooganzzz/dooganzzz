@@ -455,7 +455,7 @@
 .live-scene { width: 100%; position: relative; overflow: hidden; border-radius: 8px; aspect-ratio: 16 / 8; min-height: 180px; background: #d8cfbb; box-shadow: inset 0 0 30px rgba(0, 0, 0, .35); }
 .live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; will-change: transform; }
 .live-strip img { height: 100%; width: auto; flex: none; display: block; }
-.live-hero.sp-hero { left: 22%; bottom: 7%; width: 44%; transition: none; }
+.live-hero.sp-hero { left: 20%; bottom: 9%; width: 34.3%; transition: none; }   /* 원근: 인물 0.78배 (ui_live.js LIVE_POS) */
 .live-where { position: absolute; right: 8px; top: 6px; z-index: 6; font: 700 13px/1.4 serif; color: #fff; text-shadow: 0 1px 3px #000; letter-spacing: .1em; }
 .live-side { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .live-speed { flex-wrap: wrap; }
@@ -488,7 +488,7 @@
 .tab, .subtab { transition: color .15s, background-color .15s, border-color .15s; }
 
 /* 걷는 제자 (걸음 시트 16칸, 칸 400×380) · 쉬면 대기 시트로 바뀐다 */
-.live-walker { left: 28.5%; bottom: 7%; width: 28%; aspect-ratio: 400 / 380; transition: none; }
+.live-walker { left: 22.6%; bottom: 9%; width: 21.8%; aspect-ratio: 400 / 380; transition: none; }
 .walk-spr { width: 100%; height: 100%; background: 0 0 / 800% 100% no-repeat; filter: saturate(.82) contrast(.93) sepia(.1) brightness(1.03); }
 .live-walker .sp-shadow { width: 42%; }
 .live-walker .walk-ghost { position: absolute; inset: 0; opacity: .3; filter: saturate(.3) brightness(1.15) blur(.5px); pointer-events: none; }
@@ -502,16 +502,19 @@
 
 /* 산길 한 겹: 그림 한 장이 통째로 흐른다 (겹을 나눠 자르면 나무 · 물가가 위아래로 어긋나 보인다) */
 .live-world { position: absolute; inset: -4% 0 0 0; }
+/* 원근 두 겹: 먼 겹은 살짝 흐리고 느리게, 가까운 겹은 발밑 땅만 (위쪽은 부드럽게 사라진다) */
+.live-world.far { filter: blur(.6px) saturate(.9); }
+.live-world.near { -webkit-mask-image: linear-gradient(to bottom, transparent 72%, #000 86%); mask-image: linear-gradient(to bottom, transparent 72%, #000 86%); }
 
 /* 연출 전투: 산길에 선 요수가 다가오고, 멈춰 서서 몇 합 주고받는다 */
-.live-foe { display: none; right: auto; left: 104%; bottom: 5%; transition: left .26s cubic-bezier(.3, .7, .3, 1), opacity .9s, filter .9s; }
+.live-foe { display: none; right: auto; left: 104%; bottom: 7.5%; transition: left .26s cubic-bezier(.3, .7, .3, 1), opacity .9s, filter .9s; }
 .live-scene.approach .live-foe { display: block; transition: none; }
 .live-scene.fight .live-foe { display: block; }
 .live-foe.mist { opacity: 0; filter: blur(4px) brightness(1.3); }
 .live-foe.ko { opacity: 0; transition: transform .7s, opacity 1.1s; }
-.live-vfx { position: absolute; z-index: 5; bottom: 20%; width: 22%; transform: translateX(-50%); pointer-events: none; animation: liveVfx .6s ease-out forwards; }
-.live-vfx.crit { width: 32%; }
-.live-vfx.small { width: 15%; }
+.live-vfx { position: absolute; z-index: 5; bottom: 22%; width: 17%; transform: translateX(-50%); pointer-events: none; animation: liveVfx .6s ease-out forwards; }
+.live-vfx.crit { width: 25%; }
+.live-vfx.small { width: 12%; }
 @keyframes liveVfx { from { opacity: 1; transform: translateX(-50%) scale(.7); } to { opacity: 0; transform: translateX(-50%) scale(1.2); } }
 .live-num { top: 30%; font-size: 20px; }
 .live-rest { position: absolute; left: 8px; top: 6px; z-index: 6; display: none; padding: 2px 9px; border-radius: 10px; background: rgba(20, 16, 10, .55); color: #f3e6c8; font: 600 12px/1.6 sans-serif; }
@@ -524,7 +527,8 @@
 .live-skname { position: absolute; z-index: 7; left: 50%; top: 10%; transform: translateX(-50%); font: 900 22px/1.2 serif; letter-spacing: .12em; color: #fff; text-shadow: 0 0 6px #000, 0 0 2px #000; pointer-events: none; animation: liveSk 1.2s ease-out forwards; white-space: nowrap; }
 .live-skname.n2 { color: #ffe08a; font-size: 26px; text-shadow: 0 0 10px #a86a00, 0 0 3px #000; }
 @keyframes liveSk { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.9); } 20% { opacity: 1; transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
-.live-scene.shake { animation: spStageShake .32s 2; }
+.live-scene.shake { animation: liveShakeSoft .3s 1; }   /* 멀미 줄이기: 위아래로만 살짝 */
+@keyframes liveShakeSoft { 30% { transform: translateY(1.5px); } 65% { transform: translateY(-1px); } }
 /* 시간대 빛깔: 새벽 분홍 · 해 질 녘 노을 · 밤 남빛 (그림 위에 곱하기로 덧씌운다) */
 .live-tint { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: multiply; opacity: 0; transition: opacity 2s, background 2s; }
 .live-scene[data-tod="dawn"] .live-tint { opacity: 1; background: linear-gradient(180deg, rgba(255, 196, 200, .55), rgba(255, 226, 200, .25) 60%, rgba(255, 240, 225, .1)); }

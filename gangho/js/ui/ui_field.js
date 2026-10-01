@@ -6,12 +6,13 @@ Bus.on('tick', () => {
   const scn = $('#liveScene'); if (scn && scn.dataset.tod !== liveTod()) scn.dataset.tod = liveTod();   // 시간대 빛깔
   // 방금 치른 전투는 무대에서 기록 그대로 재생한다 (다시 그리기와 상관없이, 전투마다 한 번)
   { const lr = liveRec(), st = lr && lr.steps.length ? lr.steps[lr.steps.length - 1] : null, key = st && st.b !== undefined ? `${lr.id}:${st.b}` : null;
-    if (scn && key && key !== liveAnim.lastBattle && now() - stepAt(lr, lr.steps.length - 1) < 6000) { liveAnim.lastBattle = key; const bt = lr.battles[st.b]; liveShowQueue(bt.eid, true, bt.boss, { rid: lr.id, bi: st.b }); } }
+    if (scn && key && key !== liveAnim.lastBattle && now() - stepAt(lr, lr.steps.length - 1) < 6000) { liveAnim.lastBattle = key; const bt = lr.battles[st.b]; liveShowQueue(bt.eid, true, bt.boss, { rid: lr.id, bi: st.b, si: lr.steps.length - 1 }); } }
+  if (liveAnim.hold && now() >= liveAnim.hold.until) liveRelease();   // 맞붙기를 못 보여 줬으면 결과를 바로
   const sig = liveSig(); if (sig === lastLiveSig) return; lastLiveSig = sig;   // 새 걸음이 드러났을 때만
   const box = $('#liveSide'); if (box) setHTML(box, liveSide());
   const sc = $('#liveScene'), lr = liveRec();
   if (sc) {
-    sc.classList.toggle('rest', liveDone(lr));
+    sc.classList.toggle('rest', liveDone(lr) && !liveHeld(lr));
     const wh = sc.querySelector('.live-where'), X = S.expedition; if (wh && (lr ? lr.zone : X.zone)) wh.textContent = stageName(lr ? lr.zone : X.zone, lr && lr.live ? lr.stage : X.stage || 1);
   }
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
@@ -44,18 +45,20 @@ function liveSide() {
   const claimBtn = pend.length ? `<button class="btn primary" data-act="claim">최종보상확인${pend.length > 1 ? ` (${pend.length}번)` : ''}${alertDot(true)}</button>` : '';
   const pots = `생혈고 <b class="${count('saenghyeol') < 3 ? 'warn' : ''}">${count('saenghyeol')}</b>개`;
   if (!r) return `${stageStrip()}<p class="muted live-empty">${X.zone ? `${josa(stageName(X.zone, X.stage || 1), '으로')} 떠날 준비가 되었습니다. [강호행 시작]을 누르면 단계를 하나씩 돌파하며, 쓰러질 때까지 쭉 나아갑니다. (${pots})` : '아래 탐험지에서 갈 곳을 먼저 정하십시오.'}</p><div class="btns live-btns">${startBtn}</div>`;
-  const rows = [];
-  for (let i = r.steps.length - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
+  const rows = [], shown = liveShown(r), held = shown < r.steps.length;   // 맞붙는 중인 전투의 결과는 끝난 뒤에
+  for (let i = shown - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
+  if (held) rows.unshift(`<li class="enc fresh"><time>${hhmm(stepAt(r, shown))}</time><span>요수와 맞붙었습니다…</span></li>`);
+  const nb = r.steps.slice(0, shown).filter(s => s.b !== undefined).length;
   const unseen = r.battles.filter(b => b.seen === false).length, st = calcStats(), hpP = clamp(S.hp / st.maxHp * 100, 0, 100);
   const nm = stageName(r.zone, r.stage || 1), cl = r.cleared && r.cleared.length ? ` · 돌파 ${r.cleared.length}번` : '';
-  const state = run ? `강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`
+  const state = run || held ? `강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${shown} · 전투 ${nb}${cl}`
     : r.end === 'dead' ? `<b class="warn">${nm}에서 쓰러져 강호행이 끝났습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`
     : `<b>${nm}에서 돌아왔습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`;
   return `${stageStrip()}${run ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span>활력 ${fmt(Math.round(S.hp))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>` : ''}
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">
-      ${run ? '<button class="btn ghost" data-act="runstop">귀환하기</button>' : `${claimBtn}${startBtn}`}
+      ${run ? '<button class="btn ghost" data-act="runstop">귀환하기</button>' : held ? '' : `${claimBtn}${startBtn}`}
     </div>
     ${run ? '<small class="muted">전투에서 지면 쓰러지고 강호행이 끝납니다. 얻은 것은 끝난 뒤 [최종보상확인]으로 받습니다.</small>' : !X.zone ? '' : `<small class="muted">${pots} · 전방에서 개당 5냥</small>`}`;
 }
