@@ -435,7 +435,7 @@ function liveScene(r) {
     <div class="sp-fighter sp-foe flip fsheet live-foe" id="liveFoe" data-anim><i class="sp-shadow"></i><div class="sp-fspr" data-anim></div><div class="sp-fatk" data-anim></div></div>
     <div class="live-hp me" data-anim><span class="lh-face" style="background-image:url('${ASSET.portrait('hero')}')"></span><div class="lh-body"><b>${esc(S.name)}</b><span class="lh-bar"><i></i></span><em></em></div></div>
     <div class="live-hp foe" data-anim><span class="lh-face"></span><div class="lh-body"><b></b><span class="lh-bar"><i></i></span><em></em></div></div>
-    <i class="live-sun"></i><i class="live-sky"><i class="live-moon"><i class="moon-shade"></i></i></i><i class="live-fog"></i><i class="live-rain"></i><i class="live-snow"></i><i class="live-tint"></i>
+    <i class="live-sun"></i><i class="live-sky"><i class="live-moon"><i class="moon-shade"></i></i></i><i class="live-fog" style="background-image:url('${ASSET.fx('wx_fog')}')"></i><i class="live-rain" style="background-image:url('${ASSET.fx('wx_rain')}')"></i><i class="live-snow" style="background-image:url('${ASSET.fx('wx_snow')}')"></i><i class="live-tint"></i>
     <i class="live-flies" style="opacity:var(--fly,0)">${LIVE_FLIES.map(([x, y, d]) => `<i style="left:${x}%;top:${y}%;animation-delay:-${d}s,-${(d * 1.7).toFixed(1)}s"></i>`).join('')}</i>
     <img class="live-enc" src="${ASSET.ui('b_encounter')}" alt="">
     <div class="live-boss"><small>頭目 出現</small><b></b></div>
