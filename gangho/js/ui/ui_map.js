@@ -1,7 +1,7 @@
 /* [화면] 강호 지도: 강호행 탭을 열면(강호행 중이 아닐 때) 먼저 뜬다. 청풍문을 가운데로 세 탐험지가 펼쳐진 수묵 지도.
    지도에는 탐험지 이름과 지금 있는 곳만(자세한 건 다녀오며 알아 간다), 누르면 출발 준비(무장 · 무공 · 생혈고 · 단약 등) → [출발]하면 화면이 바뀌며 곧바로 강호행 */
-const MAP_SPOTS = { cheongpung: { x: 24, y: 30 }, yeomhwa: { x: 76, y: 30 }, suryong: { x: 45, y: 78 } };   // 지도 그림 위 자리(%)
-const MAP_HOME = { x: 50, y: 37 };
+const MAP_SPOTS = { cheongpung: { x: 25, y: 33 }, yeomhwa: { x: 76, y: 33 }, suryong: { x: 45, y: 74 } };   // 지도 그림 위 자리(%)
+const MAP_HOME = { x: 50, y: 52 };
 function mapModal() {
   const spots = Object.entries(MAP_SPOTS).filter(([z]) => ZONES[z]).map(([zid, p]) => {
     const Z = ZONES[zid], open = zoneUnlocked(zid), here = S.expedition.zone === zid;   // 자세한 정보는 다녀오며 알아 간다 — 지도에는 이름과 지금 있는 곳만
