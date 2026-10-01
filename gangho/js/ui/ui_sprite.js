@@ -2,12 +2,7 @@
    제자는 병기별 스프라이트시트 12칸, 요수는 숨쉬기 시트(제자리) + 공격 시트 3칸(움츠림 · 공격 · 마무리).
    사냥터 셋(청풍산 · 염화채 · 수룡방) 무대와 요수 31종, 병기 5종 모두에서 켠다 */
 const SPRITE_STAGES = new Set(['cheongpung', 'yeomhwa', 'suryong']);
-const SPRITE_SRC = {
-  hero: w => `assets/art/sprites/hero_${w}.${w === 'sword' ? 'png' : 'webp'}`,
-  stage: z => `assets/art/stages/${z}.jpg`,
-  foe: (e, atk) => `assets/art/sprites/foe_${e}${atk ? '_atk' : ''}.${e === 'viper' ? 'png' : 'webp'}`,
-  fx: n => `assets/art/fx/${n}.webp`,
-};
+const SPRITE_SRC = ASSET;   // 그림 경로는 data/assets.js
 /* 그림 미리 풀기: 한 번 푼 그림은 기억해 두어 다음엔 곧바로 (Image 객체를 붙들어 브라우저가 풀어 둔 그림을 버리지 않게) */
 const IMG_CACHE = new Map();
 function preloadImgs(urls) {
@@ -19,12 +14,12 @@ function preloadImgs(urls) {
   }));
 }
 const imgsReady = urls => urls.every(u => IMG_CACHE.has(u) && IMG_CACHE.get(u).ok);
-function spriteUrls(zid, eid) { return [SPRITE_SRC.stage(zid), SPRITE_SRC.hero(weaponType()), SPRITE_SRC.foe(eid), SPRITE_SRC.foe(eid, 1), ART_SRC.beast(eid), 'assets/portraits/hero.png']; }
+function spriteUrls(zid, eid) { return ASSET_SET.battle(zid, eid, weaponType()); }
 /* 쉬는 틈에 지금 탐험지의 무대 · 요수 · 제자 · 산길 그림을 미리 풀어 둔다 */
 function prewarmSprites() {
   if (typeof S === 'undefined' || !S || !S.expedition) return;
   const z = S.expedition.zone || 'cheongpung', Z = ZONES[z];
-  const urls = [SPRITE_SRC.stage(z), SPRITE_SRC.hero(weaponType()), `assets/art/sprites/walk_${weaponType()}.webp`, `assets/art/travel/${z}.jpg`, 'assets/portraits/hero.png', SPRITE_SRC.fx('hit'), SPRITE_SRC.fx('crit')];
+  const urls = ASSET_SET.live(z, weaponType());
   for (const e of [...Z.enemies, Z.boss].filter(Boolean)) urls.push(SPRITE_SRC.foe(e), SPRITE_SRC.foe(e, 1));
   const id = S.active.mugong; if (id && MANUALS[id].weapon) urls.push(SPRITE_SRC.fx(id + '_1'), SPRITE_SRC.fx(id + '_2'));
   preloadImgs(urls);

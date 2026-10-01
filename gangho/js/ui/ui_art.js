@@ -1,16 +1,16 @@
 /* [화면] 그림·모션: 사냥터 수묵 풍경 · 요수 실루엣 · 무신상 · 장비 칸 아이콘 (모두 인라인 SVG)
-   그림 파일이 있으면 그 위에 덮어 보여 주고, 없으면 SVG 그대로 (assets/README.md 참고).
+   그림 파일이 있으면 그 위에 덮어 보여 주고, 없으면 SVG 그대로 (경로는 data/assets.js · assets/README.md).
    화면 전환·화로 불길·공양·향 시계 같은 한 번짜리 연출도 여기서 붙인다. 움직임 줄이기 설정을 존중한다 */
 
 /* ───────── 그림 파일 자리: 파일이 있으면 SVG 위에 얹는다 ───────── */
 const ART_SRC = {
-  zone: id => `assets/art/zones/${id}.jpg`,
-  beast: id => `assets/art/beasts/${id}.png`,
-  shrine: () => 'assets/art/shrine.png',
-  meditation: () => 'assets/art/meditation.png',
-  shrineAwake: () => 'assets/art/shrine_awake.png',
-  forgeScene: () => 'assets/art/forge_scene.jpg',
-  cauldron: () => 'assets/art/alchemy_cauldron.png',
+  zone: ASSET.zone,
+  beast: ASSET.beast,
+  shrine: () => ASSET.scene('shrine'),
+  meditation: () => ASSET.scene('meditation'),
+  shrineAwake: () => ASSET.scene('shrine_awake'),
+  forgeScene: () => ASSET.scene('forge_scene'),
+  cauldron: () => ASSET.scene('alchemy_cauldron'),
 };
 const brokenArt = new Set();
 function artFail(im) { brokenArt.add(im.getAttribute('src')); im.remove(); }
@@ -152,10 +152,10 @@ function slotIcon(slot) {
   return `<svg class="slot-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
 
-/* ───────── 아이템 그림 (assets/art/items): 수묵담채 · 투명 배경. 파일이 없으면 이모지로 ─────────
+/* ───────── 아이템 그림 (ASSET.item): 수묵담채 · 투명 배경. 파일이 없으면 이모지로 ─────────
    장비는 부위(무기는 병기 종류)마다 한 장. 비급은 등급별 표지 위에 분류 문양을 얹는다
    (무공은 병기 문양 · 심법 · 경공 두 발 · 기공 가부좌와 보호막) */
-const ITEM_ART = id => `assets/art/items/${id}.png`;
+const ITEM_ART = ASSET.item;
 const BOOK_COVER = { '삼류': 'book_g3', '이류': 'book_g2', '일류': 'book_g1' };
 function icoFail(im) { brokenArt.add(im.getAttribute('src')); const s = im.closest('.item-ico'); if (s) { s.classList.add('fb'); s.textContent = s.dataset.fb || ''; } }
 const icoImg = (src, cls = '') => `<img class="${cls}" src="${src}" alt="" loading="lazy" onerror="icoFail(this)">`;

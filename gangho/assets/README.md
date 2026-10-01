@@ -6,13 +6,12 @@
 
 | 경로 | 쓰는 곳 | 권장 크기 |
 | --- | --- | --- |
-| `images/character_default.png` | 무장(武裝) 가운데 제자 일러스트 카드 | 3:4 세로형, 투명 배경 (현재 600×800 수묵담채 · 남색 도포 · 붉은 요대) |
-| `character_silhouette.png` | (예비) 예전 무장 중앙 인형 | 세로형, 투명 배경 (지금 화면에서는 쓰지 않음) |
-| `portraits/hero.png` | 관찰 창 제자 인장 · 전투 기록의 제자 얼굴 | 정사각 256×256 |
-| `portraits/npc_nobyeoksong.png` | 정청 · 노벽송 (장문인) | 정사각 144×144 이상 |
-| `portraits/npc_joun.png` | 정청 · 조운 (대사형) | 정사각 144×144 이상 |
-| `portraits/npc_arin.png` | 뒷마당 · 아린 (사매) | 정사각 144×144 이상 |
-| `portraits/npc_wang.png` | 전방 · 왕 가 (청풍전방 주인) | 정사각 144×144 이상 |
+| `art/portraits/character_default.png` | 무장(武裝) 가운데 제자 일러스트 카드 | 3:4 세로형, 투명 배경 (현재 600×800 수묵담채 · 남색 도포 · 붉은 요대) |
+| `art/portraits/hero.png` | 관찰 창 제자 인장 · 전투 기록의 제자 얼굴 | 정사각 256×256 |
+| `art/portraits/npc_nobyeoksong.png` | 정청 · 노벽송 (장문인) | 정사각 144×144 이상 |
+| `art/portraits/npc_joun.png` | 정청 · 조운 (대사형) | 정사각 144×144 이상 |
+| `art/portraits/npc_arin.png` | 뒷마당 · 아린 (사매) | 정사각 144×144 이상 |
+| `art/portraits/npc_wang.png` | 전방 · 왕 가 (청풍전방 주인) | 정사각 144×144 이상 |
 
 초상화는 68px 칸에 `object-fit: cover`로 잘려 들어가니, 얼굴을 가운데에 두면 됩니다.
 
@@ -52,3 +51,4 @@
 
 요수 id는 `js/data/monsters.js`의 키입니다 (예: `wildcat`, `redTiger`, `byeokhaeryong`).
 
+> 경로는 `js/data/assets.js`(폴더 · 확장자 목록)와 `js/ui/ui_assets.js`(`ASSET.종류(이름)`)에서만 정합니다. 안 쓰는 그림 찾기: `node gangho/tools/assets-check.js`

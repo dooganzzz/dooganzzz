@@ -2,12 +2,11 @@
 
 /* ───────── 이미지 (없으면 대체 그림) ───────── */
 const IMG = {
-  doll: 'assets/character_silhouette.png',
-  portrait: 'assets/images/character_default.png',
-  merchant: 'assets/portraits/npc_wang.png',
-  master: 'assets/portraits/npc_nobyeoksong.png',
-  joun: 'assets/portraits/npc_joun.png',
-  arin: 'assets/portraits/npc_arin.png',
+  portrait: ASSET.portrait('character_default'),
+  merchant: ASSET.portrait('npc_wang'),
+  master: ASSET.portrait('npc_nobyeoksong'),
+  joun: ASSET.portrait('npc_joun'),
+  arin: ASSET.portrait('npc_arin'),
 };
 
 const brokenImg = new Set();

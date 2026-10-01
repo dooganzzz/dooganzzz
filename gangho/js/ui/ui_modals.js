@@ -202,11 +202,11 @@ function showIntro() {
   const step = (n, html) => stage >= n ? `<section class="intro-step ${fresh === n ? 'reveal' : ''}" data-step="${n}">${html}</section>` : '';
   // 입문 무공은 가장 화려한 비급 표지(일류) 위에 병기 문양으로
   const starterIco = id => icoWrap([[ITEM_ART('book_g1'), 'cover'], [ITEM_ART('emb_' + MANUALS[id].weapon), 'emb']], '📘', 'book g1 starter-ico');
-  const TALENT_ICO = { forge: 'assets/art/ui/c_hammer.png', alchemy: ART_SRC.cauldron() };
+  const TALENT_ICO = { forge: ASSET.ui('c_hammer'), alchemy: ART_SRC.cauldron() };
   const draw = () => {
     const name = $('#pname') ? $('#pname').value : '이름 없는 제자';
     m.innerHTML = `<div class="sheet intro stage-${stage}">
-      <div class="intro-hero" aria-hidden="true"><img src="assets/art/banner.jpg" alt="" onerror="this.remove()"></div>
+      <div class="intro-hero" aria-hidden="true"><img src="${ASSET.scene('banner')}" alt="" onerror="this.remove()"></div>
       <p class="eyebrow">江湖見聞錄 · 序章</p>
       <h1>강호견문록</h1>
       <div class="prologue ${stage === 0 && fresh === 0 ? 'reveal-lines' : ''}">${PROLOGUE.map((p, i) => `<p class="story" style="--i:${i}">${p}</p>`).join('')}</div>

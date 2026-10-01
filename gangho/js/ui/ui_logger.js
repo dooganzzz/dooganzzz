@@ -41,8 +41,8 @@ function chronDecor(html) {
   const lose = /패배|쓰러/.test(html);
   out = out.split(/(<[^>]+>)/).map(part => {
     if (part.startsWith('<')) return part;
-    part = part.replace(/⚔️/g, () => ico(`assets/art/ui/${lose ? 'c_lose' : 'c_win'}.png`));
-    for (const [e, f] of Object.entries(CHRON_UI)) if (part.includes(e)) part = part.split(e).join(ico(`assets/art/ui/${f}.png`));
+    part = part.replace(/⚔️/g, () => ico(ASSET.ui(lose ? 'c_lose' : 'c_win')));
+    for (const [e, f] of Object.entries(CHRON_UI)) if (part.includes(e)) part = part.split(e).join(ico(ASSET.ui(f)));
     for (const [e, f] of Object.entries(CHRON_ITEM)) if (part.includes(e)) part = part.split(e).join(ico(ITEM_ART(f)));
     return part;
   }).join('');

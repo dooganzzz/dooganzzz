@@ -1,7 +1,8 @@
 /* 계층 규칙 검사 (브라우저 없이 정적으로):
    - data/: 순수 정적 데이터. 함수·반복문·다른 파일 참조 없음
    - systems/·core.js: DOM 조작 금지, 화면 계층(ui/) 함수와 화면 상태(ui) 참조 금지
-   - ui/: 시스템을 부를 수 있지만 저장소(localStorage)에 직접 손대지 않음 */
+   - ui/: 시스템을 부를 수 있지만 저장소(localStorage)에 직접 손대지 않음
+   - 그림 경로('assets/')는 data/assets.js 목록과 ui_assets.js(ASSET)에서만 */
 'use strict';
 const fs = require('fs'), path = require('path');
 const JS = path.join(__dirname, '..', 'js');
@@ -54,6 +55,10 @@ for (const f of dataFiles) {
 for (const f of uiFiles) {
   const c = code(read(f));
   c.split('\n').forEach((line, i) => { if (/\blocalStorage\b/.test(line)) bad.push(`${f}:${i + 1} 화면에서 저장소 직접 접근`); });
+}
+// 그림 경로는 목록 한곳에서만 (주석은 빼고 문자열까지 본다)
+for (const f of [...uiFiles, ...sysFiles, 'core.js', 'app.js'].filter(f => f !== 'ui/ui_assets.js')) {
+  read(f).replace(/\/\*[\s\S]*?\*\//g, '').split('\n').forEach((line, i) => { if (/assets\//.test(line.replace(/\/\/.*$/, ''))) bad.push(`${f}:${i + 1} 그림 경로 직접 사용 (ASSET으로): ${line.trim().slice(0, 60)}`); });
 }
 // index.html 읽는 순서: core → data → systems → ui → app
 const html = fs.readFileSync(path.join(JS, '..', 'index.html'), 'utf8');

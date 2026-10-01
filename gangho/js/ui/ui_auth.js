@@ -30,7 +30,7 @@ function drawAuth() {
   const m = $('#modal'), A = authUi, join = A.mode === 'join';
   m.hidden = false; m.dataset.intro = '1';
   m.innerHTML = `<div class="sheet intro auth-sheet">
-    <div class="intro-hero" aria-hidden="true"><img src="assets/art/banner.jpg" alt="" onerror="this.remove()"></div>
+    <div class="intro-hero" aria-hidden="true"><img src="${ASSET.scene('banner')}" alt="" onerror="this.remove()"></div>
     <p class="eyebrow">江湖見聞錄 · ${join ? '入門' : '歸門'}</p>
     <h1>강호견문록</h1>
     ${A.notice ? `<p class="auth-notice">${esc(A.notice)}</p>` : ''}

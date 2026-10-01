@@ -126,8 +126,8 @@ function renderHeader() {
       </div>
     </div>`);
 }
-/* 수묵 아이콘 (assets/art/ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
-const uiIco = (id, cls = '') => `<i class="ui-ico ${cls}" style="background-image:url('assets/art/ui/${id}.png')" aria-hidden="true"></i>`;
+/* 수묵 아이콘 (ASSET.ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
+const uiIco = (id, cls = '') => `<i class="ui-ico ${cls}" style="background-image:url('${ASSET.ui(id)}')" aria-hidden="true"></i>`;
 /* 헤더 게이지: [아이콘·활력] 뱃지 + 막대(수치는 막대 안). 활력 위 · 내력 아래로 쌓는다 */
 function gauge(cls, cur, max, name) {
   const p = max ? clamp(cur / max * 100, 0, 100) : 0;
