@@ -232,5 +232,6 @@
 .co-ax { position: absolute; z-index: 2; aspect-ratio: 135 / 505; background: 0 0 / 1600% 100% no-repeat; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .6)); }
 .co-poem { position: absolute; z-index: 7; margin: 0; max-width: 46%; pointer-events: none; font: 400 1em/1.4 'Gangho Brush', var(--serif), serif; color: #fff4d6; letter-spacing: .06em;
   text-shadow: 0 0 2px #000, 0 1px 3px rgba(0, 0, 0, .9), 0 0 12px rgba(var(--glow, 90, 160, 255), .9); }
-.co-poem span { opacity: 0; display: inline-block; filter: blur(4px); transform: translateY(4px); transition: opacity .35s, filter .35s, transform .35s; }
-.co-poem span.on { opacity: 1; filter: none; transform: none; }
+.co-poem .co-line { display: block; opacity: 1; filter: none; transform: none; transition: none; }
+.co-poem .co-line > span { opacity: 0; display: inline-block; filter: blur(4px); transform: translateY(4px); transition: opacity .35s, filter .35s, transform .35s; }
+.co-poem .co-line > span.on { opacity: 1; filter: none; transform: none; }
