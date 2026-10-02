@@ -117,9 +117,10 @@ module.exports = async (b) => {
     await p.evaluate(() => { const r = S.expeditions.filter(x => !x.live).pop(); ui.modal = 'settle:' + r.id; render(); });
     ok('4 결산 창에 지형 · 기력 증감', await p.evaluate(() => { const t = document.querySelector('#modal .tr-line'); return !!t && /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 \S+ (일치|불일치) \(기력 \+?[\d.]+ (더 씀|아낌)\)/.test(t.textContent); }));
     await p.evaluate(() => { ui.modal = null; ui.fieldMap = false; goTab('field'); render(); });
-    ok('4 출정 준비에 상성 줄 (기공 오행 · 경공 지형 · 병기)', await p.evaluate(() => {
-      const li = [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent === '상성'), txt = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
-      return !!li && li.textContent.includes(txt(elemTag(myElem()))) && li.textContent.includes(txt(terrainTag(myTerrain()))) && /병기/.test(li.textContent); }));
+    ok('4 출정 준비에 기공(오행) 줄 · 경공(지형) 줄 따로', await p.evaluate(() => {
+      const f = k => [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent.startsWith(k)), txt = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
+      const g = f('기공'), t = f('경공');
+      return !!g && !!t && g.textContent.includes(txt(elemTag(myElem()))) && t.textContent.includes(txt(terrainTag(myTerrain()))) && /주는 피해/.test(g.textContent); }));
     ok('4 전투 기록 첫머리에 상성 한 줄', await p.evaluate(() => S.expeditions.some(r => r.battles.some(bt => bt.intro.some(l => l.cls === 'aff' && /오행/.test(l.text) && /병기/.test(l.text))))));
 
     // 5. 조합 실패물 → 검게 탄 찌꺼기 · 무신상 공양

@@ -26,7 +26,7 @@ const SHOP_GEAR_STOCK = [
   ['g_ironRing', 1, 40], ['g_hempBelt', 1, 20], ['g_leatherBelt', 1, 45], ['g_whiteJade', 1, 50],
 ];
 /* 장비 되팔기: 티어별 기본값 × 희귀도 배율 × (1 + 강화 × 0.15) */
-const GEAR_SELL = { tier: [8, 25, 60], enh: 0.15 };
+const GEAR_SELL = { tier: [8, 25, 60], enh: 0.15, rar: [1, 1.2, 1.45, 1.75, 2.1, 2.5] };   // rar: 되팔 때의 등급 배율 (장비 능력치 배율 RARITY와는 따로)
 
 /* 아린과 이야기 나누기: 무작위 한 줄 */
 const ARIN_TALK = [

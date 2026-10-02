@@ -107,8 +107,8 @@ module.exports = async (b) => {
       const keep = { ring: eqp('ring'), jade: eqp('jade'), belt: eqp('belt') };
       // 기공 위력 +3%
       const gm = S.manuals[S.active.gigong], star0 = gm.star; gm.star = 11;       // 반올림 오차를 줄이려고 성급을 높여 비교
-      S.equip.jade = null; const q0 = manualBonus(S.active.gigong, gm.star).def, d0 = calcStats().def;
-      S.equip.jade = makeNamedGear('g_dullJade'); r.qi = [calcStats().def - d0, Math.round(q0 * 0.03 * 100) / 100];   // [실제 증가(반올림), 기공 방어력의 3%]
+      S.equip.jade = null; const q0 = manualBonus(S.active.gigong, gm.star).maxHp, d0 = calcStats().maxHp;
+      S.equip.jade = makeNamedGear('g_dullJade'); r.qi = [calcStats().maxHp - d0, Math.round(q0 * 0.03 * 100) / 100];   // [실제 증가(반올림), 기공 체력의 3%]
       gm.star = star0;
       // 오행 내성: 극당할 때 받는 피해
       S.equip.jade = null; const t0 = affinity('slinger').taken; S.equip.jade = makeNamedGear('g_cloudJade'); const t1 = affinity('slinger').taken; r.res = [affinity('slinger').el, t0, t1];

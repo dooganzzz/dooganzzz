@@ -17,6 +17,10 @@ function calcStats() {
     const q = cat === 'gigong' ? 1 + qi / 100 : 1;
     for (const [k, v] of Object.entries(manualBonus(id, S.manuals[id].star))) s[k] = (s[k] || 0) + v * q;
   }
+  for (const cat of CAT_ORDER) {   // 대성 극의: 그 갈래의 비급을 하나라도 12성에 올렸으면 영구 (더 높은 등급 비급으로 갈아타도 유지된다)
+    if (Object.keys(S.manuals).some(id => MANUALS[id] && MANUALS[id].cat === cat && S.manuals[id].star >= MAX_STAR))
+      for (const [k, v] of Object.entries(DAESUNG_PASSIVE[cat].stats)) s[k] = (s[k] || 0) + v;
+  }
   for (const slot of SLOT_ORDER) {
     const it = S.equip[slot]; if (!it) continue;
     for (const [k, v] of Object.entries(gearStats(it))) if (!ATTRS[k]) s[k] = (s[k] || 0) + v;   // 4대 스탯 보정은 attrOf에서
@@ -47,22 +51,22 @@ function calcStats() {
 
 /* 비급 하나가 장착 시 주는 능력치 (성급 기준) */
 function manualBonus(id, star) {
-  const M = MANUALS[id], g = GRADES[M.grade].mult, st = star, t = tri(st), b = {};
-  if (M.cat === 'mugong') b.atk = (4 * st + 0.9 * t) * g;
-  if (M.cat === 'simbeop') Object.assign(b, { maxMp: (12 * st + 1.5 * t) * g, atk: st * g, maxHp: 5 * st * g, mpRegen: 0.25 * st * g });
-  if (M.cat === 'gyeonggong') Object.assign(b, { spd: 0.8 * st * g, eva: 0.6 * st * g, crit: 0.3 * st * g, counter: 0.5 * st * g });
-  if (M.cat === 'gigong') Object.assign(b, { maxHp: (20 * st + 4 * t) * g, def: (1.5 * st + 0.35 * t) * g, counter: 1.2 * st * g });
-  if (st >= 6) for (const k of Object.keys(b)) b[k] *= 1.3;              // 소성: 기본 위력 계수 상향
-  if (st >= MAX_STAR) for (const [k, v] of Object.entries(DAESUNG_PASSIVE[M.cat].stats)) b[k] = (b[k] || 0) + v;   // 대성 극의
+  const M = MANUALS[id], P = MANUAL_POWER, st = star, b = {};
+  const k = P.K * P.grade[M.grade] * (1 + P.star * (st - 1) / (MAX_STAR - 1)) * (st >= 6 ? P.soseong : 1);   // 등급은 크게 · 성급은 작게 (MANUAL_POWER)
+  if (M.cat === 'mugong') b.atk = 4.9 * k;
+  if (M.cat === 'simbeop') Object.assign(b, { maxMp: 13.5 * k, atk: 1 * k, maxHp: 5 * k, mpRegen: 0.25 * k });
+  if (M.cat === 'gyeonggong') Object.assign(b, { spd: 0.8 * k, eva: 0.6 * k, crit: 0.3 * k, counter: 0.5 * k });
+  if (M.cat === 'gigong') Object.assign(b, { maxHp: 24 * k, def: 1.85 * k, counter: 1.2 * k });
   for (const [k, v] of Object.entries(M.extra || {})) b[k] = (b[k] || 0) + v;       // 무공 고유 능력치
   return b;
 }
 
 
+const GEAR_SCALED = new Set(['atk', 'def', 'maxHp', 'maxMp']);   // 장비 배율(gearScale)을 받는 수치
 function gearStats(it) {
-  const up = ENH_STEP * (it.enh || 0), out = {};   // 강화: 단계마다 +2.86% (+7 ≈ 한 등급 위), 작은 수치는 반올림
-  for (const [k, v] of Object.entries(it.stats)) {
-    const pct = PCT_STATS.has(k), b = (pct ? 10 : 1) * v * up;   // 더할 몫 (퍼센트는 0.1 단위)
+  const up = BALANCE.enhStep * (it.enh || 0), out = {};   // 강화: 단계마다 enhStep (+7 ≈ 한 등급 위), 작은 수치는 반올림
+  for (const [k, v0] of Object.entries(it.stats)) {
+    const pct = PCT_STATS.has(k), v = pct || !GEAR_SCALED.has(k) ? v0 : v0 * BALANCE.gearScale, b = (pct ? 10 : 1) * v * up;   // 더할 몫 (퍼센트는 0.1 단위)
     out[k] = (Math.round(v * (pct ? 10 : 1)) + (v >= 5 ? Math.ceil(b - 1e-9) : Math.round(b))) / (pct ? 10 : 1);   // 큰 수치(5 이상)는 올림 → +1부터 오른다
   }
   return out;
@@ -84,7 +88,7 @@ function attrOf(a) {
 function manualPassive() {
   const out = { attr: {}, stats: {} };
   for (const id of Object.keys((S && S.manuals) || {})) { const P = MANUALS[id] && MANUALS[id].passiveBonus; if (!P) continue;
-    for (const [k, v] of Object.entries(P)) { const o = ATTRS[k] ? out.attr : out.stats; o[k] = (o[k] || 0) + v; } }
+    for (const [k, v] of Object.entries(P)) { const o = ATTRS[k] ? out.attr : out.stats; o[k] = (o[k] || 0) + v * MANUAL_POWER.passive; } }
   return out;
 }
 /* 받은 지역 도감 완성 보상의 합 */

@@ -125,7 +125,7 @@ const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S), dl = cpDeltaHtml(cp);
   setHTML($('#status'), `
-    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name} · ${activeRun() ? `강호행 중 <strong class="highlight-timer" data-runclock>${runClockText()}</strong>` : '대기 중'}` : '탐험지 미정'}</span></div>`);
+    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name}` : '탐험지 미정'}</span></div>`);
   const v = $('#vitals'); if (v) setHTML(v, vitalsHtml(st));
   const cm = document.querySelector('.cp-card .cp-main');            // 투력이 바뀌면 투력 카드에 잠깐 ▲/▼
   if (cm) { const old = cm.querySelector('.cp-delta'); if (old) old.remove(); if (dl) cm.insertAdjacentHTML('beforeend', dl); }

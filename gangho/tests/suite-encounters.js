@@ -43,6 +43,7 @@ module.exports = async (b) => {
       // 공격력 조건 미달 선택지는 거절된다
       S.equip.weapon = null; S.shrine.atk = 0;
       const tree = meet('oldtree'), gi = EVENTS.find(e => e.id === 'oldtree').choices.findIndex(c => c.req && c.req.stat);
+      if (gi >= 0) EVENTS.find(e => e.id === 'oldtree').choices[gi].req.stat[1] = 1e9;   // 능력치 개편과 상관없이 늘 미달이 되게
       r.gated = gi >= 0 ? !!(resolveEncounter(tree.uid, gi) || {}).fail && !tree.done : 'no-gated-choice';
       // 조건 아이템(생혈고)을 거는 선택지는 소모
       const herb = meet('herbalist'), hi = EVENTS.find(e => e.id === 'herbalist').choices.findIndex(c => c.take && c.req && c.req.item);

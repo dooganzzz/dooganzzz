@@ -13,7 +13,7 @@ module.exports = async (b) => {
     // 1. 공식
     const f = await p.evaluate(() => {
       const parts = combatPowerParts(S);
-      const geo = Math.round(CP_SCALE * Math.exp(parts.vs.reduce((a, v) => a + Math.log(v.value), 0) / parts.vs.length));
+      const geo = Math.round(CP_SCALE * Math.pow(Math.exp(parts.vs.reduce((a, v) => a + Math.log(v.value), 0) / parts.vs.length), CP_EXP));
       return { cp: calculateCombatPower(S), geo, total: parts.total, n: parts.vs.length, int: Number.isInteger(calculateCombatPower()), each: parts.vs.every(v => Math.abs(v.value - v.offense * Math.max(0.5, v.rounds + v.first)) < 1e-6) };
     });
     ok('1 투력 = 기준 상대 3명에게 (공세 × 수세) 기하평균 × CP_SCALE', f.cp === f.geo && f.n === 3 && f.each && f.int, JSON.stringify(f));

@@ -240,11 +240,12 @@ function runStep(rec, t) {
     const ds = Math.round(S.silver - b.silver); if (ds < 0) s.ds = ds;   // 기연에서 쓴 은자
   }
   log(`${stepText(rec, s)}`, `exp-step ${s.b !== undefined ? '' : s.cls}`, t, { r: rec.id, s: si });
-  if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { subqAdd(zid, rec.stage); rec.kills++; if (rec.kills >= stageNeed(rec.stage)) stageClear(rec, t); }   // 서브 퀘스트(단계 토벌) 진행
+  if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { subqAdd(zid, rec.stage); rec.kills++; if (rec.kills >= stageNeed(rec.stage)) { if (rec.stage >= STAGE.count || S.expedition.auto === true) stageClear(rec, t); else rec.ready = true; } }   // (auto는 GM의 AI 자동 플레이만 켠다)   // 두목은 쓰러뜨리면 곧바로 평정, 그 밖의 단계는 조건을 채우면 [돌파하기]가 열린다   // 서브 퀘스트(단계 토벌) 진행
   if (r.lost) { rec.defeats = 1; s.d.push({ text: EXP_TEXT.defeat, cls: 'bad' }); endRun(rec, t, 'dead'); }
   return s;
 }
-/* 단계 돌파: 처음이면 보상 · 다음 단계가 열린다. 자동 진행이면 올라가고, 아니면 머물며 계속 사냥한다 */
+/* 단계 돌파: 처음이면 보상 · 다음 단계가 열리고 올라간다. 조건(stageNeed승)을 채우기 전에는 머물며 계속 사냥한다 */
+const stageBreak = (rec, t = now()) => { if (!rec || !rec.live || !rec.ready || rec.stage >= STAGE.count) return false; stageClear(rec, t); return true; };
 function stageClear(rec, t) {
   const zid = rec.zone, n = rec.stage, Z = ZONES[zid], first = n > stageCleared(zid);
   rec.kills = 0; rec.cleared = rec.cleared || []; rec.cleared.push(n);
@@ -252,17 +253,17 @@ function stageClear(rec, t) {
     S.stages = S.stages || {}; S.stages[zid] = n;
     const silver = Math.round(STAGE.firstSilver * n * Z.tier), exp = Math.round(STAGE.firstExp * n * Z.tier);
     S.silver += silver; S.exp += exp; give('saenghyeol', STAGE.firstPot, true);
-    rec.steps[rec.steps.length - 1].d.push({ text: `🏯 ${stageName(zid, n)} 첫 돌파 — 은자 ${silver} · 수련치 ${exp} · 생혈고 ${STAGE.firstPot}`, cls: 'gold' });
+    const ls = rec.steps[rec.steps.length - 1]; if (ls && ls.d) ls.d.push({ text: `🏯 ${stageName(zid, n)} 첫 돌파 — 은자 ${silver} · 수련치 ${exp} · 생혈고 ${STAGE.firstPot}`, cls: 'gold' });
     log(`🏯 ${stageName(zid, n)}${n >= STAGE.count ? '의 두목을 쓰러뜨려 탐험지를 평정했습니다' : '을 돌파했습니다'}! 첫 돌파 보상: ${hlSilver(silver)} · 수련치 +${exp} · 생혈고 ${STAGE.firstPot}`, 'gold', t);
   }
-  if (n < STAGE.count && S.expedition.auto !== false) stageGo(rec, n + 1, t);
+  if (n < STAGE.count) stageGo(rec, n + 1, t);
   // 두목은 한 강호행에 한 번: 쓰러뜨리면 굴을 나와 9단계로 (다시 맞서려면 새 강호행을 10단계에서)
   else if (n >= STAGE.count) { rec.stage = STAGE.count - 1; rec.kills = 0; S.expedition.stage = STAGE.count - 1; log(`⛰️ 두목의 굴을 나와 ${josa(stageName(zid, STAGE.count - 1), '으로')} 내려옵니다. 두목에게 다시 맞서려면 새 강호행을 10단계에서 떠나십시오.`, 'place', t); }
 }
 function stageGo(rec, n, t = now()) {
   if (!rec || !rec.live || n < 1 || n > stageMax(rec.zone) || n === rec.stage) return false;
   const up = n > rec.stage;
-  rec.stage = n; rec.kills = 0; S.expedition.stage = n;
+  rec.stage = n; rec.kills = 0; rec.ready = false; S.expedition.stage = n;
   log(`⛰️ ${josa(stageName(rec.zone, n), '으로')} ${up ? '올라갑니다' : '내려갑니다'}.`, 'place', t);
   notify.refresh();
   return true;

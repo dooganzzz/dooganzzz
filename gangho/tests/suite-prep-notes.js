@@ -12,7 +12,7 @@ module.exports = async (b) => {
 
     // 2. 출정 준비 점검표
     const prep0 = await p.evaluate(() => { ui.tab = 'field'; ui.fieldMap = false; render(); return [...document.querySelectorAll('.prep li')].map(li => `${li.className}:${li.querySelector('.prep-k').textContent}`); });
-    ok('2 출정 준비 7줄 (탐험지·무공·병기·장비·생혈고·상성·단약)', prep0.length === 7 && prep0.map(s => s.split(':')[1]).join() === '탐험지,무공,병기,장비,생혈고,상성,준비한 단약', prep0.join(' | '));
+    ok('2 출정 준비 8줄 (탐험지·무공·병기·장비·생혈고·경공·기공·단약)', prep0.length === 8 && prep0.map(s => s.split(':')[1]).join() === '탐험지,무공,병기,장비,생혈고,경공 · 지형,기공 · 오행,준비한 단약', prep0.join(' | '));
     const warn = await p.evaluate(() => {
       const r = {}, cat = CAT_ORDER[0], keep = S.active[cat];
       S.active[cat] = null; S.inv.saenghyeol = 0; render();

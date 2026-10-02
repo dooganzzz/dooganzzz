@@ -180,10 +180,13 @@ function forgeEnhance(mainUid, matUid) {
 const gearName = it => `${it.name}${it.enh ? ` +${it.enh}` : ''}`;
 /* ───────── 전방(상점) 거래 ─────────
    은자는 S.silver, 소지품은 S.inv{아이템: 개수}, 보관 장비는 S.gear[]. 청풍문 안에서만 거래한다. */
-const itemSellPrice = id => ITEMS[id].price || 0;                 // 비급·증표·약과처럼 값이 0이면 팔 수 없다
+/* 전방에서 파는 물건은 사들이는 값의 절반에 되판다. 전방에 없는 물건은 제 값(price) */
+const itemSellPrice = id => { const row = SHOP_STOCK.find(r => r[0] === id); return row ? Math.floor(row[1] / 2) : ITEMS[id].price || 0; };   // 비급·증표·약과처럼 값이 0이면 팔 수 없다
 function gearSellPrice(it) {
   if (it.shop) return 0;                                           // 신분패는 문파 물건이라 팔 수 없다
-  return Math.round(GEAR_SELL.tier[(it.tier || 1) - 1] * RARITY[it.rarity].mult * (1 + (it.enh || 0) * GEAR_SELL.enh));
+  const row = SHOP_GEAR_STOCK.find(r => (r[0] === it.named || r[0] === it.base) && r[1] === (it.tier || 1));
+  if (row) return Math.round(row[2] / 2 * GEAR_SELL.rar[it.rarity] * (1 + (it.enh || 0) * GEAR_SELL.enh));   // 전방에서 파는 장비: 사들이는 값의 절반
+  return Math.round(GEAR_SELL.tier[(it.tier || 1) - 1] * GEAR_SELL.rar[it.rarity] * (1 + (it.enh || 0) * GEAR_SELL.enh));
 }
 function shopPoor(price, name) {
   log(`🚫 은자가 부족해 ${name}${jo(name, '을를')} 살 수 없습니다. (필요 ${fmt(price)}냥 · 소지 ${fmt(S.silver)}냥) 왕 가: ${MERCHANT.poor}`, 'bad');

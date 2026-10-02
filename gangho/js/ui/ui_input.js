@@ -41,7 +41,10 @@ function onClick(e) {
   if (d.mapzone) { if (!zoneUnlocked(d.mapzone)) return toast('앞 구역의 두목을 쓰러뜨리면 길이 열립니다.'); setDestination(d.mapzone); ui.modal = `mapgo:${d.mapzone}`; render(); return; }
   if (d.dest) return setDestination(d.dest);
   if (d.stage) { const n = +d.stage, run = activeRun(), X = S.expedition; if (run && run.zone === X.zone) stageGo(run, n); else if (n <= stageMax(X.zone)) { X.stage = n; } notify.save(); return render(); }
-  if (d.stageauto !== undefined) { S.expedition.auto = S.expedition.auto === false; notify.save(); return render(); }
+  if (d.stagebreak !== undefined) { const run = activeRun();
+    if (run && run.ready && stageBreak(run)) { notify.save(); return render(); }
+    const n = run ? run.stage : S.expedition.stage || 1;
+    return showConfirmModal({ title: '돌파 조건 미달', message: n >= STAGE.count ? '두목을 쓰러뜨리면 탐험지를 평정합니다.' : `<b>${stageName(S.expedition.zone, n)}</b>에서 요수를 <b>${stageNeed(n)}번</b> 이겨야 돌파할 수 있습니다.<br>아직 조건을 채우지 못했습니다${run ? ` (지금 ${run.kills} / ${stageNeed(n)}승)` : ' — 강호행을 시작해 요수와 싸우십시오'}.`, confirmText: '알겠습니다', cancelText: '닫기' }); }
   if (d.chron) { ui.chronFilter = d.chron; return render(); }
   if (d.codextab) { ui.codexTab = d.codextab; return render(); }
   if (d.codexzone) { ui.codexZone = d.codexzone; return render(); }

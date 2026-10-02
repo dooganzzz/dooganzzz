@@ -224,11 +224,11 @@ const ITEMS = {
 /* 장비 등급: 하급 < 중급 < 상급 < 진품 < 명품 < 극품 (능력치 배율) */
 const RARITY = [
   { name: '하급', hanja: '下級', mult: 1.0,  cls: 'r0' },
-  { name: '중급', hanja: '中級', mult: 1.2,  cls: 'r1' },
-  { name: '상급', hanja: '上級', mult: 1.45, cls: 'r2' },
-  { name: '진품', hanja: '眞品', mult: 1.75, cls: 'r3' },
-  { name: '명품', hanja: '名品', mult: 2.1,  cls: 'r4' },
-  { name: '극품', hanja: '極品', mult: 2.5,  cls: 'r5' },
+  { name: '중급', hanja: '中級', mult: 1.35, cls: 'r1' },
+  { name: '상급', hanja: '上級', mult: 1.8,  cls: 'r2' },
+  { name: '진품', hanja: '眞品', mult: 2.4,  cls: 'r3' },
+  { name: '명품', hanja: '名品', mult: 3.2,  cls: 'r4' },
+  { name: '극품', hanja: '極品', mult: 4.2,  cls: 'r5' },
 ];
 
 /* 장비 슬롯 */
@@ -443,4 +443,5 @@ const ENH_RULE = [
   { to: 7,  cost: 20, ok: 10, boom: 0 },    // +4 ~ +7
   { to: 10, cost: 30, ok: 3,  boom: 10 },   // +8 ~ +10
 ];
-const ENH_STEP = 0.2 / 7;   // 강화 한 단계 능력치 +2.86% → +7이 한 등급 위(등급 배율 약 1.2배) +0과 비슷
+/* 장비 밸런스: gearScale 장비가 주는 공격 · 방어 · 활력 · 내력 전체 배율 · enhStep 강화 한 단계 능력치 증가율(+7이 한 등급 위 +0과 비슷하도록 등급 배율 비율 ÷ 7) */
+const BALANCE = { gearScale: 0.6, enhStep: 0.047 };

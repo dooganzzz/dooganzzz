@@ -38,6 +38,8 @@ function cpVersus(st, R, art) {
   const first = st.spd + (st.foe ? 0 : attrOf('agi')) + (st.first || 0) >= R.spd ? 0.5 : -0.5;   // 먼저 치면 한 번 더 (요수는 제자 민첩을 더하지 않음)
   return { offense, rounds, hit, critF, skill, sustain, counter, first, value: offense * Math.max(0.5, rounds + first) };
 }
+/* 기준 상대마다의 값(피해 곱)을 기하평균해 CP_EXP제곱으로 누른 투력 */
+const cpFromValues = vs => Math.round(CP_SCALE * Math.pow(Math.exp(vs.reduce((a, v) => a + Math.log(Math.max(1e-6, v.value)), 0) / vs.length), CP_EXP));
 function combatPowerParts(player = S) {
   if (!player) return { total: 0, ref: 0, offense: 0, rounds: 0, hit: 0, crit: 0, skill: 1, sustain: 1, counter: 0, vs: [] };
   const prev = S; S = player;
@@ -51,7 +53,7 @@ function combatPowerParts(player = S) {
       art.cost = [0, 1, 2].map(i => Math.max(1, Math.round((4 + m.star / 2 + i * (4 + m.star / 2)) * g * (1 - ((st.mpCost || 0) + (st.mpSave || 0)) / 100))));
     }
     const vs = CP_REF.map(R => cpVersus(st, R, art));
-    const total = Math.round(CP_SCALE * Math.exp(vs.reduce((a, v) => a + Math.log(Math.max(1e-6, v.value)), 0) / vs.length));
+    const total = cpFromValues(vs);
     const ref = Math.max(0, Math.min(CP_REF.length - 1, ZONE_ORDER.indexOf(S.expedition.zone)));   // 내역은 지금 탐험지의 기준 상대로 보여 준다
     const mid = vs[ref];
     return { total, ref, offense: mid.offense, rounds: mid.rounds, hit: mid.hit, crit: mid.critF, skill: mid.skill, sustain: mid.sustain, counter: mid.counter, first: mid.first > 0, vs };
@@ -63,7 +65,7 @@ function foeCombatPower(eid) {
   const E = ENEMIES[eid]; if (!E) return 0;
   const st = { atk: E.atk * (1 + ((E.hits || 1) - 1) * 0.6), def: E.def || 0, maxHp: E.hp, eva: E.eva || 0, crit: E.crit || 0, spd: E.spd || 0, foe: true };   // 연격은 공격력에 녹인다
   const vs = CP_REF.map(R => cpVersus(st, R, { elem: false, moves: 0 }));
-  return Math.round(CP_SCALE * Math.exp(vs.reduce((a, v) => a + Math.log(Math.max(1e-6, v.value)), 0) / vs.length));
+  return cpFromValues(vs);
 }
 /* 장비를 잠깐 끼워 보고 투력 · 공세 · 수세가 얼마나 바뀌는지 (slot을 안 주면 그 장비가 들어갈 칸 중 가장 나은 칸) */
 function cpTryGear(it, slot) {
@@ -348,7 +350,7 @@ function winBattle(b) {
   if (b.silver) bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다
   for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < (E.boss ? p : p * EXPEDITION.dropMult)) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
-  if (E.gear && Math.random() < E.gear[1]) {
+  if (E.gear && Math.random() < E.gear[1] * EXPEDITION.gearMult) {
     const it = dropGear(E.gear[0], rollDropRarity(!!E.boss));
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
