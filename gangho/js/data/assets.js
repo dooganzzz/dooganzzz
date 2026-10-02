@@ -24,6 +24,7 @@ const ASSET_KIND = {
   font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_477 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
   common:   { dir: 'common/', ext: 'webp' },         // 공용: scroll_초식(두루마리 종이) · _hz(기운 12컷) · scroll_ax(도는 축 16컷) · scroll_face(제자 얼굴) · strike_hit · strike_crit(평타 타격 · 치명)
   portrait: { dir: 'portraits/', ext: 'webp' },
+  bgm:      { dir: 'audio/', ext: 'mp3' },          // 배경음악: teahouse(옥루관 금소합주 — 고금 · 퉁소, 3분 9초, 되풀이)
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene · yeonhon_hall · rankup_2(이류무사 승급)
 };
 /* 무공 고유 그림 목록: assets/art/manual/무공id/ 에 실제로 있는 파일 (check-layers가 폴더와 맞는지 본다).
