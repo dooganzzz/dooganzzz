@@ -88,9 +88,24 @@ function liveSkillOf() {
   const n = unlockedMoves(S.manuals[id].star); if (!n) return null;
   return { mid: id, tier: n >= 3 ? 2 : 1, name: stanceShort(M.stances[n - 1].name) };   // tier: 화면 단계 (오의만 광휘)
 }
+/* 초식 이펙트 컷 그림(10컷, 왼쪽 끝 = 칼끝)이 있는 무공: 제자 칼끝에서 검기가 요수 쪽으로 뻗는다.
+   칼끝 = 제자 그림 너비의 tip 지점 · 그림 너비 = 칼끝~요수 가운데 거리 × reach, 세로 가운데는 제자 가운데보다 dy(제자 키 비율)만큼 위 (연출 미리보기에서 맞춘 값) */
+const CUT_FX = { sw1a: 1, sw1b: 1, sw1c: 1 };
+const CUT_GEO = { 1: { tip: .75, reach: 1.07, dy: .18, ar: 640 / 200, ms: 1000 }, 2: { tip: .7, reach: 1.04, dy: .35, ar: 640 / 360, ms: 1300, screen: true } };
+function liveCutFx(sc, mid, tier) {
+  const hero = document.getElementById('liveHero'); if (!hero) return null;
+  const g = CUT_GEO[tier], s = sc.getBoundingClientRect(), h = hero.getBoundingClientRect(), foe = sc.querySelector('.live-foe');
+  const f = foe && foe.getBoundingClientRect(), foeX = f && f.width && f.left < s.right ? f.left + f.width / 2 - s.left : s.width * .8;
+  const x = h.left - s.left + h.width * g.tip, w = Math.max(s.width * .3, (foeX - x) * g.reach), cy = h.top - s.top + h.height * (.5 - g.dy);
+  const v = document.createElement('div'); v.className = `live-cutfx${g.screen ? ' screen' : ''}`; v.dataset.live = 1;
+  Object.assign(v.style, { left: x + 'px', top: (cy - w / g.ar / 2) + 'px', width: w + 'px', height: (w / g.ar) + 'px',
+    backgroundImage: `url('${ASSET.fx(`cut_${mid}_${tier}`)}')`, animationDuration: g.ms + 'ms' });
+  return v;
+}
 function liveSkill(sc, sk) {
   const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}${sk.name.length > 9 ? ' long' : ''}`; lab.dataset.live = 1; lab.textContent = `「${sk.name}」`;
-  const v = document.createElement('img'); v.className = `live-skill n${sk.tier}`; v.dataset.live = 1; v.src = SPRITE_SRC.fx(`${manualFx(sk.mid)}_${sk.tier}`); v.alt = '';
+  const cut = CUT_FX[sk.mid] && liveCutFx(sc, sk.mid, sk.tier);
+  const v = cut || document.createElement('img'); if (!cut) { v.className = `live-skill n${sk.tier}`; v.dataset.live = 1; v.src = SPRITE_SRC.fx(`${manualFx(sk.mid)}_${sk.tier}`); v.alt = ''; }
   if (sk.noName) lab.hidden = true;                  // 방금 두루마리로 외친 초식은 이름 글자를 또 띄우지 않는다
   sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
   if (sk.tier === 2) liveShake(sc);
@@ -122,10 +137,10 @@ function liveShowStart(sc, sh) {
   const spr = foe.querySelector('.sp-fspr'), atk = foe.querySelector('.sp-fatk');
   spr.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid)}')`; spr.style.backgroundSize = `${n * 100}% 100%`;
   atk.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid, 1)}')`; atk.style.backgroundSize = '300% 100%';
-  const sk = liveSkillOf(); if (sk) preloadImgs([SPRITE_SRC.fx(`${manualFx(sk.mid)}_${sk.tier}`)]);
+  const sk = liveSkillOf(); if (sk) preloadImgs([CUT_FX[sk.mid] ? ASSET.fx(`cut_${sk.mid}_${sk.tier}`) : SPRITE_SRC.fx(`${manualFx(sk.mid)}_${sk.tier}`)]);
   const R = sh.ref && findExpedition(sh.ref.rid), B = R && R.battles[sh.ref.bi];
   sh.rec = B && B.rounds && B.rounds.length ? B : null;
-  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { preloadImgs([SPRITE_SRC.fx(`${manualFx(f.mid)}_${f.n >= 3 ? 2 : 1}`)]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
+  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { const n = f.n >= 3 ? 2 : 1; preloadImgs([CUT_FX[f.mid] ? ASSET.fx(`cut_${f.mid}_${n}`) : SPRITE_SRC.fx(`${manualFx(f.mid)}_${n}`)]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
   if (typeof OG_CFG !== 'undefined' && sh.rec && sh.rec.rounds.some(r => r.fx.some(f => f.mid && f.n >= 3))) {   // 오의가 나가는 전투: 오의 그림을 미리
     const C = OG_CFG[weaponType()]; preloadImgs([ASSET.fx('aura'), ASSET.fx('dart'), ...(C && C.fx ? [ASSET.fx(C.fx)] : [])]); }
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1);
