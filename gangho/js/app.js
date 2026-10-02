@@ -8,7 +8,7 @@ let S = null;
 
 /* 저장하지 않는 진행 상태: 계산 중인 전투, 탐험 한 걸음의 상세 기록(journal)을 모으는 통 */
 const RT = { battle: null, journal: null };
-const LOG_MAX = 400;
+const LOG_MAX = 100;
 
 const DEFAULT_ATTR = () => Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
 

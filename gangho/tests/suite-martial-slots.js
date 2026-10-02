@@ -18,8 +18,8 @@ module.exports = async (b) => {
   const bare = await p.evaluate(() => { S.hp = 9999; return fightSync('rabbit').win; });
   ok('무공 없이도 맨손 전투 가능', bare === true);
   // 행낭에서 익히기
-  await p.click('[data-tab="bag"]'); await p.click('[data-filter="비급"]');
-  const btns = await p.$$eval('.items .item button', e => e.map(x => x.textContent));
+  await p.click('[data-tab="bag"]'); await p.click('[data-filter="etc"]');
+  const btns = await p.$$eval('.items .item button[data-use^="bk_"]', e => e.map(x => x.textContent));
   ok('2 행낭 비급 [익히기] 버튼', btns.length === 4 && btns.every(t => t === '익히기'), btns.join(','));
   await p.click('[data-use="bk_bd1a"]'); await p.click('[data-act="confirmok"]');
   const l1 = await p.evaluate(() => ({ learned: !!S.manuals.bd1a, left: count('bk_bd1a') }));

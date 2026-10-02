@@ -34,7 +34,7 @@ module.exports = async (b) => {
     // 행낭 독립 / 상태 › 무장에는 행낭 목록 없음
     await p.click('[data-tab="bag"]');
     const bag = await p.evaluate(() => ({ head: document.querySelector('.panel-head .ko').textContent, filters: document.querySelectorAll('[data-filter]').length, doll: !!document.querySelector('.paperdoll'), sub: !!document.querySelector('.subtabs') }));
-    ok('행낭 탭: 소지품 목록·분류, 장비 인형 없음', bag.head === '행낭' && bag.filters >= 7 && !bag.doll && !bag.sub, JSON.stringify(bag));
+    ok('행낭 탭: 소지품 목록·분류, 장비 인형 없음', bag.head === '행낭' && bag.filters === 5 && !bag.doll && !bag.sub, JSON.stringify(bag));
     await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
     ok('상태 › 무장: 장비 슬롯만', await p.evaluate(() => !!document.querySelector('.paperdoll') && !document.querySelector('[data-filter]')));
 
