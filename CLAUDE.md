@@ -35,6 +35,10 @@
 - 읽는 순서 core → data → systems → ui → app. `gangho/tests/check-layers.js`가 지킨다.
 - data/: 순수 데이터만. systems/: 규칙, DOM 금지. ui/: 화면, localStorage 금지. app.js: 상태 · 저장 · 틱.
 - 그림 경로는 `js/data/assets.js`(목록) + `js/ui/ui_assets.js`(`ASSET.종류(이름)`)에서만. 그 밖에 'assets/' 직접 쓰기 금지.
+  무공 그림 폴더 규칙 (유저 확정): 여러 무공이 함께 쓰는 그림(두루마리 외침 `scroll_*`, 병기 공용 오의 `ougi_병기`)은 `assets/art/common/`,
+  한 무공만의 그림(초식 컷 `cut_1`·`cut_2`, 오의 `ougi`)은 `assets/art/manual/<무공id>/`에만 둔다. 무공 폴더 그림은 그 무공 말고는 쓰지 않는다 —
+  `ASSET.manual(mid, 이름)`은 `data/assets.js`의 `MANUAL_ART` 목록에 있는 것만 돌려주고, `stanceFxSrc`(ui_sprite.js) · `ougiCfg`(ui_ougi.js)에서만,
+  무공 id를 글자로 박지 않고 부른다. 폴더와 목록이 다르거나 다른 곳에서 쓰면 `check-layers.js`가 막는다. 고유 그림이 없는 무공은 공용 그림을 쓴다(공용인 줄 알고).
   새 그림은 `assets/art/<종류>/`에 넣고(작은 그림 · 투명 스프라이트 PNG는 무손실 WebP로, 큰 배경 · 장면 그림은 가로 1280 손실 WebP 품질 80대로 줄여서. 이미 손실 WebP · JPG인 것은 다시 압축하지 않음), 안 쓰는 그림은 `node gangho/tools/assets-check.js`로 찾는다.
 - 강호행 화면: ui_field.js(패널 · 기록) · ui_live.js(무대 · 걷기 · 소품 · 기믹) · ui_live_sky.js(하루의 빛 · 날씨) · ui_live_fight.js(실시간 전투) · ui_ougi.js(오의) · ui_callout.js(초식 외침 두루마리) · ui_replay.js(관찰 창).
 

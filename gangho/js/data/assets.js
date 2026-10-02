@@ -1,7 +1,10 @@
 /* [SSOT] 그림 목록: 게임이 쓰는 모든 그림의 폴더 · 확장자는 여기서만 정한다.
    화면 코드는 ui/ui_assets.js의 ASSET.종류(이름)으로만 그림 경로를 얻는다 ('assets/' 직접 쓰기는 check-layers가 막는다).
    폴더 규칙: assets/art/ 아래 sprites(전투 · 걷기 시트) · stages(전투 무대) · travel(강호행 산길) · zones(탐험지) · props(길가 소품)
-   · fx(이펙트) · ui(수묵 아이콘) · portraits(얼굴) · beasts(요수) · items(아이템) · 루트(배너 · 무신상 같은 장면 그림) */
+   · fx(이펙트) · ui(수묵 아이콘) · portraits(얼굴) · beasts(요수) · items(아이템) · 루트(배너 · 무신상 같은 장면 그림)
+   · common(여러 무공이 함께 쓰는 그림: 두루마리 외침 scroll_* · 병기 공용 오의 ougi_병기)
+   · manual/무공id/(그 무공만의 그림: cut_1 · cut_2 초식 컷, ougi 오의). 무공 폴더 그림은 그 무공에만 쓴다 —
+     ASSET.manual(mid, 이름)은 MANUAL_ART에 올린 것만, 부르는 무공 자신의 폴더에서만 돌려준다 (다른 무공이 빌려 쓸 수 없음) */
 const ASSET_ROOT = 'assets/art/';
 const ASSET_KIND = {
   hero:     { dir: 'sprites/hero_', ext: 'webp' },   // 병기별 제자 전투 시트
@@ -19,9 +22,14 @@ const ASSET_KIND = {
   item:     { dir: 'items/', ext: 'webp' },
   ui:       { dir: 'ui/', ext: 'webp' },
   font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_477 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
-  callout:  { dir: 'callout/', ext: 'webp' },        // 초식 외침 두루마리: 무공_초식(종이) · _hz(기운 12컷) · 무공_ax(도는 축 16컷) · face(제자 얼굴)
+  common:   { dir: 'common/', ext: 'webp' },         // 공용: scroll_초식(두루마리 종이) · _hz(기운 12컷) · scroll_ax(도는 축 16컷) · scroll_face(제자 얼굴) · ougi_병기(병기 공용 오의)
   portrait: { dir: 'portraits/', ext: 'webp' },
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene · yeonhon_hall · rankup_2(이류무사 승급)
+};
+/* 무공 고유 그림 목록: assets/art/manual/무공id/ 에 실제로 있는 파일 (check-layers가 폴더와 맞는지 본다). 여기 없는 무공은 고유 그림이 없다 */
+const MANUAL_ART = {
+  sw1a: ['cut_1', 'cut_2'],            // 한상검법: 제1 · 2초식 컷 (오의는 병기 공용)
+  sw1b: ['cut_1', 'cut_2', 'ougi'],    // 추상검법: 제1 · 2초식 컷 · 오의 서리 별
 };
 /* 확장자가 기본과 다른 파일 (종류:이름) */
 const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg', 'font:rank_hanja': 'woff2' };

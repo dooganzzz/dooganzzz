@@ -69,6 +69,29 @@ for (const f of [...uiFiles, 'app.js'].filter(f => f !== 'ui/ui_sprite.js')) {
 for (const f of [...uiFiles, 'app.js'].filter(f => f !== 'ui/ui_ougi.js')) {
   read(f).split('\n').forEach((line, i) => { if (/\bOG_CFG\b|\bOG_MANUAL\b|['"`]ougi_/.test(line)) bad.push(`${f}:${i + 1} 오의 그림을 직접 고름 — ui_ougi.js의 ougiCfg를 쓸 것`); });
 }
+// 무공 고유 그림(manual/무공id/)은 그 무공 자신에게만: ASSET.manual은 초식 · 오의를 고르는 두 함수(ui_sprite.js · ui_ougi.js)에서만,
+// 무공 id를 글자로 박아 넣지 않고(다른 무공 그림을 빌려 쓰지 않게) 부른다. 공용 그림은 common/ (ASSET.common)
+for (const f of [...uiFiles, ...sysFiles, 'app.js']) {
+  read(f).replace(/\/\*[\s\S]*?\*\//g, '').split('\n').forEach((line, i) => {
+    const c = line.replace(/\/\/.*$/, '');
+    if (/ASSET\.manual\(/.test(c) && !['ui/ui_sprite.js', 'ui/ui_ougi.js', 'ui/ui_assets.js'].includes(f)) bad.push(`${f}:${i + 1} 무공 고유 그림을 다른 곳에서 씀 — stanceFxSrc · ougiCfg로만`);
+    if (/ASSET\.manual\(\s*['"`]/.test(c)) bad.push(`${f}:${i + 1} 무공 고유 그림을 무공 id를 박아 넣어 씀 (다른 무공이 빌려 쓰게 됨)`);
+  });
+}
+// 무공 폴더 ↔ MANUAL_ART 목록이 같아야 한다 (목록에 없는 그림 · 그림 없는 목록 · 없는 무공 id)
+{
+  const ART = path.join(JS, '..', 'assets', 'art', 'manual'), list = {};
+  for (const m of read('data/assets.js').matchAll(/^\s+(\w+): \[([^\]]*)\],/gm)) list[m[1]] = [...m[2].matchAll(/'(\w+)'/g)].map(x => x[1]);
+  const ids = new Set([...read('data/skills.js').matchAll(/^\s{2}(\w+): \{ name:/gm)].map(m => m[1]));
+  const dirs = fs.existsSync(ART) ? fs.readdirSync(ART) : [];
+  for (const d of dirs) {
+    if (!ids.has(d)) bad.push(`assets/art/manual/${d}: 없는 무공 id`);
+    const files = fs.readdirSync(path.join(ART, d)).map(f => f.replace(/\.webp$/, ''));
+    for (const f of files) if (!(list[d] || []).includes(f)) bad.push(`assets/art/manual/${d}/${f}: MANUAL_ART에 없음`);
+    for (const f of list[d] || []) if (!files.includes(f)) bad.push(`MANUAL_ART.${d}.${f}: 그림 파일이 없음`);
+  }
+  for (const d of Object.keys(list)) if (!dirs.includes(d)) bad.push(`MANUAL_ART.${d}: 폴더가 없음`);
+}
 const html = fs.readFileSync(path.join(JS, '..', 'index.html'), 'utf8');
 const order = [...html.matchAll(/<script src="js\/([^"?]+)/g)].map(m => m[1]);
 const rank = f => f === 'core.js' ? 0 : f.startsWith('data/') ? 1 : f.startsWith('systems/') ? 2 : f.startsWith('ui/') ? 3 : f === 'app.js' ? 4 : 9;

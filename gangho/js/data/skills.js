@@ -2,7 +2,7 @@
    cat: 무공·심법·경공·기공 · grade: 삼류~초절정 · weapon: 무공이 요구하는 병기 · terrain: 경공 지형 · elem: 기공 오행
    stances: 초식 3개 (제1초식 = 비급 습득 즉시 · 제2초식 = 소성 6성 돌파 · 오의(奧義) = 대성 12성 달성). 이름은 '한글(漢字)', desc는 그 뜻.
    초식 글자 수: 제1초식 ≤3 · 제2초식 ≤5 · 오의 ≤8 (높은 등급일수록 길다). 발동할 때는 '제1초식 응한 (凝寒) !'처럼 이름만 외친다.
-   (초식 이펙트 그림은 ui_sprite.js CUT_FX — 그림이 있는 무공만) · poem: 비급에 실린 과거 시(검법은 비급마다 한 편, 나머지는 CAT_POEMS)
+   (초식 · 오의 고유 그림은 assets/art/manual/무공id/ — 목록은 data/assets.js MANUAL_ART) · poem: 비급에 실린 과거 시(검법은 비급마다 한 편, 나머지는 CAT_POEMS)
    extra: 장착 시 덧붙는 작은 고유 능력치 */
 
 const MANUALS = {

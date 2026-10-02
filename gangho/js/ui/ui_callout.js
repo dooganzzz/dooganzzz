@@ -3,9 +3,9 @@
    병기 무공의 모든 초식이 외친다 (CALLOUT: 초식 번호마다 같은 두루마리). 실시간 전투(ui_live_fight.js)에서 초식을 펼칠 때마다 · 오의는 오의 막이 내려오기 전에 (설정 탭에서 끌 수 있음). */
 /* 두루마리는 모든 비급이 같다 (유저 확정): 초식 번호마다 한 그림, 안의 글(무공 · 초식 이름)과 시구만 그 비급 것으로 바뀐다 */
 const CALLOUT = {
-  1: { art: 'sw1a_1', ax: 'sw1a_ax', t: .384, b: .783, glow: '90, 160, 255' },   // 제1초식 — 푸른 불띠 (t · b: 그림 속 종이 띠 위 · 아래)
-  2: { art: 'sw1a_2', ax: 'sw1a_ax', t: .413, b: .711, glow: '255, 190, 80', tone: 'gold' },   // 제2초식 — 금박 연기 (GPT Image 2.5 확정본)
-  3: { art: 'sw1a_3', ax: 'sw1a_ax', t: .394, b: .694, glow: '255, 90, 60', tone: 'red' },   // 오의 — 봉황 날개 (GPT Image 2.5 확정본)
+  1: { art: 'scroll_1', ax: 'scroll_ax', t: .384, b: .783, glow: '90, 160, 255' },   // 제1초식 — 푸른 불띠 (t · b: 그림 속 종이 띠 위 · 아래)
+  2: { art: 'scroll_2', ax: 'scroll_ax', t: .413, b: .711, glow: '255, 190, 80', tone: 'gold' },   // 제2초식 — 금박 연기 (GPT Image 2.5 확정본)
+  3: { art: 'scroll_3', ax: 'scroll_ax', t: .394, b: .694, glow: '255, 90, 60', tone: 'red' },   // 오의 — 봉황 날개 (GPT Image 2.5 확정본)
 };
 const CO_TL = { inEnd: 900, poem: 1000, outStart: 2500, outEnd: 2950, end: 3050 };   // ms — 두루마리 시계 (두루마리 자신의 움직임)
 /* 무공 시계: 두루마리가 뜬 뒤 몇 ms에 무공(초식 · 오의)이 시작하는가. 두루마리 시계와 따로 센다 (서로 기다리지 않는다) */
@@ -19,7 +19,7 @@ const CO_POEM = {
   two: { pc: { k: 46, min: 0, w: 46, dx: -1, dy: -2.5 }, mo: { k: 46, min: 0, w: 50, dx: 0, dy: -3 } },
 };
 function calloutPreload(mid, n) {
-  const C = calloutOf(mid, n); if (C) preloadImgs([ASSET.callout(C.art), ASSET.callout(C.art + '_hz'), ASSET.callout(C.ax), ASSET.callout('face')]);
+  const C = calloutOf(mid, n); if (C) preloadImgs([ASSET.common(C.art), ASSET.common(C.art + '_hz'), ASSET.common(C.ax), ASSET.common('scroll_face')]);
 }
 function calloutPlay(sc, mid, n) {
   const C = calloutOf(mid, n), M = MANUALS[mid];
@@ -36,10 +36,10 @@ function calloutPlay(sc, mid, n) {
   sc.append(box, poem);
   const paper = box.querySelector('.co-paper'), ax = box.querySelector('.co-ax'), body = box.querySelector('.co-body'), chars = [...poem.querySelectorAll('.co-line > span')];
   paper.style.clipPath = 'inset(0 100% 0 0)';   // 첫 그림부터 말린 채로 (첫 rAF 전에 다 펼친 종이가 한 번 번쩍이지 않게)
-  box.querySelector('.co-base').style.backgroundImage = `url('${ASSET.callout(C.art)}')`;
-  box.querySelector('.co-hz').style.backgroundImage = `url('${ASSET.callout(C.art + '_hz')}')`;
-  box.querySelector('.co-face').style.backgroundImage = `url('${ASSET.callout('face')}')`;
-  ax.style.backgroundImage = `url('${ASSET.callout(C.ax)}')`;
+  box.querySelector('.co-base').style.backgroundImage = `url('${ASSET.common(C.art)}')`;
+  box.querySelector('.co-hz').style.backgroundImage = `url('${ASSET.common(C.art + '_hz')}')`;
+  box.querySelector('.co-face').style.backgroundImage = `url('${ASSET.common('scroll_face')}')`;
+  ax.style.backgroundImage = `url('${ASSET.common(C.ax)}')`;
   // 크기: 종이 띠 높이를 무대 높이로 정하고, 그림 전체(위아래 기운 포함)를 거꾸로 잡는다. 종이 길이는 글자 길이에 맞춘다
   const S = sc.offsetHeight || 200, band = Math.min(S * .23, (sc.offsetWidth || 400) * .1) * .7, wh = band / (C.b - C.t);   // 넓은 무대에서도 너무 커지지 않게 · 세로 30% 줄임 (유저 요청)
   const SW = sc.offsetWidth || 400, PV = CO_POEM[lines.length > 1 ? 'two' : 'one'][matchMedia('(max-width: 640px)').matches ? 'mo' : 'pc'];

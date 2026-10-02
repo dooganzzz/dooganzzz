@@ -6,15 +6,14 @@ const SPRITE_SRC = ASSET;
 /* [SSOT] 초식 그림 고르기: 어느 무공 · 단계(1 = 초식 · 2 = 오의 단계)에 어떤 그림을 띄울지는 이 함수 하나만 정한다.
    강호행 무대 · 관찰 창 무대 · 초식 알림 모두 이것을 부른다. 새 그림을 넣을 때 여기만 바꾸면 옛 그림이 다른 화면에 남아 겹치지 않는다
    (manualFx · cut_ 그림을 다른 파일에서 직접 쓰면 check-layers가 막는다).
-   CUT_FX: 확정본 검기 컷(10컷, 왼쪽 끝 = 칼끝)이 있는 무공. 칼끝 = 제자 그림 너비의 tip 지점 · 그림 너비 = 칼끝~요수 가운데 × reach · 세로 가운데는 제자 가운데보다 dy(제자 키 비율) 위 */
-const CUT_FX = { sw1a: 1, sw1b: 1 };   // 초식 그림이 있는 무공 (한상검법 · 추상검법). 새로 그려 넣을 때 여기에 더함
+   초식 컷: 무공 고유 폴더(manual/무공id/cut_1 · cut_2, 목록은 data/assets.js MANUAL_ART)의 확정본 검기 컷(10컷, 왼쪽 끝 = 칼끝)이 있는 무공. 칼끝 = 제자 그림 너비의 tip 지점 · 그림 너비 = 칼끝~요수 가운데 × reach · 세로 가운데는 제자 가운데보다 dy(제자 키 비율) 위 */
 const CUT_GEO = { 1: { tip: .75, reach: 1.07, dy: .18, ar: 640 / 200, ms: 1000 }, 2: { tip: .7, reach: 1.04, dy: .35, ar: 640 / 360, ms: 1300, screen: true } };
 /* n: 초식 번호 (1 · 2 · 3=오의). 확정본 컷은 초식마다(제1 · 제2), 옛 한 장 그림은 제1 · 제2초식 공용(_1) · 오의(_2) */
 const stanceCutN = n => Math.min(2, Math.max(1, n || 1));
-const stanceFxSrc = (mid, n) => CUT_FX[mid] ? ASSET.fx(`cut_${mid}_${stanceCutN(n)}`) : null;   // 그림이 없는 무공은 초식 그림 없이 (일격만)
+const stanceFxSrc = (mid, n) => ASSET.manual(mid, 'cut_' + stanceCutN(n));   // 그림이 없는 무공은 초식 그림 없이 (일격만)
 /* stage: 그림을 붙일 무대 · imgCls: 옛 한 장 그림일 때 붙일 클래스 · hero · foe: 칼끝 · 거리를 잴 요소 (없으면 무대 가운데를 가로지름) */
 function stanceFxEl(stage, mid, n, imgCls, hero, foe) {
-  if (!CUT_FX[mid]) return null;
+  if (!stanceFxSrc(mid, n)) return null;
   const g = CUT_GEO[stanceCutN(n)], v = document.createElement('div'); v.className = `stance-cut${g.screen ? ' screen' : ''}`;
   v.style.backgroundImage = `url('${stanceFxSrc(mid, n)}')`; v.style.animationDuration = g.ms + 'ms';
   const s = stage.getBoundingClientRect(), h = hero && hero.getBoundingClientRect();
