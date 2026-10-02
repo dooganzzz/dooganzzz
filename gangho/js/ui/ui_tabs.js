@@ -179,7 +179,7 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = SUBS[ui.tab] ? subtabBar(ui.tab) : '';
-  setHTML(main, bar + ({ observe: () => `<section class="vitals" id="vitals">${vitalsHtml()}</section>${cpCard()}`, gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: () => ui.fieldMap !== false && !activeRun() ? mapScreen() : viewField(), chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
+  setHTML(main, bar + ({ observe: viewObserve, gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: () => ui.fieldMap !== false && !activeRun() ? mapScreen() : viewField(), chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
   renderModal();
   typewriteAll();
   wireImages();

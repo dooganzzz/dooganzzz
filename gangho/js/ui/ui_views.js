@@ -123,6 +123,13 @@ function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${
 
 
 /* 상태 › 무장: 착용 장비 슬롯 · 선택 장비 강화 · 능력치 */
+/* 상태 › 관조: 활력 · 내력 · 수련치 · 은자 · 공헌(#vitals, 매초 갱신) + 투력 카드 + 세부 능력치표 */
+function viewObserve() {
+  const st = calcStats();
+  const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
+  return `<section class="vitals" id="vitals">${vitalsHtml(st)}</section>${cpCard()}
+  <section class="panel observe">${head('능력치', '能力')}<div class="statsheet">${statList}</div></section>`;
+}
 function viewGear() {
   const st = calcStats();
   // 장착 칸 카드: 부위 아이콘 · 칸 이름 · 장착한 장비(없으면 비어있음) · 행낭에 이 칸에 맞는 장비 수
@@ -131,7 +138,6 @@ function viewGear() {
     return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${slotIcon(s)}<small class="slot-label">${SLOTS[s].name}</small><span class="slot-item-name ${it ? 'equipped' : 'empty'}">${it ? gearName(it) : '비어있음'}</span>${slotCount(s)}</button>`;
   };
   const slotCount = s => { const n = S.gear.filter(g => g.slot === slotAccepts(s)).length; return n ? `<em class="slot-n" title="행낭에 이 칸에 맞는 장비 ${n}점">+${n}</em>` : ''; };
-  const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
   return `<section class="panel">
     ${head('무장', '武裝')}
     <div class="bag-top">
@@ -146,7 +152,6 @@ function viewGear() {
       </div>
       <div class="side-col">
         <p class="muted slot-help">장비 칸을 누르면 그 부위에 맞는 행낭 장비가 떠서 바로 장착·교체·해제·강화할 수 있습니다.</p>
-        <div class="statsheet">${statList}</div>
       </div>
     </div>
   </section>`;
