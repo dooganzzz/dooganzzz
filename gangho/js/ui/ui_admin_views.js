@@ -77,8 +77,6 @@ function gmViewCheat() {
   return `<div class="gm-cheats">
     <button class="gm-btn big" data-gm="silver" ${S ? '' : 'disabled'}>[은자 +1,000냥]</button>
     <button class="gm-btn big" data-gm="exp" ${S ? '' : 'disabled'}>[수련치 +1,000]</button>
-    <button class="gm-btn big" data-gm="swordkit" ${S ? '' : 'disabled'}>[한상검법 비급 + 검 (초식 외침 시험)]</button>
-    <button class="gm-btn big" data-gm="movetest" ${S ? '' : 'disabled'}>[초식 시험: 한상검법 12성(제1 · 제2초식 · 오의) + 검]</button>
     <div class="gm-moves">초식 100%: ${[['off', '끔(35%)'], ['mix', '매번 · 60/30/10'], ['0', '제1초식만'], ['1', '제2초식만'], ['2', '오의만']].map(([k, t]) =>
       `<button class="gm-btn ${S && String(S.gmMove == null ? 'off' : S.gmMove) === k ? 'on' : ''}" data-gm="move_${k}" ${S ? '' : 'disabled'}>${t}</button>`).join('')}</div>
     <button class="gm-btn big" data-gm="heal" ${S ? '' : 'disabled'}>[활력/내력 100% 회복]</button>

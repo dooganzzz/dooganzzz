@@ -276,8 +276,8 @@ function playerAttack(b) {
   const canCombo = !!M && M.weapon === weaponType();
   let comboDone = false;
   b.affSaid = false;                                        // 상성 우위 지문은 한 턴에 한 번
-  const moves = canCombo && m ? unlockedMoves(m.star) : 0;
-  const gm = S.gmMove;                                      // GM 초식 시험: 'mix' = 매번 발동(60 · 30 · 10) · 0 · 1 · 2 = 그 초식만 매번
+  const gm = S.gmMove;
+  const moves = canCombo && m ? (gm != null ? 3 : unlockedMoves(m.star)) : 0;   // GM 초식 시험: 어느 무공이든 성급과 상관없이 세 초식 모두                                      // GM 초식 시험: 'mix' = 매번 발동(60 · 30 · 10) · 0 · 1 · 2 = 그 초식만 매번
   if (moves && (gm != null || Math.random() * 100 < MOVE_START + st.combo)) {
     const g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향

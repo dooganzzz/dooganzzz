@@ -102,12 +102,6 @@ const GM_CMDS = {
     if (what === 'heal') { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; gmTrace('gm', `활력·내력 회복 → ${st.maxHp} / ${st.maxMp}`); }
     if (what === 'stamina') { S.stamina = calcStats().maxSta; gmTrace('gm', `기력 → ${S.stamina}`); }
     if (what === 'exp') { S.exp += 1000; gmTrace('gm', `수련치 +1000 → ${S.exp}`); }
-    if (what === 'swordkit') { give('bk_sw1a', 1, true); giveGear(libraryGear('lg_sword'), true); gmTrace('gm', '시험 세트: 《한상검법》 비급 · 청풍문 패검 (가방에서 읽고 · 차면 제1초식 외침을 볼 수 있음)'); }
-    if (what === 'movetest') {                               // 한상검법을 대성(12성)으로 두고 장착 → 제2초식 · 오의까지 열림
-      S.manuals.sw1a = { ...(S.manuals.sw1a || {}), star: MAX_STAR }; S.active.mugong = 'sw1a';
-      if (weaponType() !== 'sword' && !S.gear.some(g => g.shop === 'lg_sword')) giveGear(libraryGear('lg_sword'), true);
-      gmTrace('gm', '초식 시험: 《한상검법》 12성 장착 (제1 · 제2초식 · 오의) · 검이 없으면 청풍문 패검 (가방에서 차야 펼침)');
-    }
     if (what.startsWith('move_')) {                         // 초식 100%: 끔 · 섞어서 · 한 초식만
       const k = what.slice(5); if (k === 'off') delete S.gmMove; else S.gmMove = k === 'mix' ? 'mix' : +k;
       gmTrace('gm', `초식 100%: ${k === 'off' ? '끔 (35% · 60/30/10)' : k === 'mix' ? '매번 발동 · 60/30/10' : MOVE_NAME[+k] + '만 매번'} — 내력이 모자라도 펼침`);
