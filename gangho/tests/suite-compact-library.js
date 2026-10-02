@@ -60,7 +60,7 @@ module.exports = async (b) => {
       const a = affinity('slinger');   // 火 투석수 vs 金 기공 → 역상성
       const wpF = a.wp < 0 ? 1 + AFFINITY.weapAtk : a.wp > 0 ? 1 - AFFINITY.weapDown : 1;
       r.inverse = a.el === -1 && Math.abs(a.taken - (1 + AFFINITY.elem) * 1.15 * wpF) < 0.01;
-      r.first = ENEMIES.slinger.first === true && ENEMIES.slinger.pierce > 0;
+      r.first = !ENEMIES.slinger.first && !ENEMIES.slinger.hits && ENEMIES.slinger.pierce > 0 && Object.values(ENEMIES).some(e => e.first === true);   // 투석수: 초보 벽이라 선공 · 연투를 뺌 (10월 2일), 선공 규칙은 다른 요수가 씀
       Object.assign(E, keep); S.equip = mk; S.hp = calcStats().maxHp;
       return r;
     });
