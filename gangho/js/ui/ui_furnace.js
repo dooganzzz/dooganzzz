@@ -32,10 +32,12 @@ function studyBindFx(stage, scrap, id) {
   const shards = SH.map((p, i) => { const a = (i + .5) / SH.length * Math.PI * 2;
     return `<i class="shard" style="clip-path:polygon(${p[0]}% ${p[1]}%,${p[2]}% ${p[3]}%,${p[4]}% ${p[5]}%);--dx:${(Math.sin(a) * 120).toFixed(0)}%;--dy:${(-Math.cos(a) * 120).toFixed(0)}%;--rot:${(i % 2 ? 1 : -1) * (25 + i * 7)}deg"></i>`; }).join('');
   fx.innerHTML = YH_MIRRORS.map(([x, y], i) => `<i class="glow" style="left:${x}%;top:${y}%;animation-delay:${i * .05}s"></i><i class="soul" style="--x0:${x}%;--y0:${y}%;left:${x}%;top:${y}%;animation-delay:${.45 + i * .04}s"></i>`).join('')
-    + `<i class="core"></i><div class="crack"><svg viewBox="0 0 100 100"><path d="M50 50 L18 12 M50 50 L86 20 M50 50 L92 62 M50 50 L60 96 M50 50 L10 70 M50 50 L40 4 M30 28 L18 40 M70 30 L80 44 M66 74 L82 80 M34 72 L22 86"/></svg></div><div class="shards" style="--bg:url('${ART_SRC.yeonhonBook()}')">${shards}</div>`
+    + `<i class="core"></i><img class="crack" src="${ART_SRC.yeonhonCrack()}" alt=""><div class="shards" style="--bg:url('${ART_SRC.yeonhonCrack()}')">${shards}</div>`
     + (id ? `<div class="burst">${manualIco(id, 'burst-book')}</div>` : '');
   stage.appendChild(fx); stage.classList.add('binding');
-  return new Promise(done => setTimeout(() => { fx.remove(); stage.classList.remove('binding'); done(); }, 3900));
+  // 효과음 자리 (지금은 소리 없음 — 나중에 Bus.on('sfx')로 받아 재생): 금 가는 순간 · 깨져 비급이 튀어나오는 순간
+  const sfx = [setTimeout(() => Bus.emit('sfx', 'mirror_crack'), 2000), setTimeout(() => Bus.emit('sfx', 'mirror_break'), 2500)];
+  return new Promise(done => setTimeout(() => { sfx.forEach(clearTimeout); fx.remove(); stage.classList.remove('binding'); done(); }, 3900));
 }
 /* 명경을 누르면: 등급마다 조각 칸 (다 모인 등급만 [엮기]) */
 function mirrorModal() {
