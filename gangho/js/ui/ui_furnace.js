@@ -52,6 +52,27 @@ const FORGE_MODES = [['gear', '장비', '裝備'], ['mat', '재료', '材料']];
 function forgeModeTabs() {
   return `<div class="chips forge-modes" role="tablist">${FORGE_MODES.map(([k, ko, hj]) => `<button class="chip ${ui.forgeMode === k ? 'on' : ''}" data-forgemode="${k}">${ko} <small>${hj}</small></button>`).join('')}</div>`;
 }
+/* 강화 연출 (모루 무대): 망치 세 번 → 불똥 → 결과(성공 금빛 고리 · 그대로 연기 · 파괴 파편). 화면이 다시 그려져도 처음부터 되풀이되지 않게
+   지난 시간만큼 애니메이션을 당겨(--el) 이어서 재생한다. 5초가 지나면 연출 없이 멈춘 모루만 */
+const ENH_FX_MS = 5000, ENH_HIT = [234, 598, 1014];
+const enhSparks = (n, dist, cls = '') => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2 + (i % 2) * .3, d = dist * (.6 + (i % 3) * .2); return `<i class="enh-spark ${cls}" style="--dx:${Math.round(Math.cos(a) * d)}px;--dy:${Math.round(Math.sin(a) * d * .7 - 8)}px"></i>`; }).join('');
+function enhStage(main, res) {
+  const t = res && res.at ? Date.now() - res.at : Infinity, live = t < ENH_FX_MS;
+  if (!live && !main) return '';
+  const ico = live ? res.ico : gearIco(main, 'enh-ico');
+  if (!live) return `<div class="enh-stage"><div class="enh-anvil"></div><div class="enh-piece">${ico}</div></div>`;
+  const k = res.kind, shards = k === 'boom' ? ['a', 'b', 'c', 'd'].map(q => `<div class="enh-shard q${q}">${ico}</div>`).join('') : '';
+  const tag = k === 'ok' ? `+${res.enh}` : k === 'boom' ? '破' : '변화 없음';
+  return `<div class="enh-stage fx-${k}" style="--el:${-t}ms" aria-hidden="true">
+    <div class="enh-anvil"></div><div class="enh-piece">${ico}</div>${shards}
+    ${ENH_HIT.map((d, i) => `<div class="enh-burst" style="--d:${d}ms">${enhSparks(8 + i * 2, 34 + i * 8)}</div>`).join('')}
+    ${k === 'ok' ? `<div class="enh-ring"></div><div class="enh-burst" style="--d:1300ms">${enhSparks(14, 70, 'gold')}</div>` : ''}
+    ${k === 'same' ? '<i class="enh-smoke s1"></i><i class="enh-smoke s2"></i><i class="enh-smoke s3"></i>' : ''}
+    ${k === 'boom' ? '<div class="enh-flash"></div>' : ''}
+    <svg class="enh-hammer" viewBox="0 0 110 44"><rect x="30" y="18" width="80" height="8" rx="3" fill="#6b4a2b"/><rect x="0" y="3" width="36" height="38" rx="3" fill="#3b3e45"/><rect x="2" y="5" width="32" height="7" rx="2" fill="#7c828c"/><rect x="0" y="34" width="36" height="7" rx="2" fill="#24262b"/></svg>
+    <b class="enh-tag">${tag}</b>
+  </div>`;
+}
 function viewForgeGear() {
   const all = [...Object.values(S.equip).filter(Boolean), ...S.gear].filter(it => !it.shop);
   const rows = all.map(it => ({ it, n: enhMaterials(it).length, worn: Object.values(S.equip).includes(it) })).sort((a, b) => (b.n > 0) - (a.n > 0) || b.it.rarity - a.it.rarity || (b.it.enh || 0) - (a.it.enh || 0));
@@ -70,7 +91,8 @@ function viewForgeGear() {
     </div>`;
   }
   return `<div class="forge-gear">
-    ${res ? `<div class="result ${res.kind === 'ok' ? 'ok' : 'fail'}"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? '💥 강화 실패 — 장비가 부서졌습니다' : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
+    ${enhStage(main, res)}
+    ${res ? `<div class="result enh-late ${res.kind === 'ok' ? 'ok' : 'fail'}" style="--el:${res.at ? Math.max(-ENH_FX_MS, res.at - Date.now()) : -ENH_FX_MS}ms"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? '💥 강화 실패 — 장비가 부서졌습니다' : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
     ${panel}
     <h4>장비 <span class="num muted">${rows.length}점</span></h4>
     <div class="enh-list">${rows.map(({ it, n, worn }) => `<button class="enh-item r${it.rarity} ${main && main.uid === it.uid ? 'on' : ''}" data-enhmain="${it.uid}">${gearIco(it, 'sm')}<span><b>${esc(gearName(it))}</b><small class="muted">${RARITY[it.rarity].name}${worn ? ' · 착용 중' : ''} · 재료 ${n}개</small></span></button>`).join('') || '<p class="muted">장비가 없습니다.</p>'}</div>

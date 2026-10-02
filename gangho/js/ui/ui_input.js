@@ -115,7 +115,7 @@ function onClick(e) {
     enhance: () => {
       const it = gearByUid(ui.enhMain), mat = it && enhMaterials(it)[0], r = it && enhRule(it);
       if (!it || !mat || !r) return;
-      const go = () => { ui.enhResult = forgeEnhance(it.uid, mat.uid); if (ui.enhResult && ui.enhResult.kind === 'boom') ui.enhMain = null; render(); };
+      const go = () => { const ico = gearIco(it, 'enh-ico'), res = forgeEnhance(it.uid, mat.uid); ui.enhResult = res && { ...res, ico, enh: it.enh || 0, at: Date.now() }; if (res && res.kind === 'boom') ui.enhMain = null; render(); };   /* 연출용: 부서지기 전 그림 · 시각 */
       if (r.boom) return requestActionConfirm({ title: '장비 강화', description: `<b>${esc(gearName(it))}</b> +${(it.enh || 0) + 1} 강화 — 실패하면 부서질 수 있습니다 (${r.boom}%).`, details: [`은자 -${fmt(enhCost(it))}냥`, `재료 ${esc(it.name)} 1개 소모`], confirmText: '강화', onConfirm: go });
       go();
     },

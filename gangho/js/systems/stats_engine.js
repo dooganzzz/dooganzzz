@@ -60,8 +60,11 @@ function manualBonus(id, star) {
 
 
 function gearStats(it) {
-  const mult = 1 + ENH_STEP * (it.enh || 0), out = {};   // 강화: 단계마다 +2.86% (+7 ≈ 한 등급 위)
-  for (const [k, v] of Object.entries(it.stats)) out[k] = PCT_STATS.has(k) ? Math.round(v * mult * 10) / 10 : Math.round(v * mult);
+  const up = ENH_STEP * (it.enh || 0), out = {};   // 강화: 단계마다 +2.86% (+7 ≈ 한 등급 위), 작은 수치는 반올림
+  for (const [k, v] of Object.entries(it.stats)) {
+    const pct = PCT_STATS.has(k), b = (pct ? 10 : 1) * v * up;   // 더할 몫 (퍼센트는 0.1 단위)
+    out[k] = (Math.round(v * (pct ? 10 : 1)) + (v >= 5 ? Math.ceil(b - 1e-9) : Math.round(b))) / (pct ? 10 : 1);   // 큰 수치(5 이상)는 올림 → +1부터 오른다
+  }
   return out;
 }
 

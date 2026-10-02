@@ -36,6 +36,7 @@ function aiAct(note) {
   aiCraftGear(note);                                 // 화로: 투력이 오르는 단조 장비
   aiShop(note);                                      // 전방: 투력이 오르는 하급 장비
   aiPickGear(note);
+  aiEnhance(note);                                   // 단조 강화: 같은 장비를 재료로 (+7까지)
   // 5. 문파 임무 · 무신상 공양
   if (subqReady()) { const q = subqCur(); claimSubq(); note(`토벌 임무 완료 ${subqToday()}/${SUBQ.daily}: ${stageName(q.zid, q.n)}`); }
   aiSlag(note);                                      // 가르침이 공양을 바라면 찌꺼기를 일부러 만든다
@@ -82,7 +83,7 @@ function aiPickGear(note) {
     }
     if (bestSlot) { equipItem(it.uid, bestSlot); note(`장비: ${it.name} 착용 (투력 ${fmt(bestCp)})`); }
   }
-  if (bagUsed() >= bagCap() - 2) for (const it of [...S.gear]) if (gearSellPrice(it)) sellGear(it.uid);
+  if (bagUsed() >= bagCap() - 2) for (const it of [...S.gear]) if (gearSellPrice(it) && !Object.values(S.equip).some(e => enhSame(e, it))) sellGear(it.uid);   // 강화 재료는 남긴다
 }
 
 function aiCraftable(r) { return Object.entries(r.in).every(([id, n]) => has(id, n)); }
@@ -186,6 +187,19 @@ function aiCraftGear(note) {
     while (aiCraftable(r) && tries++ < 3 && S.hp > craftCost('forge') && !S.gear.some(g => g.named === id)) { const res = doCraft('forge', { ...r.in }); if (res && res.ok) note(`단조: ${CRAFT_GEAR[id].name}`); }
   }
   aiPickGear(note);
+}
+
+/* 단조 강화: 차고 있는 장비와 같은 장비(강화 안 된 것)가 행낭에 있으면 재료로 쓴다. 부서질 수 있는 +8부터는 하지 않고, 은자는 50냥 남긴다 */
+function aiEnhance(note) {
+  for (const it of Object.values(S.equip)) {
+    if (!it) continue;
+    let r;
+    while ((r = enhRule(it)) && !r.boom && enhMaterials(it).length && S.silver - enhCost(it) >= 50) {
+      const res = forgeEnhance(it.uid, enhMaterials(it)[0].uid);
+      if (!res) break;
+      if (res.kind === 'ok') note(`강화: ${it.name} +${it.enh}`);
+    }
+  }
 }
 
 /* 다음 강호행 자리. 강호행은 쓰러질 때까지 이어지므로, 앞길(가장 높은 열린 단계)을 두 번 밀어도 더 열리지 않으면 막힌 것으로 보고
