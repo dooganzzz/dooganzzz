@@ -100,7 +100,10 @@ function triggerStatueAwakeningReward() {
   give(id, 1, true);
   log(`[무신의 응답] 석상이 탁기를 모두 삼켜 눈을 떴습니다! ${hlItem(I.name)}${jo(I.name, '을를')} 하사받았습니다. (${count(id)} / ${STUDY.need}장 — 화로 › 연혼에서 엮습니다)`, 'gold');
   notify.banner('무신의 응답', I.name, '');
-  return { item: { id, name: I.name, grade: STUDY.scraps[id] } };
+  let pill = null, r = Math.random() * 100;   // 낮은 확률로 돌파단도 함께
+  for (const [pid, p] of Object.entries(GACHA.awakenPill)) { if (r < p) { pill = pid; break; } r -= p; }
+  if (pill) { give(pill, 1, true); log(`[무신의 응답] 석상의 손바닥에서 ${hlItem(ITEMS[pill].name)}${jo(ITEMS[pill].name, '이가')} 함께 굴러떨어졌습니다!`, 'gold'); }
+  return { item: { id, name: I.name, grade: STUDY.scraps[id] }, pill };
 }
 /* 화로 › 연혼: 조각 8장을 엮어 그 등급의 비급 한 권 (아직 없는 것 가운데 무작위, 다 있으면 아무거나) */
 function studyBind(scrap) {

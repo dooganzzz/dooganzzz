@@ -211,8 +211,9 @@ function ougiPlay(sc, o) {
         if (k < 1) requestAnimationFrame(step); else blade.style.opacity = ''; };
       fx.style.transformOrigin = '50% 50%'; requestAnimationFrame(step);
     }
-    if (!C.noFx && !C.own) setTimeout(playFx, Math.max(0, reach - (C.impact - from) * per));   // 제 오의는 아래 '터지는 순간'에 바로 튼다 (먼저 터지지 않게)
     glowOn = true; gather(1000);   // 기운이 모여 병기로 빨려 든다 (제 오의도 같은 모으기 — 빛깔은 그 오의의 rgb)
+    if (o.callout) { await OG_W(1000); await o.callout(); }   // 기 모으기 → 두루마리가 펼쳐지고 시문 → 감기기 시작하면 바로 공격 (감기는 것과 동시에)
+    if (!C.noFx && !C.own) setTimeout(playFx, Math.max(0, reach - (C.impact - from) * per));   // 제 오의는 아래 '터지는 순간'에 바로 튼다 (먼저 터지지 않게)
     if (C.kunai) { kHeld = true; kunai.style.removeProperty('--a'); kunai.className = 'og-kunai on'; kunai.style.opacity = ''; kunai.animate([{ '--g': .2 }, { '--g': 1 }], { duration: 1000, fill: 'forwards' }); setTimeout(() => kunai.classList.add('charged'), 450); } aura.classList.add('fadeout'); await OG_W(250); if (C.glow === 'blade') blade.classList.add('on'); else if (!C.kunai) handGlows.forEach(g => g.classList.add('on'));
     await OG_W(500); aura.className = 'og-aura';
     if (w === 'blade') {   // 도: 달려가다 뛰어올라 공중에서 도를 치켜들고, 내려앉으며 내려친다

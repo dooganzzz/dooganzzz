@@ -69,8 +69,7 @@ function liveShowPlan(sh, w) {
       if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function') {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
         const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
         const co = g && g.k !== 'miss' && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);
-        if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(20); }   // 오의 외침 → (두루마리가 감기기 시작하면 바로) 오의 막
-        if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, name: f.t, noName: !!co, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
+        if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, n: f.n, name: f.t, co: !!co, noName: !!co, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }   // 오의 외침은 오의 막 안에서 (기 모으기 → 두루마리 → 공격)
       }
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
@@ -177,6 +176,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'ougi') {
       sh.hold = true; const t1 = performance.now();
       ougiPlay(sc, { w: hero.dataset.w || weaponType(), mid: e.mid, name: e.name, noName: e.noName, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
+        callout: e.co ? () => calloutPlay(sc, e.mid, e.n) : null,
         onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }

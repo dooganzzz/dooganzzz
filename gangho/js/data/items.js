@@ -371,6 +371,7 @@ const GACHA = {
     { k: 'book',   w: 3,  name: '비급' },
   ],
   awaken: 300,                                             // 누적 공양 찌꺼기가 이만큼 차면 무신이 깨어난다 (초과분 보존)
+  awakenPill: { pillLow: 10, pillHigh: 5 },             // 각성 때 덤으로 돌파단: 소성 10% · 대성 5% (나머지 85%는 없음, 유저 요청)
   awakenScrap: { scrap2: 90, scrap3: 10 },                 // 각성마다 찢어진 비급 조각 1장: 이류 90% · 일류 10% (유저 요청 — 영구 능력치 · 완제품 하사는 없앰)
   books: ['sw1a', 'sw1b', 'sw1c', 'bd1a', 'bd1b', 'bd1c', 'sp1a', 'sp1b', 'sp1c', 'fs1a', 'fs1b', 'fs1c', 'hd1a', 'hd1b', 'hd1c', 'gy1a', 'gy1b', 'gy1c', 'gi1a', 'gi1b', 'gi1c', 'sm1a', 'sm1b', 'sm1c'],   // 삼류 40종
 };

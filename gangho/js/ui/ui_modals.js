@@ -176,7 +176,7 @@ function renderModal() {
     setHTML(m, `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>
       <div class="shrine-stage">${shrineArt(true)}</div>
       <p class="story">탁기 ${GACHA.awaken}개를 모두 삼킨 무신이 제자에게 권능의 한 조각을 내려 줍니다.</p>
-      <ul class="awaken-list"><li>${itemIco(a.item.id)} 하사품 <b class="r1">${esc(a.item.name)}</b> <span class="pill grade-2">${a.item.grade}</span> <small class="muted">${count(a.item.id)} / ${STUDY.need}장 · 화로 › 연혼에서 엮음</small></li></ul>
+      <ul class="awaken-list"><li>${itemIco(a.item.id)} 하사품 <b class="r1">${esc(a.item.name)}</b> <span class="pill grade-2">${a.item.grade}</span> <small class="muted">${count(a.item.id)} / ${STUDY.need}장 · 화로 › 연혼에서 엮음</small></li>${a.pill ? `<li>${itemIco(a.pill)} 덤 <b class="r2">${esc(ITEMS[a.pill].name)}</b></li>` : ''}</ul>
       <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`); }
   if (ui.modal === 'ending') setHTML(m, `<div class="sheet ending"><p class="eyebrow">제1장 완결</p><h2>${label('청풍문 편', '淸風門')}</h2><p class="story">시골 하급 문파의 밑바닥 제자였던 ${esc(S.name)}. 청풍산의 산토끼를 쫓던 손이 이제 수룡방주를 꺾었습니다.</p><p class="story">장문인 노벽송이 건넨 누런 종이 한 장, <b>낙양성 하산령</b>. 산문 밖으로 난 길은 낙양으로 이어집니다.</p><p class="muted">제2장 [낙양성 편]은 준비 중입니다.</p><div><button class="btn primary" data-act="closemodal">산문을 바라본다</button></div></div>`);
   wireImages();
