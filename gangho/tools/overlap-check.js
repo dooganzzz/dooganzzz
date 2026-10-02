@@ -11,6 +11,7 @@ const ALLOW = [
   ['.live-scene', '*', '강호행 무대: 산길 배경 위에 제자 · 요수 · 소품 · 날씨가 올라감'],
   ['.furnace-stage', '*', '화로: 장면 그림 위에 불꽃 · 버튼'],
   ['.main-header', '*', '머리 배너 그림 위에 제목 글자'],
+  ['.map-box', '*', '강호 지도 화면: 지도 그림 위에 붓글씨 지역 이름 · 황금 기둥'],
   ['.qi-orbit', '*', '무공 탭: 네 무공 칸을 잇는 큰 기운 고리(선만, 가운데는 비어 있음)가 카드 · 가부좌 그림 뒤에 깔림'],
 ];
 const allowed = (a, b) => ALLOW.some(([x]) => a.closest && (a.closest(x) || b.closest(x)));

@@ -24,7 +24,7 @@ module.exports = async (b) => {
     ok('1 권장 전투력 50~300 · 300~700 · 700~1200 (데이터)', ar.map(z => z.cp).join() === '50~300,300~700,700~1200', JSON.stringify(ar));
     ok('1 사냥터마다 요수 10종 · 핵심 재료 6종 이상', ar.every(z => z.n === 10 && z.mats >= 6), JSON.stringify(ar));
     await p.evaluate(() => { S.flags.boss1 = S.flags.boss2 = true; goTab('field'); render(); });
-    ok('1 권장 전투력은 화면에 보이지 않음 (강호 지도)', await p.evaluate(() => { ui.modal = 'map'; renderModal(); const sh = document.querySelector('.map-sheet'), t = sh ? sh.textContent : ''; const ok = !!sh && !/권장|300~700|700~1/.test(t) && !!sh.querySelector('[aria-label="수룡방"]'); ui.modal = null; renderModal(); return ok; }));
+    ok('1 권장 전투력은 화면에 보이지 않음 (강호 지도)', await p.evaluate(() => { ui.modal = null; ui.tab = 'field'; ui.fieldMap = true; render(); const sh = document.querySelector('.map-sheet'), t = sh ? sh.textContent : ''; const ok = !!sh && !/권장|300~700|700~1/.test(t) && !!sh.querySelector('[aria-label="수룡방"]'); ui.modal = null; renderModal(); return ok; }));
     await p.evaluate(() => { S.flags.boss1 = S.flags.boss2 = false; render(); });
 
     // 2. 요수 30종 · 특수 규칙

@@ -61,7 +61,7 @@ function liveShowPlan(sh, w) {
   };
   const num = t => +String(t).replace(/[^\d]/g, '') || 0;
   let t = 900, me = B.start.me.hp, foe = B.start.foe.hp;
-  const called = new Set(); let pending = null;
+  let pending = null;
   for (const r of B.rounds) {
     const used = new Set();
     for (let i = 0; i < r.fx.length; i++) {
@@ -72,8 +72,8 @@ function liveShowPlan(sh, w) {
       }
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
-          const co = f.n < 3 && typeof calloutOf === 'function' && calloutOf(f.mid, f.n) && !called.has(f.mid + f.n);   // 초식 외침: 전투마다 그 초식을 처음 쓸 때 한 번
-          if (co) { called.add(f.mid + f.n); q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }
+          const co = f.n < 3 && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);   // 초식 외침: 초식을 펼칠 때마다 (설정에서 끔)
+          if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }
           pending = { mid: f.mid, n: f.n, tier: f.n >= 3 ? 2 : 1, name: f.t, noName: !!co };   // 초식은 바로 뒤의 일격에 실어 낸다 (평타 동작과 겹치지 않게)
         }
         continue;

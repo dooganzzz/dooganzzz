@@ -141,7 +141,6 @@ function renderModal() {
   if (ui.modal && ui.modal.startsWith('mart:')) setHTML(m, martialModal(ui.modal.slice(5)));
   if (!ui.modal) { m.hidden = true; return; }
   if (ui.modal === 'confirm') setHTML(m, confirmModal());
-  if (ui.modal === 'map') setHTML(m, mapModal());
   if (ui.modal.startsWith('mapgo:')) setHTML(m, mapGoModal(ui.modal.slice(6)));
   if (ui.modal.startsWith('equip:')) setHTML(m, equipModal(ui.modal.slice(6)));
   if (ui.modal.startsWith('artslot:')) setHTML(m, artSlotModal(ui.modal.slice(8)));

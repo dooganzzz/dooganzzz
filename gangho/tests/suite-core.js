@@ -72,7 +72,7 @@ module.exports = async (b) => {
   await p.click('[data-tab="chronicle"]');
   const logc = await p.evaluate(() => { const i = document.querySelector('.chron .hl-item'), s = document.querySelector('.chron .hl-silver'), c = document.querySelector('.chron .hl-contrib'); const cs = el => el && getComputedStyle(el).color; return [cs(i), cs(s), cs(c)].join(' | '); });
   ok('8 획득 하이라이트 색', logc === 'rgb(251, 191, 36) | rgb(253, 224, 71) | rgb(52, 211, 153)', logc);
-  ok('8 옆 견문록 없음 · 초기화는 바닥글', await p.evaluate(() => !document.querySelector('.side') && !document.querySelector('#log') && !!document.querySelector('.footer [data-act="reset"]')));
+  ok('8 옆 견문록 없음 · 초기화는 설정 탭', await p.evaluate(() => { const r = !document.querySelector('.side') && !document.querySelector('#log') && !document.querySelector('.footer [data-act="reset"]'); ui.tab = 'settings'; render(); const ok = r && !!document.querySelector('#main [data-act="reset"]'); ui.tab = 'sect'; render(); return ok; }));
   // 10
   const th = await p.evaluate(() => ({ body: getComputedStyle(document.body).backgroundImage.includes('radial-gradient(circle at 50% 15%') ? 'radial-gradient' : 'missing', panel: getComputedStyle(document.querySelector('.panel')).backgroundColor, blur: getComputedStyle(document.querySelector('.panel')).backdropFilter, border: getComputedStyle(document.querySelector('.panel')).borderTopColor }));
   ok('10 먹빛 글래스', th.body.includes('radial-gradient') && th.panel === 'rgba(18, 22, 29, 0.85)' && th.blur === 'blur(10px)' && th.border === 'rgba(212, 175, 55, 0.15)', JSON.stringify(th));

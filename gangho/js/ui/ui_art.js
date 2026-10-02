@@ -195,9 +195,15 @@ function meditationSvg() {
   </svg>`;
 }
 
-/* ───────── 움직임 줄이기: 기기 설정 또는 게임 설정(바닥글) ───────── */
+/* ───────── 움직임 줄이기: 기기 설정 또는 게임 설정(설정 탭) ───────── */
 const calmOn = () => !!(S && S.settings && S.settings.calm);
 function reduceMotion() { return calmOn() || matchMedia('(prefers-reduced-motion: reduce)').matches; }
+const calloutOn = () => !(S && S.settings && S.settings.callout === false);   // 초식 외침 두루마리 (기본 켬)
+function toggleCallout() {
+  S.settings = { ...(S.settings || {}), callout: !calloutOn() };
+  toast(calloutOn() ? '초식 외침 두루마리를 켰습니다.' : '초식 외침 두루마리를 껐습니다.');
+  render();
+}
 function toggleCalm() {
   S.settings = { ...(S.settings || {}), calm: !calmOn() };
   toast(calmOn() ? '움직임을 줄였습니다.' : '움직임을 다시 켰습니다.');
@@ -213,7 +219,6 @@ let lastScreen = null;
 const replay = (el, cls) => { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
 function artAfterRender() {
   document.documentElement.classList.toggle('calm', calmOn());
-  const cb = $('[data-act="calm"]'); if (cb) cb.textContent = `움직임 줄이기: ${calmOn() ? '켬' : '끔'}`;
   const scr = screen(), main = $('#main');
   if (scr !== lastScreen) { lastScreen = scr; if (main) main.scrollTop = 0; }   // 화면 전환은 번짐 연출 없이 곧바로 (서서히 나타나기는 게임 시작 때 한 번뿐)
   const fx = ui.fxOnce; ui.fxOnce = null;

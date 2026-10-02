@@ -1,4 +1,4 @@
-/* [화면] 강호 지도: 강호행 탭을 열면(강호행 중이 아닐 때) 먼저 뜬다. 청풍문을 가운데로 세 탐험지가 펼쳐진 수묵 지도.
+/* [화면] 강호 지도: 강호행 탭을 열면(강호행 중이 아닐 때 — 대기 · 쓰러짐) 강호행 화면 대신 지도 화면이 뜬다 (팝업 아님). 강호행 중이면 곧바로 강호행 화면. 청풍문을 가운데로 세 탐험지가 펼쳐진 수묵 지도.
    지도에는 탐험지 이름과 지금 있는 곳만(자세한 건 다녀오며 알아 간다), 누르면 출발 준비(무장 · 무공 · 생혈고 · 단약 등) → [출발]하면 화면이 바뀌며 곧바로 강호행 */
 const MAP_SPOTS = { cheongpung: { x: 25, y: 33 }, yeomhwa: { x: 76, y: 33 }, suryong: { x: 45, y: 74 } };   // 지도 그림 위 자리(%)
 /* 사냥터: px · py = 손을 대면 황금 기둥이 솟는 밑동(%), poly = 누르는 자리(그림의 윤곽) */
@@ -12,7 +12,7 @@ const MAP_HIT = {
 const MAP_DUST = [[25, 20, 32, 53.1, 0.75, 1.8, 6, 1], [-29, 28, 18, 62.3, 0.66, 1.5, 6, 0], [29, 18, 26, 62.9, 0.66, 1.4, 6, 0], [-20, 20, 25, 43.3, 0.72, 1.9, 6, 0], [22, 26, 19, 48.6, 0.68, 1.9, 8, 1], [-19, 26, 32, 65.7, 0.78, 1.5, 5, 0], [20, 34, 33, 46.0, 0.72, 2.0, 6, 0], [-10, 16, 19, 59.6, 0.67, 2.0, 7, 0], [18, 31, 28, 46.7, 0.66, 1.7, 6, 1], [-12, 31, 28, 56.7, 0.78, 1.7, 8, 0], [21, 25, 23, 52.6, 0.77, 1.5, 7, 0], [-8, 26, 30, 42.0, 0.68, 1.8, 6, 0], [20, 33, 25, 64.1, 0.7, 1.9, 8, 1], [-21, 29, 31, 46.0, 0.82, 1.7, 6, 0], [30, 19, 26, 64.7, 1.52, 1.6, 5, 0], [-6, 21, 36, 42.1, 2.01, 1.9, 6, 0], [14, 20, 40, 60.6, 1.91, 1.7, 6, 1], [-25, 19, 23, 61.1, 2.46, 1.6, 5, 0], [26, 31, 30, 51.2, 2.36, 1.9, 7, 0], [-23, 28, 33, 43.8, 2.09, 1.6, 6, 0], [25, 25, 19, 46.4, 1.66, 1.9, 8, 1], [-25, 24, 18, 48.8, 1.13, 1.6, 8, 0], [24, 15, 38, 61.7, 2.57, 1.7, 8, 0], [-30, 34, 19, 57.3, 1.76, 1.7, 6, 0], [22, 17, 30, 60.2, 2.07, 1.4, 8, 1], [-7, 27, 35, 63.9, 1.35, 1.8, 5, 0], [18, 22, 27, 45.1, 2.21, 1.6, 6, 0], [-21, 17, 37, 52.5, 2.12, 1.9, 8, 0]];
 /* 붓글씨 이름 자리(%): 각 그림의 머리 위쪽 */
 const MAP_LABELS = { cheongpung: { x: 19, y: 20 }, yeomhwa: { x: 88, y: 20 }, suryong: { x: 50, y: 79 }, home: { x: 51, y: 27 } };
-function mapModal() {
+function mapScreen() {
   const spots = Object.entries(MAP_SPOTS).filter(([z]) => ZONES[z]).map(([zid, p]) => {
     const Z = ZONES[zid], open = zoneUnlocked(zid);   // 자세한 정보는 다녀오며 알아 간다 — 지도에는 붓글씨 이름만
     const L = MAP_LABELS[zid];
@@ -23,12 +23,12 @@ function mapModal() {
       + `<i class="map-flash"></i><i class="map-ring"></i></span>`
       + `<img class="map-word ${open ? '' : 'locked'}" style="left:${L.x}%;top:${L.y}%" src="${ASSET.ui('map_' + zid)}" alt="">`;
   }).join('');
-  return `<div class="sheet map-sheet">
-    <div class="map-head"><h2>강호 지도 <small>江湖地圖</small></h2><button class="btn ghost sm" data-act="closemodal">닫기</button></div>
+  return `<section class="panel map-sheet">
+    <div class="map-head"><h2>강호 지도 <small>江湖地圖</small></h2></div>
     <div class="map-box"><img src="${ASSET.scene('map')}" alt="청풍문과 세 탐험지 지도" draggable="false">${spots}
       <img class="map-word home" style="left:${MAP_LABELS.home.x}%;top:${MAP_LABELS.home.y}%" src="${ASSET.ui('map_home')}" alt="청풍문"></div>
     <p class="muted map-hint">탐험지를 누르면 출발 준비가 나옵니다.</p>
-  </div>`;
+  </section>`;
 }
 function mapGoModal(zid) {
   const Z = ZONES[zid], st = calcStats();

@@ -102,7 +102,7 @@ function masterHint() {
 
 function buyManual(id) {
   const M = MANUALS[id];
-  if (S.manuals[id] || has('bk_' + id) || !M.cost || S.contrib < M.cost) return;
+  if (!LIBRARY_BOOKS.includes(id) || S.manuals[id] || has('bk_' + id) || !M.cost || S.contrib < M.cost) return;
   if (!give('bk_' + id, 1, true)) return;
   S.contrib -= M.cost;
   log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 상태 탭의 무공에서 [ 익히기 ] 하십시오.`, 'gold');

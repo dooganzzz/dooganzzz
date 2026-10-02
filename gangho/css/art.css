@@ -102,7 +102,6 @@
 @keyframes rays { to { transform: rotate(360deg); } }
 
 /* ───────── 바닥글 · 움직임 줄이기 ───────── */
-.footer .calm { margin-left: auto; }
 @media (prefers-reduced-motion: reduce) {
   .btn.talk-btn.ready, .scene *, .statue *, .portrait-img, .meditation-art > img, .gear-ico > img, .shrine-art > img, .replay-sheet.won .arena-bg::after, .settle-sheet { animation: none !important; }
 }

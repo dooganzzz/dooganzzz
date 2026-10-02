@@ -28,8 +28,13 @@ function viewShrine() {
 
 /* 연무장 › 심상수련장: 만나 본 요수와 기력 소모 없이 가상으로 겨룬다 */
 function viewYeonmu() {
-  const bs = S.bestiary || {}, ids = Object.keys(ENEMIES).filter(e => bs[e]);
-  const sim = ui.sim;
+  const bs = S.bestiary || {}, sim = ui.sim;
+  // 지역별 탭 (도감과 같은 짜임): 마주친 상대가 있는 탐험지만
+  const zones = ZONE_ORDER.filter(z => [...ZONES[z].enemies, ZONES[z].boss].some(e => bs[e]));
+  const zc = zones.includes(ui.simZone) ? ui.simZone : zones[0];
+  const ids = zc ? [...ZONES[zc].enemies, ZONES[zc].boss].filter(e => bs[e]) : [];
+  const zbar = zones.length > 0 ? `<div class="subtabs sim-zones" role="tablist" aria-label="탐험지" style="--n:${zones.length}">${zones.map(k =>
+    `<button class="subtab ${k === zc ? 'on' : ''}" role="tab" aria-selected="${k === zc}" data-simzone="${k}">${label(ZONES[k].name, ZONES[k].hanja)}</button>`).join('')}</div>` : '';
   const rows = ids.map(e => {
     const E = ENEMIES[e], a = affinity(e), r = sim && sim.many && sim.many.eid === e ? sim.many : null;
     return `<li class="sim-row ${E.boss ? 'boss' : ''}">
@@ -42,14 +47,14 @@ function viewYeonmu() {
   return `<section class="panel yeonmu">
     ${head('심상수련장', '心象修練場')}
     <p class="story">연무장 한가운데 앉아 눈을 감으면, 석상의 목소리가 제자의 마음속에 싸움 하나를 그려 줍니다. 강호에서 한 번이라도 마주친 상대만 불러낼 수 있습니다. 기력은 들지 않고, 얻는 것도 잃는 것도 없습니다. 지금 차림(무공·병기·장비)과 상성이 그대로 반영됩니다.</p>
-    ${ids.length ? `<ul class="sim-list">${rows}</ul>` : '<p class="story muted">아직 강호에서 마주친 상대가 없습니다. 강호행에서 탐험을 다녀오십시오.</p>'}
+    ${ids.length ? `${zbar}<ul class="sim-list">${rows}</ul>` : '<p class="story muted">아직 강호에서 마주친 상대가 없습니다. 강호행에서 탐험을 다녀오십시오.</p>'}
   </section>`;
 }
 
 /* 정청 */
 function viewHall() {
   const qi = questIndex(), q = QUESTS[qi];
-  const shopManuals = Object.entries(MANUALS).filter(([id, M]) => M.cost && !manualSealed(id));
+  const shopManuals = LIBRARY_BOOKS.filter(id => MANUALS[id] && !manualSealed(id)).map(id => [id, MANUALS[id]]);   // 이류 비급, 분류마다 하나씩
   const ownsBook = id => !!S.manuals[id] || has('bk_' + id);
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();

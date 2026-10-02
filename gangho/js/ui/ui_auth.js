@@ -79,10 +79,5 @@ function authLegacyOffer(st, yes, no) {
     (b.dataset.legacy === 'yes' ? yes : no)();
   };
 }
-/* 바닥글: 로그인한 아이디와 로그아웃 단추 */
-function authFooter() {
-  const f = document.querySelector('.footer'); if (!f) return;
-  const old = f.querySelector('.auth-foot'); if (old) old.remove();
-  if (typeof AUTH === 'undefined' || !AUTH.id) return;
-  f.insertAdjacentHTML('afterbegin', `<span class="auth-foot muted">${esc(AUTH.id)} 로그인 중 <button class="btn ghost sm" data-act="logout">로그아웃</button></span>`);
-}
+/* 로그인한 아이디와 로그아웃 단추는 설정 탭에 (viewSettings). 로그인 상태가 바뀌면 설정 화면을 다시 그린다 */
+function authFooter() { if (typeof S !== 'undefined' && S && typeof ui !== 'undefined' && ui.tab === 'settings') render(); }

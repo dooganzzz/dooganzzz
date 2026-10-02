@@ -32,7 +32,7 @@ function onClick(e) {
   if (t.dataset.act === 'doreset') return doReset();
   if (!S) return;
   const d = t.dataset;
-  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); if (d.tab === 'field' && !activeRun() && !ui.modal) ui.modal = 'map'; render(); return; }   // 강호행 탭: 먼저 지도
+  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); if (d.tab === 'field') ui.fieldMap = !activeRun(); render(); return; }   // 강호행 탭: 먼저 지도
   if (d.encpick) {                                               // 기연 고르기
     const [uid, ci] = d.encpick.split(':').map(Number), r = resolveEncounter(uid, ci);
     if (r && r.fail) toast(r.fail); else if (r) { const g = encGainText(r); toast(`📜 ${r.text}${g ? ` (${g})` : ''}`); }
@@ -45,6 +45,7 @@ function onClick(e) {
   if (d.chron) { ui.chronFilter = d.chron; return render(); }
   if (d.codextab) { ui.codexTab = d.codextab; return render(); }
   if (d.codexzone) { ui.codexZone = d.codexzone; return render(); }
+  if (d.simzone) { ui.simZone = d.simzone; return render(); }
   if (d.codexcat) { ui.codexCat = d.codexcat; return render(); }
   if (d.watch) return openReplay(d.watch);
   if (d.rp) return replayControl(d.rp, d.x);
@@ -91,15 +92,15 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     craft: () => askCraft(), clearpot: () => { ui.pot = {}; render(); },
-    confirmok: confirmAccept, calm: toggleCalm, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
+    confirmok: confirmAccept, calm: toggleCalm, callout: toggleCallout, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
-    runstart: () => { ui.modal = 'map'; render(); },          // 강호행 시작은 지도에서 탐험지를 고르고 [출발]
-    mapback: () => { ui.modal = 'map'; render(); },
+    runstart: () => { ui.modal = null; ui.fieldMap = true; goTab('field'); render(); },          // 강호행 시작은 지도에서 탐험지를 고르고 [출발]
+    mapback: () => { ui.modal = null; ui.fieldMap = true; render(); },
     mapgo: () => {                                           // 강호행 시작: 쓰러지거나 귀환할 때까지 이어진다
       if (!S.expedition.zone) return toast('탐험지를 먼저 정하십시오.');
       ui.modal = null;
-      const go = () => { if (startRun()) { toast(`⛰️ 제자가 ${ZONES[S.expedition.zone].name}(으)로 길을 떠났습니다`); ui.enterAt = now(); goTab('field'); render(); } };   // 지도에서 떠나면 무대가 먹빛에서 밝아지며 열린다
+      const go = () => { if (startRun()) { ui.fieldMap = false; toast(`⛰️ 제자가 ${ZONES[S.expedition.zone].name}(으)로 길을 떠났습니다`); ui.enterAt = now(); goTab('field'); render(); } };   // 지도에서 떠나면 무대가 먹빛에서 밝아지며 열린다
       const warn = [!S.active.mugong && '무공을 하나도 펼치지 않았습니다 — 상태 탭 › 무공에서 비급을 익히고 펼치십시오', !has('saenghyeol') && '생혈고가 하나도 없습니다 — 전방에서 개당 5냥'].filter(Boolean);
       if (warn.length) return requestActionConfirm({ title: '이대로 떠날까요?', description: '준비가 모자라면 금방 쓰러질 수 있습니다. 쓰러지면 강호행은 끝납니다.', details: warn, confirmText: '그래도 떠난다', onConfirm: go });
       go();
