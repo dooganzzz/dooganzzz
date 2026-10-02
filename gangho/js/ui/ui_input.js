@@ -77,10 +77,22 @@ function onClick(e) {
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
   if (d.enhmain) { ui.enhMain = +d.enhmain; ui.enhResult = null; return render(); }
-  if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
-  if (d.bind) { if (count(d.bind) < STUDY.need) return; const scrap = d.bind, id = studyBind(scrap); if (!id) return; ui.modal = null; render();   // 엮은 뒤 연출 (비급이 명경을 깨고 나옴) → 알림
-    return studyBindFx(document.querySelector('.furnace-stage.study'), scrap, id).then(() => { toast(`📚 《${MANUALS[id].name}》 비급을 엮었습니다 — 행낭에서 확인하십시오`); render(); }); }
-  if (d.add) { if (!getFilteredMaterials(ui.craft).includes(d.add)) return; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
+  if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.potGear = []; ui.yhPick = null; ui.craftResult = null; ui.enhResult = null; return render(); }
+  if (d.bind) return doBind(d.bind);
+  if (d.yhpick) { ui.yhPick = ui.yhPick === d.yhpick ? null : d.yhpick; return render(); }
+  if (d.gadd) {                                              // 단조: 장비를 솥 칸에 (먼저 올린 것이 본템, 둘째가 재료)
+    const g = gearByUid(+d.gadd), main = ui.potGear[0] != null && gearByUid(ui.potGear[0]); if (!g) return;
+    if (potTotal(ui.pot)) ui.pot = {};                       // 재료와 장비는 한 번에 하나만
+    ui.enhResult = null;
+    if (!main) ui.potGear = [g.uid];
+    else if (ui.potGear.length >= 2) return toast('장비는 본템과 재료 둘만 올립니다. 칸의 장비를 눌러 빼십시오.');
+    else if (enhSame(main, g)) ui.potGear.push(g.uid);
+    else if (enhSame(g, main)) ui.potGear = [g.uid, main.uid];   // 강화 안 된 것을 먼저 올렸다면 지금 것이 본템
+    else return toast('같은 이름 · 같은 등급의 강화 안 된 장비만 재료로 올릴 수 있습니다.');
+    return render();
+  }
+  if (d.grem) { ui.potGear = ui.potGear.filter(u => u !== +d.grem); ui.enhResult = null; return render(); }
+  if (d.add) { if (!getFilteredMaterials(ui.craft).includes(d.add)) return; ui.potGear = []; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
   if (d.rem) { ui.pot[d.rem]--; if (ui.pot[d.rem] <= 0) delete ui.pot[d.rem]; return render(); }
   if (d.subq) { claimSubq(); return; }
   if (d.subqzone) { const z = d.subqzone; npcTalk('master', () => subqPickZone(z)); if (ui.npcTalk) { ui.npcTalk.stages = z; render(); } return; }
@@ -98,7 +110,7 @@ function onClick(e) {
   if (d.fill) return fillPot(d.fill);
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
-    craft: () => askCraft(),
+    craft: () => ui.potGear.length ? ((ui.enhMain = ui.potGear[0]), acts.enhance()) : askCraft(),
     confirmok: confirmAccept, calm: toggleCalm, mirror: () => { ui.modal = 'mirror'; render(); }, callout: toggleCallout, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), subqask: () => { npcTalk('master', subqAsk); if (ui.npcTalk && subqLeft()) { ui.npcTalk.zones = true; render(); } }, jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
@@ -114,12 +126,21 @@ function onClick(e) {
     },
     logout: () => requestActionConfirm({ title: '로그아웃', description: '저장을 서버에 올리고 로그아웃합니다. 진행 중인 강호행은 다음에 로그인하면 이어집니다.', details: [], confirmText: '로그아웃', onConfirm: logout }),
     gigeok: () => { if (!has('gigeokdan')) { toast('기력단이 없습니다. 전방에서 50냥에 팝니다.'); return; } useItem('gigeokdan'); render(); },
-    enhance: () => {
-      const it = gearByUid(ui.enhMain), mat = it && enhMaterials(it)[0], r = it && enhRule(it);
-      if (!it || !mat || !r) return;
-      const go = () => { const ico = gearIco(it, 'enh-ico'), res = forgeEnhance(it.uid, mat.uid); ui.enhResult = res && { ...res, ico, enh: it.enh || 0, at: Date.now() }; if (res && res.kind === 'boom') ui.enhMain = null; render(); };   /* 연출용: 부서지기 전 그림 · 시각 */
+    enhance: () => {                                          // 단조 › 장비: 솥 칸의 본템(첫째)에 재료(둘째)를 먹여 강화
+      const it = gearByUid(ui.potGear[0]), mat = ui.potGear[1] != null && gearByUid(ui.potGear[1]), r = it && enhRule(it);
+      if (!it) return toast('솥 칸에 강화할 장비(본템)를 올리십시오.');
+      if (!mat) return toast('같은 장비(강화 안 된 것)를 하나 더 올리십시오 — 그것이 재료로 부서집니다.');
+      if ((it.enh || 0) >= ENH_MAX) return toast('+10 — 더 이상 벼릴 수 없습니다.');
+      if (S.silver < enhCost(it)) return toast(`은자가 모자랍니다 (필요 ${fmt(enhCost(it))}냥).`);
+      const go = () => { const ico = gearIco(it, 'enh-ico'), res = forgeEnhance(it.uid, mat.uid); ui.enhResult = res && { ...res, ico, enh: it.enh || 0, at: Date.now() }; ui.potGear = ui.potGear.filter(u => gearByUid(u)); render(); };   /* 연출용: 부서지기 전 그림 · 시각. 재료는 사라지고 본템만 남는다 */
       if (r.boom) return requestActionConfirm({ title: '장비 강화', description: `<b>${esc(gearName(it))}</b> +${(it.enh || 0) + 1} 강화 — 실패하면 부서질 수 있습니다 (${r.boom}%).`, details: [`은자 -${fmt(enhCost(it))}냥`, `재료 ${esc(it.name)} 1개 소모`], confirmText: '강화', onConfirm: go });
       go();
+    },
+    yeonhon: () => {                                          // 연혼: 고른 조각 8장으로 엮기
+      const pick = ui.yhPick || Object.keys(STUDY.scraps).find(id => count(id) >= STUDY.need);
+      if (!pick) return toast(`같은 등급 조각 ${STUDY.need}장이 필요합니다. 오른쪽에서 조각을 골라 보십시오.`);
+      if (count(pick) < STUDY.need) return toast(`${ITEMS[pick].name} ${STUDY.need}장이 필요합니다 (지금 ${count(pick)}장).`);
+      doBind(pick);
     },
     runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 이미 받았습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); goTab('sect'); render(); /* 귀환하면 청풍문으로 */ } }),
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },
@@ -166,6 +187,12 @@ function askPray(times) {
   const left = GACHA.awaken - (S.statueResidueCount || 0);
   requestActionConfirm({ title: '무신상 공양', description: `검게 탄 찌꺼기를 무신상에 바칩니다. 무엇이 돌아올지는 알 수 없습니다.`,
     details: [`검게 탄 찌꺼기 -${n * GACHA.cost}개 (공양 ${n}회)`, `탁기 정화 +${n * GACHA.cost}${n * GACHA.cost >= left ? ' · 무신이 깨어납니다!' : ` (각성까지 ${left}개)`}`], confirmText: '공양', onConfirm: () => pray(times) });
+}
+/* 연혼: 조각 8장을 엮은 뒤 연출 (비급이 명경을 깨고 나옴) → 알림 */
+function doBind(scrap) {
+  if (count(scrap) < STUDY.need) return;
+  const id = studyBind(scrap); if (!id) return; ui.modal = null; ui.yhPick = null; render();
+  return studyBindFx(document.querySelector('.furnace-stage.study'), scrap, id).then(() => { toast(`📚 《${MANUALS[id].name}》 비급을 엮었습니다 — 행낭에서 확인하십시오`); render(); });
 }
 function askCraft() {
   const flat = Object.entries(ui.pot).filter(([, n]) => n > 0); if (!flat.length) return doCraft(ui.craft, ui.pot);

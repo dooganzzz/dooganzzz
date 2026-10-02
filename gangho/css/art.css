@@ -852,3 +852,9 @@ html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage 
 @keyframes enhShard { 0% { opacity: 1; transform: none; filter: brightness(1.5) sepia(.6) hue-rotate(-20deg); } 100% { opacity: 0; transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); } }
 @keyframes enhFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes enhLate { 0% { opacity: 0; transform: translateY(-4px); } 100% { opacity: 1; transform: none; } }
+/* 화로: 왼쪽 무대(+칸 · 정보) · 오른쪽 재료 */
+.forge-left { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.yh-pick { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
+.yh-pick .yh-slot { width: 78px; flex: none; }
+.pot-slots .slot.gear small { max-width: 100%; }
+.chip.gear small { color: var(--dim); }

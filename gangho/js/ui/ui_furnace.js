@@ -11,14 +11,26 @@ function furnaceTabs() {
 /* 화로 › 연혼(煉魂): 장면 그림 한 장. 가운데 명경 속 초절정 비급이 흐릿하게 깜박인다(같은 그림의 거울 안쪽을 잘라 그 자리에서만).
    명경을 누르면 엮을 수 있는 조각 창이 뜬다 (같은 등급 조각 STUDY.need장이 다 모여야 엮임 · 등급끼리 섞이지 않음) */
 function viewStudy() {
+  const pick = ui.yhPick, need = STUDY.need;
+  const slot = pick ? `<button class="slot full yh-slot" data-yhpick="${pick}" title="${ITEMS[pick].name} 빼기" style="--gc:${STUDY.color[pick]}">${itemIco(pick)}<small>${ITEMS[pick].name} ${count(pick)}/${need}</small></button>` : '<div class="slot yh-slot"><small class="slot-hint">조각</small></div>';
+  const chips = Object.entries(STUDY.scraps).map(([id, grade]) => `<button class="chip ${pick === id ? 'on' : ''}" data-yhpick="${id}" style="--gc:${STUDY.color[id]}" title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${count(id)}/${need}</b></button>`).join('');
   return `<section class="panel furnace study">
     ${head('화로', '火爐')}
     ${furnaceTabs()}
-    <p class="muted furnace-desc">연혼각(煉魂閣). 무신상이 내린 찢어진 비급 조각을 명경(明鏡)이 끌어온 넋으로 다시 잇는 곳입니다. 같은 등급 조각 ${STUDY.need}장을 모아 내력을 불어넣으면 온전한 비급이 됩니다.</p>
-    <div class="pot furnace-stage study"><div class="stage-bg">${artPic(ART_SRC.yeonhonScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>
-      <img class="yh-book" src="${ART_SRC.yeonhonBook()}" alt="" aria-hidden="true">
-      <button class="yh-mirror" data-act="mirror" aria-label="명경 — 찢어진 비급 조각 엮기"></button></div>
-    <div class="btns plaque-btns study-btns"><button class="btn plaque primary" data-act="mirror">연혼주입</button></div>
+    <p class="muted furnace-desc">연혼각(煉魂閣). 무신상이 내린 찢어진 비급 조각을 명경(明鏡)이 끌어온 넋으로 다시 잇는 곳입니다. 같은 등급 조각 ${need}장을 모아 내력을 불어넣으면 온전한 비급이 됩니다.</p>
+    <div class="forge">
+      <div class="forge-left">
+        <div class="pot furnace-stage study"><div class="stage-bg">${artPic(ART_SRC.yeonhonScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>
+          <img class="yh-book" src="${ART_SRC.yeonhonBook()}" alt="" aria-hidden="true">
+          <button class="yh-mirror" data-act="mirror" aria-label="명경 — 찢어진 비급 조각 엮기"></button></div>
+        <div class="yh-pick">${slot}<div class="btns plaque-btns study-btns"><button class="btn plaque primary" data-act="yeonhon">연혼주입</button></div></div>
+      </div>
+      <div class="mats">
+        <h4>조각 재료</h4>
+        <div class="chips">${chips}</div>
+        <p class="muted furnace-desc">조각을 골라 칸에 올린 뒤 [연혼주입]을 누르십시오. 같은 등급 ${need}장이 모여야 엮입니다.</p>
+      </div>
+    </div>
   </section>`;
 }
 /* 엮기 연출: 여덟 거울(자리 %) → 넋이 명경(50%, 35.2%)으로 모임 → 비급이 또렷해지며 번쩍. 끝나면 resolve */
@@ -69,29 +81,27 @@ function enhStage(main, res) {
     <b class="enh-tag">${tag}</b>
   </div>`;
 }
-function viewForgeGear() {
-  const all = [...Object.values(S.equip).filter(Boolean), ...S.gear].filter(it => !it.shop);
-  const rows = all.map(it => ({ it, n: enhMaterials(it).length, worn: Object.values(S.equip).includes(it) })).sort((a, b) => b.it.rarity - a.it.rarity || koCmp(a.it.name, b.it.name) || (b.it.enh || 0) - (a.it.enh || 0));
-  const main = ui.enhMain != null && gearByUid(ui.enhMain), res = ui.enhResult;
-  let panel = '<p class="muted">강화할 장비를 고르십시오. 같은 이름 · 같은 등급의 강화 안 된 장비가 행낭에 있어야 재료로 쓸 수 있습니다.</p>';
+/* 단조의 장비 재료: 같은 장비 둘을 솥 칸에 올려 두드린다 (먼저 올린 것이 본템, 둘째가 재료). ui.potGear = [본템 uid, 재료 uid] */
+const forgeGearList = () => gearSort([...Object.values(S.equip).filter(Boolean), ...S.gear].filter(it => !it.shop && !ui.potGear.includes(it.uid)));
+function forgeGearInfo() {
+  const main = ui.potGear[0] != null && gearByUid(ui.potGear[0]), res = ui.enhResult;
+  let panel = '';
   if (main) {
-    const r = enhRule(main), mats = enhMaterials(main), max = (main.enh || 0) >= ENH_MAX, cost = enhCost(main), next = { ...main, enh: (main.enh || 0) + 1 };
+    const r = enhRule(main), max = (main.enh || 0) >= ENH_MAX, cost = enhCost(main), next = { ...main, enh: (main.enh || 0) + 1 }, mat = ui.potGear[1] != null && gearByUid(ui.potGear[1]);
     panel = `<div class="enh-panel">
       <div class="enh-row"><span class="enh-lab">본템</span><b class="r${main.rarity}">${esc(gearName(main))}</b> <span class="pill">${RARITY[main.rarity].name}</span></div>
-      <div class="enh-row"><span class="enh-lab">재료</span>${mats.length ? `<b>${esc(main.name)}</b> <small class="muted">(강화 안 된 것 · 행낭에 ${mats.length}개 — 하나가 부서져 흡수됩니다)</small>` : '<span class="warn">행낭에 같은 장비(강화 안 된 것)가 없습니다</span>'}</div>
+      <div class="enh-row"><span class="enh-lab">재료</span>${mat ? `<b>${esc(mat.name)}</b> <small class="muted">(부서져 본템에 흡수됩니다)</small>` : '<span class="warn">같은 장비(강화 안 된 것)를 하나 더 올리십시오</span>'}</div>
       ${max ? '<p class="muted">+10 — 더 이상 벼릴 수 없습니다.</p>' : `
       <div class="enh-row"><span class="enh-lab">능력치</span><small>${statLine(main)}</small></div>
       <div class="enh-row"><span class="enh-lab">+${next.enh} 되면</span><small class="good">${statLine(next)}</small></div>
       <div class="enh-row"><span class="enh-lab">확률</span><span>성공 <b class="good">${r.ok}%</b> · 그대로 <b>${100 - r.ok - r.boom}%</b>${r.boom ? ` · 파괴 <b class="warn">${r.boom}%</b>` : ''}</span></div>
-      <div class="btns"><button class="btn primary" data-act="enhance" ${mats.length && S.silver >= cost ? '' : 'disabled'}>🔨 +${next.enh} 강화 · ${hlSilver(cost)}</button></div>`}
+      <div class="enh-row"><span class="enh-lab">은자</span><span>${hlSilver(cost)}</span></div>`}
     </div>`;
   }
   return `<div class="forge-gear">
     ${enhStage(main, res)}
     ${res ? `<div class="result enh-late ${res.kind === 'ok' ? 'ok' : 'fail'}" style="--el:${res.at ? Math.max(-ENH_FX_MS, res.at - Date.now()) : -ENH_FX_MS}ms"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? '💥 강화 실패 — 장비가 부서졌습니다' : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
     ${panel}
-    <h4>장비 <span class="num muted">${rows.length}점</span></h4>
-    <div class="enh-list">${rows.map(({ it, n, worn }) => `<button class="enh-item r${it.rarity} ${main && main.uid === it.uid ? 'on' : ''}" data-enhmain="${it.uid}">${gearIco(it, 'sm')}<span><b>${esc(gearName(it))}</b><small class="muted">${RARITY[it.rarity].name}${worn ? ' · 착용 중' : ''} · 재료 ${n}개</small></span></button>`).join('') || '<p class="muted">장비가 없습니다.</p>'}</div>
   </div>`;
 }
 function viewFurnace() {
@@ -107,24 +117,30 @@ function viewFurnace() {
     ${furnaceTabs()}
     <p class="muted furnace-desc">${C.desc} 조합식은 알려져 있지 않습니다. 성공하면 도감에 적힙니다.</p>
     <div class="forge">
+      <div class="forge-left">
       <div class="pot furnace-stage ${ui.craft}">
         ${ui.craft === 'forge'
           ? `<div class="stage-bg">${artPic(ART_SRC.forgeScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>`
           : `<div class="stage-bg">${artPic(ART_SRC.alchemyScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>`}
         <div class="stage-ui">
-          <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${itemIco(flat[i])}<small>${ITEMS[flat[i]].name}</small></button>` : `<div class="slot">${i === 0 && !flat.length ? '<small class="slot-hint">재료</small>' : ''}</div>`).join('')}</div>
-          <div class="btns plaque-btns"><button class="btn plaque primary" data-act="craft" ${flat.length ? '' : 'disabled'}>${ui.craft === 'forge' ? '두드리기' : '내력주입'}</button></div>
+          <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => { const g = ui.potGear[i - flat.length] != null && i >= flat.length ? gearByUid(ui.potGear[i - flat.length]) : null;
+            return flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${itemIco(flat[i])}<small>${ITEMS[flat[i]].name}</small></button>`
+              : g ? `<button class="slot full gear r${g.rarity}" data-grem="${g.uid}" title="${esc(gearName(g))} 빼기">${gearIco(g, 'sm')}<small>${esc(gearName(g))}</small></button>`
+              : `<div class="slot">${i === 0 && !flat.length && !ui.potGear.length ? '<small class="slot-hint">재료</small>' : ''}</div>`; }).join('')}</div>
+          <div class="btns plaque-btns"><button class="btn plaque primary" data-act="craft" ${flat.length || ui.potGear.length ? '' : 'disabled'}>${ui.craft === 'forge' ? '두드리기' : '내력주입'}</button></div>
         </div>
         ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">📓 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
         ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${chronDecor(res.text)}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
       </div>
+      ${ui.craft === 'forge' ? forgeGearInfo() : ''}
+      </div>
       <div class="mats">
         <h4>${ui.craft === 'forge' ? '조합 재료' : '재료'}</h4>
         ${mats.length ? `<div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : `<p class="muted">${C.name}에 쓸 재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>`}
+      ${ui.craft === 'forge' ? `<h4>장비 재료</h4>
+        <p class="muted furnace-desc">같은 장비 둘을 솥 칸에 올려 두드립니다 (먼저 올린 것이 본템). 재료로 쓴 장비는 부서져 본템에 흡수됩니다. +1~3 · +4~7 · +8~10 단계마다 은자와 성공 확률이 달라지고, +8부터는 부서질 수도 있습니다.</p>
+        <div class="chips">${forgeGearList().map(g => `<button class="chip gear r${g.rarity}" data-gadd="${g.uid}" title="${esc(gearName(g))}">${gearIco(g, 'sm')} ${esc(gearName(g))}${Object.values(S.equip).includes(g) ? ' <small>착용</small>' : ''}</button>`).join('') || '<p class="muted">장비가 없습니다.</p>'}</div>` : ''}
       </div>
-      ${ui.craft === 'forge' ? `<div class="mats forge-equip"><h4>장비 재료</h4>
-        <p class="muted furnace-desc">같은 장비 둘을 겹쳐 두드려 벼립니다. 재료로 쓴 장비는 부서져 본템에 흡수됩니다. +1~3 · +4~7 · +8~10 단계마다 은자와 성공 확률이 달라지고, +8부터는 부서질 수도 있습니다. 등급이 높을수록 은자가 두 배씩 듭니다.</p>
-        ${viewForgeGear()}</div>` : ''}
     </div>
   </section>
   ${researchNotes(ui.craft)}`;

@@ -34,8 +34,15 @@ module.exports = async (b) => {
       return { enh: w.enh, atk0, atk1: calcStats().atk, spent: 99999 - S.silver };
     });
     ok('4 장비 강화: 단계·공격력 상승, 은자 소모', enh.enh === 3 && enh.atk1 > enh.atk0 && enh.spent > 0, JSON.stringify(enh));
-    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.enhMain = S.equip.weapon.uid; render(); });
-    ok('4 화로 › 단조 › 장비 강화 버튼', !!(await p.$('[data-act="enhance"]')));
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.pot = {}; ui.potGear = []; render(); });
+    const potFlow = await p.evaluate(() => {   // 장비도 솥 칸에: 본템 → 같은 장비(재료) → 두드리기
+      const w = S.equip.weapon, m = { ...w, uid: S.uid++, enh: 0, shop: undefined }; S.gear.push(m); S.silver = 99999; render();
+      document.querySelector(`[data-gadd="${w.uid}"]`).click(); document.querySelector(`[data-gadd="${m.uid}"]`).click();
+      const slots = document.querySelectorAll('.pot-slots .slot.gear').length, panel = !!document.querySelector('.enh-panel'), e0 = w.enh || 0;
+      document.querySelector('[data-act="craft"]').click(); const c = document.querySelector('[data-act="confirmok"]'); if (c) c.click();
+      return { slots, panel, e0, e1: w.enh || 0, res: ui.enhResult && ui.enhResult.kind, left: S.gear.some(g => g.uid === m.uid) };
+    });
+    ok('4 화로 › 단조: 장비를 솥 칸(본템 · 재료)에 올려 두드려 강화', potFlow.slots === 2 && potFlow.panel && !!potFlow.res && !potFlow.left, JSON.stringify(potFlow));
     await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'shop'; render(); });
     ok('4 청풍문 › 전방 진열', (await p.$$('[data-buy]')).length === await p.evaluate(() => SHOP_STOCK.length));
 
