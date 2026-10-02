@@ -50,11 +50,12 @@ function liveShowPlan(sh, w) {
   const skillAtk = (t0, ev, sk) => {
     ev.art = !!(sk.mid && stanceFxSrc(sk.mid, sk.n || sk.tier));   // 초식 그림이 있으면 맞을 때 평타 타격 그림은 띄우지 않는다 (겹침 방지)
     if (!ranged && sk.mid && ASSET.hit(sk.mid) && stanceCutN(sk.n || sk.tier) === 1) {   // (제1초식만 — 제2초식은 손에서 뻗어 날아가는 기운)   // 연속 때리기(MANUAL_HIT): 달려가 붙어서 때리고, 맞는 자리에 초식 그림이 터진 뒤 돌아온다
-      q.push({ at: t0, k: 'hx', x: Math.max(LIVE_POS.lunge, (sh.foeX || 0) - 17) }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);   // 주먹이 닿게 요수 코앞까지
-      const s = t0 + T(330), hitAt = s + T(150);
-      heroF(s, 4); heroF(s + T(120), 5); q.push({ at: hitAt - T(40), k: 'skill', sk }); q.push({ ...ev, at: hitAt }); heroF(s + T(300), 6);
-      q.push({ at: s + T(520), k: 'hx', x: LIVE_POS.hero }); heroF(s + T(560), 0);
-      return s + T(700);
+      q.push({ at: t0, k: 'hx', x: Math.max(LIVE_POS.lunge, (sh.foeX || 0) - 13) }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);   // 주먹이 닿게 요수에 바짝 붙는다
+      const s = t0 + T(330), hitAt = s + T(380);
+      for (let i = 0; i < 3; i++) { heroF(s + T(i * 170), 4); heroF(s + T(i * 170 + 85), 5); }   // 연타 세 번 (유저 요청) — 초식 그림은 첫 주먹에 터져 세 번 내내 이어진다
+      q.push({ at: s + T(40), k: 'skill', sk }); q.push({ ...ev, at: hitAt }); heroF(s + T(520), 6);
+      q.push({ at: s + T(720), k: 'hx', x: LIVE_POS.hero }); heroF(s + T(760), 0);
+      return s + T(900);
     }
     heroF(t0, 4); q.push({ at: t0 + T(90), k: 'skill', sk }); heroF(t0 + T(140), 5);
     const hitAt = t0 + T(sk.n >= 2 ? 560 : 450);
@@ -98,7 +99,7 @@ function liveShowPlan(sh, w) {
   }
   q.push({ at: t + 200, k: B.win ? 'ko' : B.fled ? 'mist' : 'down' });
   q.push({ at: t + 1600, k: 'end' });
-  return q;
+  return q.map((e, i) => [e, i]).sort((a, b) => a[0].at - b[0].at || a[1] - b[1]).map(x => x[0]);   // 시간순 (같은 시각은 넣은 순서대로)
 }
 /* 지금 무공에서 열린 가장 높은 초식 (없으면 null) */
 function liveSkillOf() {
