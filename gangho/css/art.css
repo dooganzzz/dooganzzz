@@ -724,3 +724,13 @@
 .study-row .icon { width: 52px; height: 52px; display: grid; place-items: center; }
 .study-row .mprog { height: 5px; margin: 5px 0 3px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
 .study-row .mprog span { display: block; height: 100%; background: linear-gradient(90deg, #8a6a3a, #d4a64c); }
+/* 화로 › 연혼: 장면 그림 비율 그대로 (명경 · 비급 자리가 %로 맞도록) */
+.pot.furnace-stage.study { min-height: 0; aspect-ratio: 1280 / 716; height: auto; }
+.furnace-stage.study .stage-bg .art-frame > img { object-fit: fill; }
+.furnace-stage.study .stage-bg::after { display: none; }
+.furnace-stage.study .yh-book { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; pointer-events: none; animation: yhBook 5.2s ease-in-out infinite; }
+@keyframes yhBook { 0%, 100% { opacity: .05; filter: blur(3px); } 28% { opacity: .6; filter: blur(1.6px); } 40% { opacity: .22; filter: blur(2.6px); } 55% { opacity: .8; filter: blur(1.2px); } 74% { opacity: .12; filter: blur(3px); } }
+html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: blur(1.5px); }
+.furnace-stage.study .yh-mirror { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; border-radius: 50%; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.furnace-stage.study .yh-mirror:hover, .furnace-stage.study .yh-mirror:focus-visible { box-shadow: 0 0 0 2px rgba(212, 175, 55, .55), 0 0 22px rgba(160, 200, 255, .35); outline: none; }
+.mirror-sheet { max-width: 460px; }

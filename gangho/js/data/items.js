@@ -31,8 +31,8 @@ const ITEMS = {
   dragonScale:  { name: '교룡 비늘',  icon: '🐉', kind: '재료', craftType: 'forge',   price: 40, desc: '어린 교룡의 비늘. 가볍고 단단하다.' },
   centipedeLeg: { name: '오공족',     icon: '🦗', kind: '재료', craftType: 'alchemy', price: 20, desc: '소택지 독지네의 다리. 독을 다스리는 약이 된다.' },
   mistDew:      { name: '수무로',     icon: '💦', kind: '재료', craftType: 'alchemy', price: 22, desc: '새벽 호수 물안개에서 모은 이슬.' },
-  scrap2: { name: '찢어진 이류 비급 조각', icon: '📜', kind: '조각', price: 0, desc: '무신이 하사한 이류 비급의 찢어진 한 장. 8장을 모으면 화로 › 연혼각에서 온전한 이류 비급으로 엮는다.' },
-  scrap3: { name: '찢어진 일류 비급 조각', icon: '📜', kind: '조각', price: 0, desc: '무신이 하사한 일류 비급의 찢어진 한 장. 금박 테두리가 남아 있다. 8장을 모으면 화로 › 연혼각에서 온전한 일류 비급으로 엮는다.' },
+  scrap2: { name: '찢어진 이류 비급 조각', icon: '📜', kind: '조각', price: 0, desc: '무신이 하사한 이류 비급의 찢어진 한 장. 8장을 모으면 화로 › 연혼에서 온전한 이류 비급으로 엮는다.' },
+  scrap3: { name: '찢어진 일류 비급 조각', icon: '📜', kind: '조각', price: 0, desc: '무신이 하사한 일류 비급의 찢어진 한 장. 금박 테두리가 남아 있다. 8장을 모으면 화로 › 연혼에서 온전한 일류 비급으로 엮는다.' },
   kingTusk:     { name: '저왕의 엄니', icon: '🦷', kind: '증표', price: 0, desc: '옛 청풍산 두목 외눈 멧돼지왕의 거대한 송곳니. 지난 토벌의 증표.' },
   // 조합 실패물 (단조·연단 공통)
   slag:         { name: '검게 탄 찌꺼기', icon: '⚫', kind: '부산물', price: 0, desc: '화로 조합에 실패하면 남는 찌꺼기. 청풍문 › 무신상에 공양하면 무언가로 돌아온다.' },
@@ -381,7 +381,7 @@ const GACHA = {
 
 /* 화로 한 번에 넣을 수 있는 재료 수 · 연구 노트에 남기는 시도 수 */
 const POT_MAX = 10;
-/* 화로 › 연혼각: 찢어진 비급 조각 8장 → 그 등급의 온전한 비급 한 권 (아직 없는 것 가운데 무작위) */
+/* 화로 › 연혼: 찢어진 비급 조각 8장 → 그 등급의 온전한 비급 한 권 (아직 없는 것 가운데 무작위) */
 const STUDY = { need: 8, scraps: { scrap2: '이류', scrap3: '일류' } };
 const CRAFT_NOTE_MAX = 80;
 

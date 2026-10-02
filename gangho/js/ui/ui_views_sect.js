@@ -19,7 +19,7 @@ function viewShrine() {
     <div class="purify">
       <div class="purify-head"><span>탁기 정화(누적 공양)</span><b class="num">${fmt(S.statueResidueCount || 0)} / ${GACHA.awaken}</b></div>
       <div class="purify-bar"><span style="width:${Math.min(100, (S.statueResidueCount || 0) / GACHA.awaken * 100)}%"></span></div>
-      <small class="muted">검게 탄 찌꺼기 ${GACHA.awaken}개를 삼켜 정화하면, 무신의 권능이 깨어나 찢어진 비급 조각 한 장(이류 90% · 일류 10%)을 하사합니다. 조각 ${STUDY.need}장은 화로 › 연혼각에서 온전한 비급으로 엮습니다.</small>
+      <small class="muted">검게 탄 찌꺼기 ${GACHA.awaken}개를 삼켜 정화하면, 무신의 권능이 깨어나 찢어진 비급 조각 한 장(이류 90% · 일류 10%)을 하사합니다. 조각 ${STUDY.need}장은 화로 › 연혼에서 온전한 비급으로 엮습니다.</small>
     </div>
     ${res && res.length ? `<div class="gacha-res"><h4>돌아온 것</h4><ul>${res.map((g, i) => `<li class="${g.cls}" style="--i:${i}">${g.text}</li>`).join('')}</ul></div>` : ''}
     ${old}

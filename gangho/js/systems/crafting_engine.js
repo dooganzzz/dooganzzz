@@ -98,17 +98,17 @@ function triggerStatueAwakeningReward() {
   S.statueResidueCount -= GACHA.awaken;
   const id = weighted(GACHA.awakenScrap), I = ITEMS[id];
   give(id, 1, true);
-  log(`[무신의 응답] 석상이 탁기를 모두 삼켜 눈을 떴습니다! ${hlItem(I.name)}${jo(I.name, '을를')} 하사받았습니다. (${count(id)} / ${STUDY.need}장 — 화로 › 연혼각에서 엮습니다)`, 'gold');
+  log(`[무신의 응답] 석상이 탁기를 모두 삼켜 눈을 떴습니다! ${hlItem(I.name)}${jo(I.name, '을를')} 하사받았습니다. (${count(id)} / ${STUDY.need}장 — 화로 › 연혼에서 엮습니다)`, 'gold');
   notify.banner('무신의 응답', I.name, '');
   return { item: { id, name: I.name, grade: STUDY.scraps[id] } };
 }
-/* 화로 › 연혼각: 조각 8장을 엮어 그 등급의 비급 한 권 (아직 없는 것 가운데 무작위, 다 있으면 아무거나) */
+/* 화로 › 연혼: 조각 8장을 엮어 그 등급의 비급 한 권 (아직 없는 것 가운데 무작위, 다 있으면 아무거나) */
 function studyBind(scrap) {
   const grade = STUDY.scraps[scrap]; if (!grade || count(scrap) < STUDY.need) return null;
   const all = Object.keys(MANUALS).filter(id => MANUALS[id].grade === grade && ITEMS['bk_' + id]);
   const fresh = all.filter(id => !S.manuals[id] && !has('bk_' + id)), id = pick(fresh.length ? fresh : all);
   take(scrap, STUDY.need); give('bk_' + id, 1, true);
-  log(`📚 연혼각에서 찢어진 ${grade} 비급 조각 ${STUDY.need}장을 엮어 ${hlItem(`《${MANUALS[id].name}》 비급`)}을 되살렸습니다.`, 'gold');
+  log(`📚 연혼에서 찢어진 ${grade} 비급 조각 ${STUDY.need}장을 엮어 ${hlItem(`《${MANUALS[id].name}》 비급`)}을 되살렸습니다.`, 'gold');
   notify.refresh();
   return id;
 }

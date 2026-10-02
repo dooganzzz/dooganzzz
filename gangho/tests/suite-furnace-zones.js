@@ -40,7 +40,7 @@ module.exports = async (b) => {
   const f = {};
   f.tabs = await p.$$eval('.furnace-tabs [data-craft]', e => e.map(x => x.textContent).join('|'));
   for (const c of ['forge', 'alchemy']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).sort().join(',')); }
-  ok('6 화로 탭: 단조 | 연단 | 연혼각', /단조/.test(f.tabs) && /연단/.test(f.tabs) && /연혼각/.test(f.tabs) && f.tabs.split('|').length === 3, f.tabs);
+  ok('6 화로 탭: 단조 | 연단 | 연혼', /단조/.test(f.tabs) && /연단/.test(f.tabs) && /연혼/.test(f.tabs) && f.tabs.split('|').length === 3, f.tabs);
   const fl = f.forge.split(','), al = f.alchemy.split(',');
   ok('6 단조 탭은 단조 재료만', fl.includes('roughOre') && fl.includes('treeSap') && !fl.includes('wildGinseng') && !fl.includes('herb'), JSON.stringify(f));
   ok('6 연단 탭은 연단 재료만', al.includes('wildGinseng') && al.includes('herb') && al.includes('treeSap') && !al.includes('roughOre'), JSON.stringify(f));

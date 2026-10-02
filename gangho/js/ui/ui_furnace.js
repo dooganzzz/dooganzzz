@@ -3,22 +3,29 @@
    조합식은 모두 비공개. 성공하면 도감 › 단조/연단 비법에 영구 등재된다. 실패하면 재료가 전소되고 검게 탄 찌꺼기 1개 */
 
 function furnaceTabs() {
-  const tabs = [...Object.entries(CRAFTS).map(([k, c]) => [k, c.name, c.hanja]), ['study', '연혼각', '煉魂閣']];   // 연혼각: 찢어진 비급 조각을 영혼의 힘으로 엮는다
+  const tabs = [...Object.entries(CRAFTS).map(([k, c]) => [k, c.name, c.hanja]), ['study', '연혼', '煉魂']];   // 연혼: 찢어진 비급 조각을 명경이 끌어온 넋으로 엮는다
   return `<div class="subtabs furnace-tabs" role="tablist" aria-label="화로" style="--n:${tabs.length}">${tabs.map(([k, ko, hj]) =>
     `<button class="subtab ${ui.craft === k ? 'on' : ''}" role="tab" aria-selected="${ui.craft === k}" data-craft="${k}">${label(ko, hj)}</button>`).join('')}</div>`;
 }
 
-/* 화로 › 연혼각: 무신상이 하사한 찢어진 비급 조각 8장을 엮어 온전한 비급 한 권으로 */
+/* 화로 › 연혼(煉魂): 장면 그림 한 장. 가운데 명경 속 초절정 비급이 흐릿하게 깜박인다(같은 그림의 거울 안쪽을 잘라 그 자리에서만).
+   명경을 누르면 엮을 수 있는 조각 창이 뜬다 (같은 등급 조각 STUDY.need장이 다 모여야 엮임 · 등급끼리 섞이지 않음) */
 function viewStudy() {
-  const rows = Object.entries(STUDY.scraps).map(([id, grade]) => { const n = count(id), ok = n >= STUDY.need;
-    return `<li class="study-row ${ok ? 'ready' : ''}"><span class="icon">${itemIco(id)}</span><div><b>${ITEMS[id].name}</b><div class="mprog"><span style="width:${Math.min(100, n / STUDY.need * 100)}%"></span></div><small class="muted">${n} / ${STUDY.need}장 · 엮으면 ${grade} 비급 한 권 (아직 없는 것 가운데)${grade === '일류' ? ' — 1장에서는 봉인되어 익히지 못합니다' : ''}</small></div>
-      <button class="btn sm ${ok ? 'primary' : ''}" data-bind="${id}" ${ok ? '' : 'disabled'}>엮기</button></li>`; }).join('');
   return `<section class="panel furnace study">
-    ${head('화로', '火爐', '<span class="num muted">연혼각</span>')}
+    ${head('화로', '火爐')}
     ${furnaceTabs()}
-    <p class="muted furnace-desc">무신상에 찌꺼기를 ${GACHA.awaken}개 바칠 때마다 무신이 찢어진 비급 조각 한 장을 내립니다(이류 90% · 일류 10%). 찢어진 비급은 강한 영혼의 힘이 있어야 이어집니다. 같은 등급 조각 ${STUDY.need}장을 모으면 연혼각의 명경(明鏡)이 넋을 끌어와 불꽃 속에서 온전한 비급으로 벼려 냅니다.</p>
-    <ul class="study-list">${rows}</ul>
+    <div class="pot furnace-stage study"><div class="stage-bg">${artPic(ART_SRC.yeonhonScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>
+      <img class="yh-book" src="${ART_SRC.yeonhonBook()}" alt="" aria-hidden="true">
+      <button class="yh-mirror" data-act="mirror" aria-label="명경 — 찢어진 비급 조각 엮기"></button></div>
   </section>`;
+}
+/* 명경을 누르면: 등급마다 조각 칸 (다 모인 등급만 [엮기]) */
+function mirrorModal() {
+  const rows = Object.entries(STUDY.scraps).map(([id, grade]) => { const n = count(id), ok = n >= STUDY.need;
+    return `<li class="study-row ${ok ? 'ready' : ''}"><span class="icon">${itemIco(id)}</span><div><b>${ITEMS[id].name}</b><div class="mprog"><span style="width:${Math.min(100, n / STUDY.need * 100)}%"></span></div><small class="muted">${n} / ${STUDY.need}장${ok ? '' : ' — 다 모여야 엮을 수 있습니다'}</small></div>
+      <button class="btn sm ${ok ? 'primary' : ''}" data-bind="${id}" ${ok ? '' : 'disabled'}>엮기</button></li>`; }).join('');
+  return `<div class="sheet mirror-sheet"><p class="eyebrow">煉魂 · 明鏡</p><h2>명경</h2><ul class="study-list">${rows}</ul>
+    <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
 }
 function viewFurnace() {
   if (ui.craft === 'study') return viewStudy();

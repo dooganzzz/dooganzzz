@@ -11,6 +11,8 @@ const ART_SRC = {
   shrineAwake: () => ASSET.scene('shrine_awake'),
   forgeScene: () => ASSET.scene('forge_scene'),
   alchemyScene: () => ASSET.scene('alchemy_scene'),
+  yeonhonScene: () => ASSET.scene('yeonhon'),            // 화로 › 연혼: 명경 안은 비어 있는 바탕
+  yeonhonBook: () => ASSET.fx('yeonhon_book'),           // 같은 그림에서 잘라 낸 명경 안쪽 (초절정 비급) — 그 자리에서 깜박임
 };
 const brokenArt = new Set();
 function artFail(im) { brokenArt.add(im.getAttribute('src')); im.remove(); }

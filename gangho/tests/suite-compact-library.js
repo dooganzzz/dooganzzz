@@ -74,9 +74,9 @@ module.exports = async (b) => {
     await p.click('[data-pray="10"]'); await p.click('[data-act="confirmok"]');
     const aw = await p.evaluate(() => ({ modal: ui.modal, left: S.statueResidueCount, hp: S.perm.maxHp, scraps: count('scrap2') + count('scrap3'), log: S.log.some(l => /무신의 응답/.test(l.text)) }));
     ok('5 누적 300 → 각성: 초과분 보존 · 영구 능력치 없음 · 비급 조각 1장 · 각성 창', aw.modal === 'awaken' && aw.left === 20 && aw.hp === hp0 && aw.scraps === 1 && aw.log, JSON.stringify(aw));
-    // 5-1. 화로 › 연혼각: 조각 8장 → 그 등급 비급 한 권 (이류 90% · 일류 10%)
+    // 5-1. 화로 › 연혼: 조각 8장 → 그 등급 비급 한 권 (이류 90% · 일류 10%)
     const st = await p.evaluate(() => { const T = GACHA.awakenScrap; S.inv.scrap2 = 7; const no = studyBind('scrap2'); S.inv.scrap2 = 8; const id = studyBind('scrap2'); return { T, no, grade: id && MANUALS[id].grade, left: count('scrap2'), book: id && count('bk_' + id) }; });
-    ok('5 연혼각: 조각 7장은 못 엮음 · 8장 → 이류 비급 1권 · 확률 90/10', st.no === null && st.grade === '이류' && st.left === 0 && st.book >= 1 && st.T.scrap2 === 90 && st.T.scrap3 === 10, JSON.stringify(st));
+    ok('5 연혼: 조각 7장은 못 엮음 · 8장 → 이류 비급 1권 · 확률 90/10', st.no === null && st.grade === '이류' && st.left === 0 && st.book >= 1 && st.T.scrap2 === 90 && st.T.scrap3 === 10, JSON.stringify(st));
     await p.click('.awaken-sheet [data-act="closemodal"]');
 
     // 6. 관찰 창: 크게, 로그가 대부분
@@ -100,8 +100,8 @@ module.exports = async (b) => {
     await p.click('.confirm-sheet [data-act="closemodal"]');
 
     // 8. 컴팩트: 헤더 칩 · 무공 카드
-    const cp = await p.evaluate(() => { goTab('status', 'martial'); render(); const b = document.querySelector('.chip-badge'), s = document.querySelector('.mslot'); return { badge: parseFloat(getComputedStyle(b).fontSize), bh: b.getBoundingClientRect().height, pad: getComputedStyle(s).paddingTop, minh: getComputedStyle(s).minHeight }; });
-    ok('8 헤더 정보 칸 이름 11~12px·한 줄 · 무공 방위 카드는 좁은 여백(10px 이하)', cp.badge >= 10 && cp.badge <= 12 && cp.bh <= 20 && parseFloat(cp.pad) <= 10, JSON.stringify(cp));
+    const cp = await p.evaluate(() => { goTab('status', 'observe'); render(); const b = document.querySelector('#vitals .chip-badge'), bs = { f: parseFloat(getComputedStyle(b).fontSize), h: b.getBoundingClientRect().height }; goTab('status', 'martial'); render(); const s = document.querySelector('.mslot'); return { badge: bs.f, bh: bs.h, pad: getComputedStyle(s).paddingTop, minh: getComputedStyle(s).minHeight }; });
+    ok('8 관조 정보 칸 이름 11~12px·한 줄 · 무공 방위 카드는 좁은 여백(10px 이하)', cp.badge >= 10 && cp.badge <= 12 && cp.bh <= 20 && parseFloat(cp.pad) <= 10, JSON.stringify(cp));
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

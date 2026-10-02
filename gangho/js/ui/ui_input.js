@@ -75,7 +75,7 @@ function onClick(e) {
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
-  if (d.bind) { const id = studyBind(d.bind); if (id) toast(`📚 《${MANUALS[id].name}》 비급을 엮었습니다 — 행낭에서 확인하십시오`); return render(); }
+  if (d.bind) { const id = studyBind(d.bind); if (id) { ui.modal = null; toast(`📚 《${MANUALS[id].name}》 비급을 엮었습니다 — 행낭에서 확인하십시오`); } return render(); }
   if (d.add) { if (!getFilteredMaterials(ui.craft).includes(d.add)) return; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
   if (d.rem) { ui.pot[d.rem]--; if (ui.pot[d.rem] <= 0) delete ui.pot[d.rem]; return render(); }
   if (d.subq) { const [z, n] = d.subq.split(':'); claimSubq(z, +n); return; }
@@ -93,7 +93,7 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     craft: () => askCraft(), clearpot: () => { ui.pot = {}; render(); },
-    confirmok: confirmAccept, calm: toggleCalm, callout: toggleCallout, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
+    confirmok: confirmAccept, calm: toggleCalm, mirror: () => { ui.modal = 'mirror'; render(); }, callout: toggleCallout, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
     runstart: () => { ui.modal = null; ui.fieldMap = true; goTab('field'); render(); },          // 강호행 시작은 지도에서 탐험지를 고르고 [출발]
