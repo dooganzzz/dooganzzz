@@ -61,7 +61,7 @@ module.exports = async (b) => {
       r.gear = Object.entries(GEAR).filter(([id, [name, st]]) => !CRAFT_GEAR[id] || CRAFT_GEAR[id].name !== name || Object.entries(st).some(([k, v]) => CRAFT_GEAR[id].stats[k] !== v)).map(([id]) => id);
       r.pills = ['potionMp', 'saenghyeol', 'golgye', 'tongmaek', 'haedok', 'clearPill'].every(id => ITEMS[id] && ITEMS[id].grade === '8품' && ITEMS[id].kind === '단약');
       r.noSta = !Object.values(ITEMS).some(I => I.use && I.use.stamina) && !Object.values(ITEMS).some(I => I.kind === '음식');
-      r.pillsKept = ['pillLow', 'pillHigh'].every(id => RECIPES.some(x => x.out === id));
+      r.pillsKept = ['pillLow', 'pillHigh'].every(id => !RECIPES.some(x => x.out === id));   // 돌파단은 조합하지 않음 (가르침 · 첫 진입 보상)
       // 단조 성공: 중급 장비, 도감 등재
       S.crafts.forge.lv = 99; const rc = RECIPES.find(x => x.id === 'f_c_sword');
       for (let i = 0; i < 20 && !S.codex.includes('f_c_sword'); i++) { for (const [id, n] of Object.entries(rc.in)) S.inv[id] = (S.inv[id] || 0) + n; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)('forge', { ...rc.in }); }
@@ -73,7 +73,7 @@ module.exports = async (b) => {
       r.fistName = EQUIP_BASES.fist.names[1];                                                                              // 건의: 이름 겹침 해소
       return r;
     }, GEAR);
-    ok('3 화로는 단조·단약 둘 · 조합식 단조 21 (기존 9 + 2재료 6 + 3재료 6) · 단약 8', fu.crafts === 'forge,alchemy' && fu.n.join() === '21,8' && fu.pillsKept, JSON.stringify(fu));
+    ok('3 화로는 단조·단약 둘 · 조합식 단조 21 (기존 9 + 2재료 6 + 3재료 6) · 단약 6 (돌파단 조합식은 가르침 · 첫 진입 보상으로 옮김)', fu.crafts === 'forge,alchemy' && fu.n.join() === '21,6' && fu.pillsKept, JSON.stringify(fu));
     ok('3 단조 장비 위계 수치 (2재료·3재료)', !fu.gear.length, fu.gear.join(','));
     ok('3 8품 단약 6종 · 기력 회복 아이템·음식 없음', fu.pills && fu.noSta, JSON.stringify(fu));
     ok('3 단조 성공 → 상급 장비 · 도감 등재 · 실패 → 찌꺼기 (주력 단조면 2배)', fu.made && fu.slag, JSON.stringify(fu));

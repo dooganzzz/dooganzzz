@@ -11,7 +11,7 @@ module.exports = async (b) => {
 
     // 1. 프롤로그 · 제자 만들기
     const i0 = await p.evaluate(() => ({ pro: [...document.querySelectorAll('.prologue p')].map(e => e.textContent).join(' '), rows: document.querySelectorAll('.attr-row').length, plus: [...document.querySelectorAll('[data-attr][data-d="1"]')].every(e => e.disabled), begin: !document.querySelector('#begin').disabled, talents: document.querySelectorAll('[data-talent]').length, starters: document.querySelectorAll('[data-starter]').length }));
-    ok('1 프롤로그: 소설 속 청풍문 무신상에 빙의한 나', /강호견문록/.test(i0.pro) && /무신상/.test(i0.pro) && /청풍문/.test(i0.pro) && /제자/.test(i0.pro), i0.pro.slice(0, 60));
+    ok('1 프롤로그: 몰락한 청풍문의 마지막 제자 (무신상 빙의 설정은 지움)', /무신상/.test(i0.pro) && /청풍문/.test(i0.pro) && /제자/.test(i0.pro), i0.pro.slice(0, 60));
     ok('1 4대 스탯(근력·체력·민첩·지력) · 입문 무공 5종 · 기예 2종(단조·연단)', i0.rows === 4 && i0.starters === 5 && i0.talents === 2, JSON.stringify(i0));
     ok('1 처음엔 남은 점수 0 → ＋ 막힘, 바로 시작 가능', i0.plus && i0.begin);
     await p.click('[data-attr="int"][data-d="-1"]');

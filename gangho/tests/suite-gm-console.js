@@ -28,21 +28,11 @@ module.exports = async (b) => {
     ok('콘솔의 Esc는 게임 창을 닫지 않음', await p.evaluate(() => !GM.open && ui.modal && ui.modal.startsWith('mart:')));
     await p.evaluate(() => { ui.modal = null; render(); });
 
-    // 1. 유저 상태
-    await p.evaluate(() => gmToggle(true));
-    const s1 = await p.evaluate(() => { const raw = JSON.parse(document.querySelector('#gmRaw').textContent); return { silver: raw.silver, arts: [...document.querySelectorAll('#gmLive tbody tr')].map(r => r.children[1].textContent), inv: document.querySelectorAll('#gmLive .gm-chip').length, form: [...document.querySelectorAll('.gm-edit input')].map(i => i.name).join(',') }; });
-    ok('1 원시 데이터(S) 표시', s1.silver === await p.evaluate(() => S.silver));
-    ok('1 장착 무공 4종 ID·성급 표', s1.arts.length === 4 && s1.arts.every(t => t !== '—'), s1.arts.join(','));
-    ok('1 행낭 목록 · 입력 칸 (은자·활력 …)', s1.inv > 0 && /silver/.test(s1.form) && /hp/.test(s1.form), JSON.stringify(s1));
-    await p.evaluate(() => { S.silver = 4321; });
-    await p.waitForTimeout(1200);
-    ok('1 실시간 갱신 (1초 틱)', await p.evaluate(() => JSON.parse(document.querySelector('#gmRaw').textContent).silver === 4321 && /4,321/.test(document.querySelector('#gmLive').textContent)));
-    await p.fill('.gm-edit input[name="silver"]', '777'); await p.fill('.gm-edit input[name="hp"]', '999999');
-    await p.click('.gm-edit button[type="submit"]');
-    const ap = await p.evaluate(() => ({ silver: S.silver, hp: S.hp, max: calcStats().maxHp, header: (ui.tab = 'status', ui.statusSub = 'observe', render(), document.querySelector('#vitals').textContent.includes('777')) }));
-    ok('1 [적용]: 은자 반영 · 활력은 최대치로 제한 · 게임 화면도 갱신', ap.silver === 777 && ap.hp === ap.max && ap.header, JSON.stringify(ap));
+    // 1. 유저 상태 탭은 지움 (매 틱 다시 그려 렉 · 튕김 — 유저 요청)
+    ok('1 유저 상태 탭 없음', await p.evaluate(() => !document.querySelector('.gm-tab[data-gmtab="state"]') && !document.querySelector('#gmRaw')));
 
     // 2. 행동 추적
+    await p.evaluate(() => gmToggle(true));
     await p.click('.gm-tab[data-gmtab="trace"]');
     await p.keyboard.press('Escape');
     await p.click('[data-tab="status"]');

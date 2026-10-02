@@ -39,16 +39,16 @@ module.exports = async (b) => {
 
     // 4. 화로 탭별 재료 필터
     const fm = await p.evaluate(() => {
-      Object.assign(S.inv, { herb: 2, roughOre: 2, treeSap: 2 });
+      Object.assign(S.inv, { wildGinseng: 2, roughOre: 2, treeSap: 2 });   // 단약 재료는 산삼 잔뿌리(돌파단 조합식이 빠져 약초는 조합식 재료가 아님)
       const valid = c => getFilteredMaterials(c).every(id => RECIPES.some(r => r.craft === c && r.in[id]));
       const r = { forge: getFilteredMaterials('forge'), alchemy: getFilteredMaterials('alchemy'), vf: valid('forge'), va: valid('alchemy') };
       // 단조 탭에서 단약 재료를 억지로 넣으려 해도 막힌다
-      ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.pot = {}; render();
-      const btn = document.createElement('button'); btn.dataset.add = 'herb'; document.querySelector('#main').appendChild(btn); btn.click();
-      r.blocked = !ui.pot.herb; render();
+      ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.forgeMode = 'mat'; ui.pot = {}; render();
+      const btn = document.createElement('button'); btn.dataset.add = 'wildGinseng'; document.querySelector('#main').appendChild(btn); btn.click();
+      r.blocked = !ui.pot.wildGinseng; render();
       return r;
     });
-    ok('4 getFilteredMaterials: 탭마다 그 기예 조합식 재료만', fm.vf && fm.va && fm.forge.includes('roughOre') && !fm.forge.includes('herb') && fm.alchemy.includes('herb') && !fm.alchemy.includes('roughOre') && fm.forge.includes('treeSap') && fm.alchemy.includes('treeSap'), JSON.stringify(fm));
+    ok('4 getFilteredMaterials: 탭마다 그 기예 조합식 재료만', fm.vf && fm.va && fm.forge.includes('roughOre') && !fm.forge.includes('wildGinseng') && fm.alchemy.includes('wildGinseng') && !fm.alchemy.includes('roughOre') && fm.forge.includes('treeSap') && fm.alchemy.includes('treeSap'), JSON.stringify(fm));
     ok('4 다른 기예의 재료는 화로에 넣을 수 없음', fm.blocked);
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);

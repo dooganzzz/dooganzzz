@@ -22,7 +22,7 @@ module.exports = async (b) => {
     const s0 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs:not(.lib-tabs) .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, top: document.querySelector('.tab.on .ko').textContent, hall: !!document.querySelector('.npc-head') }));
     ok('2 하위 탭 [ 정청 ][ 화로 ][ 연무장 ][ 무신상 ][ 전방 ] (뒷마당 폐지)', s0.subs === '정청,화로,연무장,무신상,전방', s0.subs);
     ok('2 기본 진입은 정청', s0.top === '청풍문' && s0.on === '정청' && s0.hall, JSON.stringify(s0));
-    const views = { forge: '.forge', yeonmu: '.yeonmu', shrine: '.altar', shop: '.shop-panel', hall: '[data-fold="hq"]' };
+    const views = { forge: '.furnace', yeonmu: '.yeonmu', shrine: '.altar', shop: '.shop-panel', hall: '[data-fold="hq"]' };
     for (const [sub, sel] of Object.entries(views)) {
       await p.click(`.subtabs [data-sub="${sub}"]`);
       const r = await p.evaluate(s => ({ view: !!document.querySelector(s), top: document.querySelector('.tab.on').dataset.tab, on: document.querySelector('.subtab.on').dataset.sub, bar: document.querySelectorAll('.subtabs:not(.shop-mode):not(.furnace-tabs):not(.lib-tabs):not(.shop-buy-tabs):not(.shop-gear-tabs)').length }), sel);

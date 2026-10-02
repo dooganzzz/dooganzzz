@@ -41,7 +41,7 @@ module.exports = async (b) => {
       const mk = eid => ({ eid, e: { ...ENEMIES[eid], hpNow: 1e9 }, lines: [], fx: [], st: calcStats(), over: false, aff: affinity(eid) });
       S.mp = 9999;
       // 초식 (발동·명중·치명 없음)
-      let seq = [0, 0.5, 0.99, 0.5]; Math.random = () => seq.length ? seq.shift() : 0.5;
+      Math.random = () => 0;   // 늘 0: 초식 발동 · 제1초식 · 명중 (치명은 crit 0, 반격 · 충격도 0이라 안 나옴). 무대 타이머가 순서 있는 값을 가로채지 않게 고정값
       const bt = mk('rabbit'); RT.battle = bt; bt.st.crit = 0; playerAttack(bt);   // 산토끼(권장) — 검은 열세라 [상성 우위] 없음
       const M = MANUALS[S.active.mugong];
       r.title = bt.lines[0]; r.desc = bt.lines[1]; r.res = bt.lines.find(l => /log-stance-result/.test(l.cls));

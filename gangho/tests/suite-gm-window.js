@@ -14,22 +14,22 @@ module.exports = async (b) => {
   // 시작 화면에서도 연결
   await admin.waitForFunction(() => /연결됨/.test(document.querySelector('#gmConn').textContent), null, { timeout: 5000 });
   ok('별도 창: 게임 창과 연결 (시작 화면)', await admin.evaluate(() => /시작 화면/.test(document.querySelector('#gmConn').textContent) && S === null));
-  ok('별도 창: 창 전체를 쓰는 독립 페이지 · 8개 탭 · 닫기/새 창 버튼 없음', await admin.evaluate(() => getComputedStyle(document.querySelector('#gmPanel')).position === 'static' && document.querySelectorAll('.gm-tab').length === 8 && !document.querySelector('[data-gm="close"], [data-gm="popout"], #gmToggle')));
+  ok('별도 창: 창 전체를 쓰는 독립 페이지 · 7개 탭(유저 상태 탭은 지움) · 닫기/새 창 버튼 없음', await admin.evaluate(() => getComputedStyle(document.querySelector('#gmPanel')).position === 'static' && document.querySelectorAll('.gm-tab').length === 7 && !document.querySelector('[data-gm="close"], [data-gm="popout"], #gmToggle')));
   ok('별도 창은 게임 화면 계층·app.js를 읽지 않음', await admin.evaluate(() => typeof render === 'undefined' && typeof boot === 'undefined' && typeof calcStats === 'function'));
 
   // 게임 시작 → 상태 복사본
   await game.click('#begin');
   await game.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); S.silver = 1234; render(); });
   await admin.waitForFunction(() => S && S.silver === 1234, null, { timeout: 4000 });
-  const st = await admin.evaluate(() => ({ name: /연결됨 · /.test(document.querySelector('#gmConn').textContent), arts: [...document.querySelectorAll('#gmLive tbody tr')].map(r => r.children[1].textContent), raw: JSON.parse(document.querySelector('#gmRaw').textContent).silver, maxHp: calcStats().maxHp }));
+  const st = await admin.evaluate(() => ({ name: /연결됨 · /.test(document.querySelector('#gmConn').textContent), raw: S.silver, maxHp: calcStats().maxHp }));
   const gMax = await game.evaluate(() => calcStats().maxHp);
-  ok('1 상태: 게임 S가 1초 안에 복사되어 표시', st.name && st.raw === 1234 && st.arts.every(a => a !== '—'), JSON.stringify(st));
+  ok('1 상태: 게임 S가 1초 안에 복사됨', st.name && st.raw === 1234, JSON.stringify(st));
   ok('1 복사본으로 능력치 계산도 게임과 같음', st.maxHp === gMax, `${st.maxHp} / ${gMax}`);
 
   // 명령: 적용·소환·재료·치트는 게임 쪽에서 실행
-  await admin.fill('.gm-edit input[name="silver"]', '50'); await admin.click('.gm-edit button[type="submit"]');
-  await game.waitForFunction(() => S.silver === 50, null, { timeout: 3000 });
-  ok('1 [적용] → 게임의 은자가 바뀜 · 게임 화면 갱신', await game.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'observe'; render(); return /50/.test(document.querySelector('#vitals').textContent); }));
+  await admin.click('.gm-tab[data-gmtab="cheat"]'); await admin.click('[data-gm="silver"]');
+  await game.waitForFunction(() => S.silver === 2234, null, { timeout: 3000 });
+  ok('1 [은자 +1000] → 게임의 은자가 바뀜 · 게임 화면 갱신', await game.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'observe'; render(); return /2,234/.test(document.querySelector('#vitals').textContent); }));
   await admin.click('.gm-tab[data-gmtab="items"]');
   const n0 = await game.evaluate(() => count('lingzhi'));
   await admin.click('[data-gmspawn="lingzhi"][data-n="10"]');
@@ -41,7 +41,7 @@ module.exports = async (b) => {
   ok('4 [필요 재료 지급] → 게임 행낭에 재료', await game.waitForFunction(() => has('silentReed') && has('centipedeLeg'), null, { timeout: 3000 }).then(() => true, () => false));
   await admin.click('.gm-tab[data-gmtab="cheat"]');
   await admin.click('[data-gm="silver"]');
-  await game.waitForFunction(() => S.silver === 1050, null, { timeout: 3000 });
+  await game.waitForFunction(() => S.silver === 3234, null, { timeout: 3000 });
   ok('5 [은자 +1,000냥] → 게임에 반영', true);
 
   // 추적: 게임의 행동이 관리자 창으로 넘어온다
