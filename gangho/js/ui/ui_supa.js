@@ -51,12 +51,12 @@ async function supaLoadPlayers(pass) {
   SUPA_ST.pass = pass; SUPA_ST.loading = true; SUPA_ST.listErr = ''; gmSupaChanged();
   try { SUPA_ST.list = await supaRpc('gangho_players', { p_pass: pass }); }
   catch (e) { SUPA_ST.list = null; SUPA_ST.listErr = /denied/.test(e.message) ? '암호가 맞지 않습니다.'
-    : /fetch|network|NetworkError/i.test(e.message) && supaSource() === 'claude.ai' ? 'claude.ai 안에서는 바깥 DB 연결이 막혀 있습니다. GitHub Pages 게임에서 F1(또는 `)을 누르고 운영자 암호를 넣으면 이 목록이 보입니다.'
+    : /fetch|network|NetworkError/i.test(e.message) && supaSource() === 'claude.ai' ? 'claude.ai 안에서는 바깥 DB 연결이 막혀 있습니다. GitHub Pages 게임에서 바닥글을 다섯 번 누르고 운영자 암호를 넣으면 이 목록이 보입니다.'
     : `불러오지 못했습니다: ${e.message}`; }
   SUPA_ST.loading = false; gmSupaChanged();
   if (SUPA_ST.list && !SUPA_ST.timer) SUPA_ST.timer = setInterval(() => { if (typeof GM !== 'undefined' && GM.open && GM.tab === 'users' && !SUPA_ST.loading) supaLoadPlayers(SUPA_ST.pass); }, 30000);   // 유저 탭을 보는 동안 30초마다 새로
 }
-/* GitHub Pages 등 claude.ai 밖에서는 GM이 잠겨 있다: F1 · ` 를 누르면 운영자 암호를 묻고, 맞으면 이 창에서만 연다 (암호는 메모리에만) */
+/* GitHub Pages 등 claude.ai 밖에서는 GM이 잠겨 있다: 바닥글을 다섯 번 누르면 운영자 암호를 묻고, 맞으면 관리자 창을 연다 (암호는 메모리에만) */
 function gmUnlockAsk() {
   if (document.getElementById('gmUnlock')) return;
   const box = document.createElement('form'); box.id = 'gmUnlock'; box.className = 'gm-unlock';
@@ -68,7 +68,7 @@ function gmUnlockAsk() {
     await supaLoadPlayers(box.pass.value);
     if (!SUPA_ST.list) { msg.textContent = SUPA_ST.listErr || '열 수 없습니다.'; return; }
     box.remove(); document.body.classList.remove('gm-locked');
-    if (typeof GM !== 'undefined') { GM.tab = 'users'; if (typeof gmToggle === 'function') gmToggle(true); }
+    if (typeof GM !== 'undefined') { GM.tab = 'users'; if (typeof gmPopout === 'function') gmPopout(); }
   };
 }
 async function supaPlayerSave(id) { return supaRpc('gangho_player_save', { p_pass: SUPA_ST.pass, p_id: id }); }
@@ -93,7 +93,7 @@ function gmSupaSection() {
 }
 /* 기록을 켜면 바닥글에 알린다 */
 if (!window.GM_REMOTE && supaOn()) document.addEventListener('DOMContentLoaded', () => { const f = document.querySelector('.footer .muted'); if (f) f.insertAdjacentHTML('afterend', '<small class="muted supa-note">플레이 기록(캐릭터 요약 · 접속 IP)은 운영과 밸런스 확인에만 쓰입니다.</small>'); });
-/* 휴대폰(F1 없음): 잠긴 곳에서 바닥글을 2초 안에 다섯 번 누르면 운영자 암호를 묻는다 */
+/* 잠긴 곳(PC · 휴대폰 모두): 바닥글을 2초 안에 다섯 번 누르면 운영자 암호를 묻는다 */
 if (!window.GM_REMOTE && supaOn()) { let taps = []; document.addEventListener('click', e => {
   if (!document.body.classList.contains('gm-locked') || !e.target.closest || !e.target.closest('.footer')) return;
   const t = Date.now(); taps = taps.filter(x => t - x < 2000); taps.push(t); if (taps.length >= 5) { taps = []; gmUnlockAsk(); } }); }

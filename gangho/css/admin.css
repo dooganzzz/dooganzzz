@@ -23,6 +23,7 @@
 .gm-btn.danger { border-color: rgba(255, 110, 90, .5); color: #ffb3a6; }
 .gm-btn.danger.armed { background: rgba(255, 90, 70, .25); color: #fff; }
 .gm-cheats { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.gm-moves { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: #a99e88; font-size: 13px; }
 .gm-panel input, .gm-panel select { padding: 4px 6px; border: 1px solid rgba(120, 220, 160, .3); border-radius: 4px; background: #050806; color: #eafff0; font: inherit; min-width: 0; }
 .gm-panel input[type="search"] { flex: 1; min-width: 140px; }
 .gm-edit { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; padding: 10px; border: 1px dashed rgba(120, 220, 160, .25); border-radius: 6px; }

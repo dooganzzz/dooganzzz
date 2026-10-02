@@ -277,17 +277,19 @@ function playerAttack(b) {
   let comboDone = false;
   b.affSaid = false;                                        // 상성 우위 지문은 한 턴에 한 번
   const moves = canCombo && m ? unlockedMoves(m.star) : 0;
-  if (moves && Math.random() * 100 < MOVE_START + st.combo) {
+  const gm = S.gmMove;                                      // GM 초식 시험: 'mix' = 매번 발동(60 · 30 · 10) · 0 · 1 · 2 = 그 초식만 매번
+  if (moves && (gm != null || Math.random() * 100 < MOVE_START + st.combo)) {
     const g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
     const power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase;   // 장경각 무공 고유 피해 배율
     const mults = MOVE_MULT.map(v => v * (1 + (g - 1) * 0.5) * realmMult * power);
     let r = Math.random() * MOVE_PICK.slice(0, moves).reduce((a, v) => a + v, 0), i = 0;   // 셋 중 하나 (안 열린 초식은 빼고)
     while (i < moves - 1 && r >= MOVE_PICK[i]) r -= MOVE_PICK[i++];
+    if (typeof gm === 'number') i = Math.min(gm, moves - 1);
     const cost = Math.max(1, Math.round((4 + m.star / 2 + i * (4 + m.star / 2)) * g * (1 - (st.mpCost + st.mpSave) / 100)));
-    if (S.mp < cost) bLine(`내력이 모자라 ${MOVE_NAME[i]}${i === 2 ? '를' : '을'} 펼치지 못했습니다.`, 'muted');
+    if (S.mp < cost && gm == null) bLine(`내력이 모자라 ${MOVE_NAME[i]}${i === 2 ? '를' : '을'} 펼치지 못했습니다.`, 'muted');
     else {
-      S.mp -= cost;
+      S.mp = Math.max(0, S.mp - cost);                         // GM 초식 시험 중에는 내력이 모자라도 펼친다
       comboDone = true;
       const sc = M.stances[i];
       const ok = playerHit(b, mults[i], { title: stanceCall(i, sc.name), cls: `m${i + 1}`, banner: (i === 2 ? '奧義 · ' : '') + stanceShort(sc.name), w: M.weapon, n: i + 1, mid: id,

@@ -9,27 +9,27 @@ module.exports = async (b) => {
     const errs = watchErrors(p);
     await p.goto(GAME_URL);
 
-    // 여닫기: 이름 입력칸에서 ` 를 쳐도 열리지 않는다
+    // 여닫기: 게임 안 단축키는 없다
     await p.focus('#pname'); await p.keyboard.press('Backquote');
     ok('입력칸에서 ` 는 글자로 (콘솔 안 열림)', await p.evaluate(() => document.querySelector('#gmPanel').hidden && GM.open === false));
     await startEquipped(p);
     ok('기본은 닫힘 · 우측 하단 [GM] 버튼', await p.evaluate(() => { const r = document.querySelector('#gmToggle').getBoundingClientRect(); return document.querySelector('#gmPanel').hidden && r.right > innerWidth - 60 && r.bottom > innerHeight - 60 && getComputedStyle(document.querySelector('#gmToggle')).position === 'fixed'; }));
-    await p.click('#gmToggle');
+    const [pop] = await Promise.all([p.context().waitForEvent('page'), p.click('#gmToggle')]);
+    ok('[GM] 버튼 → admin.html 새 창 (게임 안 콘솔은 닫힌 채)', /admin\.html$/.test(pop.url()) && await p.evaluate(() => !GM.open)); await pop.close();
+    await p.evaluate(() => gmToggle(true));                          // 새 창이 막혔을 때 쓰는 게임 안 콘솔
     const t0 = await p.evaluate(() => ({ open: !document.querySelector('#gmPanel').hidden, tabs: [...document.querySelectorAll('.gm-tab')].map(e => e.textContent).join('|'), pos: getComputedStyle(document.querySelector('#gmPanel')).position }));
-    ok('[GM] 버튼으로 열림 · 8개 탭', t0.open && t0.tabs === '유저 상태|유저|AI 자동 플레이|행동 추적|아이템 DB|게임 DB|조합법|쾌속 치트' && t0.pos === 'fixed', JSON.stringify(t0));
+    ok('게임 안 콘솔 · 8개 탭', t0.open && t0.tabs === '유저 상태|유저|AI 자동 플레이|행동 추적|아이템 DB|게임 DB|조합법|쾌속 치트' && t0.pos === 'fixed', JSON.stringify(t0));
     await p.keyboard.press('Escape');
     ok('Esc로 닫힘', await p.evaluate(() => document.querySelector('#gmPanel').hidden));
-    await p.keyboard.press('F1');
-    ok('F1로 열림', await p.evaluate(() => GM.open));
-    await p.keyboard.press('Backquote');
-    ok('` 로 닫힘', await p.evaluate(() => !GM.open));
+    await p.keyboard.press('F1'); await p.keyboard.press('Backquote');
+    ok('F1 · ` 단축키 없음', await p.evaluate(() => !GM.open));
     await p.evaluate(() => { ui.modal = 'mart:' + S.active.mugong; render(); });
-    await p.keyboard.press('F1'); await p.keyboard.press('Escape');
+    await p.evaluate(() => gmToggle(true)); await p.keyboard.press('Escape');
     ok('콘솔의 Esc는 게임 창을 닫지 않음', await p.evaluate(() => !GM.open && ui.modal && ui.modal.startsWith('mart:')));
     await p.evaluate(() => { ui.modal = null; render(); });
 
     // 1. 유저 상태
-    await p.keyboard.press('F1');
+    await p.evaluate(() => gmToggle(true));
     const s1 = await p.evaluate(() => { const raw = JSON.parse(document.querySelector('#gmRaw').textContent); return { silver: raw.silver, arts: [...document.querySelectorAll('#gmLive tbody tr')].map(r => r.children[1].textContent), inv: document.querySelectorAll('#gmLive .gm-chip').length, form: [...document.querySelectorAll('.gm-edit input')].map(i => i.name).join(',') }; });
     ok('1 원시 데이터(S) 표시', s1.silver === await p.evaluate(() => S.silver));
     ok('1 장착 무공 4종 ID·성급 표', s1.arts.length === 4 && s1.arts.every(t => t !== '—'), s1.arts.join(','));
@@ -47,7 +47,7 @@ module.exports = async (b) => {
     await p.keyboard.press('Escape');
     await p.click('[data-tab="status"]');
     await p.evaluate(() => { S.silver = 0; goTab('sect', 'shop'); render(); buyItem('saenghyeol'); S.hp = 1e9; fight('rabbit'); give('herb', 2); take('herb', 1); });
-    await p.keyboard.press('F1');
+    await p.evaluate(() => gmToggle(true));
     const tr = await p.evaluate(() => ({ kinds: GM.trace.map(r => r.kind), top: GM.trace[0].text, rows: document.querySelectorAll('#gmTrace li').length, first: document.querySelector('#gmTrace li span:last-child').textContent, time: document.querySelector('#gmTrace li time').textContent, inLog: S.log.some(l => /콘솔/.test(l.text)) }));
     ok('2 탭 전환·클릭 추적', tr.kinds.includes('tab') && tr.kinds.includes('click'), tr.kinds.slice(0, 12).join(','));
     ok('2 전투 조우·아이템 획득/소모 추적', tr.kinds.includes('battle') && tr.kinds.includes('item+') && tr.kinds.includes('item-'));

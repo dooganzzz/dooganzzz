@@ -70,8 +70,8 @@ module.exports = async (b) => {
 
   // 오버레이의 [새 창 ↗] 로 관리자 창 띄우기
   const g2 = await ctx.newPage(); await g2.goto(GAME_URL);                  // 같은 저장을 이어서 연다
-  await g2.keyboard.press('F1');
-  ok('오버레이는 그대로 (F1) + [새 창 ↗] 버튼', await g2.evaluate(() => GM.open && !!document.querySelector('[data-gm="popout"]')));
+  await g2.evaluate(() => gmToggle(true));
+  ok('게임 안 콘솔(새 창이 막혔을 때) + [새 창 ↗] 버튼', await g2.evaluate(() => GM.open && !!document.querySelector('[data-gm="popout"]')));
   const [pop] = await Promise.all([ctx.waitForEvent('page'), g2.click('[data-gm="popout"]')]);
   await pop.waitForLoadState();
   ok('[새 창 ↗] → admin.html 새 창 · 오버레이는 닫힘', /admin\.html$/.test(pop.url()) && await g2.evaluate(() => !GM.open));

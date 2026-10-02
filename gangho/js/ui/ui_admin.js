@@ -1,9 +1,9 @@
 /* [화면] 운영자 통합 디버그 콘솔 (GM): 유저 상태 · 행동 추적 · 아이템 DB · 조합법 · 쾌속 치트
    두 가지로 띄운다.
-   ① 게임 안 오버레이: 우측 하단 [GM] 버튼, 또는 F1 / ` / ~ 키로 여닫는다.
-   ② 별도 창 (admin.html): 오버레이의 [새 창 ↗] 또는 admin.html을 직접 연다. 같은 출처의 게임 창과
+   ① 별도 창 (admin.html): 우측 하단 [GM] 버튼이 새 창으로 연다 (admin.html을 직접 열어도 됨). 같은 출처의 게임 창과
       BroadcastChannel로 이어져 게임이 1초마다 상태·추적을 보내고, 관리자 창은 명령만 보낸다.
       게임을 새로고침·초기화해도 관리자 창과 추적 기록은 남고 다시 이어진다.
+   ② 게임 안 오버레이: 새 창이 막혔을 때(팝업 차단 등)만 대신 띄운다. 게임 안 단축키는 없다 (유저 요청)
    값 주입은 언제나 게임 쪽에서 기존 시스템 함수(give·startRun·advanceRun·clampVitals·doReset …)로 실행한다 (GM_CMDS). */
 
 /* 출시 때 false로 두면 버튼·단축키가 모두 사라진다 */
@@ -52,7 +52,7 @@ function gmRender() {
   const body = !S && !['trace', 'cheat', 'users', 'db'].includes(GM.tab) ? '<p class="gm-muted">게임을 시작하면 볼 수 있습니다.</p>'
     : ({ state: gmViewState, users: gmViewUsers, ai: gmViewAI, trace: gmViewTrace, items: gmViewItems, db: gmViewDB, recipes: gmViewRecipes, cheat: gmViewCheat })[GM.tab]();
   panel.innerHTML = `<div class="gm-box" role="dialog" aria-label="운영자 콘솔">
-    <div class="gm-top"><b>GM 콘솔</b>${GM_REMOTE ? `<small id="gmConn" class="gm-conn">연결 중…</small>` : `<small>F1 · \` 로 여닫기</small><button class="gm-btn gm-pop" data-gm="popout" title="관리자 창을 따로 띄웁니다">새 창 ↗</button><button class="gm-x" data-gm="close" aria-label="닫기">✕</button>`}</div>
+    <div class="gm-top"><b>GM 콘솔</b>${GM_REMOTE ? `<small id="gmConn" class="gm-conn">연결 중…</small>` : `<small>새 창이 막혀 게임 안에 띄웠습니다</small><button class="gm-btn gm-pop" data-gm="popout" title="관리자 창을 따로 띄웁니다">새 창 ↗</button><button class="gm-x" data-gm="close" aria-label="닫기">✕</button>`}</div>
     <div class="gm-tabs" role="tablist">${tabs}</div>
     <div class="gm-body">${body}</div>
   </div>`;
@@ -109,6 +109,10 @@ const GM_CMDS = {
       if (weaponType() !== 'sword' && !S.gear.some(g => g.shop === 'lg_sword')) giveGear(libraryGear('lg_sword'), true);
       gmTrace('gm', '초식 시험: 《한상검법》 12성 장착 (제1 · 제2초식 · 오의) · 검이 없으면 청풍문 패검 (가방에서 차야 펼침)');
     }
+    if (what.startsWith('move_')) {                         // 초식 100%: 끔 · 섞어서 · 한 초식만
+      const k = what.slice(5); if (k === 'off') delete S.gmMove; else S.gmMove = k === 'mix' ? 'mix' : +k;
+      gmTrace('gm', `초식 100%: ${k === 'off' ? '끔 (35% · 60/30/10)' : k === 'mix' ? '매번 발동 · 60/30/10' : MOVE_NAME[+k] + '만 매번'} — 내력이 모자라도 펼침`);
+    }
     if (what === 'expedite') {                               // 강호행이 없으면 지금 떠나고, 있으면 다음 걸음을 곧바로 치른다
       if (!S.expedition.zone) S.expedition.zone = 'cheongpung';
       let r = activeRun();
@@ -154,7 +158,7 @@ function gmBroadcast() {
 }
 function gmPopout() {
   const w = window.open('admin.html', 'ganghoGM', 'width=880,height=940');
-  if (!w) { notify.toast('팝업이 막혔습니다. 브라우저에서 팝업을 허용하거나 admin.html을 직접 여십시오.'); gmTrace('warn', '관리자 창 팝업 차단'); return; }
+  if (!w) { notify.toast('새 창이 막혀 게임 안에 띄웁니다. 브라우저에서 팝업을 허용하거나 admin.html을 직접 여십시오.'); gmTrace('warn', '관리자 창 팝업 차단'); if (!GM.open) gmToggle(true); return; }
   gmTrace('gm', '관리자 창 열기 (admin.html)');
   gmToggle(false);
 }
@@ -189,8 +193,8 @@ function gmRemoteInit() {
 /* ───────── 입력 ───────── */
 function gmInit() {
   if (!GM_ENABLED || $('#gmPanel')) return;
-  document.body.insertAdjacentHTML('beforeend', `<button id="gmToggle" class="gm-toggle" aria-expanded="false" aria-controls="gmPanel" title="운영자 콘솔 (F1 · \`)">GM</button><div id="gmPanel" class="gm-panel" hidden></div>`);
-  $('#gmToggle').addEventListener('click', () => gmToggle());
+  document.body.insertAdjacentHTML('beforeend', `<button id="gmToggle" class="gm-toggle" aria-expanded="false" aria-controls="gmPanel" title="운영자 콘솔 (새 창)">GM</button><div id="gmPanel" class="gm-panel" hidden></div>`);
+  $('#gmToggle').addEventListener('click', () => (GM.open ? gmToggle(false) : gmPopout()));   // 새 창으로 (막히면 게임 안에)
   gmBindPanel($('#gmPanel'));
   // 관리자 창(admin.html)과 연결: 인사가 오면 추적 기록을 넘기고, 명령이 오면 게임 쪽에서 실행한다
   gmOpenChannel(msg => {
@@ -198,10 +202,8 @@ function gmInit() {
     if (msg.type === 'cmd') { gmTrace('gm', `관리자 창 명령: ${msg.cmd}`); gmRunCmd(msg.cmd, msg.args || []); }
   });
   setInterval(gmBroadcast, 1000);
-  // 단축키: 게임 입력칸에 글자를 치는 중이면 ` ~ 는 무시한다. 캡처 단계에서 먼저 받아 게임의 Esc 처리와 겹치지 않게 한다.
+  // 게임 안 단축키는 없다 (유저 요청). 게임 안에 띄운 콘솔만 Esc로 닫는다. 캡처 단계에서 먼저 받아 게임의 Esc 처리와 겹치지 않게 한다.
   window.addEventListener('keydown', e => {
-    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
-    if (e.key === 'F1' || (!typing && (e.key === '`' || e.key === '~'))) { e.preventDefault(); e.stopPropagation(); if (gmLocked()) { if (typeof gmUnlockAsk === 'function' && supaOn()) gmUnlockAsk(); return; } gmToggle(); return; }   // 잠긴 곳(claude.ai 밖)에서는 운영자 암호부터
     if (e.key === 'Escape' && GM.open) { e.stopPropagation(); gmToggle(false); }
   }, true);
   gmBindGameTrace();
