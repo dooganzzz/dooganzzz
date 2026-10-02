@@ -25,10 +25,11 @@ function martialModal(id) {
       <div><button class="btn primary" data-starup="${id}" ${why ? 'disabled' : ''}>▲ 성급 올리기${why ? ` <small>(${why})</small>` : ` <small>수련치 ${fmt(cost)}${pill ? ` + ${ITEMS[pill].name}` : ''}</small>`}</button></div>`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 ${schoolTag(id)} <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
     <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 수련치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
     <p class="story">${M.desc}</p>
     ${manualPoemHtml(id)}
+    ${cat === 'mugong' ? (P => `<p class="aff-line">${schoolTag(id)} ${P.name}(${P.hanja}) — ${P.words}. 장착하면 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음)</p>`)(SCHOOLS[schoolOf(id)]) : ''}
     ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja}) — ${ELEMENTS[ELEM_BEATS[M.elem]].hanja} 속성 적에게 피해 +25%, ${ELEMENTS[Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem)].hanja} 속성 적에게는 -25%</p>` : ''}
     ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}
     <h4>보너스 효과 (장착 시)</h4>${bonus}
@@ -94,7 +95,7 @@ function artSlotModal(cat) {
   const cur = S.active[cat], C = CATS[cat];
   const list = Object.keys(S.manuals).filter(id => MANUALS[id].cat === cat && id !== cur);
   const card = (id, btns) => { const M = MANUALS[id], m = S.manuals[id];
-    return `<div class="mcard-row ${cur === id ? 'worn' : ''}"><div><b>《${M.name}》</b>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''} ${realmTag(m.star)} <span class="num muted">${m.star}성 · ${M.grade}</span>
+    return `<div class="mcard-row ${cur === id ? 'worn' : ''}"><div><b>《${M.name}》</b>${schoolTag(id)}${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''} ${realmTag(m.star)} <span class="num muted">${m.star}성 · ${M.grade}</span>
       ${M.weapon && M.weapon !== weaponType() ? `<small class="warn">지금 병기로는 초식이 나가지 않습니다 (${WEAPON_TYPES[M.weapon]})</small>` : ''}</div><div class="btns">${btns}</div></div>`; };
   const curHtml = cur ? card(cur, `<button class="btn ghost sm" data-mart="${cur}">상세·성급</button><button class="btn ghost sm" data-unequipm="${cat}">해제</button>`) : '<p class="muted">비어 있습니다.</p>';
   const rows = list.map(id => card(id, `<button class="btn ghost sm" data-mart="${id}">상세·성급</button><button class="btn primary sm" data-equipm="${id}">${cur ? '교체' : '장착'}</button>`)).join('');

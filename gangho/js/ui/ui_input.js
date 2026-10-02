@@ -97,6 +97,7 @@ function onClick(e) {
   if (d.subqzone) { const z = d.subqzone; npcTalk('master', () => subqPickZone(z)); if (ui.npcTalk) { ui.npcTalk.stages = z; render(); } return; }
   if (d.subqstage) { const [z, n] = d.subqstage.split(':'); npcTalk('master', () => acceptSubq(z, +n)); return; }
   if (d.buymanual) { const M = MANUALS[d.buymanual]; return askContrib(`《${M.name}》 비급`, M.cost, () => buyManual(d.buymanual), '비급은 행낭에 들어가고, [ 익히기 ]로 독파하면 영구 각인이 새겨집니다.'); }
+  if (d.buypill) { const id = d.buypill; return askContrib(ITEMS[id].name, LIBRARY_PILLS[id], () => buyLibraryPill(id), '돌파단은 행낭에 들어갑니다. 5성 · 11성 관문에서 성급을 올릴 때 쓰입니다.'); }
   if (d.buybadge) { const g = SHOP_GEAR.find(x => x.id === d.buybadge); return askContrib(g.name, g.cost, () => buyBadge(d.buybadge), '신분패는 행낭에 들어갑니다. 무장에서 착용하십시오.'); }
   if (d.buylib) { const G = LIBRARY_GEAR[d.buylib]; return askContrib(`이류 장비 ${G.name}`, G.cost, () => buyLibraryGear(d.buylib), bonusText(G.stats)); }
   if (d.libtab) { ui.libTab = d.libtab; return render(); }

@@ -49,6 +49,8 @@ const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico
 const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})">${ELEMENTS[e].hanja}</span>` : '';
 const terrainTag = t => t ? `<span class="aff-tag tr" title="지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})">${TERRAINS[t].hanja}</span>` : '';
 const manualAffTag = id => elemTag(MANUALS[id].elem) + terrainTag(MANUALS[id].terrain);
+/* 파 표식 (正 · 魔 · 邪): 정마사 상성과 파의 고유 효과 */
+const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return `<span class="school-tag s-${k}" title="${P.name}(${P.hanja}) — ${P.desc} ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다">${P.hanja}</span>`; };
 const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_CLASS[w]]}</span>` : '';
 
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };

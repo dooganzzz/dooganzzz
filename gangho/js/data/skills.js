@@ -3,7 +3,7 @@
    stances: 초식 3개 (제1초식 = 비급 습득 즉시 · 제2초식 = 소성 6성 돌파 · 오의(奧義) = 대성 12성 달성). 이름은 '한글(漢字)', desc는 그 뜻.
    초식 글자 수: 제1초식 ≤3 · 제2초식 ≤5 · 오의 ≤8 (높은 등급일수록 길다). 발동할 때는 '제1초식 응한 (凝寒) !'처럼 이름만 외친다.
    (초식 · 오의 고유 그림은 assets/art/manual/무공id/ — 목록은 data/assets.js MANUAL_ART) · poem: 비급에 실린 과거 시(검법은 비급마다 한 편, 나머지는 CAT_POEMS)
-   extra: 장착 시 덧붙는 작은 고유 능력치 */
+   extra: 장착 시 덧붙는 작은 고유 능력치 · school: 정 · 마 · 사 (martial_arts.js SCHOOLS, 없으면 정) */
 
 const MANUALS = {
   // ── 삼류 검법 ──
@@ -241,14 +241,14 @@ const MANUALS = {
     stances: [{ name: '몰귀신(沒鬼神)', desc: '귀신조차 자취를 감추다' }, { name: '허공기한성(虛空起寒星)', desc: '빈 허공에서 차가운 별이 번뜩이니' }, { name: '일념단혼정건곤(一念斷魂定乾坤)', desc: '한 생각에 혼을 끊어 천하를 바로잡다' }] },
   hd5c: { name: '천기절명무영사', hanja: '天機絶命無影絲', desc: '하늘의 은밀한 기틀을 쥐다. 은실이 음양의 조화를 옭아매니 그림자가 스치자 만마가 엎드려 멸망하다. (초식 피해 배율 215% · 초식이 적중하면 2합 동안 출혈)', cat: 'mugong', grade: '초절정', weapon: 'hidden', cost: 2400, passiveBonus: { agi: 3, crit: 3 }, extra: { atk: 15 }, power: 2.15, stanceBleed: 2,
     stances: [{ name: '악천기(握天機)', desc: '하늘의 은밀한 기틀을 쥐다' }, { name: '은사쇄음양(銀絲鎖陰陽)', desc: '은실이 음양의 조화를 옭아매니' }, { name: '영과만마진복주(影過萬魔盡伏誅)', desc: '그림자가 스치자 만마가 엎드려 멸망하다' }] },
-  // ── 삼류 마공 (마도의 무공: 상대의 피와 기운을 빨아 제 활력으로 삼는다 — extra.lifesteal 흡혈 %) ──
-  sw1m: { name: '혈영검', hanja: '血影劍', desc: '피 그림자가 번지다. 칼끝이 피를 마신다. 핏빛 그림자가 달을 삼키다.', cat: 'mugong', grade: '삼류', weapon: 'sword', passiveBonus: { str: 1, atk: 3 }, extra: { lifesteal: 5 }, magong: true,
+  // ── 삼류 사파 무공 (사 邪: 피 · 육체 · 파괴 — 상대의 피와 기운을 빨아 제 활력으로 삼는다, extra.lifesteal 흡혈 %) ──
+  sw1m: { name: '혈영검', hanja: '血影劍', desc: '피 그림자가 번지다. 칼끝이 피를 마신다. 핏빛 그림자가 달을 삼키다.', cat: 'mugong', grade: '삼류', weapon: 'sword', passiveBonus: { str: 1, atk: 3 }, extra: { lifesteal: 5 }, school: 'sa',
     poem: { title: '혈영(血影)', lines: ['칼끝에 맺힌 붉은 그림자 하나', '베인 자의 숨결을 마시고 자라니', '달빛마저 피에 젖어 붉게 지고', '마도의 길은 끝내 돌아오지 않네.'] },
     stances: [{ name: '혈영(血影)', desc: '피 그림자가 번지다' }, { name: '음혈인(飮血刃)', desc: '칼끝이 피를 마신다' }, { name: '혈영탄월(血影呑月)', desc: '핏빛 그림자가 달을 삼키다' }] },
-  bd1m: { name: '흡혈마도', hanja: '吸血魔刀', desc: '피바람이 일다. 마도가 넋을 빨아들인다. 피의 바다를 가르는 마도의 일격.', cat: 'mugong', grade: '삼류', weapon: 'blade', passiveBonus: { str: 1, atk: 3 }, extra: { lifesteal: 6 }, magong: true,
+  bd1m: { name: '흡혈마도', hanja: '吸血魔刀', desc: '피바람이 일다. 마도가 넋을 빨아들인다. 피의 바다를 가르는 마도의 일격.', cat: 'mugong', grade: '삼류', weapon: 'blade', passiveBonus: { str: 1, atk: 3 }, extra: { lifesteal: 6 }, school: 'sa',
     poem: { title: '혈해(血海)', lines: ['칼바람 지나간 자리마다 피바람이 일고', '쓰러진 자의 기운이 칼날로 스며드니', '피의 바다 위에 홀로 선 그림자여', '마도의 칼은 배부를 줄을 모르네.'] },
     stances: [{ name: '혈풍(血風)', desc: '피바람이 일다' }, { name: '마도흡혼(魔刀吸魂)', desc: '마도가 넋을 빨아들인다' }, { name: '혈해마도참(血海魔刀斬)', desc: '피의 바다를 가르는 마도의 일격' }] },
-  fs1m: { name: '흡성마장', hanja: '吸星魔掌', desc: '별의 기운을 빨아들이다. 마장이 기운을 빼앗는다. 흡성의 대법으로 목숨을 거두다.', cat: 'mugong', grade: '삼류', weapon: 'fist', passiveBonus: { str: 1, def: 2 }, extra: { lifesteal: 5 }, magong: true,
+  fs1m: { name: '흡성마장', hanja: '吸星魔掌', desc: '별의 기운을 빨아들이다. 마장이 기운을 빼앗는다. 흡성의 대법으로 목숨을 거두다.', cat: 'mugong', grade: '삼류', weapon: 'fist', passiveBonus: { str: 1, def: 2 }, extra: { lifesteal: 5 }, school: 'sa',
     poem: { title: '흡성(吸星)', lines: ['손바닥이 닿는 곳마다 별이 지고', '남의 기운을 거두어 제 것으로 삼으니', '마른 몸에 붉은 내력이 차오른다.', '정도의 사람들은 그 이름을 꺼리네.'] },
     stances: [{ name: '흡성(吸星)', desc: '별의 기운을 빨아들이다' }, { name: '마장탈기(魔掌奪氣)', desc: '마장이 기운을 빼앗는다' }, { name: '흡성탈명(吸星奪命)', desc: '흡성의 대법으로 목숨을 거두다' }] },
   // ── 삼류 경공 ──

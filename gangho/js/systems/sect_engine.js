@@ -5,7 +5,7 @@
    보상을 받으면 다시 받을 수 있다. 보상은 하루 SUBQ.daily번까지 (모든 지역 합).
    보상: 공헌도 · 은자 · 수련치 · 생혈고 (단계에 비례 · 높은 탐험지일수록 tierUp만큼 소폭 더). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
 const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 5, tierUp: 0.2 };   // daily: 하루 보상 횟수(모든 지역 합) · tierUp: 탐험지 한 등급마다 +20%
-function subqReward(zid, n) { const t = 1 + SUBQ.tierUp * (ZONES[zid].tier - 1); return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
+function subqReward(zid, n) { const t = 1 + SUBQ.tierUp * (ZONES[zid].tier - 1), jg = mySchool() === 'jeong' ? 1 + SCHOOL_RULES.jeongReward : 1; return { contrib: Math.round((SUBQ.contrib * n * t + SUBQ.contribBase) * jg), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
 const subqCur = () => { const q = S.subqCur; return q && ZONES[q.zid] ? q : null; };
 function subqAdd(zid, n) { const q = subqCur(); if (q && q.zid === zid && q.n === n) q.prog = Math.min(SUBQ.kills, (q.prog || 0) + 1); }
 /* 오늘 보상을 받은 횟수 (자정이 지나면 0부터) */
@@ -129,6 +129,17 @@ function buyBadge(id) {
   S.contrib -= g.cost;
   log(`${hlItem(g.name)}${jo(g.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
   notify.refresh();
+}
+
+/* 장경각 영단 교환: 돌파단 (공헌도, 개수 제한 없음) */
+function buyLibraryPill(id) {
+  const cost = LIBRARY_PILLS[id];
+  if (!cost || S.contrib < cost) return false;
+  if (!give(id, 1, true)) return false;
+  S.contrib -= cost;
+  log(`장경각에서 ${hlItem(ITEMS[id].name)}${jo(ITEMS[id].name, '을를')} 받았습니다. (공헌도 -${cost})`, 'gold');
+  notify.refresh();
+  return true;
 }
 
 /* 장경각 이류 장비 교환 (공헌도) */

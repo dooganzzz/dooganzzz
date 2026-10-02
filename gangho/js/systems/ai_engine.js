@@ -100,7 +100,8 @@ function aiPills(note) {
     const id = S.active[c]; if (!id) continue;
     const pill = GATES[S.manuals[id].star]; if (!pill || has(pill)) continue;
     const r = RECIPES.find(x => x.out === pill);   // 돌파단은 이제 조합으로 못 만든다 (가르침 · 첫 입장 · 금고)
-    if (!r) { if (pill === 'pillLow' && aiPrayForPill(note)) continue; note(`${MANUALS[id].name} ${S.manuals[id].star}성: ${ITEMS[pill].name} 기다림`); continue; }
+    if (!r) { if (S.contrib >= LIBRARY_PILLS[pill] && buyLibraryPill(pill)) { note(`장경각: ${ITEMS[pill].name} (공헌 ${LIBRARY_PILLS[pill]})`); continue; }
+      if (pill === 'pillLow' && aiPrayForPill(note)) continue; note(`${MANUALS[id].name} ${S.manuals[id].star}성: ${ITEMS[pill].name} 기다림`); continue; }
     aiBuyMats(r);
     let tries = 0;
     while (!has(pill) && aiCraftable(r) && tries++ < 4) { const res = doCraft(r.craft, { ...r.in }); if (res && res.ok) note(`연단: ${ITEMS[pill].name}`); }

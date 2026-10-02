@@ -54,9 +54,9 @@ const ITEMS = {
   // 증표
   hasanryeong: { name: '낙양성 하산령', icon: '📜', kind: '증표', price: 0, desc: '청풍문 장문인이 내린 하산 허가증. 제2장 낙양성으로 가는 길이 열린다.' },
   // 비급서: 모든 비급마다 '비급' 아이템이 있다. 행낭에서 [ 익히기 ]로 소모하면 습득한 무공 목록에 오른다.
-  bk_sw1m: { name: '《혈영검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw1m' }, desc: '마도의 비급. 읽고 익히면 혈영검(血影劍)을 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
-  bk_bd1m: { name: '《흡혈마도》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'bd1m' }, desc: '마도의 비급. 읽고 익히면 흡혈마도(吸血魔刀)를 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
-  bk_fs1m: { name: '《흡성마장》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'fs1m' }, desc: '마도의 비급. 읽고 익히면 흡성마장(吸星魔掌)을 운용할 수 있다. 친 상대의 기운을 빨아 활력으로 삼는다.' },
+  bk_sw1m: { name: '《혈영검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw1m' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈영검(血影劍)을 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
+  bk_bd1m: { name: '《흡혈마도》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'bd1m' }, desc: '사파(邪派)의 비급. 읽고 익히면 흡혈마도(吸血魔刀)를 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
+  bk_fs1m: { name: '《흡성마장》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'fs1m' }, desc: '사파(邪派)의 비급. 읽고 익히면 흡성마장(吸星魔掌)을 운용할 수 있다. 친 상대의 기운을 빨아 활력으로 삼는다.' },
   bk_sw1a: { name: '《한상검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1a' }, desc: '읽고 익히면 한상검법(寒霜劍法)을(를) 운용할 수 있다.' },
   bk_sw1b: { name: '《추상검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1b' }, desc: '읽고 익히면 추상검법(秋霜劍法)을(를) 운용할 수 있다.' },
   bk_sw1c: { name: '《유묵검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1c' }, desc: '읽고 익히면 유묵검법(儒墨劍法)을(를) 운용할 수 있다.' },
@@ -365,6 +365,8 @@ const CRAFTS = {
    bleed: 적중 시 출혈 확률(%) · pierce: 관통력(적 방어 무시) · acc: 명중 보정(%p) */
 /* 장경각 이류(二流) 장비: 문파 공헌도로 교환. 이름은 '청풍문 ~'(문파 하사품)으로 단조 장비와 구분한다. 중급(녹색)·2티어. str/con/agi/int는 4대 스탯에 더해진다
    shock 충격(적이 한 합 움직이지 못함) · first 선공 보정 · bleed 적에게 출혈 · staSave 원정 기력 소모 감소 */
+/* 장경각 영단: 돌파단을 문파 공헌도로 (개수 제한 없음, 유저 확정 10월 2일) */
+const LIBRARY_PILLS = { pillLow: 500, pillHigh: 1500 };
 const LIBRARY_GEAR = {
   lg_fist:   { slot: 'weapon', wtype: 'fist',   name: '청풍문 호수', hanja: '淸風門護手',   stats: { atk: 18, def: 6, shock: 5 },       cost: 280, desc: '바람결처럼 가벼운 권갑. 제대로 박히면 적의 몸이 굳는다 (충격).' },
   lg_sword:  { slot: 'weapon', wtype: 'sword',  name: '청풍문 패검', hanja: '淸風門佩劍',   stats: { atk: 22, crit: 3, agi: 1 },        cost: 300, desc: '날아가듯 가벼운 청풍문의 검. 쥔 손이 절로 빨라진다.' },

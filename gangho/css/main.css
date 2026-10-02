@@ -934,3 +934,9 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .mslots.martial-arts-core-layout > .slot-pos { transform: translate(-36px, -50%) rotate(var(--tilt, 0deg)); }
 @keyframes qiBoxFlare { 0% { filter: drop-shadow(0 0 10px rgba(255, 226, 150, .95)) brightness(1.3); } 12%, 100% { filter: none; } }
 @media (max-width: 640px) { .slot-lite .mslot-box { width: 52px; height: 52px; } .mslots.martial-arts-core-layout > .slot-pos { transform: rotate(var(--tilt, 0deg)); } }
+
+/* 파 표식 (正 · 魔 · 邪) — 정: 양피지 금빛 · 마: 연보라 · 사: 연빨강 */
+.school-tag { display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; margin: 0 4px; border-radius: 3px; font: 700 .78em/1 var(--serif, serif); vertical-align: middle; border: 1px solid currentColor; }
+.school-tag.s-jeong { color: #e3cf96; background: rgba(227, 207, 150, .12); }
+.school-tag.s-ma { color: #c9b0ee; background: rgba(201, 176, 238, .14); }
+.school-tag.s-sa { color: #f0a3a3; background: rgba(240, 163, 163, .14); }

@@ -1,6 +1,10 @@
 /* [시스템] 능력치 계산: 장비·비급·무신상·버프를 합산한다 (DOM 조작 금지) */
 
 /* ───────── 능력치 ───────── */
+/* 파(正 · 魔 · 邪): 장착한 공격 무공의 파 (없으면 정). schoolEdge: 내 파가 상대 파를 이기면 1, 지면 -1, 상대에게 파가 없으면(요수) 0 */
+const schoolOf = mid => (MANUALS[mid] && MANUALS[mid].school) || 'jeong';
+const mySchool = () => S.active.mugong ? schoolOf(S.active.mugong) : 'jeong';
+function schoolEdge(mine, theirs) { if (!theirs || !SCHOOLS[theirs]) return 0; return SCHOOLS[mine].beats === theirs ? 1 : SCHOOLS[theirs].beats === mine ? -1 : 0; }
 function calcStats() {
   const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0 };
   // 3대 기본 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다

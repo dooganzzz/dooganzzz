@@ -77,13 +77,14 @@ function viewHall() {
     <ul class="missions">${cq ? `<li class="${cok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(cq.zid, cq.n)} <small class="muted">${cq.n >= STAGE.count ? '두목' : `${cq.n}단계`}</small></div><div class="mprog"><span style="width:${cp / SUBQ.kills * 100}%"></span></div><span class="num">${cp}/${SUBQ.kills}</span><span class="reward">공헌 ${cR.contrib} · 은자 ${cR.silver} · 수련치 ${cR.exp} · 생혈고 ${cR.pot}</span><button class="btn sm ${cok ? 'primary' : ''}" data-subq="1" ${cok ? '' : 'disabled'}>${cp >= SUBQ.kills && !subqLeft() ? '내일' : '보상'}</button></li>`
       : `<li class="muted">${subqLeft() ? '맡은 토벌이 없습니다. 장문인에게 [토벌 임무 받기].' : `오늘 토벌은 ${SUBQ.daily}번 다 했습니다. 내일 다시 받으십시오.`}</li>`}</ul></div>`;
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
-  const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌']];
+  const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌'], ['pills', '영단', '靈丹']];
   const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';
   const libCard = (name, grade, part, eff, cost, own, attr, ico = '') => `<div class="item-card shop-item lib-item ${gradeClass(grade)}">${itemCardHead(name, grade, ico)}
     <div class="item-card-body"><div class="item-category">${part}</div><div class="item-effect lib-eff">${eff}</div></div>
     <button class="btn sm btn-exchange" ${attr} ${own || S.contrib < cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${cost}`}</button></div>`;
   const libItems = lt === 'equipment' ? Object.entries(LIBRARY_GEAR).map(([id, G]) => libCard(G.name, RARITY[1].name, `${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_SHORT[G.wtype] : ''}`, bonusText(G.stats), G.cost, ownsShop(id), `data-buylib="${id}"`, gearIco(G, 'card', 1)))
     : lt === 'skills' ? shopManuals.map(([id, M]) => libCard(M.name, M.grade, `${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}`, `${esc(M.desc)}<br><span class="passive">독파 각인: ${bonusText(M.passiveBonus)}</span>`, M.cost, ownsBook(id), `data-buymanual="${id}"`, manualIco(id, 'card')))
+    : lt === 'pills' ? Object.entries(LIBRARY_PILLS).map(([id, cost]) => libCard(ITEMS[id].name, '영단', `보유 ${count(id)}개`, esc(ITEMS[id].desc), cost, false, `data-buypill="${id}"`, itemIco(id, 'card')))
     : badges.map(g => libCard(g.name, RARITY[g.rarity].name, '신분패', `수련치 획득 +${g.stats.train}%`, g.cost, ownsShop(g.id), `data-buybadge="${g.id}"`, gearIco(g, 'card')));
   const library = `
     <div class="subtabs lib-tabs" role="tablist" aria-label="장경각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>

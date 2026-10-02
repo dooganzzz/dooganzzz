@@ -272,7 +272,8 @@ function playerHit(b, mult, o) {
   let dmg = dmgCalc(st.atk, def) * mult * A.dealt * (o.title && o.cls !== 'counter' ? 1 + (st.qiDmg || 0) : 1);   // 통맥환(초식)
   const crit = Math.random() * 100 < st.crit + (o.critUp || 0);
   if (crit) dmg *= COMBAT_RULES.critBase + (st.critDmg || 0) / 100;   // 치명 피해
-  dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step));   // 경지 압제
+  dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step) * (1 + schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge)
+    * (o.title && o.cls !== 'counter' && mySchool() === 'ma' ? 1 + SCHOOL_RULES.maStance : 1));   // 경지 압제 · 정마사 상성(요수는 없음) · 마: 초식 위력
   e.hpNow = Math.max(0, e.hpNow - dmg);
   if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= e.hp * 0.2 });
   const [, txt, cls] = reaction(dmg, e.hp);
@@ -343,7 +344,7 @@ function enemyTurn(b) {
     let dmg = Math.max(1, Math.round(Math.max(dmgCalc(e.atk, Math.max(0, st.def - (e.pierce || 0))), e.atk * COMBAT_RULES.minDmg) * A.taken * (h > 0 ? 0.6 : 1)));
     const crit = Math.random() * 100 < Math.max(0, (e.crit || 8) - st.critRes / 2);
     if (crit) dmg = Math.round(dmg * 1.5);
-    dmg = Math.max(1, Math.round(dmg * (1 - (b.realm || 0) * COMBAT_RULES.realm.step)));   // 경지 압제
+    dmg = Math.max(1, Math.round(dmg * (1 - (b.realm || 0) * COMBAT_RULES.realm.step) * (1 - schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge)));   // 경지 압제 · 정마사 상성
     if (st.block && Math.random() * 100 < st.block) {                                       // 막기: 일부만 받는다
       dmg = Math.max(1, Math.round(dmg * (1 - COMBAT_RULES.blockCut)));
       bLine(`🛡 막기! 팔을 세워 공격을 받아 냅니다. (피해 -${COMBAT_RULES.blockCut * 100}%)`, 'log-stance-desc aff-up');
@@ -386,6 +387,7 @@ function winBattle(b) {
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
   if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); for (const g of applyFx(b.bonus.fx || {})) bLine(`↳ ${hlItem(g)}`, 'loot'); }
+  if (mySchool() === 'sa') { const st = calcStats(), h = Math.round(st.maxHp * SCHOOL_RULES.saHeal); if (S.hp > 0 && S.hp < st.maxHp) { S.hp = Math.min(st.maxHp, S.hp + h); bLine(`🩸 사(邪)의 갈증 — 쓰러진 적의 기운을 들이켜 활력 +${fmt(h)}`, 'loot'); } }
   S.kills++;
   if (E.boss && !S.flags[E.boss]) {
     S.flags[E.boss] = true;

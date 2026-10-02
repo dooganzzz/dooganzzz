@@ -119,6 +119,15 @@ const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terra
 const MOVE_MULT = [1.4, 2.4, 3.6];
 const MOVE_START = 35;
 const MOVE_PICK = [60, 30, 10];   // 제1초식 · 제2초식 · 오의 (%)
+/* 정 · 마 · 사 (正 · 魔 · 邪): 비급의 파(派). 정은 마를, 마는 사를, 사는 정을 이긴다 (이기는 쪽이 주는 피해 +edge · 받는 피해 -edge).
+   요수는 이 셋 밖의 독립 무리라 상성이 없다 (적에게 school이 있을 때만 걸린다). 장착한 공격 무공의 파에 따라 고유 효과가 붙는다 (대가 없음, 유저 확정 10월 2일).
+   비급 표지 색: 정 = 지금 표지 (삼류 양피지 → 초절정 빨강) · 마 = 연보라부터 · 사 = 연빨강부터 (표지 그림은 시안 중) */
+const SCHOOLS = {
+  jeong: { name: '정', hanja: '正', words: '정의 · 수호 · 집단 · 협의 · 인내', beats: 'ma', desc: '바른 길을 걷는 협객의 무공. 문파와 함께 커 간다.', bonus: '문파 공헌도 · 토벌 임무 보상 +10%' },
+  ma:    { name: '마', hanja: '魔', words: '순수 · 힘 · 독단 · 광기 · 패도', beats: 'sa', desc: '홀로 극에 이르려는 순수한 힘의 무공.', bonus: '초식 위력 +10%' },
+  sa:    { name: '사', hanja: '邪', words: '피 · 육체 · 파괴 · 금기 · 갈증', beats: 'jeong', desc: '피와 육체를 탐하는 금기의 무공.', bonus: '싸움에 이기면 활력 3% 회복' },
+};
+const SCHOOL_RULES = { edge: 0.15, jeongReward: 0.1, maStance: 0.1, saHeal: 0.03 };
 const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2,
   critBase: 1.6,          // 제자 치명 배율 기본 (+ 치명 피해 %)
   blockCut: 0.4,          // 막기: 막으면 받는 피해 -40%
