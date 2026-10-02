@@ -43,7 +43,7 @@ const GRADE_CLASS_MAP = { '하급': 'grade-low', '중급': 'grade-mid', '상급'
 const gradeClass = g => GRADE_CLASS_MAP[g] || 'grade-low';
 const gradeBadge = g => `<span class="item-grade-badge">${g}</span>`;
 /* 카드 머리: 이름(등급 색)과 등급 원형 뱃지를 양 끝에 */
-const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico}<b class="item-name">${name}</b>${gradeBadge(g)}</div>`;
+const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico ? inkBox(ico) : ''}<b class="item-name">${name}</b>${gradeBadge(g)}</div>`;
 
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
 const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})">${ELEMENTS[e].hanja}</span>` : '';
@@ -69,10 +69,10 @@ function viewMartial() {
   // 장착 칸: 네모 칸 안의 표지 · 갈래 이름 · 비급 이름 · 성급 (속성은 상세 창에서만). 누르면 그 비급 상세, 빈 칸은 그 갈래 창
   const card = cat => {
     const id = S.active[cat], C = CATS[cat];
-    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><span class="mslot-box"></span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">비어 있음</small></div></div></div>`;
+    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><span class="mslot-box">${inkFrame()}</span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">비어 있음</small></div></div></div>`;
     const m = S.manuals[id];
     return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite" data-mart="${id}" role="button" tabindex="0" aria-haspopup="dialog" title="《${MANUALS[id].name}》 — 눌러서 상세">
-      <span class="mslot-box">${manualIco(id, 'mslot-cover')}</span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><b class="mslot-name">《${MANUALS[id].name}》</b><span class="art-star skill-level">${m.star}<small>성</small></span></div>
+      <span class="mslot-box">${inkFrame()}${manualIco(id, 'mslot-cover')}</span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><b class="mslot-name">《${MANUALS[id].name}》</b><span class="art-star skill-level">${m.star}<small>성</small></span></div>
     </div></div>`;
   };
   // 습득 비급 한 줄 (A안): 표지 · 이름 · 등급 · 경지 · 장착 중 · 성급 구슬 12개(돌파단 자리 표시) · 효과 한 줄 · 단추
@@ -140,9 +140,8 @@ function viewGear() {
   // 장착 칸 카드: 부위 아이콘 · 칸 이름 · 장착한 장비(없으면 비어있음) · 행낭에 이 칸에 맞는 장비 수
   const slot = (s, cls = '') => {
     const it = S.equip[s];
-    return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${slotIcon(s)}<small class="slot-label">${SLOTS[s].name}</small><span class="slot-item-name ${it ? 'equipped' : 'empty'}">${it ? gearName(it) : '비어있음'}</span>${slotCount(s)}</button>`;
+    return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${inkBox(slotIcon(s))}<small class="slot-label">${SLOTS[s].name}</small><span class="slot-item-name ${it ? 'equipped' : 'empty'}">${it ? gearName(it) : '비어있음'}</span></button>`;
   };
-  const slotCount = s => { const n = S.gear.filter(g => g.slot === slotAccepts(s)).length; return n ? `<em class="slot-n" title="행낭에 이 칸에 맞는 장비 ${n}점">+${n}</em>` : ''; };
   return `<section class="panel">
     ${head('무장', '武裝', `<button class="btn primary sm auto-equip" data-act="autoequip" title="행낭 장비 가운데 투력이 가장 많이 오르는 것으로 한 번에 바꿉니다">⚡ 자동 장착</button>`)}
     <div class="bag-top">

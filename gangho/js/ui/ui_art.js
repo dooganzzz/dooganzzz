@@ -147,6 +147,9 @@ const SLOT_ICON = {
   'w-hidden': 'M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z',
   'w-fist': 'M6 11V7a2 2 0 0 1 4 0v4M10 10V6a2 2 0 0 1 4 0v4M14 10V7a2 2 0 0 1 4 0v6c0 4-3 7-7 7s-5-3-5-6v-3',
 };
+/* 수묵 붓선 네모칸 테두리(확정본 slot_frame): 비급 · 장비 · 아이템 그림 칸에 공통으로 두른다. 가운데는 비어 뒤가 비친다 */
+const inkFrame = () => `<img class="ink-frame" src="${ASSET.ui('slot_frame')}" alt="" aria-hidden="true">`;
+const inkBox = (inner, cls = '') => `<span class="ink-box ${cls}">${inkFrame()}${inner}</span>`;
 function slotIcon(slot) {
   if (S.equip[slot]) return gearIco(S.equip[slot], 'slot-ico');
   const w = slot === 'weapon' && S.equip.weapon ? 'w-' + (S.equip.weapon.wtype || 'sword') : null;
