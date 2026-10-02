@@ -728,10 +728,10 @@
 .pot.furnace-stage.study { min-height: 0; aspect-ratio: 1280 / 716; height: auto; }
 .furnace-stage.study .stage-bg .art-frame > img { object-fit: fill; }
 .furnace-stage.study .stage-bg::after { display: none; }
-.furnace-stage.study .yh-book { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; pointer-events: none; animation: yhBook 5.2s ease-in-out infinite; }
+.furnace-stage.study .yh-book { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; pointer-events: none; animation: yhBook 5.2s ease-in-out infinite; }
 @keyframes yhBook { 0%, 100% { opacity: .05; filter: blur(3px); } 28% { opacity: .6; filter: blur(1.6px); } 40% { opacity: .22; filter: blur(2.6px); } 55% { opacity: .8; filter: blur(1.2px); } 74% { opacity: .12; filter: blur(3px); } }
 html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: blur(1.5px); }
-.furnace-stage.study .yh-mirror { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; border-radius: 50%; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.furnace-stage.study .yh-mirror { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; border-radius: 50%; border: 0; padding: 0; background: transparent; cursor: pointer; }
 .furnace-stage.study .yh-mirror:hover, .furnace-stage.study .yh-mirror:focus-visible { box-shadow: 0 0 0 2px rgba(212, 175, 55, .55), 0 0 22px rgba(160, 200, 255, .35); outline: none; }
 .mirror-sheet { max-width: 460px; }
 .study-btns { justify-content: center; margin-top: 12px; }   /* 연혼: 단추는 그림 아래 (혼로를 가리지 않게) */
@@ -744,15 +744,15 @@ html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: 
 .yh-fx .soul { position: absolute; width: 1.6%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #fff, var(--gc) 45%, transparent 72%); box-shadow: 0 0 10px 3px color-mix(in srgb, var(--gc) 70%, transparent); transform: translate(-50%, -50%); opacity: 0;
   animation: yhSoul 1.1s cubic-bezier(.5, 0, .7, 1) .45s forwards; }
 @keyframes yhSoul { 0% { opacity: 0; left: var(--x0); top: var(--y0); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; left: 50%; top: 35.2%; } }
-.yh-fx .core { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; border-radius: 50%; opacity: 0; background: radial-gradient(circle, rgba(255, 255, 255, .95), color-mix(in srgb, var(--gc) 60%, transparent) 40%, transparent 72%); animation: yhCore 2.1s ease-out forwards; }
+.yh-fx .core { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; border-radius: 50%; opacity: 0; background: radial-gradient(circle, rgba(255, 255, 255, .95), color-mix(in srgb, var(--gc) 60%, transparent) 40%, transparent 72%); animation: yhCore 2.1s ease-out forwards; }
 @keyframes yhCore { 0%, 52% { opacity: 0; transform: scale(.6); } 70% { opacity: 1; transform: scale(1.25); } 100% { opacity: 0; transform: scale(1.8); } }
 .furnace-stage.study.binding .yh-book, .yh-stage.binding .book { animation: yhBookBind 2.1s ease-out forwards !important; }
 @keyframes yhBookBind { 0% { opacity: .1; filter: blur(3px); } 45% { opacity: .7; filter: blur(1.5px) var(--gtint); } 100% { opacity: 1; filter: blur(0) var(--gtint) brightness(1.4) drop-shadow(0 0 8px var(--gc)); } }
 /* 금 · 깨짐: 같은 장면의 '금 간 명경' 그림(Higgsfield)이 번쩍이며 드러나고 떨린 뒤, 그 그림 조각이 흩어진다 */
-.yh-fx .crack { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; opacity: 0; animation: yhCrack .5s ease-out 2.0s forwards, yhGone .05s linear 2.5s forwards; filter: drop-shadow(0 0 10px var(--gc)); }
+.yh-fx .crack { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; opacity: 0; animation: yhCrack .5s ease-out 2.0s forwards, yhGone .05s linear 2.5s forwards; filter: drop-shadow(0 0 10px var(--gc)); }
 @keyframes yhCrack { 0% { opacity: 0; transform: scale(1); filter: brightness(2.2) drop-shadow(0 0 10px var(--gc)); } 25% { opacity: 1; } 40% { transform: translate(-1%, .6%); } 55% { transform: translate(1%, -.6%); } 70% { transform: translate(-.5%, .3%); } 100% { opacity: 1; transform: none; filter: brightness(1) drop-shadow(0 0 10px var(--gc)); } }
 .furnace-stage.study.binding .yh-book, .yh-stage.binding .book { transition: none; }
-.yh-fx .shards { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; }
+.yh-fx .shards { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; }
 .yh-fx .shard { position: absolute; inset: 0; background: var(--bg) center / 100% 100% no-repeat; filter: brightness(1.15) drop-shadow(0 0 4px var(--gc)); opacity: 0; animation: yhShard .9s cubic-bezier(.2, .7, .3, 1) 2.5s forwards; }
 @keyframes yhShard { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.7); } }
 .furnace-stage.study.binding .yh-book { animation: yhBookBind 2.1s ease-out forwards, yhGone .1s linear 2.5s forwards !important; }

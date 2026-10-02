@@ -11,7 +11,7 @@ const ART_SRC = {
   shrineAwake: () => ASSET.scene('shrine_awake'),
   forgeScene: () => ASSET.scene('forge_scene'),
   alchemyScene: () => ASSET.scene('alchemy_scene'),
-  yeonhonScene: () => ASSET.scene('yeonhon'),            // 화로 › 연혼: 명경 안은 비어 있는 바탕
+  yeonhonScene: () => ASSET.scene('yeonhon_hall'),       // 화로 › 연혼: 명경 안은 비어 있는 바탕 (금빛 만다라 팔괘 거울 확정본)
   yeonhonBook: () => ASSET.fx('yeonhon_book'),
   yeonhonCrack: () => ASSET.fx('yeonhon_crack'),         // 같은 장면을 '명경이 금 간' 모습으로 고친 그림에서 잘라 낸 명경 안쪽 (Higgsfield 확정본)           // 같은 그림에서 잘라 낸 명경 안쪽 (초절정 비급) — 그 자리에서 깜박임
 };
