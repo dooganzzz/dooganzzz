@@ -14,9 +14,11 @@ function viewStudy() {
   return `<section class="panel furnace study">
     ${head('화로', '火爐')}
     ${furnaceTabs()}
+    <p class="muted furnace-desc">연혼각(煉魂閣). 무신상이 내린 찢어진 비급 조각을 명경(明鏡)이 끌어온 넋으로 다시 잇는 곳입니다. 같은 등급 조각 ${STUDY.need}장을 모아 내력을 불어넣으면 온전한 비급이 됩니다.</p>
     <div class="pot furnace-stage study"><div class="stage-bg">${artPic(ART_SRC.yeonhonScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>
       <img class="yh-book" src="${ART_SRC.yeonhonBook()}" alt="" aria-hidden="true">
       <button class="yh-mirror" data-act="mirror" aria-label="명경 — 찢어진 비급 조각 엮기"></button></div>
+    <div class="btns plaque-btns study-btns"><button class="btn plaque primary" data-act="mirror">내력 주입하기</button></div>
   </section>`;
 }
 /* 명경을 누르면: 등급마다 조각 칸 (다 모인 등급만 [엮기]) */

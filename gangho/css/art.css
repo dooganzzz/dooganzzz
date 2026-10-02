@@ -734,3 +734,4 @@ html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: 
 .furnace-stage.study .yh-mirror { position: absolute; left: 42.734%; top: 20.251%; width: 14.531%; height: 25.978%; border-radius: 50%; border: 0; padding: 0; background: transparent; cursor: pointer; }
 .furnace-stage.study .yh-mirror:hover, .furnace-stage.study .yh-mirror:focus-visible { box-shadow: 0 0 0 2px rgba(212, 175, 55, .55), 0 0 22px rgba(160, 200, 255, .35); outline: none; }
 .mirror-sheet { max-width: 460px; }
+.study-btns { justify-content: center; margin-top: 12px; }   /* 연혼: 단추는 그림 아래 (혼로를 가리지 않게) */
