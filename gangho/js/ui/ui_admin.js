@@ -12,7 +12,7 @@ const GM_ENABLED = true;
 const GM_REMOTE = !!window.GM_REMOTE;
 const GM_CHANNEL = 'gangho-gm';
 
-const GM = { open: false, tab: 'users', trace: [], itemQ: '', itemKind: 'all', recipeCraft: 'all', resetArm: false, aiPattern: 'life', aiReport: null, aiBusy: false, dbTab: 'monsters' };
+const GM = { open: false, tab: 'users', trace: [], itemQ: '', itemKind: 'all', recipeCraft: 'all', resetArm: false, aiPattern: 'life', aiReport: null, aiBusy: false, dbTab: 'monsters', edits: {}, applied: {}, orig: null };
 const GM_TABS = [['users', '유저'], ['ai', 'AI 자동 플레이'], ['trace', '행동 추적'], ['items', '아이템 DB'], ['db', '게임 DB'], ['recipes', '조합법'], ['cheat', '쾌속 치트']];
 const GM_TRACE_MAX = 300;
 const GM_KIND = { tab: '탭', view: '화면', click: '클릭', battle: '전투', 'item+': '획득', 'item-': '소모', warn: '경고', notice: '알림', error: '예외', gm: 'GM', sys: '시스템' };
@@ -85,6 +85,10 @@ const GM_CMDS = {
   },
   importobj(st) { if (importSave(st)) gmTrace('gm', `웹 유저 저장 불러오기: ${st.name} (지금 저장은 백업해 둠)`); else gmTrace('warn', '저장 형식이 맞지 않습니다'); },
   importundo() { if (restoreSave('import')) gmTrace('gm', '불러오기 전 저장으로 되돌림'); },
+  enemyset(patch) {                                        // 요수 능력치 고치기 { id: { 키: 값 | null } } — null이면 그 키를 뺀다
+    for (const [id, o] of Object.entries(patch)) { const E = ENEMIES[id]; if (!E) continue; for (const [k, v] of Object.entries(o)) { if (v === null || v === '' || Number.isNaN(+v)) delete E[k]; else E[k] = +v; } }
+    gmTrace('gm', `요수 능력치 적용: ${Object.entries(patch).map(([id, o]) => `${(ENEMIES[id] || {}).name || id} ${Object.entries(o).map(([k, v]) => `${k}=${v ?? '없음'}`).join(' ')}`).join(' · ')}`);
+  },
   cheat(what) {
     if (what === 'reset') { gmTrace('gm', '데이터 완전 초기화'); doReset(); return; }
     if (!S) return;
@@ -228,12 +232,32 @@ function gmBindPanel(panel) {
     }
     if (t.closest('[data-gmlogoutall]')) { if (!SUPA_ST.pass) { gmTrace('warn', '운영자 암호를 먼저 넣으십시오'); return; } accountLogoutAll(SUPA_ST.pass).then(n => gmTrace('gm', `전체 로그아웃 (차수 ${n}) — 모든 유저가 다시 로그인해야 합니다`), e => gmTrace('warn', `전체 로그아웃 실패: ${e.message}`)); return; }
     if (d.gmsupa) { supaPlayerSave(d.gmsupa).then(st => st ? gmDo('importobj', st) : gmTrace('warn', '저장이 비어 있습니다'), e => gmTrace('warn', `저장을 받지 못했습니다: ${e.message}`)); return; }
+    if (d.gm === 'enemyapply') {                                    // 고친 칸을 게임에 넣는다 (별도 창이면 이 창의 표에도 같이)
+      const patch = GM.edits; if (!Object.keys(patch).length) return;
+      for (const [id, o] of Object.entries(patch)) GM.applied[id] = [...new Set([...(GM.applied[id] || []), ...Object.keys(o)])];
+      if (GM_REMOTE) GM_CMDS.enemyset(patch); GM.edits = {}; gmDo('enemyset', patch); return gmRender();
+    }
+    if (d.gm === 'enemyrevert') {
+      const patch = {}; for (const [id, ks] of Object.entries(GM.applied)) { patch[id] = {}; for (const k of ks) patch[id][k] = GM.orig[id][k] ?? null; }
+      GM.applied = {}; GM.edits = {}; if (GM_REMOTE) GM_CMDS.enemyset(patch); gmDo('enemyset', patch); return gmRender();
+    }
+    if (d.gm === 'enemycopy') {                                      // monsters.js에 옮겨 적을 수 있게 바뀐 값만 글로
+      const txt = Object.entries(GM.applied).map(([id, ks]) => `${id}: ${ks.map(k => `${k}: ${ENEMIES[id][k] ?? '(없음)'}`).join(', ')}`).join('\n');
+      navigator.clipboard.writeText(txt).then(() => gmTrace('gm', '바뀐 요수 값을 복사했습니다'), () => gmTrace('warn', '복사하지 못했습니다:\n' + txt)); return;
+    }
     if (d.gm === 'airestore' || d.gm === 'importundo') return gmDo(d.gm);
     if (d.gm === 'cloudsync') { cloudSync(true); return; }
     if (d.gm) return gmCheat(d.gm);
   });
   panel.addEventListener('submit', e => { e.preventDefault(); if (e.target.dataset.gmform === 'supa') supaLoadPlayers(e.target.elements.pass.value); });
-  panel.addEventListener('input', e => { const k = e.target.dataset.gminput; if (k) { GM[k] = e.target.value; gmRenderItems(); } });
+  panel.addEventListener('input', e => {
+    const k = e.target.dataset.gminput; if (k) { GM[k] = e.target.value; gmRenderItems(); }
+    const st = e.target.dataset.gmstat; if (!st) return;                // 요수 칸: 원래 값과 같으면 고친 목록에서 뺀다 (다시 그리지 않아 입력 칸이 그대로)
+    const [id, key] = st.split('|'), raw = e.target.value.trim(), v = raw === '' ? null : +raw, cur = ENEMIES[id][key] ?? null;
+    GM.edits[id] = GM.edits[id] || {}; if (v === cur) delete GM.edits[id][key]; else GM.edits[id][key] = v; if (!Object.keys(GM.edits[id]).length) delete GM.edits[id];
+    e.target.classList.toggle('edit', v !== cur);
+    const n = Object.values(GM.edits).reduce((a, o) => a + Object.keys(o).length, 0), c = panel.querySelector('#gmEditN'); if (c) { c.textContent = n; c.parentElement.disabled = !n; }
+  });
 }
 
 /* 게임 화면의 클릭·예외 추적 (게임 창에서만) */

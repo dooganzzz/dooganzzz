@@ -78,3 +78,11 @@ body.gm-locked #gmToggle, body.gm-locked #gmPanel { display: none !important; }
   padding: 14px 16px; border-radius: 10px; background: #15171c; color: #e8e2d4; border: 1px solid #5a4a2a; box-shadow: 0 10px 40px rgba(0, 0, 0, .6); font-size: 14px; }
 .gm-unlock input { padding: 6px 8px; border-radius: 6px; border: 1px solid #444; background: #0d0e11; color: inherit; min-width: 0; }
 .gm-unlock small { flex-basis: 100%; color: #c9a86a; }
+/* 요수 DB 편집 표 */
+.gm-scroll { overflow-x: auto; }
+.gm-edit .gm-in { width: 62px; padding: 2px 4px; background: #0f1712; border: 1px solid rgba(120, 220, 160, .2); border-radius: 3px; color: #dff5e6; font: inherit; font-variant-numeric: tabular-nums; text-align: right; }
+.gm-edit .gm-in.edit { border-color: #f0c96a; background: #2a2412; color: #ffe7a8; }
+.gm-edit .gm-in.done { border-color: #8ee0a8; background: #12261a; }
+.gm-btn[disabled] { opacity: .45; cursor: default; }
+.gm-edit td, .gm-edit th { white-space: nowrap; }
+.gm-edit .gm-in { width: 54px; }
