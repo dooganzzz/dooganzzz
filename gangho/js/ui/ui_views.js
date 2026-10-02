@@ -84,7 +84,8 @@ function viewMartial() {
     <circle cx="300" cy="300" r="238" class="orbit-ink" filter="url(#inkBlur)"/>
     <circle cx="300" cy="300" r="238" class="orbit-flow"/>
   </svg>`;
-  const slots = `${orbit}${card('simbeop')}${card('mugong')}<div class="meditation-center-frame" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)</div></div>${card('gigong')}${card('gyeonggong')}`;
+  const rp = rankProgress(), R = warriorRank();   // 좌선 테두리: 삼류 무공 성급만큼 파랗게 타오르는 게이지
+  const slots = `${orbit}${card('simbeop')}${card('mugong')}<div class="meditation-center-frame ${rp.frac >= 1 ? 'full' : ''}" style="--rk:${(rp.lit / WARRIOR_RANK.lamps * 100).toFixed(3)}%" data-lit="${rp.lit}" title="${R.name} — 삼류 무공 성급 ${rp.per.reduce((a, v) => a + v, 0)} / ${CAT_ORDER.length * MAX_STAR}${rp.frac < 1 ? ' (네 갈래 모두 대성하면 이류무사)' : ''}"><div class="rank-flame" aria-hidden="true"></div><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)<small class="rank-name ${rp.frac >= 1 && S.rank ? 'up' : ''}">${R.name}</small></div></div>${card('gigong')}${card('gyeonggong')}`;
   const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat));
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급');
   // 습득 비급: [무공] [심법] [경공] [기공] 탭으로 거른다 (카드를 누르면 상세·성급 창)

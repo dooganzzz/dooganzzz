@@ -18,6 +18,21 @@ function starUpBlock(id) {
   return '';
 }
 
+/* 품계 게이지: 갈래마다 익힌 삼류 비급 가운데 가장 높은 성급(최대 12) — 네 갈래 합 / 48. 다 차면 이류무사 */
+function rankProgress() {
+  const g = WARRIOR_RANK.promoteGrade;
+  const per = CAT_ORDER.map(c => Math.max(0, ...Object.keys(S.manuals).filter(id => MANUALS[id] && MANUALS[id].cat === c && MANUALS[id].grade === g).map(id => Math.min(MAX_STAR, S.manuals[id].star))));
+  const sum = per.reduce((a, v) => a + v, 0), max = CAT_ORDER.length * MAX_STAR;
+  return { per, sum, frac: sum / max, lit: Math.floor(sum / (max / WARRIOR_RANK.lamps)) };   // lit = 켜진 불 수 (24칸)
+}
+const warriorRank = () => WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.ranks.length - 1)];
+function checkRankUp() {
+  if ((S.rank || 0) >= 1 || rankProgress().frac < 1) return false;
+  S.rank = 1; const R = warriorRank();
+  log(`🔷 네 갈래 삼류 무공을 모두 대성하여 ${R.name}(${R.hanja})로 승급했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
+  notify.banner(`${R.hanja} · ${R.name}`, `전체 능력치 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
+  return true;
+}
 function starUp(id) {
   const why = starUpBlock(id);
   if (why) { notify.toast(why); return false; }
@@ -37,6 +52,7 @@ function starUp(id) {
   if (m.star === MAX_STAR) { log(`🌟 《${M.name}》 대성(大成 / 極意) — ${DAESUNG_PASSIVE[M.cat].text}`, 'gold'); notify.banner('大成 · 대성', `《${M.name}》 극의(極意)`, 'gold'); }
   if (M.stances && (m.star === 6 || m.star === MAX_STAR)) { const i = m.star === 6 ? 1 : 2; log(`《${M.name}》 ${MOVE_NAME[i]} 「${M.stances[i].name}」${M.cat === 'mugong' ? '이 열렸습니다' : '의 경지에 올랐습니다'}.`, 'good'); }
   notify.toast(`${M.name} ${m.star}성!`);
+  checkRankUp();
   notify.trace('sys', `성급: ${id} → ${m.star}성 (수련치 -${cost})`);
   notify.refresh();
   return true;

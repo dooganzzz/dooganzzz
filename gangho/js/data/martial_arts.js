@@ -50,6 +50,9 @@ const DAESUNG_PASSIVE = {
 };
 
 const MAX_STAR = 12;
+/* 무사 품계: 네 갈래(심법 · 무공 · 기공 · 경공) 삼류 비급을 모두 12성(대성)하면 이류무사로 승급 — 공격 · 방어 · 활력 · 내력 · 속도 +20% */
+const WARRIOR_RANK = { promoteGrade: '삼류', lamps: 24,   // 게이지 24칸: 성급 2마다 불 하나
+  ranks: [{ name: '삼류무사', hanja: '三流武士', mult: 1 }, { name: '이류무사', hanja: '二流武士', mult: 1.2 }] };
 
 
 const STARTERS = ['fs1a', 'sw1a', 'bd1a', 'sp1a', 'hd1a'];   // 병기별 첫 삼류 (입문)

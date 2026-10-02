@@ -36,6 +36,7 @@ function calcStats() {
     if (b.key === 'train') s.trainBuff += b.val;
   }
   s.atk *= 1 + atkB; s.def *= 1 + defB; s.maxHp *= 1 + s.hpPct / 100; s.maxMp *= 1 + s.mpPct / 100;
+  { const m = WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.ranks.length - 1)].mult; if (m !== 1) for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd']) s[k] *= m; }   // 무사 품계 (이류무사 +20%)
   for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'maxSta', 'bag']) s[k] = Math.round(s[k]);
   s.eva = Math.min(60, Math.round(s.eva * 10) / 10);
   s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
