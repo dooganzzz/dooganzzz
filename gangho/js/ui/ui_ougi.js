@@ -20,7 +20,7 @@ const OG_CFG = {
    o = { w 병기, name 오의 이름, heroEl · foeEl 무대의 제자 · 요수, foeImg 요수 그림(조각용), dmg 실제 피해, kill 숨통을 끊는가, onImpact 맞는 순간 } */
 /* [SSOT] 오의 고르기: 무공에 제 오의(OG_MANUAL)가 있으면 그 그림 · 빛깔을 쓰고, 병기 공용 오의의 겹치는 막(기운 오라 · 모이는 기운 · 칼빛 · 터지는 고리)은 끈다.
    없으면 병기 공용 오의(OG_CFG). 오의 그림은 이 함수 하나에서만 고른다 (옛 그림이 새 그림 위에 겹치지 않게) */
-const OG_MANUAL = {};   // 예: sw1b: { fx: 'ougi_sw1b', rgb: '200,225,255' } — 확정본이 들어오면 여기에
+const OG_MANUAL = {};   // 예: sw1b: { fx: 'ougi_sw1b', rgb: '200,225,255', impact: 5 } — impact: 16컷 중 터지는 컷 (일격 순간에 맞춤) · 확정본이 들어오면 여기에
 function ougiCfg(w, mid) { const M = mid && OG_MANUAL[mid]; return M && OG_CFG[w] ? { ...OG_CFG[w], ...M, own: true } : OG_CFG[w]; }
 function ougiPreload(w, mid) { const C = ougiCfg(w, mid); if (C) preloadImgs([...(C.own ? [] : [ASSET.fx('aura'), ASSET.fx('dart')]), ...(C.fx ? [ASSET.fx(C.fx)] : [])]); }
 function ougiPlay(sc, o) {
@@ -231,7 +231,8 @@ function ougiPlay(sc, o) {
     else if (w === 'fist') { for (const f of [4, 5, 6, 4, 5]) { F(f, true); E.classList.remove('flinch'); void E.offsetWidth; E.classList.add('flinch'); spark(...foeC()); hitNum(part(.1)); await OG_W(108); } F(6, true); }   // 권장: 주먹 · 발 · 장 연타 → 마지막 일장
     E.classList.add('charge'); if (!C.own) { pos(ring, ...foeC()); re(ring, 'play'); } re(flash, 'play'); if (typeof liveShake === 'function') liveShake(sc); if (o.onImpact) o.onImpact();   // 터지는 순간 (체력패도 이때)
     await OG_W(300); { const r = R(E); pos(num, r.x + r.w * .5, r.y + r.h * .1); } re(num, 'play');
-    if (o.kill) death[C.death](); else { E.classList.remove('charge', 'flinch'); void E.offsetWidth; E.classList.add('flinch'); }   // 몬스터의 최후는 숨통을 끊을 때만
+    if (o.kill) { if (C.own) E.animate([{ opacity: 1, filter: 'none' }, { opacity: 0, filter: 'blur(3px) brightness(1.6)' }], { duration: 650, fill: 'forwards' }); else death[C.death](); }   // 제 오의는 공용 오의의 마무리(부서짐 · 두 동강 …)를 쓰지 않고 스러지기만
+    else { E.classList.remove('charge', 'flinch'); void E.offsetWidth; E.classList.add('flinch'); }   // 몬스터의 최후는 숨통을 끊을 때만
     re(flash, 'play');
     await OG_W(450); F(w === 'hidden' ? 0 : 6); await OG_W(550);
     blade.classList.remove('on'); handGlows.forEach(g => g.classList.remove('on')); glowOn = false;
