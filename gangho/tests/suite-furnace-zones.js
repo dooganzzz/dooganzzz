@@ -28,7 +28,7 @@ module.exports = async (b) => {
   await p.evaluate(() => { S.flags[ZONES.yeomhwa.unlock.boss] = true; render(); });
   ok('5 청풍산 두목 처치 후 염화채 열림', (await openZones()) === '청풍산,염화채');
   await p.evaluate(() => { S.flags[ZONES.yeomhwa.unlock.boss] = false; render(); });
-  await p.click('.map-sheet [data-act="closemodal"]');
+  // 지도는 화면이라 닫을 것이 없다
   // 2 전투 승리 → 수련치 (적의 xp × 수련치 획득 보정)
   const xp = await p.evaluate(() => {
     const e0 = S.exp; S.hp = 99999; const b = fightSync('boar');
@@ -40,7 +40,7 @@ module.exports = async (b) => {
   const f = {};
   f.tabs = await p.$$eval('.furnace-tabs [data-craft]', e => e.map(x => x.textContent).join('|'));
   for (const c of ['forge', 'alchemy']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).sort().join(',')); }
-  ok('6 화로 탭: 단조 | 연단', /단조/.test(f.tabs) && /연단/.test(f.tabs) && f.tabs.split('|').length === 2, f.tabs);
+  ok('6 화로 탭: 단조 | 연단 | 연혼각', /단조/.test(f.tabs) && /연단/.test(f.tabs) && /연혼각/.test(f.tabs) && f.tabs.split('|').length === 3, f.tabs);
   const fl = f.forge.split(','), al = f.alchemy.split(',');
   ok('6 단조 탭은 단조 재료만', fl.includes('roughOre') && fl.includes('treeSap') && !fl.includes('wildGinseng') && !fl.includes('herb'), JSON.stringify(f));
   ok('6 연단 탭은 연단 재료만', al.includes('wildGinseng') && al.includes('herb') && al.includes('treeSap') && !al.includes('roughOre'), JSON.stringify(f));
@@ -50,14 +50,14 @@ module.exports = async (b) => {
   ok('6 탭 전환 시 슬롯 초기화', await p.evaluate(() => potTotal(ui.pot) === 0));
   // 3 reset: native confirm accept
   p.once('dialog', d => { d.accept(); });
-  await Promise.all([p.waitForNavigation(), p.click('.reset')]);
+  await p.evaluate(() => { ui.modal = null; ui.tab = 'settings'; render(); }); await Promise.all([p.waitForNavigation(), p.evaluate(() => document.querySelector('#main [data-act="reset"]').click())]);
   await p.waitForSelector('#begin');
   const st = await p.evaluate(() => ({ S, ls: localStorage.length }));
   ok('3 처음부터 다시 → 입문 화면', st.S === null, `localStorage ${st.ls}건`);
   // 3b dismissed confirm keeps data
   await p.click('#begin'); await p.evaluate(() => save());
   p.once('dialog', d => { d.dismiss(); });
-  await p.click('.reset'); await p.waitForTimeout(300);
+  await p.evaluate(() => { ui.modal = null; ui.tab = 'settings'; render(); document.querySelector('#main [data-act="reset"]').click(); }); await p.waitForTimeout(300);
   ok('3 취소하면 유지', await p.evaluate(() => S !== null && !!localStorage.getItem(saveKey())));
   const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

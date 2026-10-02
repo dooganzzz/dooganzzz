@@ -79,7 +79,7 @@ module.exports = async (b) => {
     ok('3 단조 성공 → 상급 장비 · 도감 등재 · 실패 → 찌꺼기 (주력 단조면 2배)', fu.made && fu.slag, JSON.stringify(fu));
     ok('3 생혈고 조합식은 청풍산 재료만 · 2티어 권장 기본형은 "흑철 수투"', fu.saeng && fu.fistName === '흑철 수투', JSON.stringify(fu));
     await p.evaluate(() => { goTab('sect', 'forge'); ui.craft = 'forge'; render(); });
-    ok('3 화로 [단조] | [단약] 탭 · 품계 표시 · 비법 개수는 숨김', await p.evaluate(() => { const t = document.querySelector('.furnace .panel-head').textContent; return document.querySelectorAll('.furnace-tabs [data-craft]').length === 2 && /단조 \d품/.test(t) && !/비법 \d+\/\d+/.test(t); }));
+    ok('3 화로 [단조] | [단약] | [연혼각] 탭 · 품계 표시 · 비법 개수는 숨김', await p.evaluate(() => { const t = document.querySelector('.furnace .panel-head').textContent; return document.querySelectorAll('.furnace-tabs [data-craft]').length === 3 && /단조 \d품/.test(t) && !/비법 \d+\/\d+/.test(t); }));
 
     // 4. 도감 4탭
     await p.click('[data-tab="codex"]');

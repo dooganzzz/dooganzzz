@@ -93,30 +93,24 @@ function pray(times = 1) {
   return got;
 }
 
-/* 누적 300개: 무신이 깨어나 영구 능력치(4대 스탯 하나 +1 · 최대 활력 +20)와 삼류~이류 완제품 하나를 하사한다 */
+/* 누적 300개: 무신이 깨어나 찢어진 비급 조각 1장을 하사한다 (이류 90% · 일류 10%) */
 function triggerStatueAwakeningReward() {
   S.statueResidueCount -= GACHA.awaken;
-  const stat = pick(Object.keys(ATTRS));
-  S.perm.attr = S.perm.attr || {}; S.perm.attr[stat] = (S.perm.attr[stat] || 0) + 1;
-  S.perm.maxHp += GACHA.awakenHp;
-  const item = rollGrade3To2Product();
-  clampVitals();
-  log(`[무신의 응답] 석상이 탁기를 모두 삼켜 눈을 떴습니다! ${ATTRS[stat].name} 영구 +1 · 최대 활력 영구 +${GACHA.awakenHp}, ${hlItem(`《${item.name}》`)}${jo(item.name, '을를')} 하사받았습니다.`, 'gold');
-  notify.banner('무신의 응답', `${ATTRS[stat].name} +1 · 활력 +${GACHA.awakenHp} · ${item.name}`, '');
-  return { stat, statName: ATTRS[stat].name, statVal: 1, hp: GACHA.awakenHp, item };
+  const id = weighted(GACHA.awakenScrap), I = ITEMS[id];
+  give(id, 1, true);
+  log(`[무신의 응답] 석상이 탁기를 모두 삼켜 눈을 떴습니다! ${hlItem(I.name)}${jo(I.name, '을를')} 하사받았습니다. (${count(id)} / ${STUDY.need}장 — 화로 › 연혼각에서 엮습니다)`, 'gold');
+  notify.banner('무신의 응답', I.name, '');
+  return { item: { id, name: I.name, grade: STUDY.scraps[id] } };
 }
-/* 삼류~이류 완제품: 장비(단조 중급·장경각 이류) 또는 아직 없는 비급(삼류·청풍 이류). 행낭이 차면 비급으로 */
-function rollGrade3To2Product() {
-  const books = [...GACHA.books, ...GACHA.awakenBooks].filter(id => !S.manuals[id] && !has('bk_' + id));
-  if (Math.random() < 0.5 || !books.length) {
-    const ids = [...Object.keys(CRAFT_GEAR), ...Object.keys(LIBRARY_GEAR)], id = pick(ids);
-    const it = LIBRARY_GEAR[id] ? libraryGear(id) : makeNamedGear(id);
-    if (LIBRARY_GEAR[id]) delete it.shop;                                   // 하사품은 장경각 교환과 별개
-    if (giveGear(it, true)) return { type: 'equipment', name: it.name, grade: LIBRARY_GEAR[id] ? '이류' : '중급' };
-    if (!books.length) { const n = rint(2, 3); give('saenghyeol', n, true); return { type: 'supply', name: `생혈고 ×${n}`, grade: '' }; }
-  }
-  const id = pick(books); give('bk_' + id, 1, true);
-  return { type: 'skillBook', name: `${MANUALS[id].name} 비급`, grade: MANUALS[id].grade };
+/* 화로 › 연혼각: 조각 8장을 엮어 그 등급의 비급 한 권 (아직 없는 것 가운데 무작위, 다 있으면 아무거나) */
+function studyBind(scrap) {
+  const grade = STUDY.scraps[scrap]; if (!grade || count(scrap) < STUDY.need) return null;
+  const all = Object.keys(MANUALS).filter(id => MANUALS[id].grade === grade && ITEMS['bk_' + id]);
+  const fresh = all.filter(id => !S.manuals[id] && !has('bk_' + id)), id = pick(fresh.length ? fresh : all);
+  take(scrap, STUDY.need); give('bk_' + id, 1, true);
+  log(`📚 연혼각에서 찢어진 ${grade} 비급 조각 ${STUDY.need}장을 엮어 ${hlItem(`《${MANUALS[id].name}》 비급`)}을 되살렸습니다.`, 'gold');
+  notify.refresh();
+  return id;
 }
 function gachaRoll() {
   const T = Object.fromEntries(GACHA.table.map(e => [e.k, e.w]));

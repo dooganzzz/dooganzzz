@@ -717,3 +717,10 @@
 .stance-cut.screen { mix-blend-mode: screen; }
 @keyframes liveCut { from { background-position: 0 0; } to { background-position: 100% 0; } }
 }
+/* 화로 › 서재: 찢어진 비급 조각 엮기 */
+.study-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.study-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 255, 255, .03); }
+.study-row.ready { border-color: rgba(212, 175, 55, .6); }
+.study-row .icon { width: 52px; height: 52px; display: grid; place-items: center; }
+.study-row .mprog { height: 5px; margin: 5px 0 3px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
+.study-row .mprog span { display: block; height: 100%; background: linear-gradient(90deg, #8a6a3a, #d4a64c); }

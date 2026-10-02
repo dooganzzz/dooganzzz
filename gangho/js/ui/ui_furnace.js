@@ -3,11 +3,25 @@
    조합식은 모두 비공개. 성공하면 도감 › 단조/연단 비법에 영구 등재된다. 실패하면 재료가 전소되고 검게 탄 찌꺼기 1개 */
 
 function furnaceTabs() {
-  return `<div class="subtabs furnace-tabs" role="tablist" aria-label="화로" style="--n:${Object.keys(CRAFTS).length}">${Object.entries(CRAFTS).map(([k, c]) =>
-    `<button class="subtab ${ui.craft === k ? 'on' : ''}" role="tab" aria-selected="${ui.craft === k}" data-craft="${k}">${label(c.name, c.hanja)}</button>`).join('')}</div>`;
+  const tabs = [...Object.entries(CRAFTS).map(([k, c]) => [k, c.name, c.hanja]), ['study', '연혼각', '煉魂閣']];   // 연혼각: 찢어진 비급 조각을 영혼의 힘으로 엮는다
+  return `<div class="subtabs furnace-tabs" role="tablist" aria-label="화로" style="--n:${tabs.length}">${tabs.map(([k, ko, hj]) =>
+    `<button class="subtab ${ui.craft === k ? 'on' : ''}" role="tab" aria-selected="${ui.craft === k}" data-craft="${k}">${label(ko, hj)}</button>`).join('')}</div>`;
 }
 
+/* 화로 › 연혼각: 무신상이 하사한 찢어진 비급 조각 8장을 엮어 온전한 비급 한 권으로 */
+function viewStudy() {
+  const rows = Object.entries(STUDY.scraps).map(([id, grade]) => { const n = count(id), ok = n >= STUDY.need;
+    return `<li class="study-row ${ok ? 'ready' : ''}"><span class="icon">${itemIco(id)}</span><div><b>${ITEMS[id].name}</b><div class="mprog"><span style="width:${Math.min(100, n / STUDY.need * 100)}%"></span></div><small class="muted">${n} / ${STUDY.need}장 · 엮으면 ${grade} 비급 한 권 (아직 없는 것 가운데)${grade === '일류' ? ' — 1장에서는 봉인되어 익히지 못합니다' : ''}</small></div>
+      <button class="btn sm ${ok ? 'primary' : ''}" data-bind="${id}" ${ok ? '' : 'disabled'}>엮기</button></li>`; }).join('');
+  return `<section class="panel furnace study">
+    ${head('화로', '火爐', '<span class="num muted">연혼각</span>')}
+    ${furnaceTabs()}
+    <p class="muted furnace-desc">무신상에 찌꺼기를 ${GACHA.awaken}개 바칠 때마다 무신이 찢어진 비급 조각 한 장을 내립니다(이류 90% · 일류 10%). 찢어진 비급은 강한 영혼의 힘이 있어야 이어집니다. 같은 등급 조각 ${STUDY.need}장을 모으면 연혼각의 명경(明鏡)이 넋을 끌어와 불꽃 속에서 온전한 비급으로 벼려 냅니다.</p>
+    <ul class="study-list">${rows}</ul>
+  </section>`;
+}
 function viewFurnace() {
+  if (ui.craft === 'study') return viewStudy();
   if (!CRAFTS[ui.craft]) ui.craft = 'forge';
   const C = CRAFTS[ui.craft], lv = S.crafts[ui.craft] || { lv: 1, xp: 0 };
   // 탭(기예)마다 그 기예의 조합식에 쓰이는 재료만 보인다

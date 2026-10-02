@@ -874,3 +874,29 @@ body {
 .cp-diff { color: var(--dim); font-variant-numeric: tabular-nums; }
 .cp-diff.up { color: var(--jade); font-weight: 700; }
 .cp-diff.down { color: #e07a6a; font-weight: 700; }
+
+/* ───────── 상태 › 무공: 십자 배치 대신 기운 고리 위에 비스듬히 (11시 심법 · 2시 기공 · 5시 경공 · 8시 무공) ─────────
+   고리를 따라 기운이 도는 순서대로 놓아 딱딱한 십자 대칭을 없앤다. 자리는 각도(--a)와 반지름(--r)으로 정한다 */
+.mslots.martial-arts-core-layout { display: block; position: relative; width: min(100%, 660px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; padding: 0; --r: 37%; }
+.mslots.martial-arts-core-layout > .qi-orbit { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mslots.martial-arts-core-layout > .meditation-center-frame { position: absolute; left: 50%; top: 50%; width: 42%; height: 42%; margin: 0; transform: translate(-50%, -50%); }
+.mslots.martial-arts-core-layout .meditation-silhouette { width: 52%; height: 52%; }
+.mslots.martial-arts-core-layout > .slot-pos { position: absolute; z-index: 2; left: calc(50% + var(--r) * sin(var(--a))); top: calc(50% - var(--r) * cos(var(--a))); transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)); }
+.slot-pos.pos-12 { --a: -38deg; --tilt: -1.2deg; }
+.slot-pos.pos-3 { --a: 58deg; --tilt: 1deg; }
+.slot-pos.pos-6 { --a: 142deg; --tilt: -.8deg; }
+.slot-pos.pos-9 { --a: 232deg; --tilt: 1.3deg; }
+.skill-card-compact.mslot { width: 168px; }
+.mslot-head { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; margin-bottom: 4px; }
+.mslot-head-txt { min-width: 0; flex: 1; }
+.mslot-head .mslot-cover { flex: none; width: 34px; height: 44px; font-size: 26px; }
+.mslot-head .mslot-cover img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6)); }
+@media (max-width: 640px) {   /* 폰: 세로로 긴 판에 지그재그로 (고리를 따라 내려가듯) */
+  .mslots.martial-arts-core-layout { aspect-ratio: .55; }
+  .mslots.martial-arts-core-layout > .meditation-center-frame { width: 40%; height: auto; aspect-ratio: 1; }
+  .mslots.martial-arts-core-layout > .qi-orbit { inset: 22% 0; height: 56%; }
+  .mslots.martial-arts-core-layout > .slot-pos { left: var(--x); top: var(--y); }
+  .slot-pos.pos-12 { --x: 29%; --y: 11%; } .slot-pos.pos-3 { --x: 70%; --y: 30%; } .slot-pos.pos-6 { --x: 71%; --y: 70%; } .slot-pos.pos-9 { --x: 28%; --y: 89%; }
+  .skill-card-compact.mslot, .pos-12 .skill-card-compact.mslot, .pos-6 .skill-card-compact.mslot { width: min(44vw, 160px); max-width: none; }
+  .mslot-head .mslot-cover { width: 26px; height: 34px; }
+}

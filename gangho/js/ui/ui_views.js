@@ -57,22 +57,22 @@ const realmTag = star => { const r = realmOf(star); return `<span class="realm $
 function cpCard() {
   const p = combatPowerParts(S);
   return `<section class="cp-card" aria-label="투력">
-    <div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수. 어디가 모자란지는 직접 겨뤄 보며 찾아가십시오."><span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(p.total)}</b></div>
+    <div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수. 어디가 모자란지는 직접 겨뤄 보며 찾아가십시오."><span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(p.total)}</b>${cpDeltaHtml(calculateCombatPower(S))}</div>
     <div class="cp-attr">${Object.entries(ATTRS).map(([k, A]) => `<span title="${A.desc}">${A.name} <b>${attrOf(k)}</b></span>`).join('')}${S.talent ? `<span title="${TALENTS[S.talent].desc}">기예 <b>${TALENTS[S.talent].name}</b></span>` : ''}</div>
   </section>`;
 }
 
 /* 상태 › 무공 */
 function viewMartial() {
-  // 방위 배치: 12시 심법 · 9시 무공 · 3시 기공 · 6시 경공, 가운데 운기조식 가부좌
+  // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
   const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };
   const card = cat => {
     const id = S.active[cat], C = CATS[cat];
     if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">${C.desc}</small><p class="muted">비어 있음 · 눌러서 장착</p></div></div>`;
     const M = MANUALS[id], m = S.manuals[id];
     return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog">
-      <div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div>
-      <b class="mslot-name skill-title">《${M.name}》${manualAffTag(id)}</b>
+      <div class="mslot-head">${manualIco(id, 'mslot-cover')}<div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div>
+      <b class="mslot-name skill-title">《${M.name}》${manualAffTag(id)}</b></div></div>
       <div class="skill-level-row">${realmTag(m.star)}<span class="art-star skill-level">${m.star}<small>성</small></span></div>
       <div class="skill-btn-group">${m.star < MAX_STAR ? (() => { const why = starUpBlock(id), pill = GATES[m.star]; return `<button class="btn ${why ? '' : 'primary'} sm starup btn-upgrade" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `수련치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; })() : '<span class="daesung">大成</span>'}
       <button class="btn ghost sm btn-unequip" data-unequipm="${cat}">장착 해제</button></div>
@@ -83,7 +83,6 @@ function viewMartial() {
     <defs><filter id="inkBlur"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
     <circle cx="300" cy="300" r="238" class="orbit-ink" filter="url(#inkBlur)"/>
     <circle cx="300" cy="300" r="238" class="orbit-flow"/>
-    <path class="orbit-spoke" d="M300 62v70M300 468v70M62 300h70M468 300h70"/>
   </svg>`;
   const slots = `${orbit}${card('simbeop')}${card('mugong')}<div class="meditation-center-frame" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)</div></div>${card('gigong')}${card('gyeonggong')}`;
   const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat));

@@ -39,8 +39,8 @@ module.exports = async (b) => {
     await p.evaluate(() => { S.contrib = 1000; goTab('sect', 'hall'); ui.fold.library = false; render(); });
     const lt = {};
     for (const t of ['equipment', 'skills', 'tokens']) { await p.click(`[data-libtab="${t}"]`); lt[t] = await p.evaluate(() => [...document.querySelectorAll('.lib-grid .lib-item b')].map(e => e.textContent).join(',')); }
-    const ir = await p.evaluate(() => Object.values(MANUALS).filter(M => M.grade === '이류').map(M => M.name));
-    ok('3 장경각 [장비] 7 · [무공] 이류 전부 · [제자패] 2', lt.equipment.split(',').length === 7 && lt.skills.split(',').length === ir.length && ir.every(n => lt.skills.includes(n)) && lt.tokens.split(',').length === 2, JSON.stringify(lt));
+    const ir = await p.evaluate(() => LIBRARY_BOOKS.map(id => MANUALS[id]).filter(M => M.grade === '이류').map(M => M.name));   // 이류 비급, 분류마다 하나씩
+    ok('3 장경각 [장비] 7 · [무공] 이류 분류마다 하나(8) · [제자패] 2', lt.equipment.split(',').length === 7 && ir.length === 8 && lt.skills.split(',').length === ir.length && ir.every(n => lt.skills.includes(n)) && lt.tokens.split(',').length === 2, JSON.stringify(lt));
     ok('3 제자패 공헌도 120 · 350', await p.evaluate(() => SHOP_GEAR.find(g => g.id === 'badge2').cost === 120 && SHOP_GEAR.find(g => g.id === 'badge3').cost === 350));
     await p.click('[data-libtab="equipment"]');
     await p.click('[data-buylib="lg_sword"]');
@@ -72,8 +72,11 @@ module.exports = async (b) => {
     ok('5 확률표 없음 · 탁기 정화 게이지', await p.evaluate(() => !document.querySelector('.gacha-table') && /290 \/ 300/.test(document.querySelector('.purify').textContent)));
     const hp0 = await p.evaluate(() => S.perm.maxHp);
     await p.click('[data-pray="10"]'); await p.click('[data-act="confirmok"]');
-    const aw = await p.evaluate(() => ({ modal: ui.modal, left: S.statueResidueCount, hp: S.perm.maxHp, attr: Object.values(S.perm.attr).reduce((a, b) => a + b, 0), log: S.log.some(l => /무신의 응답/.test(l.text)) }));
-    ok('5 누적 300 → 각성: 초과분 보존 · 영구 스탯 +1 · 활력 +20 · 하사품 · 각성 창', aw.modal === 'awaken' && aw.left === 20 && aw.hp === hp0 + 20 && aw.attr === 1 && aw.log, JSON.stringify(aw));
+    const aw = await p.evaluate(() => ({ modal: ui.modal, left: S.statueResidueCount, hp: S.perm.maxHp, scraps: count('scrap2') + count('scrap3'), log: S.log.some(l => /무신의 응답/.test(l.text)) }));
+    ok('5 누적 300 → 각성: 초과분 보존 · 영구 능력치 없음 · 비급 조각 1장 · 각성 창', aw.modal === 'awaken' && aw.left === 20 && aw.hp === hp0 && aw.scraps === 1 && aw.log, JSON.stringify(aw));
+    // 5-1. 화로 › 연혼각: 조각 8장 → 그 등급 비급 한 권 (이류 90% · 일류 10%)
+    const st = await p.evaluate(() => { const T = GACHA.awakenScrap; S.inv.scrap2 = 7; const no = studyBind('scrap2'); S.inv.scrap2 = 8; const id = studyBind('scrap2'); return { T, no, grade: id && MANUALS[id].grade, left: count('scrap2'), book: id && count('bk_' + id) }; });
+    ok('5 연혼각: 조각 7장은 못 엮음 · 8장 → 이류 비급 1권 · 확률 90/10', st.no === null && st.grade === '이류' && st.left === 0 && st.book >= 1 && st.T.scrap2 === 90 && st.T.scrap3 === 10, JSON.stringify(st));
     await p.click('.awaken-sheet [data-act="closemodal"]');
 
     // 6. 관찰 창: 크게, 로그가 대부분

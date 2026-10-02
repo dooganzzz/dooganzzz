@@ -24,10 +24,9 @@ module.exports = async (b) => {
   });
   ok('2 수련치 제거 · 연무장은 심상수련장만', t.noTrainFields && t.noYeonmu);
   ok('2 수련치 부족하면 막힘 → 채우면 성급 +1, 수련치 차감', /수련치 60 필요/.test(t.block) && t.up && t.star === 2 && t.left === 0, JSON.stringify(t));
-  // 3 강호행: 탭을 누르면 강호 지도부터 (탐험지 3곳 · 처음엔 2곳 잠김)
+  // 3 강호행: 강호행 중이 아니면 탭을 누르면 강호 지도 화면 (탐험지 3곳 · 처음엔 2곳 잠김)
   await p.click('[data-tab="field"]');
-  ok('3 강호행 탭 → 강호 지도 · 구역 3곳(잠김 2)', await p.evaluate(() => ui.modal === 'map') && (await p.$$('.map-spot')).length === 3 && (await p.$$('.map-spot.locked')).length === 2);
-  await p.click('.map-sheet [data-act="closemodal"]');
+  ok('3 강호행 탭 → 강호 지도 화면 · 구역 3곳(잠김 2)', await p.evaluate(() => !ui.modal && !!document.querySelector('#main .map-sheet')) && (await p.$$('.map-spot')).length === 3 && (await p.$$('.map-spot.locked')).length === 2);
   // 4 전투 (fight: 한 판을 끝까지 계산해 기록)
   const bt = await p.evaluate(() => {
     const r = {}; S.hp = 99999;

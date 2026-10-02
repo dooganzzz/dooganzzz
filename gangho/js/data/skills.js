@@ -289,7 +289,7 @@ const MANUALS = {
 };
 
 /* 장경각에 들어오는 비급: 이류 비급을 분류(검 · 도 · 창 · 권장 · 암기 · 경공 · 기공 · 심법)마다 하나씩 (유저 요청) */
-const LIBRARY_BOOKS = ['sw2a', 'bd2a', 'sp2a', 'fs2a', 'hd2a', 'gy2a', 'gi2a', 'sm2a'];
+const LIBRARY_BOOKS = ['sw2b', 'bd2b', 'sp2b', 'fs2b', 'hd2b', 'gy2b', 'gi2b', 'sm2b'];   // 2a는 장문인 가르침 보상(CP_BOOK)이라 겹치지 않게 2b
 
 /* 갈래별 과거 시: [짧은 시(삼류 · 이류) · 보통 시(일류 · 절정) · 긴 시(초절정)] — 검법은 비급마다 poem */
 const CAT_POEMS = {

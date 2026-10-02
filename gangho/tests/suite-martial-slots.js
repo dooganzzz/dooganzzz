@@ -54,7 +54,7 @@ module.exports = async (b) => {
   const u = await p.evaluate(() => ({ slot: S.active.simbeop, keep: !!S.manuals.sm1a }));
   ok('3 장착 해제 → 빈 슬롯, 습득은 유지', u.slot === null && u.keep, JSON.stringify(u));
   // 장경각 → 비급서
-  const shop = await p.evaluate(() => { S.contrib = 999; buyManual('bd2a'); return { book: count('bk_bd2a'), learned: !!S.manuals.bd2a }; });
+  const shop = await p.evaluate(() => { S.contrib = 999; buyManual('bd2b'); return { book: count('bk_bd2b'), learned: !!S.manuals.bd2b }; });
   ok('장경각 구매 → 행낭 비급서', shop.book === 1 && !shop.learned);
   const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

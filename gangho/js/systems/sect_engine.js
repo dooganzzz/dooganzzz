@@ -146,7 +146,12 @@ function doHasan() {
 /* ───────── 메인 퀘스트: 장문인의 가르침 ─────────
    한 줄로 이어진다. 지금 가르침을 이루면 장문인에게 [보상 받기] — 장비 · 비급 · 은자 · 생혈고를 받고 다음 가르침이 드러난다.
    S.mainQ = 보상까지 받은 가르침 수. 병기에 맞는 무기 · 비급은 받을 때의 병기로 정한다 */
-const CP_BOOK = { fist: 'fs2a', sword: 'sw2a', blade: 'bd2a', spear: 'sp2a', hidden: 'hd2a' };   // 병기별 첫 이류
+const CP_BOOK = { fist: 'fs', sword: 'sw', blade: 'bd', spear: 'sp', hidden: 'hd' };   // 병기별 비급 갈래
+/* 가르침 보상 비급: 삼류(유저 요청). 그 갈래의 삼류 셋 중 아직 없는 것부터 (모두 있으면 첫 권 → 공헌도로 대신) */
+function questBook(R, w) {
+  const p = R.book === 'weapon' ? CP_BOOK[w] : R.book, ids = ['a', 'b', 'c'].map(x => `${p}1${x}`).filter(id => MANUALS[id]);
+  return ids.find(id => !S.manuals[id] && !has('bk_' + id)) || ids[0];
+}
 const st10 = (z, n) => () => stageCleared(z) >= n;
 const QUESTS = [
   { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '상태 탭의 무공에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.',
@@ -168,13 +173,13 @@ const QUESTS = [
   { t: '청풍산 두목 적염 호랑이 토벌 (10단계)', done: st10('cheongpung', 10), hint: '청풍산 10단계 「적염호 굴」에서 두목을 쓰러뜨리십시오.',
     talk: '청풍산 가장 깊은 굴에 적염 호랑이가 산다. 잡아 오면 청풍문의 병기를 내주마.', reward: { lib: 'weapon', silver: 150 } },
   { t: '무공 6성 — 소성(小成) 돌파', done: () => bestMugongStar() >= 6, hint: '5성 무공을 수련치와 소성 돌파단으로 올리십시오.',
-    talk: '6성, 소성(小成)의 문턱을 넘어라. 수련치와 돌파단, 둘 다 필요하다.', reward: { book: 'sm2a' } },
+    talk: '6성, 소성(小成)의 문턱을 넘어라. 수련치와 돌파단, 둘 다 필요하다.', reward: { book: 'sm' } },
   { t: '염화채 벌목장 돌파 (5단계)', done: st10('yeomhwa', 5), hint: '탐험지를 염화채로 바꾸고 5단계 「벌목장」을 돌파하십시오.',
     talk: '호랑이를 잡았다니 대견하구나. 이제 염화채다. 불길 속에선 도포가 너를 지킨다.', reward: { lib: 'lg_armor' } },
   { t: '염화채주 적패천 토벌 (10단계)', done: st10('yeomhwa', 10), hint: '염화채 10단계 「채주의 대청」에서 적패천을 쓰러뜨리십시오.',
-    talk: '산적 연합의 채주 적패천을 꺾어라. 꺾으면 청풍문 기공의 정수를 주마.', reward: { book: 'gi2a', lib: 'lg_jade' } },
+    talk: '산적 연합의 채주 적패천을 꺾어라. 꺾으면 청풍문 기공의 정수를 주마.', reward: { book: 'gi', lib: 'lg_jade' } },
   { t: '수룡방 강습대 초소 돌파 (3단계)', done: st10('suryong', 3), hint: '탐험지를 수룡방으로 바꾸고 3단계를 돌파하십시오.',
-    talk: '물 위의 놈들은 빠르다. 바람을 타는 보법이 필요하다.', reward: { book: 'gy2a', gear: ['ring', 2, 2] } },
+    talk: '물 위의 놈들은 빠르다. 바람을 타는 보법이 필요하다.', reward: { book: 'gy', gear: ['ring', 2, 2] } },
   { t: '수룡방주 벽해룡 토벌 (10단계)', done: st10('suryong', 10), hint: '수룡방 10단계 「수룡방 본채」에서 벽해룡을 쓰러뜨리십시오.',
     talk: '수룡방주 벽해룡. 물 위의 용이다. 꺾으면 한철로 벼린 병기를 내주마.', reward: { gear: ['weapon', 3, 2], silver: 500 } },
   { t: '무공 12성 — 대성(大成) 돌파', done: () => bestMugongStar() >= 12, hint: '11성 무공을 수련치와 대성 돌파단으로 올리십시오.',
@@ -189,7 +194,7 @@ function questRewardText(q) {
   const w = weaponType(), out = [];
   if (R.gear) { const [b, t, r] = R.gear, base = b === 'weapon' ? w : b; out.push(`[${RARITY[r].name}] ${EQUIP_BASES[base].names[t - 1]}`); }
   if (R.lib) { const id = R.lib === 'weapon' ? `lg_${w}` : R.lib; out.push(`[이류] ${LIBRARY_GEAR[id].name}`); }
-  if (R.book) { const id = R.book === 'weapon' ? CP_BOOK[w] : R.book; out.push(`《${MANUALS[id].name}》 비급`); }
+  if (R.book) { const id = questBook(R, w); out.push(`《${MANUALS[id].name}》 비급`); }
   for (const [id, n] of Object.entries(R.items || {})) out.push(`${ITEMS[id].name} ${n}`);
   if (R.silver) out.push(`은자 ${R.silver}냥`);
   return out.join(' · ');
@@ -199,7 +204,7 @@ function giveQuestReward(q) {
   const w = weaponType();
   if (R.gear) { const [b, t, r] = R.gear; giveGear(makeGear(b === 'weapon' ? w : b, t, r, false)); }
   if (R.lib) { const id = R.lib === 'weapon' ? `lg_${w}` : R.lib; if (ownsShop(id)) S.silver += LIBRARY_GEAR[id].cost; else giveGear(libraryGear(id)); }
-  if (R.book) { const id = R.book === 'weapon' ? CP_BOOK[w] : R.book; if (S.manuals[id] || has('bk_' + id)) S.contrib += MANUALS[id].cost || 0; else give('bk_' + id, 1); }
+  if (R.book) { const id = questBook(R, w); if (S.manuals[id] || has('bk_' + id)) S.contrib += MANUALS[id].cost || 0; else give('bk_' + id, 1); }
   for (const [id, n] of Object.entries(R.items || {})) give(id, n, true);
   if (R.silver) S.silver += R.silver;
 }
