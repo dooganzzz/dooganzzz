@@ -7,7 +7,7 @@
    값 주입은 언제나 게임 쪽에서 기존 시스템 함수(give·startRun·advanceRun·clampVitals·doReset …)로 실행한다 (GM_CMDS). */
 
 /* 출시 때 false로 두면 버튼·단축키가 모두 사라진다 */
-const GM_ENABLED = true;
+const GM_ENABLED = !DESKTOP;   // 데스크톱판(스팀)에는 운영자 콘솔이 없다
 /* admin.html(별도 창)에서 읽히면 true: 상태는 받은 복사본, 조작은 게임에 명령으로 보낸다 */
 const GM_REMOTE = !!window.GM_REMOTE;
 const GM_CHANNEL = 'gangho-gm';

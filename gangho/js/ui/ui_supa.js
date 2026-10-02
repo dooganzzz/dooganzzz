@@ -43,7 +43,8 @@ async function supaSync() {
   } catch (e) { SUPA_ST.err = String(e.message || e); }
   SUPA_ST.busy = false;
 }
-if (!window.GM_REMOTE) { setTimeout(supaSync, 4000); setInterval(supaSync, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) supaSync(); }); }
+// 데스크톱판(스팀)은 서버에 아무것도 보내지 않는다
+if (!window.GM_REMOTE && !DESKTOP) { setTimeout(supaSync, 4000); setInterval(supaSync, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) supaSync(); }); }
 
 /* 운영자: 목록 불러오기 · 한 사람 저장 */
 async function supaLoadPlayers(pass) {

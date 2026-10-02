@@ -51,7 +51,7 @@ function save() {
 const GAME_VER = (document.querySelector('meta[name="game-ver"]') || {}).content || 'dev';
 const SESSION_KEY = 'gangho_session', NOTICE_KEY = 'gangho_notice';
 const AUTH = { id: null, token: null };
-function authMode() { return /^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && typeof supaOn === 'function' && supaOn(); }
+function authMode() { return !DESKTOP && /^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && typeof supaOn === 'function' && supaOn(); }
 const saveKey = () => AUTH.id ? `${SAVE_KEY}@${AUTH.id}` : SAVE_KEY;
 function sessionGet() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; } }
 function sessionSet(v) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(v)); } catch (e) { /* 저장 불가 */ } }
@@ -307,7 +307,7 @@ Bus.on('tick', syncCombatPower);
 /* 새 버전 알아채기 (인터넷에 올린 게임에서만): 브라우저가 옛 페이지를 들고 있으면 옛 코드와 새 그림이 섞인다.
    version.json을 캐시 없이 읽어 이 페이지의 game-ver와 다르면, 저장한 뒤 ?v=새버전 주소로 다시 연다 (같은 버전 주소로 이미 열었으면 되풀이하지 않는다) */
 function checkVersion() {
-  if (!/^https?:$/.test(location.protocol) || /claude/.test(location.hostname) || typeof fetch !== 'function') return;
+  if (DESKTOP || !/^https?:$/.test(location.protocol) || /claude/.test(location.hostname) || typeof fetch !== 'function') return;
   const meta = document.querySelector('meta[name="game-ver"]'), cur = meta && meta.content; if (!cur) return;
   fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => {
     if (!j || !j.v || j.v === cur || new URLSearchParams(location.search).get('v') === j.v) return;

@@ -1,4 +1,7 @@
 /* [화면] 그림 경로: data/assets.js 목록으로 ASSET.종류(이름) 경로를 만든다. 화면 코드는 그림 경로를 이것으로만 얻는다 */
+/* 데스크톱판(스팀 · Tauri 앱)으로 열렸는가: 혼자 하는 게임 — 계정 서버 · 로그인 · 운영자 콘솔 · 새 버전 확인을 쓰지 않고 이 컴퓨터에 저장한다 */
+const DESKTOP = !!window.__TAURI_INTERNALS__;
+
 const assetUrl = (kind, id) => { const k = ASSET_KIND[kind]; return `${ASSET_ROOT}${k.dir}${id}.${ASSET_EXT[`${kind}:${id}`] || k.ext}`; };
 const ASSET = Object.fromEntries(Object.keys(ASSET_KIND).map(k => [k, id => assetUrl(k, id)]));
 ASSET.foe = (e, atk) => assetUrl('foe', atk ? `${e}_atk` : e);
