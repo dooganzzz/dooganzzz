@@ -48,6 +48,7 @@ function liveShowPlan(sh, w) {
   };
   // 초식 일격: 제자는 제자리에서 칼을 휘두르고 (연속 때리기 무공은 아래에서 달려가 붙음)(돌진하는 평타 동작 없이), 칼끝에서 나간 검기가 요수에 닿을 때 맞는다
   const skillAtk = (t0, ev, sk) => {
+    ev.art = !!(sk.mid && stanceFxSrc(sk.mid, sk.n || sk.tier));   // 초식 그림이 있으면 맞을 때 평타 타격 그림은 띄우지 않는다 (겹침 방지)
     if (!ranged && sk.mid && ASSET.hit(sk.mid)) {   // 연속 때리기(MANUAL_HIT): 달려가 붙어서 때리고, 맞는 자리에 초식 그림이 터진 뒤 돌아온다
       q.push({ at: t0, k: 'hx', x: Math.max(LIVE_POS.lunge, (sh.foeX || 0) - 17) }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);   // 주먹이 닿게 요수 코앞까지
       const s = t0 + T(330), hitAt = s + T(150);
@@ -196,7 +197,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 치명타 · 빗나감
       const f = e.f;
       if (f.k === 'miss') liveNum(sc, '빗나감', sh.foeX + 9, 'miss');
-      else { spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
+      else { spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
     }
     else if (e.k === 'hurtR') {                       // 요수의 공격: 기록된 피해 · 회피
       const f = e.f;

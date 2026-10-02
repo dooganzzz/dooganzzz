@@ -160,9 +160,10 @@ async function spHeroAttack(f, stance, gap) {
   };
   if (w === 'sword' && !tier) {                          // 검 평타: 힘껏 찌르기
     spFrame(h, 'thrust'); spDust(46, -24, 3); spStreak('thrust'); land(); await wt(320);
-  } else if (w === 'fist') {                             // 권장: 주먹 · 발 · 장 세 번
-    spFrame(h, 'slashA'); spFlash(e); spVfx('hit', 'spark small', 400); await wt(170);
-    spFrame(h, 'slashB'); spFlash(e); spVfx('hit', 'spark small', 400); spDust(46, -18, 2); await wt(170);
+  } else if (w === 'fist') {                             // 권장: 주먹 · 발 · 장 세 번 (초식 그림이 있으면 평타 타격 그림은 빼서 겹치지 않게)
+    const art = tier && stance.mid && stanceFxSrc(stance.mid, stance.n);
+    spFrame(h, 'slashA'); spFlash(e); if (!art) spVfx('hit', 'spark small', 400); await wt(170);
+    spFrame(h, 'slashB'); spFlash(e); if (!art) spVfx('hit', 'spark small', 400); spDust(46, -18, 2); await wt(170);
     spFrame(h, 'slashC'); skill(); land(); await wt(300);
   } else if (w === 'hidden') {                           // 암기: 제자리에서 던지기
     spFrame(h, 'slashA'); await wt(220);
