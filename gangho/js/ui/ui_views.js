@@ -66,18 +66,20 @@ function cpCard() {
 function viewMartial() {
   // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
   const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };
+  // 장착 칸: 배경 · 단추 없이 표지 · 갈래 이름 · 성급만 (불꽃 게이지를 가리지 않게). 누르면 그 갈래 창
   const card = cat => {
     const id = S.active[cat], C = CATS[cat];
-    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">${C.desc}</small><p class="muted">비어 있음 · 눌러서 장착</p></div></div>`;
-    const M = MANUALS[id], m = S.manuals[id];
-    return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog">
-      <div class="mslot-head">${manualIco(id, 'mslot-cover')}<div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div>
-      <b class="mslot-name skill-title">《${M.name}》${manualAffTag(id)}</b></div></div>
-      <div class="skill-level-row">${realmTag(m.star)}<span class="art-star skill-level">${m.star}<small>성</small></span></div>
-      <div class="skill-btn-group">${m.star < MAX_STAR ? (() => { const why = starUpBlock(id), pill = GATES[m.star]; return `<button class="btn ${why ? '' : 'primary'} sm starup btn-upgrade" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `수련치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; })() : '<span class="daesung">大成</span>'}
-      <button class="btn ghost sm btn-unequip" data-unequipm="${cat}">장착 해제</button></div>
+    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">비어 있음</small></div></div>`;
+    const m = S.manuals[id];
+    return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog" title="《${MANUALS[id].name}》">
+      ${manualIco(id, 'mslot-cover')}<div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}${manualAffTag(id)}</div><span class="art-star skill-level">${m.star}<small>성</small></span></div>
     </div></div>`;
   };
+  // 습득 비급 한 줄 (A안): 표지 · 이름 · 등급 · 경지 · 장착 중 · 성급 구슬 12개(돌파단 자리 표시) · 효과 한 줄 · 단추
+  const starBtn = id => { const m = S.manuals[id]; if (m.star >= MAX_STAR) return '<span class="daesung">大成</span>';
+    const why = starUpBlock(id), pill = GATES[m.star];
+    return `<button class="btn ${why ? '' : 'primary'} sm starup btn-upgrade" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `수련치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; };
+  const pips = star => `<span class="star-pips" aria-label="${star} / ${MAX_STAR}성">${Array.from({ length: MAX_STAR }, (_, i) => `<i class="${i < star ? 'on' : ''} ${GATES[i] ? 'gate' : ''}"></i>`).join('')}</span>`;
   // 기운 순환 궤적: 가운데 좌선과 네 방위를 잇는 먹선 고리 (격자 뒤에 깔린다)
   const orbit = `<svg class="qi-orbit" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
     <defs><filter id="inkBlur"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
@@ -94,7 +96,13 @@ function viewMartial() {
   const shown = learned.filter(id => MANUALS[id].cat === tab[1]);
   const cards = shown.map(id => {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
-    return `<button class="mcard skill-item-card ${worn ? 'worn is-equipped' : ''}" data-mart="${id}"><small class="card-meta">${CATS[M.cat].name} · ${M.grade}</small><b class="card-title">《${M.name}》${manualAffTag(id)}</b><span class="card-stage">${realmTag(m.star)}<span class="art-star skill-level">${m.star}<small>성</small></span></span><span class="card-status-tag ${worn ? 'active' : ''}">${worn ? '운용 중' : '미운용'}</span></button>`;
+    return `<div class="mrow ${worn ? 'worn is-equipped' : ''}">
+      <button class="mrow-cover" data-mart="${id}" aria-label="《${M.name}》 자세히">${manualIco(id)}</button>
+      <div class="mrow-main"><b class="mrow-name" data-mart="${id}" role="button" tabindex="0">《${M.name}》${manualAffTag(id)}</b>
+        <div class="mrow-meta">${gradeBadge(M.grade)}${realmTag(m.star)}${worn ? '<span class="card-status-tag active">장착 중</span>' : ''}</div>
+        ${pips(m.star)}<small class="mrow-eff">${bonusText(manualBonus(id, m.star)) || esc(M.desc || '')}</small></div>
+      <div class="mrow-btns">${starBtn(id)}${worn ? `<button class="btn ghost sm btn-unequip" data-unequipm="${M.cat}">장착 해제</button>` : `<button class="btn sm" data-equipm="${id}">장착</button>`}</div>
+    </div>`;
   }).join('');
   const skillTabs = `<div class="skill-category-tabs" role="tablist" aria-label="습득 비급 분류">${SKILL_TABS.map(([k, , n]) => `<button class="tab-btn ${tab[0] === k ? 'active' : ''}" role="tab" aria-selected="${tab[0] === k}" data-skilltab="${k}">${n} <small>${learned.filter(id => MANUALS[id].cat === SKILL_TABS.find(t => t[0] === k)[1]).length}</small></button>`).join('')}</div>`;
   return `<section class="panel martial-slots">
@@ -108,7 +116,7 @@ function viewMartial() {
       ${skillTabs}
     </div>
     ${!learned.length ? `<p class="story">아직 익힌 비급이 없습니다. ${books.length ? `비급 ${books.length}권을 가지고 있습니다. 아래에서 [ 익히기 ] 하십시오.` : ''}</p>`
-      : shown.length ? `<div class="mcards acquired-cards-grid" id="acquired-cards-container">${cards}</div>` : '<div class="empty-notice">해당 계열에 익힌 비급이 없습니다.</div>'}
+      : shown.length ? `<div class="mrows acquired-cards-grid" id="acquired-cards-container">${cards}</div>` : '<div class="empty-notice">해당 계열에 익힌 비급이 없습니다.</div>'}
     ${books.length ? `<div class="chips">${books.map(k => `<button class="chip" data-use="${k}">📘 ${ITEMS[k].name} 익히기</button>`).join('')}</div>` : ''}
   </section>`;
 }

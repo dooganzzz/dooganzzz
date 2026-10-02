@@ -27,10 +27,10 @@ module.exports = async (b) => {
   for (const k of ['bk_sm1a', 'bk_gy1a', 'bk_gi1a']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
   // 상태 › 무공
   await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
-  const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mcard b')].map(e => e.textContent).join(','), total: (document.querySelector('.total-count-badge') || {}).textContent }));
+  const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mrow .mrow-name')].map(e => e.textContent).join(','), total: (document.querySelector('.total-count-badge') || {}).textContent }));
   ok('3 방위 4대 슬롯 (빈 상태 · 12시 심법 9시 무공 3시 기공 6시 경공)', m1.slots === '심법,무공,기공,경공' && m1.empty === 4, m1.slots);
   ok('3 습득 비급: [무공] 탭에 《단풍도법》 · 전체 4권', m1.cards === '《단풍도법》' && /4/.test(m1.total || ''), JSON.stringify(m1));
-  await p.click('.mcard >> text=《단풍도법》');
+  await p.click('.mrow-name >> text=《단풍도법》');
   const md = await p.evaluate(() => { const sh = document.querySelector('.sheet'); return { title: sh.querySelector('h2').textContent, prog: sh.querySelector('p.num').textContent, desc: sh.querySelector('p.story').textContent, bonus: [...sh.querySelectorAll('.kv span')].map(e => e.textContent).slice(0, 2).join(','), btn: sh.querySelector('[data-equipm]') && sh.querySelector('[data-equipm]').textContent }; });
   ok('4 명칭·등급', md.title.includes('《단풍도법》') && md.title.includes('[삼류 무공]'), md.title);
   ok('4 성급·다음 성까지 수련치', /^현재 1성 \/ 다음 성까지 수련치 60 \(보유 \d+\)$/.test(md.prog), md.prog);
@@ -38,19 +38,19 @@ module.exports = async (b) => {
   ok('4 보너스 효과', md.bonus.startsWith('공격력'), md.bonus);
   ok('4 미장착 → [ 장착하기 ]', md.btn === '[ 장착하기 ]');
   const atk0 = await p.evaluate(() => calcStats().atk);
-  await p.click('[data-equipm]');
+  await p.click('.sheet [data-equipm]');
   const e1 = await p.evaluate(() => ({ active: S.active.mugong, atk: calcStats().atk, btn: document.querySelector('.sheet [data-unequipm]') && document.querySelector('.sheet [data-unequipm]').textContent }));
   ok('4 장착 → 슬롯 반영·능력치 상승', e1.active === 'bd1a' && e1.atk > atk0, `공격력 ${atk0}→${e1.atk}`);
   ok('4 장착 상태 → [ 장착 해제 ]', e1.btn === '[ 장착 해제 ]');
   await p.click('[data-act="closemodal"]');
-  for (const [id, tab] of [['sm1a', 'heart'], ['gy1a', 'agility'], ['gi1a', 'aura']]) { await p.click(`[data-skilltab="${tab}"]`); await p.click(`.mcard[data-mart="${id}"]`); await p.click('[data-equipm]'); await p.click('[data-act="closemodal"]'); }
+  for (const [id, tab] of [['sm1a', 'heart'], ['gy1a', 'agility'], ['gi1a', 'aura']]) { await p.click(`[data-skilltab="${tab}"]`); await p.click(`.mrow-name[data-mart="${id}"]`); await p.click('.sheet [data-equipm]'); await p.click('[data-act="closemodal"]'); }
   ok('3 네 슬롯 모두 장착', (await p.$$('.mslot.empty')).length === 0);
   // 장착 슬롯의 [▲ 성급] 단추: 수련치가 모자라면 비활성, 채우면 올라감
-  ok('3 장착 슬롯에 성급 올리기 단추 (수련치 부족 → 비활성)', await p.evaluate(() => { const b = document.querySelector('.mslot [data-starup="sm1a"]'); return !!b && b.disabled; }));
+  ok('3 습득 비급 목록에 성급 올리기 단추 (수련치 부족 → 비활성)', await p.evaluate(() => { ui.skillTab = 'heart'; render(); const b = document.querySelector('.mrow [data-starup="sm1a"]'); return !!b && b.disabled; }));
   await p.evaluate(() => { S.exp = 500; render(); });
-  await p.click('.mslot [data-starup="sm1a"]'); await p.click('[data-act="confirmok"]');
+  await p.evaluate(() => { ui.skillTab = 'heart'; render(); }); await p.click('.mrow [data-starup="sm1a"]'); await p.click('[data-act="confirmok"]');
   ok('3 [▲ 성급] 누르면 2성 · 수련치 차감', await p.evaluate(() => S.manuals.sm1a.star === 2 && S.exp === 500 - Math.round(60 * GRADES[MANUALS.sm1a.grade].mult)));
-  await p.click('.mslot [data-unequipm="simbeop"]');
+  await p.evaluate(() => { ui.skillTab = 'heart'; render(); }); await p.click('.mrow [data-unequipm="simbeop"]');
   const u = await p.evaluate(() => ({ slot: S.active.simbeop, keep: !!S.manuals.sm1a }));
   ok('3 장착 해제 → 빈 슬롯, 습득은 유지', u.slot === null && u.keep, JSON.stringify(u));
   // 장경각 → 비급서

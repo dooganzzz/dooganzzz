@@ -41,7 +41,7 @@ module.exports = async (b) => {
     ok('1 11→12성에는 대성 돌파단', realm.at11 === 11 && realm.block11 === '대성 돌파단 필요' && realm.at12 === 12 && realm.max === '대성', JSON.stringify([realm.at11, realm.block11, realm.at12]));
     ok('1 대성 극의 패시브', realm.passiveHp > 0, realm.passiveText);
     await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'martial'; render(); });
-    ok('1 무공 탭에 경계 표시', (await p.$$('.mslot .realm')).length === 4);
+    ok('1 무공 탭: 장착 칸 성급 · 습득 비급 목록에 경계 표시', (await p.$$('.mslot .art-star')).length === 4 && (await p.$$('.mrow .realm')).length >= 1);
 
     // 2. 전투는 즉시 계산되고 타이머가 없다
     const one = await p.evaluate(() => { S.hp = 99999; const b0 = fightSync('rabbit'); return { over: b0.over, win: b0.win, rt: RT.battle === null, cmds: document.querySelectorAll('[data-bact], [data-bitem], [data-act="closebattle"]').length }; });
