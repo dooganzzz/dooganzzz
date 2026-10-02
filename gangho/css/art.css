@@ -711,3 +711,13 @@
   filter: drop-shadow(0 0 1.5px rgba(10, 40, 110, .85)) drop-shadow(0 0 6px rgba(60, 140, 255, .55)) saturate(1.5); }   /* 밝은 산길에서도 보이게 테두리 그늘 */
 .stance-cut.screen { mix-blend-mode: screen; }
 @keyframes liveCut { from { background-position: 0 0; } to { background-position: 100% 0; } }
+/* 모바일: 무대 위 내 정보 · 적 정보(활력 막대)를 작게 — 무대가 좁아 그림을 덜 가리게 */
+@media (max-width: 600px) {
+  .live-hp { top: 5px; width: 36%; gap: 4px; padding: 2px 6px 2px 2px; }
+  .live-hp.foe { padding: 2px 2px 2px 6px; }
+  .live-hp .lh-face { width: 20px; height: 20px; }
+  .live-hp .lh-body { column-gap: 4px; row-gap: 1px; }
+  .live-hp .lh-body b { font-size: 9px; }
+  .live-hp .lh-body em { font-size: 8px; }
+  .live-hp .lh-bar { height: 4px; }
+}
