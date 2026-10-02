@@ -185,7 +185,7 @@ const QUESTS = [
   { t: '청풍산 약초 비탈 돌파 (4단계)', done: st10('cheongpung', 4), hint: '청풍산 4단계 「약초 비탈」을 돌파하십시오. 막히면 아래 단계에서 토벌 임무를 채우며 힘을 기르십시오.',
     talk: '약초 비탈 너머부터는 흑풍채 놈들이 어슬렁댄다. 발이 가벼워야 산다.', reward: { gear: ['boots', 1, 1] } },
   { t: '화로에서 조합법 하나 알아내기', done: () => (S.codex || []).length >= 1, hint: '청풍문 › 화로에서 재료를 넣고 단조나 연단을 해 조합법을 알아내십시오.',
-    talk: '약초 비탈에서 캔 것들을 썩히지 마라. 화로에 넣고 이것저것 섞다 보면 쓸 만한 게 나온다.', reward: { silver: 80, items: { herb: 3, lingzhi: 1 } } },
+    talk: '약초 비탈에서 캔 것들을 썩히지 마라. 화로에 넣고 이것저것 섞다 보면 쓸 만한 게 나온다.', reward: { silver: 80, items: { wildGinseng: 2, treeSap: 2 } } },
   { t: '청풍산 흑풍채 초소 돌파 (5단계)', done: st10('cheongpung', 5), hint: '청풍산 5단계 「흑풍채 초소」를 돌파하십시오.',
     talk: '흑풍채 초소를 깨면 청풍문의 진짜 무공을 내주마. 네 병기에 맞는 것으로.', reward: { book: 'weapon' } },
   { t: '무공 3성', done: () => bestMugongStar() >= 3, hint: '공격 무공을 3성까지 올리십시오.',

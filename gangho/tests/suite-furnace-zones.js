@@ -43,10 +43,10 @@ module.exports = async (b) => {
   ok('6 화로 탭: 단조 | 연단 | 연혼', /단조/.test(f.tabs) && /연단/.test(f.tabs) && /연혼/.test(f.tabs) && f.tabs.split('|').length === 3, f.tabs);
   const fl = f.forge.split(','), al = f.alchemy.split(',');
   ok('6 단조 탭은 단조 재료만', fl.includes('roughOre') && fl.includes('treeSap') && !fl.includes('wildGinseng') && !fl.includes('herb'), JSON.stringify(f));
-  ok('6 연단 탭은 연단 재료만', al.includes('wildGinseng') && al.includes('herb') && al.includes('treeSap') && !al.includes('roughOre'), JSON.stringify(f));
+  ok('6 연단 탭은 연단 재료만', al.includes('wildGinseng') && al.includes('treeSap') && !al.includes('roughOre'), JSON.stringify(f));
   ok('6 조합식에 없는 재료는 두 탭 모두 숨김', !fl.includes('testMat') && !al.includes('testMat'));
   await p.evaluate(() => { delete S.inv.testMat; delete ITEMS.testMat; render(); });
-  await p.click('[data-add="herb"]'); await p.click('[data-craft="forge"]');
+  await p.click('[data-add="wildGinseng"]'); await p.click('[data-craft="forge"]');
   ok('6 탭 전환 시 슬롯 초기화', await p.evaluate(() => potTotal(ui.pot) === 0));
   // 3 reset: native confirm accept
   p.once('dialog', d => { d.accept(); });
