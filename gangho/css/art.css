@@ -414,7 +414,7 @@
 @media (prefers-reduced-motion: reduce) { .sp-vfx, .stance-vfx { display: none; } }
 
 /* 실시간 강호행: 왼쪽 산길 무대(제자가 걷고 배경이 흐른다) · 오른쪽 배속 견문록 */
-.live-wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.live-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 28%); gap: 12px; align-items: start; }   /* PC 무대 30% 키움 (유저 요청): 견문록은 오른쪽 좁은 칸 */
 @media (max-width: 760px) { .live-wrap { grid-template-columns: 1fr; } }
 .live-scene { width: 100%; position: relative; overflow: hidden; border-radius: 8px; aspect-ratio: 16 / 8; min-height: 180px; background: #d8cfbb; box-shadow: inset 0 0 30px rgba(0, 0, 0, .35); }
 .live-strip { position: absolute; inset: 0 auto 0 0; display: flex; height: 100%; will-change: transform; }
