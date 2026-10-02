@@ -58,7 +58,6 @@ function liveSteps(sc, walker, W, mode) {
   if (!hit) { liveAnim.stepF = -1; return; }
   if (liveAnim.stepF === fr) return;
   liveAnim.stepF = fr;
-  sfx('step', { run: mode === 'run', ground: sfxGround() });         // 발소리 (눈 · 젖은 땅 · 흙)
   const el = document.createElement('i'); el.className = `live-step ${mode}`; el.dataset.live = 1;
   el.style.backgroundImage = `url('${ASSET.fx('footprint_' + (sc.dataset.zone || 'cheongpung'))}')`;   // 헝겊신 밑창 자국 (탐험지 흙빛)
   sc.appendChild(el);

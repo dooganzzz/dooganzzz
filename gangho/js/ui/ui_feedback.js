@@ -109,7 +109,6 @@ function typewriteAll() {
     job.t = setInterval(() => {
       if (!job.el.isConnected) { clearInterval(job.t); typing.delete(job); return; }
       job.i += 1; job.el.textContent = full.slice(0, job.i);
-      if (job.i % 2 && full[job.i - 1].trim()) sfx('type');           // 대사 도트음 (두 글자마다)
       if (job.i >= full.length) job.done();
     }, 28);
     typing.add(job);

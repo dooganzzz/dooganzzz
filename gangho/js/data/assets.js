@@ -24,15 +24,8 @@ const ASSET_KIND = {
   font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_477 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
   common:   { dir: 'common/', ext: 'webp' },         // 공용: scroll_초식(두루마리 종이) · _hz(기운 12컷) · scroll_ax(도는 축 16컷) · scroll_face(제자 얼굴) · strike_hit · strike_crit(평타 타격 · 치명)
   portrait: { dir: 'portraits/', ext: 'webp' },
-  audio:    { dir: 'audio/', ext: 'mp3' },          // 소리: teahouse(배경음악 옥루관 금소합주) · sfx(녹음 효과음 묶음 — SFX_SPRITE)
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene · yeonhon_hall · rankup_2(이류무사 승급)
 };
-/* 배경음악: 장면 → 곡 (assets/art/audio/곡.mp3). 곡이 없는 장면은 hall 곡을 이어 튼다.
-   장면: hall(정청 · 그 밖 모든 화면 · 로그인) · live(강호행 산길) · fight(강호행 전투) · boss(두목) */
-const BGM_TRACKS = { hall: 'teahouse' };
-/* 녹음 효과음 묶음(audio/sfx.mp3 한 파일): 이름 → [[시작 초, 길이 초], …] 여러 벌이면 번갈아 쓴다.
-   출처: Kenney RPG Audio · Impact Sounds (CC0, 출처 표시 없이 써도 됨). 다시 만들기: tools/sfx-sprite.py (묶음을 바꾸면 이 표도 함께) */
-const SFX_SPRITE = {"click":[[0.2,0.123],[0.523,0.266],[0.989,0.127]],"step_dirt":[[1.316,0.158],[1.675,0.148],[2.022,0.151],[2.374,0.139],[2.712,0.12]],"step_snow":[[3.033,0.18],[3.413,0.18],[3.793,0.186],[4.179,0.184],[4.563,0.181]],"step_wet":[[4.944,0.106],[5.25,0.108],[5.557,0.113]],"slash":[[5.87,0.373],[6.443,0.441]],"pierce":[[7.084,0.24]],"punch":[[7.524,0.284],[8.008,0.268],[8.476,0.355]],"punch_heavy":[[9.031,0.501],[9.731,0.419],[10.351,0.369]],"soft":[[10.919,0.118],[11.237,0.183]],"hurt":[[11.621,0.505],[12.326,0.572],[13.098,0.572]],"anvil":[[13.87,0.168],[14.238,0.359],[14.797,0.117]],"metal":[[15.114,0.272]],"equip":[[15.586,0.374],[16.161,0.206],[16.566,0.229]],"unequip":[[16.995,0.586],[17.781,0.364],[18.345,0.698]],"book":[[19.243,0.207],[19.651,0.26]],"bookOpen":[[20.11,0.152]],"bookFlip":[[20.463,0.635],[21.298,0.393]],"bookClose":[[21.891,0.231]],"coins":[[22.321,0.703]],"coins2":[[23.225,0.318]],"glassCrack":[[23.742,0.147]],"glassBreak":[[24.089,0.241]],"pot":[[24.53,1.318]],"bellHit":[[26.048,1.276]]};
 /* 무공 고유 그림 목록: assets/art/manual/무공id/ 에 실제로 있는 파일 (check-layers가 폴더와 맞는지 본다).
    그림이 없는 초식 · 오의는 비워 두고, 그때는 평타(common/strike_*)가 나간다 */
 const MANUAL_ART = {
