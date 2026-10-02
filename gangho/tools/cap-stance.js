@@ -14,7 +14,7 @@ const [OUT, N, MID, FILE = 'real', BLEND = ''] = process.argv.slice(2), STEP = 4
   await p.evaluate(([n, mid, file, blend]) => {
     if (blend === 'solid' && !MANUAL_SOLID.includes(mid)) MANUAL_SOLID.push(mid);
     if (blend === 'ink' && !MANUAL_INK.includes(mid)) MANUAL_INK.push(mid);
-    if (blend === 'hit') { if (!MANUAL_HIT.includes(mid)) MANUAL_HIT.push(mid); const i = MANUAL_SOLID.indexOf(mid); if (i >= 0) MANUAL_SOLID.splice(i, 1); }   // 빛 그림은 꽉 찬 그림 처리 없이
+    if (blend === 'hit') { if (!MANUAL_HIT[mid]) MANUAL_HIT[mid] = 1; const i = MANUAL_SOLID.indexOf(mid); if (i >= 0) MANUAL_SOLID.splice(i, 1); }   // 빛 그림은 꽉 찬 그림 처리 없이
     if (file !== 'real') { const orig = ASSET.manual, f = 'file://' + file; ASSET.manual = (m, name) => m === mid ? ((n === '3' && name === 'ougi') || (n !== '3' && name === 'cut_' + n) ? f : null) : orig(m, name); }
     S.manuals[mid] = { star: MAX_STAR }; S.active[MANUALS[mid].cat] = mid;
     const w = MANUALS[mid].weapon; if (w && weaponType() !== w) { giveGear(libraryGear('lg_' + w), true); equipItem(S.gear[S.gear.length - 1].uid); }
