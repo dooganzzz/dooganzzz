@@ -281,6 +281,7 @@ function tick() {
   const t = now(); lastFrame = t;
   const r = advanceRun(t);
   if (r && !r.live) notify.toast(r.end === 'dead' ? `💀 제자가 ${ZONES[r.zone].name}에서 쓰러져 강호행이 끝났습니다 — 강호행 탭에서 보상을 받으십시오` : `🏯 강호행을 마쳤습니다`);
+  if (!(S.rank >= 1) && count(WARRIOR_RANK.pill.id) >= WARRIOR_RANK.pill.n) checkRankUp();   // 속기단을 얻으면 곧바로 돌파
   Bus.emit('tick');
 }
 

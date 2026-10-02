@@ -26,10 +26,14 @@ function rankProgress() {
   return { per, sum, frac: sum / max, lit: Math.floor(sum / (max / WARRIOR_RANK.lamps)) };   // lit = 켜진 불 수 (24칸)
 }
 const warriorRank = () => WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.ranks.length - 1)];
-function checkRankUp() {
+/* 돌파: 게이지가 다 차고 속기단이 있으면 삼켜 이류무사가 된다. loud면 모자랄 때 알린다 (성급을 올린 직후) */
+function checkRankUp(loud) {
   if ((S.rank || 0) >= 1 || rankProgress().frac < 1) return false;
+  const P = WARRIOR_RANK.pill, have = count(P.id);
+  if (have < P.n) { if (loud) notify.toast(`네 갈래 삼류 무공을 모두 대성했습니다. 이류무사로 돌파하려면 ${ITEMS[P.id].name} ${P.n}알이 필요합니다 (가진 것 ${have}알).`); return false; }
+  take(P.id, P.n);
   S.rank = 1; const R = warriorRank();
-  log(`🔷 네 갈래 삼류 무공을 모두 대성하여 ${R.name}(${R.hanja})로 승급했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
+  log(`🔷 ${ITEMS[P.id].name} ${P.n}알로 끊어지려는 기를 이어 가며 운공을 마쳤습니다 — 네 갈래 삼류 무공을 모두 대성하여 ${R.name}(${R.hanja})로 돌파했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
   notify.banner(`${R.hanja} · ${R.name}`, `전체 능력치 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
   notify.view({ modal: 'rankup' });   // 승급 연출 창
   return true;
@@ -53,7 +57,7 @@ function starUp(id) {
   if (m.star === MAX_STAR) { log(`🌟 《${M.name}》 대성(大成 / 極意) — ${DAESUNG_PASSIVE[M.cat].text}`, 'gold'); notify.banner('大成 · 대성', `《${M.name}》 극의(極意)`, 'gold'); }
   if (M.stances && (m.star === 6 || m.star === MAX_STAR)) { const i = m.star === 6 ? 1 : 2; log(`《${M.name}》 ${MOVE_NAME[i]} 「${M.stances[i].name}」${M.cat === 'mugong' ? '이 열렸습니다' : '의 경지에 올랐습니다'}.`, 'good'); }
   notify.toast(`${M.name} ${m.star}성!`);
-  checkRankUp();
+  checkRankUp(true);
   notify.trace('sys', `성급: ${id} → ${m.star}성 (수련치 -${cost})`);
   notify.refresh();
   return true;
