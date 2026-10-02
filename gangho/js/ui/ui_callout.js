@@ -3,6 +3,7 @@
    그림이 있는 초식만 외친다 (CALLOUT). 실시간 전투(ui_live_fight.js)에서 초식을 펼칠 때마다 (설정 탭에서 끌 수 있음). */
 const CALLOUT = {
   'sw1a:1': { art: 'sw1a_1', ax: 'sw1a_ax', t: .384, b: .783, glow: '90, 160, 255' },   // 한상검법 제1초식 — 푸른 불띠 (t · b: 그림 속 종이 띠 위 · 아래)
+  'sw1a:2': { art: 'sw1a_1', ax: 'sw1a_ax', t: .384, b: .783, glow: '90, 160, 255' },   // 제2초식 — 같은 무공이라 같은 두루마리 (글자 · 시구만 바뀜). 오의는 ui_ougi.js가 따로
 };
 const CO_TL = { inEnd: 900, poem: 1000, outStart: 2500, outEnd: 2950, end: 3050 };   // ms
 const CO_AX = { w: .5, len: .75, start: 1.5, h0: 2.2, c0: .38, aspect: 135 / 505, frames: 16, turn: 4.6 };   // 축 굵기 · 길이 · 다 감겼을 때 굵기 배율 · 그림 비율 · 무늬 한 바퀴(라디안)
