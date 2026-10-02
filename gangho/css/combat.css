@@ -219,6 +219,8 @@
 .co-base, .co-hz { position: absolute; left: 0; width: 100%; background: 0 0 / 100% 100% no-repeat; }
 .co-base { top: 0; height: 100%; }
 .co-hz { top: 0; height: 100%; background-size: 1200% 100%; animation: coHz 1.2s steps(12) infinite; filter: saturate(1.7) brightness(.85) drop-shadow(0 0 1.5px rgba(20, 45, 100, .55)); }
+.co[data-tone="gold"] .co-hz { filter: saturate(1.25) drop-shadow(0 0 1.5px rgba(90, 55, 10, .55)); }   /* 제2초식 금박 연기 */
+.co[data-tone="red"] .co-hz { filter: saturate(1.25) drop-shadow(0 0 1.5px rgba(90, 20, 10, .55)); }    /* 오의 봉황 날개 */
 @keyframes coHz { from { background-position: 0 0; } to { background-position: 109.0909% 0; } }   /* 12컷: 마지막 컷 다음에 처음으로 */
 .co-body { position: absolute; left: 0; width: max-content; display: flex; align-items: center; gap: .14em; padding-right: .36em; }
 .co-face { flex: none; height: .92em; aspect-ratio: 1; background: center 30% / cover no-repeat; -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 52%, transparent 71%); mask-image: radial-gradient(circle at 50% 46%, #000 52%, transparent 71%); }
