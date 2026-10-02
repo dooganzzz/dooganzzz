@@ -69,7 +69,7 @@ const PEDDLER_WARES = {
     { w: 25, name: '기력단', list: [['gigeokdan', 1, 50]] },
     { w: 7, name: '하급 장비', rare: 'gear' },
     { w: 3, name: '비급', rare: 'books' },
-    { w: 5, name: '소성 돌파단', list: [['pillLow', 1, 80]] },
+    { w: 10, name: '소성 돌파단', list: [['pillLow', 1, 80]] },
   ],
   books: [
     ['bk_sw1a', 60], ['bk_sw1b', 150], ['bk_sw1c', 150], ['bk_bd1a', 60], ['bk_bd1b', 150], ['bk_bd1c', 150],

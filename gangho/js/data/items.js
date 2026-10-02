@@ -416,11 +416,11 @@ const GACHA = {
     { k: 'supply', w: 32, name: '단약',   pool: [['saenghyeol', 1, 1], ['potionMp', 1, 1], ['golgye', 1, 1], ['haedok', 1, 1], ['clearPill', 1, 1]] },
     { k: 'ore',    w: 16, name: '광석',   pool: [['roughOre', 2, 3], ['blackwood', 1, 2], ['blackIngot', 1, 1]] },
     { k: 'gear',   w: 9,  name: '장비' },
-    { k: 'pill',   w: 4,  name: '돌파단', pool: [['pillLow', 1, 1]] },
+    { k: 'pill',   w: 8,  name: '돌파단', pool: [['pillLow', 1, 1]] },
     { k: 'book',   w: 3,  name: '비급' },
   ],
   awaken: 300,                                             // 누적 공양 찌꺼기가 이만큼 차면 무신이 깨어난다 (초과분 보존)
-  awakenPill: { pillLow: 10, pillHigh: 5 },             // 각성 때 덤으로 돌파단: 소성 10% · 대성 5% (나머지 85%는 없음, 유저 요청)
+  awakenPill: { pillLow: 20, pillHigh: 10 },            // 각성 때 덤으로 돌파단: 소성 20% · 대성 10% (나머지 85%는 없음, 유저 요청)
   awakenScrap: { scrap2: 90, scrap3: 10 },                 // 각성마다 찢어진 비급 조각 1장: 이류 90% · 일류 10% (유저 요청 — 영구 능력치 · 완제품 하사는 없앰)
   books: ['sw1a', 'sw1b', 'sw1c', 'bd1a', 'bd1b', 'bd1c', 'sp1a', 'sp1b', 'sp1c', 'fs1a', 'fs1b', 'fs1c', 'hd1a', 'hd1b', 'hd1c', 'gy1a', 'gy1b', 'gy1c', 'gi1a', 'gi1b', 'gi1c', 'sm1a', 'sm1b', 'sm1c', 'sw1d', 'sw1e', 'sw1f', 'bd1d', 'bd1e', 'bd1f', 'sp1d', 'sp1e', 'sp1f', 'fs1d', 'fs1e', 'fs1f', 'hd1d', 'hd1e', 'hd1f', 'gy1d', 'gy1e', 'gy1f', 'gi1d', 'gi1e', 'gi1f', 'sm1d', 'sm1e', 'sm1f'],   // 삼류 40종 + 신규 삼류 24종
 };
