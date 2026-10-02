@@ -187,7 +187,7 @@ function ougiPlay(sc, o) {
   async function play() {
     const [cx, cy] = foeC(), fw = fx.offsetWidth;
     fx.style.left = (cx - fw / 2) + 'px'; fx.style.top = (C.fxAnchor === 'bottom' ? cy - fw * .82 : cy - fw / 2) + 'px';
-    F(4); stage.classList.add('dark'); track(); re(ban, 'play');
+    F(4); stage.classList.add('dark'); track(); if (!o.noName) re(ban, 'play');   // 두루마리가 이미 이름을 외쳤으면 오의 이름 띠는 다시 띄우지 않는다
     if (!C.own) { pos(aura, ...body()); aura.className = 'og-aura on'; } await OG_W(700);   // 제 오의는 공용 기운 오라를 띄우지 않는다
     // 이펙트 시작은 '터지는 컷'이 공격 순간에 오도록 계산해 둔다 (16컷 2초 → 한 컷 125ms)
     const reach = { sword: 1400, blade: 1370, spear: 1820, hidden: 1550, fist: 1790 }[w];   // 이 시점부터 공격이 닿기까지 (아래 동작 시간의 합)

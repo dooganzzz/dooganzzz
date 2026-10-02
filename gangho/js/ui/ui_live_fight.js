@@ -68,8 +68,9 @@ function liveShowPlan(sh, w) {
       const f = r.fx[i]; if (used.has(i)) continue;
       if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function') {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
         const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
-        if (g && g.k !== 'miss' && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n)) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }   // 오의 외침 → 오의 막
-        if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, name: f.t, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
+        const co = g && g.k !== 'miss' && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);
+        if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }   // 오의 외침 → 오의 막
+        if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, name: f.t, noName: !!co, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
       }
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
@@ -99,9 +100,9 @@ function liveSkillOf() {
 }
 function liveSkill(sc, sk) {
   const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}${sk.name.length > 9 ? ' long' : ''}`; lab.dataset.live = 1; lab.textContent = `「${sk.name}」`;
-  const v = stanceFxEl(sc, sk.mid, sk.n || sk.tier, `live-skill n${sk.tier}`, document.getElementById('liveHero'), sc.querySelector('.live-foe')); v.dataset.live = 1;
+  const v = stanceFxEl(sc, sk.mid, sk.n || sk.tier, `live-skill n${sk.tier}`, document.getElementById('liveHero'), sc.querySelector('.live-foe')); if (v) v.dataset.live = 1;
   if (sk.noName) lab.hidden = true;                  // 방금 두루마리로 외친 초식은 이름 글자를 또 띄우지 않는다
-  sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
+  sc.append(lab, ...(v ? [v] : [])); setTimeout(() => { lab.remove(); if (v) v.remove(); }, sk.tier === 2 ? 1500 : 1200);
   if (sk.tier === 2) liveShake(sc);
 }
 function liveShake(sc) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); clearTimeout(sc._shakeT); sc._shakeT = setTimeout(() => sc.classList.remove('shake'), 650); }
@@ -131,10 +132,10 @@ function liveShowStart(sc, sh) {
   const spr = foe.querySelector('.sp-fspr'), atk = foe.querySelector('.sp-fatk');
   spr.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid)}')`; spr.style.backgroundSize = `${n * 100}% 100%`;
   atk.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid, 1)}')`; atk.style.backgroundSize = '300% 100%';
-  const sk = liveSkillOf(); if (sk) preloadImgs([stanceFxSrc(sk.mid, sk.n)]);
+  const sk = liveSkillOf(), src = sk && stanceFxSrc(sk.mid, sk.n); if (src) preloadImgs([src]);
   const R = sh.ref && findExpedition(sh.ref.rid), B = R && R.battles[sh.ref.bi];
   sh.rec = B && B.rounds && B.rounds.length ? B : null;
-  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { preloadImgs([stanceFxSrc(f.mid, f.n)]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
+  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { const src = stanceFxSrc(f.mid, f.n); if (src) preloadImgs([src]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
   const og = sh.rec && sh.rec.rounds.flatMap(r => r.fx).find(f => f.mid && f.n >= 3);   // 오의가 나가는 전투: 오의 그림을 미리
   if (og && typeof ougiPreload === 'function') ougiPreload(weaponType(), og.mid);
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1, S.name, calculateCombatPower(S));
@@ -175,7 +176,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'skill') liveSkill(sc, e.sk);
     else if (e.k === 'ougi') {
       sh.hold = true; const t1 = performance.now();
-      ougiPlay(sc, { w: hero.dataset.w || weaponType(), mid: e.mid, name: e.name, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
+      ougiPlay(sc, { w: hero.dataset.w || weaponType(), mid: e.mid, name: e.name, noName: e.noName, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
         onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }

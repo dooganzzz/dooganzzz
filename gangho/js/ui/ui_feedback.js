@@ -68,7 +68,8 @@ function stanceAnim(ar, f) {
   if (f.mid && f.n) {                                     // 무공마다 다른 초식 그림 (제1 · 제2초식 = 먹빛 · 오의 = 광휘). 스프라이트 무대가 있으면 무대가 띄운다
     if ($('#spStage')) return;
     const v = document.createElement('div'); v.className = `stance-vfx n${f.n >= 3 ? 2 : 1}`; v.setAttribute('aria-hidden', 'true');
-    ar.appendChild(v); v.appendChild(stanceFxEl(v, f.mid, f.n, ''));   // 초식 그림은 ui_sprite.js stanceFxEl 한 곳에서 고른다
+    const fx = stanceFxEl(v, f.mid, f.n, ''); if (!fx) return;
+    ar.appendChild(v); v.appendChild(fx);   // 초식 그림은 ui_sprite.js stanceFxEl 한 곳에서 고른다
     setTimeout(() => v.remove(), 1500); return;
   }
   const w = STANCE_SVG[f.w] ? f.w : 'sword', n = f.k === 'counter' ? 1 : f.n >= 3 ? 3 : f.n >= 2 ? 2 : 1;   // 오의는 금빛
