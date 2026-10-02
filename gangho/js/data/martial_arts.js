@@ -107,6 +107,7 @@ const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terra
    powerBase 초식 피해 배율의 기준(장경각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
 /* 초식 피해 배율 (제1초식 · 제2초식 · 오의) · 이어질 확률(%): 제1초식은 초식 발동(35% + 연환) 때, 제2초식 · 오의는 앞 초식에 이어서 */
 const MOVE_MULT = [1.4, 2.4, 3.6];
+const MOVE_START = 100;   // 초식 발현 확률(%) — 시험 중 100 (원래 35). 판마다 + 연환(combo)
 const MOVE_CHAIN = [100, 50, 35];
 const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2 };
 /* 쓰러졌을 때 남기는 패배 원인 (관찰·탐험 기록) */

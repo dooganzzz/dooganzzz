@@ -23,7 +23,7 @@ function cpVersus(st, R, art) {
   // 초식: 발현 확률 · 이어지는 확률 · 내력이 버티는 만큼만
   let skill = 1, sustain = 1;
   if (art.moves) {
-    const p = Math.min(1, (35 + (st.combo || 0)) / 100), c = i => Math.min(1, (MOVE_CHAIN[i] + (st.combo || 0)) / 100);
+    const p = Math.min(1, (MOVE_START + (st.combo || 0)) / 100), c = i => Math.min(1, (MOVE_CHAIN[i] + (st.combo || 0)) / 100);
     const m2 = art.moves > 1 ? c(1) : 0, m3 = art.moves > 2 ? m2 * c(2) : 0, qi = 1 + (st.qiDmg || 0);
     const costPerRound = p * (art.cost[0] + m2 * art.cost[1] + m3 * art.cost[2]);
     const roughRounds = Math.max(1, st.maxHp / Math.max(1, taken));
@@ -270,7 +270,7 @@ function playerAttack(b) {
   let comboDone = false;
   b.affSaid = false;                                        // 상성 우위 지문은 한 턴에 한 번
   const moves = canCombo && m ? unlockedMoves(m.star) : 0;
-  if (moves && Math.random() * 100 < 35 + st.combo) {
+  if (moves && Math.random() * 100 < MOVE_START + st.combo) {
     const g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
     const power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase;   // 장경각 무공 고유 피해 배율
