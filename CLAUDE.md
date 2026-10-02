@@ -44,6 +44,12 @@
   새 그림은 `assets/art/<종류>/`에 넣고(작은 그림 · 투명 스프라이트 PNG는 무손실 WebP로, 큰 배경 · 장면 그림은 가로 1280 손실 WebP 품질 80대로 줄여서. 이미 손실 WebP · JPG인 것은 다시 압축하지 않음), 안 쓰는 그림은 `node gangho/tools/assets-check.js`로 찾는다.
 - 강호행 화면: ui_field.js(패널 · 기록) · ui_live.js(무대 · 걷기 · 소품 · 기믹) · ui_live_sky.js(하루의 빛 · 날씨) · ui_live_fight.js(실시간 전투) · ui_ougi.js(오의) · ui_callout.js(초식 외침 두루마리) · ui_replay.js(관찰 창).
 
+## 배포는 모아서 (유저 확정, 10월 2일)
+- 건바이건으로 배포하지 않는다. 고친 것은 **로컬 커밋까지만** 하고(push · 아티팩트 갱신 · 번들 배포는 보류), 유저가 자러 갈 때 모아서 한 번에 배포한다.
+- 보고에는 배포 대기 목록만 **"배포대기목록 1.XXX 2.XXX"** 식으로 나열한다 (길게 설명하지 않는다). 대기 목록은 `gangho/docs/배포대기.md`에도 적는다.
+- 연출 미리보기 · 시안 보관함 아티팩트는 배포가 아니라 확인용이므로 계속 바로 갱신해도 된다.
+- 유저가 "배포해"라고 하면 아래 배포 순서대로 한 번에 한다 (push까지 한 뒤 대기 목록을 비운다).
+
 ## 배포 순서
 1. `node gangho/tools/stamp.js` (?v= 버전 · version.json 갱신)
 2. `python3 gangho/tools/bundle.py <scratchpad>` → `node gangho/tools/bundle-check.js <scratchpad>` → `node gangho/tests/check-layers.js`
