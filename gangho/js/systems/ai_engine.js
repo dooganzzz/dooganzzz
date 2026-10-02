@@ -100,7 +100,7 @@ function aiPills(note) {
     const id = S.active[c]; if (!id) continue;
     const pill = GATES[S.manuals[id].star]; if (!pill || has(pill)) continue;
     const r = RECIPES.find(x => x.out === pill);   // 돌파단은 이제 조합으로 못 만든다 (가르침 · 첫 입장 · 금고)
-    if (!r) { note(`${MANUALS[id].name} ${S.manuals[id].star}성: ${ITEMS[pill].name} 기다림`); continue; }
+    if (!r) { if (pill === 'pillLow' && aiPrayForPill(note)) continue; note(`${MANUALS[id].name} ${S.manuals[id].star}성: ${ITEMS[pill].name} 기다림`); continue; }
     aiBuyMats(r);
     let tries = 0;
     while (!has(pill) && aiCraftable(r) && tries++ < 4) { const res = doCraft(r.craft, { ...r.in }); if (res && res.ok) note(`연단: ${ITEMS[pill].name}`); }
@@ -246,6 +246,18 @@ function aiDrive(t, note) {
     stageGo(run, want.stage, t);
     if (want.push) { AI_FRONT.tries++; AI_FRONT.at = t; }
   }
+}
+
+/* 소성 돌파단을 기다리면 (아는 유저처럼) 일부러 연단을 그르쳐 찌꺼기를 만들고 무신상에 공양해 돌파단을 노린다.
+   한 시각에 찌꺼기 6개(공양 2번)까지, 생혈고 값(AI_RESERVE)은 남긴다. 돌파단이 나오면 true */
+function aiPrayForPill(note) {
+  let n = 0;
+  while (n < 6 && S.mp >= craftCost('alchemy') && (has('herb') || (S.silver >= 6 + AI_RESERVE && buyItem('herb')))) { doCraft('alchemy', { herb: 1 }); n++; }
+  const k = Math.floor(count('slag') / GACHA.cost); if (!k) return false;
+  const before = count('pillLow'); pray(k);
+  const got = count('pillLow') > before;
+  note(`무신상 공양 ${k}번 (돌파단을 노림)${got ? ' — 소성 돌파단!' : ''}`);
+  return got;
 }
 
 /* 가르침이 무신상 공양을 바라면, 전방에서 산 약재 하나로 일부러 연단을 그르쳐 검게 탄 찌꺼기를 만든다 (아는 유저의 방법) */
