@@ -356,6 +356,7 @@ function startGame(st) {
   const verChanged = S.gameVer && S.gameVer !== GAME_VER && GAME_VER !== 'dev';
   if (verChanged && activeRun()) { endRun(activeRun(), now(), 'recall'); log('📜 새 버전이 배포되어 진행 중이던 강호행을 마쳤습니다. 얻은 것은 이미 받았습니다.', 'gold'); notify.toast('📜 새 버전 배포로 강호행을 마쳤습니다'); }
   else if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 강호행 탭에서 견문과 보상을 확인하십시오`);
+  if (verChanged) { ui.tab = 'sect'; ui.sectSub = 'hall'; ui.modal = null; ui.fieldMap = false; window.scrollTo(0, 0); }   // 새 버전: 모두 처음 자리(청풍문 › 정청, 맨 위)에서 다시 시작 (유저 확정)
   S.gameVer = GAME_VER;
   authFooter();
   notify.refresh(); save();

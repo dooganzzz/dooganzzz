@@ -4,6 +4,7 @@
    python3 tools/chroma_cuts.py ougi in.png out.webp  오의 시트 (16컷, 240x240)
    python3 tools/chroma_cuts.py hit in.png out.webp   맞는 자리에서 터지는 제1초식(MANUAL_HIT) 시트 (10컷, 480x360 · 그림을 자르지 않고 통째로 맞춤)
    python3 tools/chroma_cuts.py glow in.png out.webp  검은 바탕 그림(빛 · 기운) → 맞는 자리에서 터지는 시트 (밝기를 알파로, 10컷 480x360)
+   python3 tools/chroma_cuts.py glow2 in.png out.webp 검은 바탕 빛 그림 → 제2초식 시트 (glow1은 제1초식, 손 · 칼끝에서 요수까지 뻗는 컷)
    결과 webp를 assets/art/manual/<무공id>/(cut_1 · cut_2 · ougi)에 넣는다. 먹 그림은 게임에서 screen 겹치기로는 지워지므로 그 무공만 normal 겹치기가 필요하다."""
 from PIL import Image
 import numpy as np, sys
@@ -24,9 +25,9 @@ def fit(im,ar,w,h):
     ex=np.clip(np.minimum(np.arange(w),np.arange(w)[::-1])/(w*.07),0,1)[None,:]; ey=np.clip(np.minimum(np.arange(h),np.arange(h)[::-1])/(h*.12),0,1)[:,None]
     b[...,3]*=ex*ey
     return Image.fromarray(b.clip(0,255).astype('uint8'),'RGBA')
-def sheet(src,out,n):
+def sheet(src,out,n,keyf=None):
     fw,fh=(640,200) if n==1 else (640,360)
-    im=fit(key(Image.open(src)),fw/fh,fw,fh)
+    im=fit((keyf or key)(Image.open(src)),fw/fh,fw,fh)
     a=np.asarray(im).astype(float); al=a[...,3]/255; xs=np.arange(fw)[None,:]/fw; frames=[]
     for f in range(10):
         reach=min(1,(f+1)/5)**.6; edge=np.clip((reach+.06-xs)/.12,0,1); fade=1 if f<5 else max(0,1-(f-4)/5.5)
@@ -79,4 +80,5 @@ if __name__ == "__main__":
     elif len(a) == 3 and a[0] == "ougi": ougi(a[1], a[2])
     elif len(a) == 3 and a[0] == "hit": hit(a[1], a[2])
     elif len(a) == 3 and a[0] == "glow": glow(a[1], a[2])
+    elif len(a) == 3 and a[0] in ("glow1", "glow2"): sheet(a[1], a[2], int(a[0][-1]), glow_key)   # 검은 바탕 빛 그림 → 손 · 칼끝에서 뻗는 제1 · 제2초식 시트
     else: print(__doc__)
