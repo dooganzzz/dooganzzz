@@ -54,6 +54,9 @@ const ITEMS = {
   // 증표
   hasanryeong: { name: '낙양성 하산령', icon: '📜', kind: '증표', price: 0, desc: '청풍문 장문인이 내린 하산 허가증. 제2장 낙양성으로 가는 길이 열린다.' },
   // 비급서: 모든 비급마다 '비급' 아이템이 있다. 행낭에서 [ 익히기 ]로 소모하면 습득한 무공 목록에 오른다.
+  bk_sw1m: { name: '《혈영검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw1m' }, desc: '마도의 비급. 읽고 익히면 혈영검(血影劍)을 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
+  bk_bd1m: { name: '《흡혈마도》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'bd1m' }, desc: '마도의 비급. 읽고 익히면 흡혈마도(吸血魔刀)를 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
+  bk_fs1m: { name: '《흡성마장》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'fs1m' }, desc: '마도의 비급. 읽고 익히면 흡성마장(吸星魔掌)을 운용할 수 있다. 친 상대의 기운을 빨아 활력으로 삼는다.' },
   bk_sw1a: { name: '《한상검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1a' }, desc: '읽고 익히면 한상검법(寒霜劍法)을(를) 운용할 수 있다.' },
   bk_sw1b: { name: '《추상검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1b' }, desc: '읽고 익히면 추상검법(秋霜劍法)을(를) 운용할 수 있다.' },
   bk_sw1c: { name: '《유묵검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1c' }, desc: '읽고 익히면 유묵검법(儒墨劍法)을(를) 운용할 수 있다.' },
@@ -427,7 +430,7 @@ const GACHA = {
   awaken: 300,                                             // 누적 공양 찌꺼기가 이만큼 차면 무신이 깨어난다 (초과분 보존)
   awakenPill: { pillLow: 20, pillHigh: 10 },            // 각성 때 덤으로 돌파단: 소성 20% · 대성 10% (나머지 85%는 없음, 유저 요청)
   awakenScrap: { scrap2: 90, scrap3: 10 },                 // 각성마다 찢어진 비급 조각 1장: 이류 90% · 일류 10% (유저 요청 — 영구 능력치 · 완제품 하사는 없앰)
-  books: ['sw1a', 'sw1b', 'sw1c', 'bd1a', 'bd1b', 'bd1c', 'sp1a', 'sp1b', 'sp1c', 'fs1a', 'fs1b', 'fs1c', 'hd1a', 'hd1b', 'hd1c', 'gy1a', 'gy1b', 'gy1c', 'gi1a', 'gi1b', 'gi1c', 'sm1a', 'sm1b', 'sm1c', 'sw1d', 'sw1e', 'sw1f', 'bd1d', 'bd1e', 'bd1f', 'sp1d', 'sp1e', 'sp1f', 'fs1d', 'fs1e', 'fs1f', 'hd1d', 'hd1e', 'hd1f', 'gy1d', 'gy1e', 'gy1f', 'gi1d', 'gi1e', 'gi1f', 'sm1d', 'sm1e', 'sm1f'],   // 삼류 40종 + 신규 삼류 24종
+  books: ['sw1a', 'sw1b', 'sw1c', 'bd1a', 'bd1b', 'bd1c', 'sp1a', 'sp1b', 'sp1c', 'fs1a', 'fs1b', 'fs1c', 'hd1a', 'hd1b', 'hd1c', 'gy1a', 'gy1b', 'gy1c', 'gi1a', 'gi1b', 'gi1c', 'sm1a', 'sm1b', 'sm1c', 'sw1d', 'sw1e', 'sw1f', 'bd1d', 'bd1e', 'bd1f', 'sp1d', 'sp1e', 'sp1f', 'fs1d', 'fs1e', 'fs1f', 'hd1d', 'hd1e', 'hd1f', 'gy1d', 'gy1e', 'gy1f', 'gi1d', 'gi1e', 'gi1f', 'sm1d', 'sm1e', 'sm1f', 'sw1m', 'bd1m', 'fs1m'],   // 삼류 40종 + 신규 삼류 24종
 };
 
 /* 화로 한 번에 넣을 수 있는 재료 수 · 연구 노트에 남기는 시도 수 */
