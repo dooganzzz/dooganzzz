@@ -50,9 +50,10 @@ function liveShowPlan(sh, w) {
   const skillAtk = (t0, ev, sk) => {
     ev.art = !!(sk.mid && stanceFxSrc(sk.mid, sk.n || sk.tier));   // 초식 그림이 있으면 맞을 때 평타 타격 그림은 띄우지 않는다 (겹침 방지)
     if (!ranged && sk.mid && ASSET.hit(sk.mid) && stanceCutN(sk.n || sk.tier) === 1) {   // (제1초식만 — 제2초식은 손에서 뻗어 날아가는 기운)   // 연속 때리기(MANUAL_HIT): 달려가 붙어서 때리고, 맞는 자리에 초식 그림이 터진 뒤 돌아온다
-      q.push({ at: t0, k: 'hx', x: Math.max(LIVE_POS.lunge, (sh.foeX || 0) - 13) }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);   // 주먹이 닿게 요수에 바짝 붙는다
-      const N = ASSET.hitN(sk.mid), s = t0 + T(330), hitAt = s + T(N > 1 ? 170 * (N - 1) + 40 : 150);
-      if (N === 1) { heroF(s - T(90), 6); heroF(s, 4); }   // 한 번 깊게(철사장): 웅크렸다가 팔을 곧게 뻗어 찌른 채 멈춘다 (발차기 칸 없이)
+      const N = ASSET.hitN(sk.mid);
+      q.push({ at: t0, k: 'hx', x: Math.max(LIVE_POS.lunge, (sh.foeX || 0) - (N === 1 ? 22 : 13)) }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);   // 주먹이 닿게 요수에 바짝 붙는다 (관수는 팔이 길어 그만큼 뒤에 선다)
+      const s = t0 + T(330), hitAt = s + T(N > 1 ? 170 * (N - 1) + 40 : 150);
+      if (N === 1) { heroF(s - T(90), 6); heroF(s, 11); }   // 한 번 깊게(철사장, 관수 11칸): 웅크렸다가 팔을 곧게 뻗어 찌른 채 멈춘다 (발차기 칸 없이)
       else for (let i = 0; i < N; i++) { heroF(s + T(i * 170), 4); heroF(s + T(i * 170 + 85), 5); }   // 무공마다 횟수 (통비권 연타 세 번 · 철사장 한 번 깊게) — 초식 그림은 첫 손에 터져 끝까지 이어진다
       q.push({ at: s + T(40), k: 'skill', sk }); q.push({ ...ev, at: hitAt }); const e = hitAt + T(140); heroF(e, 6);
       q.push({ at: e + T(200), k: 'hx', x: LIVE_POS.hero }); heroF(e + T(240), 0);

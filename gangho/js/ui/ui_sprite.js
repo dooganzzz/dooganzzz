@@ -8,7 +8,7 @@ const SPRITE_SRC = ASSET;
    (manualFx · cut_ 그림을 다른 파일에서 직접 쓰면 check-layers가 막는다).
    초식 컷: 무공 고유 폴더(manual/무공id/cut_1 · cut_2, 목록은 data/assets.js MANUAL_ART)의 확정본 검기 컷(10컷, 왼쪽 끝 = 칼끝)이 있는 무공. 칼끝 = 제자 그림 너비의 tip 지점 · 그림 너비 = 칼끝~요수 가운데 × reach · 세로 가운데는 제자 가운데보다 dy(제자 키 비율) 위 */
 /* 요수 몸 위에서 터지는 제1초식(MANUAL_HIT): 컷 4:3, 요수 가운데(가슴 높이)에 요수 키의 1.9배 크기로 */
-const HIT_GEO = { ar: 4 / 3, ms: 1000, fy: .5, size: 1.9, tipX: .706, tipY: .254, entry: .38 };   // tip: 팔을 곧게 뻗은 칸(4)의 손끝 자리 (권장 제자 그림 hero_fist에서 잼) · entry: 그림 안에서 꿰뚫는 자리
+const HIT_GEO = { ar: 4 / 3, ms: 1000, fy: .5, size: 1.9, tipX: .988, tipY: .253, entry: .38 };   // tip: 관수(손끝 찌르기) 칸(11)의 손끝 자리 (권장 제자 그림 hero_fist에서 잼) · entry: 그림 안에서 꿰뚫는 자리
 const CUT_GEO = { 1: { tip: .75, reach: 1.07, dy: .18, ar: 640 / 200, ms: 1000 }, 2: { tip: .7, reach: 1.04, dy: .35, ar: 640 / 360, ms: 1300, screen: true } };
 /* n: 초식 번호 (1 · 2 · 3=오의). 확정본 컷은 초식마다(제1 · 제2), 옛 한 장 그림은 제1 · 제2초식 공용(_1) · 오의(_2) */
 const stanceCutN = n => Math.min(2, Math.max(1, n || 1));
@@ -16,7 +16,7 @@ const stanceFxSrc = (mid, n) => n >= 3 ? null : ASSET.manual(mid, 'cut_' + stanc
 /* stage: 그림을 붙일 무대 · imgCls: 옛 한 장 그림일 때 붙일 클래스 · hero · foe: 칼끝 · 거리를 잴 요소 (없으면 무대 가운데를 가로지름) */
 function stanceFxEl(stage, mid, n, imgCls, hero, foe) {
   if (!stanceFxSrc(mid, n)) return null;
-  const au = stanceCutN(n) === 1 && ASSET.hit(mid), g = au ? HIT_GEO : CUT_GEO[stanceCutN(n)], v = document.createElement('div'); v.className = `stance-cut${au ? ' hit' : ''}${ASSET.glow(mid) ? ' glow' : ''}${g.screen && !ASSET.ink(mid) && !ASSET.solid(mid) ? ' screen' : ''}${ASSET.ink(mid) ? ' ink' : ''}${ASSET.solid(mid) ? ' solid' : ''}`;
+  const au = stanceCutN(n) === 1 && ASSET.hit(mid), g = au ? HIT_GEO : CUT_GEO[stanceCutN(n)], v = document.createElement('div'); v.className = `stance-cut${au ? ' hit' : ''}${ASSET.glow(mid) ? ' glow' : ''}${g.screen && !ASSET.ink(mid) && !ASSET.solid(mid) ? ' screen' : ''}${ASSET.ink(mid) ? ' ink' : ''}${ASSET.solid(mid) && !au ? ' solid' : ''}`;
   v.style.backgroundImage = `url('${stanceFxSrc(mid, n)}')`; v.style.animationDuration = g.ms + 'ms';
   const s = stage.getBoundingClientRect(), h = hero && hero.getBoundingClientRect();
   if (!h || !h.width) { Object.assign(v.style, { left: '5%', width: '90%', top: '50%', aspectRatio: String(g.ar), transform: 'translateY(-50%)' }); return v; }
@@ -87,9 +87,9 @@ function spNum(t, side, cls) {
   n.style.left = side === 'foe' ? '70%' : '20%'; st.appendChild(n); setTimeout(() => n.remove(), 1000);
 }
 /* 제자 스프라이트시트 칸: 0 대기 · 1~2 달리기 · 3 평타 타격 · 4~6 병기 동작(준비 · 타격 · 마무리) · 7 피격 · 8 회피 · 9~11 호흡(가슴 들썩) */
-const SPF = { idle: 0, run1: 1, run2: 2, thrust: 3, slashA: 4, slashB: 5, slashC: 6, hurt: 7, dodge: 8 };
+const SPF = { idle: 0, run1: 1, run2: 2, thrust: 3, slashA: 4, slashB: 5, slashC: 6, hurt: 7, dodge: 8, gwansu: 11 };   // gwansu: 권장 제자의 관수(손끝 찌르기) — 다른 병기 시트의 11칸은 숨쉬기 그림(지금은 안 씀)
 /* 가만히 서 있을 때: 대기 → 들숨 → 가득 → 날숨 → 대기 … (몸은 제자리, 가슴·어깨만) */
-const BREATH = [0, 0, 9, 10, 10, 11];
+const BREATH = [0, 0, 9, 10, 10, 10];   // 11칸은 권장 관수 자세 자리라 숨쉬기에서 뺌 (10 · 11은 거의 같은 그림이었음)
 let spBreathT = null;
 let spFoeT = null;
 function spBreathLoop() {
@@ -145,8 +145,10 @@ async function spHeroAttack(f, stance, gap) {
   const tier = stance ? (stance.n >= 3 ? 2 : 1) : 0;   // 화면 단계: 1 = 제1 · 제2초식 (먹빛), 2 = 오의 (광휘)
   h.classList.remove('idle');
   if (tier === 2) { spDaesungOn(); spFrame(h, 'slashA'); await wt(360); }
+  const gw = w === 'fist' && tier === 1 && stance.mid && stanceFxSrc(stance.mid, stance.n) && stanceCutN(stance.n) === 1 && ASSET.hit(stance.mid) && ASSET.hitN(stance.mid) === 1;   // 관수 찌르기: 손끝이 요수에 닿는 데까지 다가간다
   if (M.dash) {
     h.classList.add(M.dash); spDust(20, -22);
+    if (gw) { const st = h.parentElement.getBoundingClientRect(), er = e.getBoundingClientRect(), hr = h.getBoundingClientRect(); h.style.left = ((er.left - st.left + er.width * .3 - hr.width * HIT_GEO.tipX) / st.width * 100).toFixed(2) + '%'; }
     let n = 0; const legs = setInterval(() => { spFrame(h, n++ % 2 ? 'run2' : 'run1'); spDust(24 + n * 5, -14, 1); }, 110 * k);
     spFrame(h, 'run1'); await wt(430); clearInterval(legs);
   }
@@ -166,9 +168,13 @@ async function spHeroAttack(f, stance, gap) {
     spFrame(h, 'thrust'); spDust(46, -24, 3); spStreak('thrust'); land(); await wt(320);
   } else if (w === 'fist') {                             // 권장: 주먹 · 발 · 장 세 번 (초식 그림이 있으면 평타 타격 그림은 빼서 겹치지 않게)
     const art = tier && stance.mid && stanceFxSrc(stance.mid, stance.n);
+    if (gw) {   // 한 번 깊게 찌르기(철사장): 웅크렸다 손끝으로
+      spFrame(h, 'slashC'); await wt(160); spFrame(h, 'gwansu'); spDust(46, -18, 2); skill(); land(); await wt(420);
+    } else {
     spFrame(h, 'slashA'); spFlash(e); if (!art) spVfx('hit', 'spark small', 400); await wt(170);
     spFrame(h, 'slashB'); spFlash(e); if (!art) spVfx('hit', 'spark small', 400); spDust(46, -18, 2); await wt(170);
     spFrame(h, 'slashC'); skill(); land(); await wt(300);
+    }
   } else if (w === 'hidden') {                           // 암기: 제자리에서 던지기
     spFrame(h, 'slashA'); await wt(220);
     spFrame(h, 'slashB'); spDart(tier ? 3 : 1); await wt(200);
@@ -179,7 +185,7 @@ async function spHeroAttack(f, stance, gap) {
     spFrame(h, 'slashC'); await wt(230);
   }
   if (tier === 2) spDaesungOff();
-  if (M.dash) { h.classList.remove(M.dash); h.classList.add('retreat'); spFrame(h, 'idle'); await wt(300); h.classList.remove('retreat'); }
+  if (M.dash) { h.classList.remove(M.dash); h.classList.add('retreat'); h.style.left = ''; spFrame(h, 'idle'); await wt(300); h.classList.remove('retreat'); }
   else spFrame(h, 'idle');
   h.classList.add('idle');
 }
