@@ -12,8 +12,8 @@ const GM_ENABLED = true;
 const GM_REMOTE = !!window.GM_REMOTE;
 const GM_CHANNEL = 'gangho-gm';
 
-const GM = { open: false, tab: 'state', trace: [], itemQ: '', itemKind: 'all', recipeCraft: 'all', resetArm: false, aiPattern: 'life', aiReport: null, aiBusy: false, dbTab: 'monsters' };
-const GM_TABS = [['state', '유저 상태'], ['users', '유저'], ['ai', 'AI 자동 플레이'], ['trace', '행동 추적'], ['items', '아이템 DB'], ['db', '게임 DB'], ['recipes', '조합법'], ['cheat', '쾌속 치트']];
+const GM = { open: false, tab: 'users', trace: [], itemQ: '', itemKind: 'all', recipeCraft: 'all', resetArm: false, aiPattern: 'life', aiReport: null, aiBusy: false, dbTab: 'monsters' };
+const GM_TABS = [['users', '유저'], ['ai', 'AI 자동 플레이'], ['trace', '행동 추적'], ['items', '아이템 DB'], ['db', '게임 DB'], ['recipes', '조합법'], ['cheat', '쾌속 치트']];
 const GM_TRACE_MAX = 300;
 const GM_KIND = { tab: '탭', view: '화면', click: '클릭', battle: '전투', 'item+': '획득', 'item-': '소모', warn: '경고', notice: '알림', error: '예외', gm: 'GM', sys: '시스템' };
 
@@ -29,7 +29,7 @@ Bus.on('trace', (kind, text) => gmTrace(kind, text));
 Bus.on('view', patch => { if (patch.tab) gmTrace('view', `화면 전환 → ${patch.tab}${patch.sectSub ? ' › ' + patch.sectSub : ''}`); if ('modal' in patch) gmTrace('view', `창 ${patch.modal ? '열기 → ' + patch.modal : '닫기'}`); });
 Bus.on('toast', text => gmTrace('notice', text));
 Bus.on('log', e => { if (/\bbad\b/.test(e.cls)) gmTrace('warn', e.text.replace(/<[^>]+>/g, '')); });
-Bus.on('tick', () => { if (GM.open && GM.tab === 'state') gmRenderLive(); });
+
 
 /* ───────── 여닫기 ───────── */
 /* 인터넷에 올린 게임(claude.ai 아티팩트 등)에서는 주인·편집자에게만 콘솔을 연다. 파일로 직접 연 개발 화면은 늘 연다 */
@@ -50,13 +50,12 @@ function gmRender() {
   const panel = $('#gmPanel'); if (!panel) return;
   const tabs = GM_TABS.map(([id, name]) => `<button class="gm-tab ${GM.tab === id ? 'on' : ''}" data-gmtab="${id}" role="tab" aria-selected="${GM.tab === id}">${name}</button>`).join('');
   const body = !S && !['trace', 'cheat', 'users', 'db'].includes(GM.tab) ? '<p class="gm-muted">게임을 시작하면 볼 수 있습니다.</p>'
-    : ({ state: gmViewState, users: gmViewUsers, ai: gmViewAI, trace: gmViewTrace, items: gmViewItems, db: gmViewDB, recipes: gmViewRecipes, cheat: gmViewCheat })[GM.tab]();
+    : ({ users: gmViewUsers, ai: gmViewAI, trace: gmViewTrace, items: gmViewItems, db: gmViewDB, recipes: gmViewRecipes, cheat: gmViewCheat })[GM.tab]();
   panel.innerHTML = `<div class="gm-box" role="dialog" aria-label="운영자 콘솔">
     <div class="gm-top"><b>GM 콘솔</b>${GM_REMOTE ? `<small id="gmConn" class="gm-conn">연결 중…</small>` : `<small>새 창이 막혀 게임 안에 띄웠습니다</small><button class="gm-btn gm-pop" data-gm="popout" title="관리자 창을 따로 띄웁니다">새 창 ↗</button><button class="gm-x" data-gm="close" aria-label="닫기">✕</button>`}</div>
     <div class="gm-tabs" role="tablist">${tabs}</div>
     <div class="gm-body">${body}</div>
   </div>`;
-  if (GM.tab === 'state') gmRenderLive();
   if (GM.tab === 'trace') gmRenderTrace();
   if (GM.tab === 'items') gmRenderItems();
 }
@@ -178,7 +177,6 @@ function gmRemoteInit() {
     if (msg.type === 'state') {
       S = msg.S; RT.battle = msg.battle; if (msg.ai !== undefined && msg.ai !== GM.aiReport) { GM.aiReport = msg.ai; if (GM.tab === 'ai') gmRender(); }
       if (!drawn || hadS !== !!S) { gmRender(); drawn = true; hadS = !!S; }
-      else if (GM.tab === 'state') gmRenderLive();
       else if (GM.tab === 'items') gmRenderItems();
       else if (GM.tab === 'cheat') gmRender();
     }

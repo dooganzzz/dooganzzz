@@ -18,7 +18,7 @@ module.exports = async (b) => {
     ok('[GM] 버튼 → admin.html 새 창 (게임 안 콘솔은 닫힌 채)', /admin\.html$/.test(pop.url()) && await p.evaluate(() => !GM.open)); await pop.close();
     await p.evaluate(() => gmToggle(true));                          // 새 창이 막혔을 때 쓰는 게임 안 콘솔
     const t0 = await p.evaluate(() => ({ open: !document.querySelector('#gmPanel').hidden, tabs: [...document.querySelectorAll('.gm-tab')].map(e => e.textContent).join('|'), pos: getComputedStyle(document.querySelector('#gmPanel')).position }));
-    ok('게임 안 콘솔 · 8개 탭', t0.open && t0.tabs === '유저 상태|유저|AI 자동 플레이|행동 추적|아이템 DB|게임 DB|조합법|쾌속 치트' && t0.pos === 'fixed', JSON.stringify(t0));
+    ok('게임 안 콘솔 · 8개 탭', t0.open && t0.tabs === '유저|AI 자동 플레이|행동 추적|아이템 DB|게임 DB|조합법|쾌속 치트' && t0.pos === 'fixed', JSON.stringify(t0));
     await p.keyboard.press('Escape');
     ok('Esc로 닫힘', await p.evaluate(() => document.querySelector('#gmPanel').hidden));
     await p.keyboard.press('F1'); await p.keyboard.press('Backquote');
