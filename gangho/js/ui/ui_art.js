@@ -159,7 +159,8 @@ function slotIcon(slot) {
 
 /* ───────── 아이템 그림 (ASSET.item): 수묵담채 · 투명 배경. 파일이 없으면 이모지로 ─────────
    장비는 부위(무기는 병기 종류)마다 한 장. 비급은 분류 × 등급마다 표지 한 장 (cv_분류1~5:
-   삼류 회색 · 가장 낡음 → 초절정 빨강 · 새 책, 한자 제목 쪽지와 분류 문양이 그려져 있다) */
+   삼류 회색 · 가장 낡음 → 초절정 빨강 · 새 책, 한자 제목 쪽지와 분류 문양이 그려져 있다).
+   마 · 사 비급은 파 표지 cv_ma_ · cv_sa_ (마 연보라 → 칠흑 자색, 사 연빨강 → 검붉은 핏빛) */
 const ITEM_ART = ASSET.item;
 const BOOK_TIER = { '삼류': 1, '이류': 2, '일류': 3, '절정': 4, '초절정': 5 };
 function icoFail(im) { brokenArt.add(im.getAttribute('src')); const s = im.closest('.item-ico'); if (s) { s.classList.add('fb'); s.textContent = s.dataset.fb || ''; } }
@@ -172,7 +173,8 @@ function manualIco(mid, cls = '') {
   const M = MANUALS[mid]; if (!M) return '📘';
   const kind = M.cat === 'mugong' ? (M.weapon || 'fist') : M.cat;
   const tier = BOOK_TIER[M.grade] || 1;
-  return icoWrap([[ITEM_ART('cv_' + kind + tier), 'cover']], '📘', `book t${tier} ${cls}`);
+  const sc = M.school === 'ma' || M.school === 'sa' ? M.school + '_' : '';
+  return icoWrap([[ITEM_ART('cv_' + sc + kind + tier), 'cover']], '📘', `book t${tier} ${cls}`);
 }
 function itemIco(id, cls = '') {
   const I = ITEMS[id]; if (!I) return '';
