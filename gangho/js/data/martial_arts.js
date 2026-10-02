@@ -108,9 +108,11 @@ const WEAPON_ADV = {
 const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terrainMatch: 0.8, terrainMiss: 1.2 };
 /* 전투 보정: minDmg 적 공격의 최소 피해(공격력 대비, 방어로도 못 막는 몫) · elemPenalty 오행 역상성일 때 받는 피해 추가
    powerBase 초식 피해 배율의 기준(장경각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
-/* 초식 피해 배율 (제1초식 · 제2초식 · 오의) · 발현 확률(%): 세 초식이 공격할 때마다 저마다 따로 굴린다 (앞 초식에 매이지 않음, + 연환 combo) */
+/* 초식 피해 배율 (제1초식 · 제2초식 · 오의) · 공격마다 MOVE_START%(+ 연환 combo)로 초식이 발동하고, 발동하면 MOVE_PICK 비율로 셋 중 하나를 펼친다
+   (아직 안 열린 초식은 빼고 남은 비율로 나눔: 1~5성은 제1초식만, 6~11성은 제1 · 제2초식 6:3) */
 const MOVE_MULT = [1.4, 2.4, 3.6];
-const MOVE_RATE = [100, 100, 100];   // 시험 중 모두 100 (유저 요청: 시험 계속) — 본값은 유저가 정함
+const MOVE_START = 35;
+const MOVE_PICK = [60, 30, 10];   // 제1초식 · 제2초식 · 오의 (%)
 const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2 };
 /* 쓰러졌을 때 남기는 패배 원인 (관찰·탐험 기록) */
 const DEFEAT_CAUSE = {

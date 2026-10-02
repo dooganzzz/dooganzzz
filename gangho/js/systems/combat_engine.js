@@ -20,16 +20,16 @@ function cpVersus(st, R, art) {
   const foeCrit = 1 + Math.max(0, R.crit - (st.critRes || 0) / 2) / 100 * 0.5;
   const stun = Math.min(0.5, (st.shock || 0) / 100 * hit);
   let taken = foeDmg * foeHit * foeCrit * (1 + (R.hits - 1) * 0.6) * (1 - stun);
-  // 초식: 세 초식이 저마다 따로 발현 · 내력이 버티는 만큼만
+  // 초식: 발동 확률 × 셋 중 하나를 고르는 비율 · 내력이 버티는 만큼만
   let skill = 1, sustain = 1;
   if (art.moves) {
-    const c = i => art.moves > i ? Math.min(1, (MOVE_RATE[i] + (st.combo || 0)) / 100) : 0;
-    const p = c(0), m2 = c(1), m3 = c(2), qi = 1 + (st.qiDmg || 0);
-    const costPerRound = p * art.cost[0] + m2 * art.cost[1] + m3 * art.cost[2];
+    const p = Math.min(1, (MOVE_START + (st.combo || 0)) / 100), qi = 1 + (st.qiDmg || 0);
+    const tot = MOVE_PICK.slice(0, art.moves).reduce((a, v) => a + v, 0), w = i => i < art.moves ? MOVE_PICK[i] / tot : 0;
+    const costPerRound = p * (w(0) * art.cost[0] + w(1) * art.cost[1] + w(2) * art.cost[2]);
     const roughRounds = Math.max(1, st.maxHp / Math.max(1, taken));
     const budget = st.maxMp + (st.mpRegen + st.maxMp * (st.mpRegenPct || 0) / 100) * roughRounds;
     sustain = costPerRound > 0 ? Math.min(1, budget / (costPerRound * roughRounds)) : 1;
-    skill = 1 + sustain * (p * (art.mult[0] * qi - 1) + m2 * art.mult[1] * qi + m3 * art.mult[2] * qi);
+    skill = 1 + sustain * p * (w(0) * (art.mult[0] * qi - 1) + w(1) * (art.mult[1] * qi - 1) + w(2) * (art.mult[2] * qi - 1));
   }
   const counter = Math.min(1, (st.counter || 0) / 100) * foeHit;              // 맞을 때마다 평타 한 번
   const offense = basic * skill + dmgBase(st.atk, def) * hit * critF * counter;
@@ -277,23 +277,22 @@ function playerAttack(b) {
   let comboDone = false;
   b.affSaid = false;                                        // 상성 우위 지문은 한 턴에 한 번
   const moves = canCombo && m ? unlockedMoves(m.star) : 0;
-  if (moves) {
+  if (moves && Math.random() * 100 < MOVE_START + st.combo) {
     const g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
     const power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase;   // 장경각 무공 고유 피해 배율
     const mults = MOVE_MULT.map(v => v * (1 + (g - 1) * 0.5) * realmMult * power);
-    let hitsInRow = 0;
-    for (let i = 0; i < moves; i++) {                         // 세 초식은 저마다 따로 굴린다 (앞 초식이 안 나와도 다음 초식은 나올 수 있음)
-      if (Math.random() * 100 >= MOVE_RATE[i] + st.combo) continue;
-      const cost = Math.max(1, Math.round((4 + m.star / 2 + i * (4 + m.star / 2)) * g * (1 - (st.mpCost + st.mpSave) / 100)));
-      if (S.mp < cost) { if (comboDone) bLine(`내력이 바닥나 ${MOVE_NAME[i]}${i === 2 ? '를' : '으로'} 펼치지 못했습니다.`, 'muted'); continue; }
+    let r = Math.random() * MOVE_PICK.slice(0, moves).reduce((a, v) => a + v, 0), i = 0;   // 셋 중 하나 (안 열린 초식은 빼고)
+    while (i < moves - 1 && r >= MOVE_PICK[i]) r -= MOVE_PICK[i++];
+    const cost = Math.max(1, Math.round((4 + m.star / 2 + i * (4 + m.star / 2)) * g * (1 - (st.mpCost + st.mpSave) / 100)));
+    if (S.mp < cost) bLine(`내력이 모자라 ${MOVE_NAME[i]}${i === 2 ? '를' : '을'} 펼치지 못했습니다.`, 'muted');
+    else {
       S.mp -= cost;
       comboDone = true;
       const sc = M.stances[i];
       const ok = playerHit(b, mults[i], { title: stanceCall(i, sc.name), cls: `m${i + 1}`, banner: (i === 2 ? '奧義 · ' : '') + stanceShort(sc.name), w: M.weapon, n: i + 1, mid: id,
-        critUp: (M.chainCrit || 0) * hitsInRow, weaken: M.weaken, stanceBleed: M.stanceBleed });
-      hitsInRow = ok ? hitsInRow + 1 : 0;
-      if (b.e.hpNow <= 0) break;
+        critUp: (M.chainCrit || 0) * (b.moveRow || 0), weaken: M.weaken, stanceBleed: M.stanceBleed });
+      b.moveRow = ok ? (b.moveRow || 0) + 1 : 0;                // 초식이 잇달아 맞을수록 치명 상승 (chainCrit 무공)
     }
   }
   if (!comboDone) playerHit(b, 1, { desc: '⚔️ 평타(平打) — ' + STANCE_DEFAULT.basic });
