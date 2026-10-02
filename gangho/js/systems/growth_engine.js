@@ -31,6 +31,7 @@ function checkRankUp() {
   S.rank = 1; const R = warriorRank();
   log(`🔷 네 갈래 삼류 무공을 모두 대성하여 ${R.name}(${R.hanja})로 승급했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
   notify.banner(`${R.hanja} · ${R.name}`, `전체 능력치 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
+  notify.view({ modal: 'rankup' });   // 승급 연출 창
   return true;
 }
 function starUp(id) {

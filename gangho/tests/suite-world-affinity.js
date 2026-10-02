@@ -180,7 +180,7 @@ module.exports = async (b) => {
     ok('7 무공 칸에 기공 오행 · 경공 지형 표식', await p.evaluate(() => /金/.test(document.querySelector('.mslot .aff-tag.el-metal').textContent) && !!document.querySelector('.mslot .aff-tag.tr')));
     await p.evaluate(() => { ui.modal = 'mart:' + S.active.gigong; renderModal(); });
     ok('7 기공 상세: 극하는 오행 · 극당하는 오행', await p.evaluate(() => /木 속성 적에게 피해 \+25%/.test(document.querySelector('.sheet').textContent) && /火 속성 적에게는 -25%/.test(document.querySelector('.sheet').textContent)));
-    await p.evaluate(() => { ui.modal = null; ui.statusSub = 'gear'; render(); });
+    await p.evaluate(() => { ui.modal = null; ui.statusSub = 'observe'; render(); });
     ok('7 전투력 카드 아래 4대 스탯 · 주력 기예', ...(await p.evaluate(() => { const t = document.querySelector('.cp-attr').textContent; return [t.includes(`근력 ${attrOf('str')}`) && t.includes(`민첩 ${attrOf('agi')}`) && /기예 연단/.test(t), t + ' / 민첩 ' + attrOf('agi')]; })));   // 비급 각인이 더해진 값
 
     // 8. 주력 기예 효과

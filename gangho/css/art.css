@@ -767,3 +767,19 @@ html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: 
 .mirror-sheet .study-row b { color: color-mix(in srgb, var(--gc) 70%, #fff); }
 .mirror-sheet .study-row .icon img { filter: drop-shadow(0 0 6px var(--gc)); }
 .mirror-sheet .study-row .mprog span { background: linear-gradient(90deg, color-mix(in srgb, var(--gc) 60%, #000), var(--gc)); }
+/* 이류무사 승급 연출 (3.2초): 불 꺼진 고리 → 24칸이 한 바퀴 돌며 차례로 켜지고 → 고리 전체가 폭발하듯 타오르며 커지고 → 금빛 · 청빛 번쩍 → 二流武士 붓글씨가 찍힌다 */
+.rku { position: relative; width: min(70vw, 340px); aspect-ratio: 1; margin: 0 auto; }
+.rku .med { position: absolute; inset: 16%; width: 68%; height: 68%; object-fit: contain; border-radius: 50%; z-index: 1; }
+.rku .ring { position: absolute; inset: -36.2%; width: 172.4%; height: 172.4%; max-width: none; pointer-events: none; }
+.rku .ring.on { -webkit-mask: conic-gradient(#000 0 var(--sweep), transparent calc(var(--sweep) + 2.5%)); mask: conic-gradient(#000 0 var(--sweep), transparent calc(var(--sweep) + 2.5%)); animation: rkuSweep 1.2s cubic-bezier(.4, 0, .6, 1) forwards, rkuBlaze 1.2s ease-out 1.2s forwards; }
+@property --sweep { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@keyframes rkuSweep { from { --sweep: 0%; } to { --sweep: 100%; } }
+@keyframes rkuBlaze { 0% { transform: scale(1); filter: brightness(1); } 40% { transform: scale(1.14); filter: brightness(1.9) saturate(1.3); } 100% { transform: scale(1.04); filter: brightness(1.2); } }
+.rku .flash { position: absolute; inset: -40%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 250, 225, .95), rgba(150, 205, 255, .6) 30%, transparent 62%); opacity: 0; z-index: 2; animation: rkuFlash 1.1s ease-out 1.3s forwards; pointer-events: none; }
+@keyframes rkuFlash { 0% { opacity: 0; transform: scale(.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.3); } }
+.rku .title { position: absolute; left: 50%; top: 122%; transform: translate(-50%, 0) scale(1.6); opacity: 0; z-index: 3; text-align: center; white-space: nowrap; animation: rkuStamp .6s cubic-bezier(.2, 1.5, .4, 1) 2.1s forwards; }
+.rku .title b { display: block; font: 400 clamp(30px, 9vw, 52px)/1 'Gangho Brush', serif; color: #eaf6ff; letter-spacing: .08em; text-shadow: 0 0 10px rgba(90, 170, 255, .95), 0 0 24px rgba(60, 140, 255, .7); }
+.rku .title small { display: block; margin-top: 4px; font-size: 13px; color: #f0cf82; letter-spacing: .2em; }
+@keyframes rkuStamp { 0% { opacity: 0; transform: translate(-50%, 0) scale(1.6); } 60% { opacity: 1; transform: translate(-50%, 0) scale(.95); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+html.calm .rku * { animation-duration: .01s !important; animation-delay: 0s !important; }
+.rankup-sheet { text-align: center; padding-bottom: 20px; } .rankup-sheet .rku-box { padding: 70px 0 120px; overflow: hidden; display: grid; place-items: center; }
