@@ -154,8 +154,8 @@ async function spHeroAttack(f, stance, gap) {
   }
   const land = () => {
     spImpact(f);
-    if (f.k === 'miss') { spNum('빗나감', 'foe', 'miss'); return; }
-    spFlash(e); spNum(f.t, 'foe', f.k === 'crit' ? 'crit' : '');
+    if (f.k === 'miss') { spNum('빗나감', 'foe', 'miss'); sfx('miss'); return; }
+    sfxHit(weaponType(), f.k === 'crit'); spFlash(e); spNum(f.t, 'foe', f.k === 'crit' ? 'crit' : '');
     if (!tier) spVfx(f.k === 'crit' ? 'crit' : 'hit', `spark ${f.k === 'crit' ? 'crit' : ''}`, 600);
   };
   const skill = () => {
@@ -196,8 +196,8 @@ async function spFoeAttack(f, gap) {
   const k = Math.min(1, gap / 1000), w = ms => spWait(ms * k), fr = i => { atk.style.backgroundPositionX = i * 50 + '%'; };
   e.classList.remove('idle'); e.classList.add('striking', 'step'); fr(0); await w(260);
   fr(1); spDust(66, 20, 2); spImpact(f);
-  if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); spVfx('dodge', 'dodge', 600); }
-  else { spFrame(h, 'hurt'); spFlash(h); spNum(f.t, 'me', 'me'); }
+  if (f.k === 'dodge') { spFrame(h, 'dodge'); h.classList.add('back'); spNum('회피!', 'me', 'miss'); sfx('miss'); spVfx('dodge', 'dodge', 600); }
+  else { spFrame(h, 'hurt'); spFlash(h); sfx('hurt'); spNum(f.t, 'me', 'me'); }
   await w(300); fr(2); await w(240);
   e.classList.remove('striking', 'step'); h.classList.remove('back'); spFrame(h, 'idle'); await w(160); e.classList.add('idle');
 }

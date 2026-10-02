@@ -172,7 +172,7 @@ function liveShowStep(sc, sh, ts, dt) {
     if (sh.boss) {                                    // 두목: 무대가 어두워지고 큰 깃발 · 땅울림
       const bn = sc.querySelector('.live-boss'); if (bn) bn.querySelector('b').textContent = ENEMIES[sh.eid].name;
       sc.classList.remove('boss'); void sc.offsetWidth; sc.classList.add('boss'); setTimeout(() => sc.classList.remove('boss'), 3200);
-      liveShake(sc); setTimeout(() => liveShake(sc), 380);
+      liveShake(sc); setTimeout(() => liveShake(sc), 380); sfx('boss');
     } else { sc.classList.remove('enc'); void sc.offsetWidth; sc.classList.add('enc'); setTimeout(() => sc.classList.remove('enc'), 2600); }
     return false;
   }
@@ -186,32 +186,32 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'fa') foe.classList.toggle('striking', e.f >= 0), e.f >= 0 && (foe.querySelector('.sp-fatk').style.backgroundPositionX = e.f * 50 + '%');
     else if (e.k === 'skill') liveSkill(sc, e.sk);
     else if (e.k === 'ougi') {
-      sh.hold = true; const t1 = performance.now();
+      sh.hold = true; const t1 = performance.now(); sfx('ougi');
       ougiPlay(sc, { w: hero.dataset.w || weaponType(), mid: e.mid, name: e.name, noName: e.noName, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
         onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
     else if (e.k === 'callout') {                     // 초식 외침: 대사가 끝나 두루마리가 감기기 시작할 때까지 순서를 멈춘다 (감기는 동안 초식이 함께 나간다)
       sh.hold = true; const t1 = performance.now();
-      calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
+      sfx('scroll'); calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
     else if (e.k === 'proj') liveProj(sc, sh, e.dur);
     else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 치명타 · 빗나감
       const f = e.f;
-      if (f.k === 'miss') liveNum(sc, '빗나감', sh.foeX + 9, 'miss');
-      else { spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
+      if (f.k === 'miss') { liveNum(sc, '빗나감', sh.foeX + 9, 'miss'); sfx('miss'); }
+      else { sfxHit(hero.dataset.w || weaponType(), f.k === 'crit'); spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
     }
     else if (e.k === 'hurtR') {                       // 요수의 공격: 기록된 피해 · 회피
       const f = e.f;
       if (sh.heavy) liveShake(sc);                    // 덩치 큰 요수 · 두목의 반격은 땅이 울린다
-      if (f.k === 'dodge') { hero.dataset.f = 8; liveNum(sc, '회피', 22, 'miss'); }
-      else { hero.dataset.f = 7; spFlash(hero); liveVfx(sc, 'hit', 22, 'small'); liveNum(sc, f.t.replace('-', ''), 22, 'me'); liveHp(sc, 'me', e.hp); }
+      if (f.k === 'dodge') { hero.dataset.f = 8; liveNum(sc, '회피', 22, 'miss'); sfx('miss'); }
+      else { hero.dataset.f = 7; spFlash(hero); sfx('hurt'); liveVfx(sc, 'hit', 22, 'small'); liveNum(sc, f.t.replace('-', ''), 22, 'me'); liveHp(sc, 'me', e.hp); }
     }
-    else if (e.k === 'heal') { liveNum(sc, `🩸${e.f.t}`, 22, 'heal'); liveHp(sc, 'me', e.hp); }
+    else if (e.k === 'heal') { sfx('heal'); liveNum(sc, `🩸${e.f.t}`, 22, 'heal'); liveHp(sc, 'me', e.hp); }
     else if (e.k === 'sync') { liveHp(sc, 'me', e.me); liveHp(sc, 'foe', e.foe); if (e.mp != null) liveMp(sc, e.mp); }
-    else if (e.k === 'down') { hero.classList.add('ko'); liveNum(sc, '쓰러짐', 22, 'me'); }
-    else if (e.k === 'ko') foe.classList.add('ko');
+    else if (e.k === 'down') { sfx('ko'); hero.classList.add('ko'); liveNum(sc, '쓰러짐', 22, 'me'); }
+    else if (e.k === 'ko') { sfx('ko'); foe.classList.add('ko'); }
     else if (e.k === 'mist') foe.classList.add('mist');
     else if (e.k === 'end') return true;
   }

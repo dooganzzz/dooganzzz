@@ -58,6 +58,7 @@
   `ASSET.manual(mid, 이름)`은 `data/assets.js`의 `MANUAL_ART` 목록에 있는 것만 돌려주고, `stanceFxSrc`(ui_sprite.js) · `ougiCfg`(ui_ougi.js)에서만,
   무공 id를 글자로 박지 않고 부른다. 폴더와 목록이 다르거나 다른 곳에서 쓰면 `check-layers.js`가 막는다.
   새 그림은 `assets/art/<종류>/`에 넣고(작은 그림 · 투명 스프라이트 PNG는 무손실 WebP로, 큰 배경 · 장면 그림은 가로 1280 손실 WebP 품질 80대로 줄여서. 이미 손실 WebP · JPG인 것은 다시 압축하지 않음), 안 쓰는 그림은 `node gangho/tools/assets-check.js`로 찾는다.
+- 소리는 `ui/ui_sound.js`에서만 낸다 (배경음악 곡 목록은 `data/assets.js`의 `BGM_TRACKS`, 파일은 `assets/art/audio/`). 효과음은 파일 없이 합성하고, 화면 코드는 `sfx(이름)`만 부른다. 소리 미리듣기: https://claude.ai/artifact/EcvR4MFn7DdVSKuB8dKquT
 - 강호행 화면: ui_field.js(패널 · 기록) · ui_live.js(무대 · 걷기 · 소품 · 기믹) · ui_live_sky.js(하루의 빛 · 날씨) · ui_live_fight.js(실시간 전투) · ui_ougi.js(오의) · ui_callout.js(초식 외침 두루마리) · ui_replay.js(관찰 창).
 
 ## 배포는 모아서 (유저 확정, 10월 2일)

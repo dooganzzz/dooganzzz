@@ -27,6 +27,9 @@ const ASSET_KIND = {
   bgm:      { dir: 'audio/', ext: 'mp3' },          // 배경음악: teahouse(옥루관 금소합주 — 고금 · 퉁소, 3분 9초, 되풀이)
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene · yeonhon_hall · rankup_2(이류무사 승급)
 };
+/* 배경음악: 장면 → 곡 (assets/art/audio/곡.mp3). 곡이 없는 장면은 hall 곡을 이어 튼다.
+   장면: hall(정청 · 그 밖 모든 화면 · 로그인) · live(강호행 산길) · fight(강호행 전투) · boss(두목) */
+const BGM_TRACKS = { hall: 'teahouse' };
 /* 무공 고유 그림 목록: assets/art/manual/무공id/ 에 실제로 있는 파일 (check-layers가 폴더와 맞는지 본다).
    그림이 없는 초식 · 오의는 비워 두고, 그때는 평타(common/strike_*)가 나간다 */
 const MANUAL_ART = {
