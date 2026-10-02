@@ -157,7 +157,7 @@ function viewGear() {
           <div class="character-center-frame">${slot('helmet', 'slot-top')}<div class="char-illustration-container doll-wrap">${portraitCard()}</div></div>
           <div class="equip-column equip-right">${slot('jade')}${slot('armor')}${slot('ring2')}</div>
         </div>
-        <div class="equipment-bottom-bar acc-row">${['boots', 'badge', 'mount'].map(s => slot(s, 'small')).join('')}</div>
+        <div class="equipment-bottom-bar acc-row">${['boots', 'badge'].map(s => slot(s, 'small')).join('')}</div>
       </div>
       <div class="side-col">
         <p class="muted slot-help">장비 칸을 누르면 그 부위에 맞는 행낭 장비가 떠서 바로 장착·교체·해제·강화할 수 있습니다.</p>

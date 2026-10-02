@@ -25,7 +25,7 @@ const CHRON_UI = { '⛰️': 'c_explore', '⛰': 'c_explore', '🏔️': 'c_expl
   '🔨': 'c_hammer', '⚙️': 'c_hammer', '✨': 'c_star', '🌟': 'c_star', '🪤': 'c_trap', '🧭': 'c_compass', '⌛': 'c_incense', '💀': 'c_skull', '💫': 'c_crit',
   '🩸': 'c_bleed', '🏘️': 'c_village', '🏆': 'c_trophy', '💰': 'h_silver', '☯': 'h_mp' };
 const CHRON_ITEM = { '📜': 'hasanryeong', '📖': 'book_g3', '📘': 'book_g3', '🔖': 'book_g3', '🗡️': 'w_sword', '🛡️': 's_armor', '💍': 's_ring', '🎗️': 's_belt',
-  '🐴': 's_mount', '🟩': 's_jade', '⛓️': 'roughOre', '🌿': 'herb' };
+  '🟩': 's_jade', '⛓️': 'roughOre', '🌿': 'herb' };
 const CHRON_NPC = [['노벽송', 'master'], ['조운', 'joun'], ['아린', 'arin'], ['왕 가', 'merchant']];
 let chronItemRe = null;
 function chronDecor(html) {

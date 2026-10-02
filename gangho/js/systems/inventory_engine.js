@@ -174,7 +174,7 @@ const gearName = it => `${it.name}${it.enh ? ` +${it.enh}` : ''}`;
    은자는 S.silver, 소지품은 S.inv{아이템: 개수}, 보관 장비는 S.gear[]. 청풍문 안에서만 거래한다. */
 const itemSellPrice = id => ITEMS[id].price || 0;                 // 비급·증표·약과처럼 값이 0이면 팔 수 없다
 function gearSellPrice(it) {
-  if (it.shop) return 0;                                           // 신분패·탈것은 문파 물건이라 팔 수 없다
+  if (it.shop) return 0;                                           // 신분패는 문파 물건이라 팔 수 없다
   return Math.round(GEAR_SELL.tier[(it.tier || 1) - 1] * RARITY[it.rarity].mult * (1 + (it.enh || 0) * GEAR_SELL.enh));
 }
 function shopPoor(price, name) {

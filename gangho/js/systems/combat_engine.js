@@ -366,8 +366,6 @@ function winBattle(b) {
     bLine(msgs[E.boss], 'gold');
     notify.banner('頭目討伐 · 두목 토벌', `${E.name}`, 'seal');
     bLine(`${hlContrib('+' + reward)}`, 'gold');
-    const mount = SHOP_GEAR.find(g => g.boss === E.boss);
-    if (mount && giveGear(shopGear(mount.id), true)) { bLine(`🐴 두목이 부리던 ${hlItem(mount.name)}${jo(mount.name, '을를')} 얻었습니다. 무장에서 탈것으로 착용하십시오.`, 'loot'); }
   }
 }
 

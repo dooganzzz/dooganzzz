@@ -46,7 +46,7 @@ module.exports = async (b) => {
   await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
   const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.character-portrait-card .portrait-img'), head: document.querySelector('.panel-head .ko').textContent }));
   ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸 이상 (근력 각인·장비로 늘어남)', bag.cap >= 100, String(bag.cap));
-  ok('5 몸 둘레 슬롯 (왼쪽 가락지·무기·요대 · 가운데 투구 · 오른쪽 옥대·호갑·가락지)', bag.top === '가락지,무기,요대,투구,옥대,호갑,가락지', bag.top); ok('5 하단 가로 3슬롯', bag.bottom === '신발,신분패,탈것', bag.bottom); ok('5 초상 카드 이미지', bag.img);
+  ok('5 몸 둘레 슬롯 (왼쪽 가락지·무기·요대 · 가운데 투구 · 오른쪽 옥대·호갑·가락지)', bag.top === '가락지,무기,요대,투구,옥대,호갑,가락지', bag.top); ok('5 하단 가로 2슬롯 (탈것 없음)', bag.bottom === '신발,신분패', bag.bottom); ok('5 초상 카드 이미지', bag.img);
   // 7 + 6
   await p.evaluate(() => { S.silver = 100; render(); });
   await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');

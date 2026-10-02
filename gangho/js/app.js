@@ -185,6 +185,7 @@ function gearNameNow(it) {
 }
 function migrate(st) {
   if (!st) return null;
+  if (st.equip) delete st.equip.mount; if (st.gear) st.gear = st.gear.filter(g => g && g.slot !== 'mount');   // 탈것 칸 폐지 (경공과 겹침)
   migrateManuals(st);   // 비급 120종 개편: 옛 비급 → 같은 갈래 · 등급의 새 비급 (성급은 높은 쪽)
   if ((st.v || 0) < 8) {
     let exp = 0;

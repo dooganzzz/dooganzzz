@@ -94,7 +94,7 @@ function viewHall() {
 
 /* 청풍문 › 전방(廛房): 왕 가의 구매 / 판매 */
 /* 전방 장비 진열 분류 */
-const SHOP_GEAR_TABS = { weapon: { ko: '무기', hj: '武器', slots: ['weapon'] }, armor: { ko: '갑옷', hj: '甲胄', slots: ['armor', 'helmet', 'boots'] }, acc: { ko: '장신구', hj: '裝身具', slots: ['belt', 'jade', 'ring', 'badge', 'mount'] } };
+const SHOP_GEAR_TABS = { weapon: { ko: '무기', hj: '武器', slots: ['weapon'] }, armor: { ko: '갑옷', hj: '甲胄', slots: ['armor', 'helmet', 'boots'] }, acc: { ko: '장신구', hj: '裝身具', slots: ['belt', 'jade', 'ring', 'badge'] } };
 function viewShop() {
   const mode = ui.shopMode === 'sell' ? 'sell' : 'buy';
   const toggle = `<div class="subtabs shop-mode" role="tablist" aria-label="거래" style="--n:2">${[['buy', '구매', '買'], ['sell', '판매', '賣']].map(([id, ko, hj]) =>
@@ -121,7 +121,7 @@ function viewShop() {
     body = items.length || gears.length
       ? `${gears.length ? `<h4 class="ware-head">보관 장비 <small class="muted">착용 중인 장비는 팔 수 없습니다</small></h4><div class="wares">${gears.map(rowG).join('')}</div>` : ''}
          ${items.length ? `<h4 class="ware-head">소지품</h4><div class="wares">${items.map(rowI).join('')}</div>` : ''}`
-      : '<p class="story muted">팔 만한 물건이 없습니다. 비급·증표·신분패·탈것은 사고팔 수 없습니다.</p>';
+      : '<p class="story muted">팔 만한 물건이 없습니다. 비급·증표·신분패는 사고팔 수 없습니다.</p>';
   }
   return `<section class="panel npc shop-panel">
     ${head('청풍전방', '淸風廛房', `<span class="purse num">${hlSilver(S.silver)}</span>`)}

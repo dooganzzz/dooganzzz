@@ -193,10 +193,9 @@ const SLOTS = {
   ring:   { name: '가락지', desc: '내력·특수 보정' },
   ring2:  { name: '가락지', desc: '내력·특수 보정 (두 번째 손)' },
   badge:  { name: '신분패', desc: '수련치 획득' },
-  mount:  { name: '탈것',   desc: '최대 기력' },
 };
 
-const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring', 'ring2', 'badge', 'mount'];
+const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring', 'ring2', 'badge'];
 /* 장착 칸이 받는 장비 부위 (가락지는 두 손에 하나씩) */
 const SLOT_ACCEPTS = { ring2: 'ring' };
 
@@ -281,14 +280,11 @@ const GEAR_DB = {
 /* 입문 무공(병기)별 첫 무기 · 첫 옷 */
 const STARTER_GEAR = { fist: 'g_hideTosu', sword: 'g_dullSword', blade: 'g_ironSaber', spear: 'g_flailSpear', hidden: 'g_rustyKnife', armor: 'g_hempRobe' };
 
-/* 신분패·탈것 (구매) */
+/* 신분패 (구매) */
 const SHOP_GEAR = [
   { id: 'badge1', slot: 'badge', name: '청풍문 제자패',     rarity: 0, stats: { train: 10 } },
   { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 5 }, cost: 120, desc: '신분패 · 수련치 획득 +5%' },
   { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 10 }, cost: 350, desc: '신분패 · 수련치 획득 +10%' },
-  { id: 'mount1', slot: 'mount', name: '늙은 나귀', rarity: 0, stats: { maxSta: 30 },  boss: 'boss1' },
-  { id: 'mount2', slot: 'mount', name: '조랑말',   rarity: 1, stats: { maxSta: 70 },  boss: 'boss2' },
-  { id: 'mount3', slot: 'mount', name: '청총마',   rarity: 3, stats: { maxSta: 120 }, boss: 'boss3' },
 ];
 
 /* 제작 고유 옵션 */
