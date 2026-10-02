@@ -17,6 +17,7 @@ function aiSnapshot() {
   const best = Object.entries(S.manuals).filter(([id]) => MANUALS[id].cat === 'mugong').sort((a, b) => b[1].star - a[1].star)[0];
   return { cp: calculateCombatPower(S), silver: S.silver, exp: S.exp, contrib: S.contrib, zone: S.expedition.zone, stage: S.expedition.zone ? stageCleared(S.expedition.zone) : 0,
     star: best ? best[1].star : 0, stars: Object.fromEntries(CAT_ORDER.map(c => [c, S.active[c] ? S.manuals[S.active[c]].star : 0])),
+    rank: S.rank || 0, pills: `${count('pillLow')}/${count('pillHigh')}`, gear: Object.values(S.equip).filter(Boolean).map(g => `${g.tier || 1}${g.rarity}${g.enh ? '+' + g.enh : ''}`).join(' '),
     q: S.mainQ || 0, subq: S.subqDone || 0, wins: 0, losses: 0, defeats: 0, runs: 0, bosses: 0 };
 }
 
