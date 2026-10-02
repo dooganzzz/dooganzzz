@@ -126,7 +126,7 @@ function stepEncounter(rec, zid, used) {
   S.encounters = (S.encounters || []).filter(e => e.done || encLeft(e) > 0);   // 기한이 지난 기연은 지나갔다
   const at = rec.next || now();
   S.encounters.push({ uid: S.uid++, ev: ev.id, zone: zid, at, wares: ev.wares ? peddlerRoll() : undefined });
-  S.encNext = at + rnd(EXPEDITION.encounterGap[0], EXPEDITION.encounterGap[1]);
+  S.encNext = at + rnd(EXPEDITION.encounterGap[0], EXPEDITION.encounterGap[1]) * (1 - Math.min(50, calcStats().luck || 0) / 200);   // 기연 스탯: 다음 기연까지의 간격이 짧아진다 (최대 -25%)
   const wait = encountersWaiting();
   if (wait.length > ENCOUNTER_KEEP) S.encounters.splice(S.encounters.indexOf(wait[0]), 1);   // 너무 쌓이면 가장 오래된 것은 지나간다
   log(`📜 기연 「${ev.title}」 — ${ev.text}`, 'npc');

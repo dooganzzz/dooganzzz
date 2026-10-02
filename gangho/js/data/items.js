@@ -35,6 +35,10 @@ const ITEMS = {
   scrap3: { name: '찢어진 일류 비급 조각', icon: '📜', kind: '조각', price: 0, desc: '무신이 하사한 일류 비급의 찢어진 한 장. 금박 테두리가 남아 있다. 8장을 모으면 화로 › 연혼에서 온전한 일류 비급으로 엮는다.' },
   kingTusk:     { name: '저왕의 엄니', icon: '🦷', kind: '증표', price: 0, desc: '옛 청풍산 두목 외눈 멧돼지왕의 거대한 송곳니. 지난 토벌의 증표.' },
   // 조합 실패물 (단조·연단 공통)
+  naedan1:      { name: '하품 내단', icon: '🔮', kind: '부산물', price: 1,  desc: '요수의 몸속에서 굳은 기운 덩어리. 탁하고 작다. 상점에 팔면 은자가 된다.' },
+  naedan2:      { name: '중품 내단', icon: '🔮', kind: '부산물', price: 3,  desc: '은은한 빛이 도는 내단. 상점에 팔면 은자가 된다.' },
+  naedan3:      { name: '상품 내단', icon: '🔮', kind: '부산물', price: 8,  desc: '맑게 빛나는 내단. 오래 묵은 요수에게서 나온다. 상점에 팔면 은자가 된다.' },
+  naedan4:      { name: '극품 내단', icon: '🔮', kind: '부산물', price: 25, desc: '손에 쥐면 기운이 맥동하는 귀한 내단. 상점에서 비싸게 쳐준다.' },
   slag:         { name: '검게 탄 찌꺼기', icon: '⚫', kind: '부산물', price: 0, desc: '화로 조합에 실패하면 남는 찌꺼기. 청풍문 › 무신상에 공양하면 무언가로 돌아온다.' },
   // 돌파단 (영단)
   pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '5성 비급을 6성 소성(小成)으로 올릴 때 수련치와 함께 복용한다. (상태 › 무공)' },
@@ -255,9 +259,10 @@ const STAT_NAMES = {
   staSave: '기력 소모 감소', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성', bleed: '출혈 확률', pierce: '관통력', acc: '명중',
   shock: '충격 확률', first: '선공', mpRegenPct: '내력 회복률', armorPen: '방어 무시', elem: '오행 위력',
   str: '근력', con: '체력', agi: '민첩', int: '지력',
+  critDmg: '치명 피해', block: '막기', shield: '호신강기', luck: '기연', aura: '기세',
 };
 
-const PCT_STATS = new Set(['eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter', 'combo', 'staSave', 'breathe', 'qiPct', 'elemRes', 'bleed', 'acc', 'shock', 'mpRegenPct', 'armorPen', 'elem']);
+const PCT_STATS = new Set(['critDmg', 'block', 'shield', 'luck', 'eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter', 'combo', 'staSave', 'breathe', 'qiPct', 'elemRes', 'bleed', 'acc', 'shock', 'mpRegenPct', 'armorPen', 'elem']);
 
 /* 장비 기본형: slot → names[tier-1], stats[tier-1] */
 
@@ -268,12 +273,12 @@ const EQUIP_BASES = {
   blade : { slot: 'weapon', wtype: 'blade', names: ['박도', '흑철 환도', '한철 귀두도'], stats: [{ atk: 14 }, { atk: 26 }, { atk: 52 }] },
   spear : { slot: 'weapon', wtype: 'spear', names: ['점강창', '흑철 장창', '한철 대창'], stats: [{ atk: 14, spd: 1 }, { atk: 24, spd: 2 }, { atk: 48, spd: 3 }] },
   hidden: { slot: 'weapon', wtype: 'hidden', names: ['유엽표', '흑철 비표', '한철 매화침'], stats: [{ atk: 11, eva: 2 }, { atk: 18, eva: 4 }, { atk: 38, eva: 6 }] },
-  armor : { slot: 'armor', names: ['피갑', '흑철 경갑', '한철 어린갑'], stats: [{ maxHp: 40, def: 5 }, { maxHp: 120, def: 12 }, { maxHp: 280, def: 25 }] },
-  helmet: { slot: 'helmet', names: ['방건', '흑철 두회', '한철 투구'], stats: [{ critRes: 5, def: 3, counter: 2 }, { critRes: 10, def: 5, counter: 4 }, { critRes: 16, def: 10, counter: 6 }] },
+  armor : { slot: 'armor', names: ['피갑', '흑철 경갑', '한철 어린갑'], stats: [{ maxHp: 40, def: 5, block: 3 }, { maxHp: 120, def: 12, block: 5 }, { maxHp: 280, def: 25, block: 8 }] },
+  helmet: { slot: 'helmet', names: ['방건', '흑철 두회', '한철 투구'], stats: [{ critRes: 5, def: 3, counter: 2, aura: 3 }, { critRes: 10, def: 5, counter: 4, aura: 6 }, { critRes: 16, def: 10, counter: 6, aura: 10 }] },
   boots : { slot: 'boots', names: ['짚신', '흑철 전혜', '한철 운혜'], stats: [{ spd: 2, eva: 2 }, { spd: 4, eva: 4 }, { spd: 6, eva: 6 }] },
-  belt  : { slot: 'belt', names: ['가죽 요대', '흑철 요대', '한철 요대'], stats: [{ mpRegen: 1, bag: 5 }, { mpRegen: 2, bag: 10 }, { mpRegen: 4, bag: 15 }] },
-  jade  : { slot: 'jade', names: ['청옥대', '흑옥대', '한옥대'], stats: [{ maxMp: 15, mpCost: 3 }, { maxMp: 40, mpCost: 6 }, { maxMp: 90, mpCost: 10 }] },
-  ring  : { slot: 'ring', names: ['철지환', '흑철 지환', '한철 지환'], stats: [{ crit: 3, craft: 3 }, { crit: 6, craft: 6 }, { crit: 10, craft: 10 }] },
+  belt  : { slot: 'belt', names: ['가죽 요대', '흑철 요대', '한철 요대'], stats: [{ mpRegen: 1, bag: 5, luck: 3 }, { mpRegen: 2, bag: 10, luck: 6 }, { mpRegen: 4, bag: 15, luck: 10 }] },
+  jade  : { slot: 'jade', names: ['청옥대', '흑옥대', '한옥대'], stats: [{ maxMp: 15, mpCost: 3, shield: 4 }, { maxMp: 40, mpCost: 6, shield: 6 }, { maxMp: 90, mpCost: 10, shield: 10 }] },
+  ring  : { slot: 'ring', names: ['철지환', '흑철 지환', '한철 지환'], stats: [{ crit: 3, craft: 3, critDmg: 5 }, { crit: 6, craft: 6, critDmg: 10 }, { crit: 10, craft: 10, critDmg: 15 }] },
 };
 
 /* 하급 장비 37종 (이름 있는 장비, 등급 하급 고정). 청풍산 드랍 · 무신상 공양 · 금고 · 전방에서 나온다.

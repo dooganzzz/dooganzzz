@@ -131,7 +131,7 @@ function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${
 /* 상태 › 관조: 활력 · 내력 · 수련치 · 은자 · 공헌(#vitals, 매초 갱신) + 투력 카드 + 세부 능력치표 */
 function viewObserve() {
   const st = calcStats();
-  const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
+  const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
   return `<section class="vitals" id="vitals">${vitalsHtml(st)}</section>${cpCard()}
   <section class="panel observe">${head('능력치', '能力')}<div class="statsheet">${statList}</div></section>`;
 }

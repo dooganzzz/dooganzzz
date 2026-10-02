@@ -42,3 +42,8 @@ const DROPS = {
   // 기연
   ronin: [['saenghyeol', 0.5]],
 };
+
+/* 내단: 사람이 아닌 요수는 처치할 때마다 내단을 하나 남긴다 (사람 · 산적 · 수적은 HUMANOID).
+   품질 = 탐험지 단계 − 1 + (위험 강적 +1) + (두목 +1), 0~3 → NAEDAN[품질]. 기연(%)만큼의 확률로 한 단계 더 좋은 내단 */
+const NAEDAN = ['naedan1', 'naedan2', 'naedan3', 'naedan4'];
+const HUMANOID = new Set(['scout', 'deserter', 'slinger', 'logger', 'cannoneer', 'charger', 'eliteAxe', 'armored', 'jeokpaecheon', 'raftScout', 'netter', 'raider', 'diver', 'anchor', 'byeokhaeryong', 'ronin']);

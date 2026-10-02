@@ -3,7 +3,8 @@
    atkText: 공격 지문 · trait: 특성 설명(도감) · 드랍 표는 drops.js
    특수 규칙: hits 연격 횟수 · poison [확률, 턴당 최대 활력 비율, 턴] 중독 · bleed [확률, 비율, 턴] 출혈/열상
              crit 치명 확률(기본 8) · acc 명중 보정 · weak { elem, mult } 그 오행 기공에 추가로 취약
-             first 선공 고정 · pierce 제자의 방어력을 이만큼 무시 */
+             first 선공 고정 · pierce 제자의 방어력을 이만큼 무시 · drain 흡혈(준 피해의 %만큼 활력 회복)
+   경지 압제 · 기세는 탐험지 단계(ZONES tier)와 요수 단계로 정한다 (COMBAT_RULES.realm · aura) */
 
 const ENEMIES = {
   // ───── 청풍산 (초급 · 흙/풀/나무) ─────
@@ -31,8 +32,8 @@ const ENEMIES = {
   // ───── 염화채 (중급 · 흙/일반) ─────
   fireViper:  { name: '화염 살모사', elem: 'fire', wtype: 'hidden', tier: 2, hp: 247, atk: 49, def: 12, spd: 14, eva: 14, xp: 32, silver: [8, 16], bleed: [0.3, 0.03, 3], gear: [2, 0.04],
     atkText: '달아오른 독니를 번개처럼 박아 넣는다', trait: '피격 시 열상' },
-  redWolf:    { name: '적토 늑대', elem: 'earth', wtype: 'fist', tier: 1, hp: 225, atk: 32, def: 14, spd: 13, eva: 8, xp: 32, silver: [8, 16], hits: 2, gear: [2, 0.04],
-    atkText: '무리와 함께 좌우에서 번갈아 물어뜯는다', trait: '떼 지어 협공 (2연격)' },
+  redWolf:    { drain: 15, name: '적토 늑대', elem: 'earth', wtype: 'fist', tier: 1, hp: 225, atk: 32, def: 14, spd: 13, eva: 8, xp: 32, silver: [8, 16], hits: 2, gear: [2, 0.04],
+    atkText: '무리와 함께 좌우에서 번갈아 물어뜯는다', trait: '떼 지어 협공 (2연격) · 흡혈 15%' },
   eagle:      { name: '단애 독수리', elem: 'metal', wtype: 'fist', tier: 2, hp: 228, atk: 57, def: 10, spd: 16, eva: 16, xp: 34, silver: [8, 16], crit: 20, gear: [2, 0.04],
     atkText: '절벽 위에서 날개를 접고 급강하해 발톱으로 내리찍는다', trait: '공중 급강하 강타 (높은 치명)' },
   logger:     { name: '염화채 벌목수', elem: 'wood', wtype: 'blade', tier: 3, hp: 399, atk: 61, def: 18, spd: 10, eva: 4, xp: 40, silver: [10, 20], gear: [2, 0.05],
@@ -53,8 +54,8 @@ const ENEMIES = {
   // ───── 수룡방 (상급 · 물/일반) ─────
   scaleFish:  { name: '수로 청어귀', elem: 'water', wtype: 'hidden', tier: 1, hp: 600, atk: 88, def: 36, spd: 15, eva: 14, xp: 76, silver: [28, 48], gear: [3, 0.04],
     atkText: '수면 위로 튀어 올라 날카로운 비늘을 쏘아 낸다', trait: '수면에서 비늘 발사' },
-  crocodile:  { name: '뻘밭 흑악어', elem: 'earth', wtype: 'fist', tier: 3, hp: 1155, atk: 131, def: 55, spd: 8, eva: 2, xp: 82, silver: [28, 48], crit: 15, gear: [3, 0.04],
-    atkText: '뻘 속에서 튀어나와 턱으로 물고 비튼다', trait: '뼈를 부수는 턱 힘 (높은 치명)' },
+  crocodile:  { drain: 20, name: '뻘밭 흑악어', elem: 'earth', wtype: 'fist', tier: 3, hp: 1155, atk: 131, def: 55, spd: 8, eva: 2, xp: 82, silver: [28, 48], crit: 15, gear: [3, 0.04],
+    atkText: '뻘 속에서 튀어나와 턱으로 물고 비튼다', trait: '뼈를 부수는 턱 힘 (높은 치명) · 흡혈 20%' },
   raftScout:  { name: '수룡방 뗏목 척후', elem: 'water', wtype: 'spear', tier: 2, hp: 855, atk: 124, def: 42, spd: 13, eva: 8, xp: 80, silver: [30, 50], gear: [3, 0.04],
     atkText: '좁은 뗏목 위에서 긴 작살을 내지른다', trait: '긴 작살질' },
   netter:     { name: '수룡방 투망수', elem: 'metal', wtype: 'hidden', tier: 2, hp: 836, atk: 114, def: 40, spd: 12, eva: 8, xp: 84, silver: [30, 50], acc: 30, gear: [3, 0.05],
@@ -65,10 +66,10 @@ const ENEMIES = {
     atkText: '물속에서 솟구치며 비도를 날린다', trait: '물속 기습' },
   anchor:     { name: '수룡방 철퇴수', elem: 'metal', wtype: 'fist', tier: 4, hp: 1820, atk: 195, first: true, def: 60, spd: 9, eva: 3, xp: 110, silver: [40, 70], gear: [3, 0.07],
     atkText: '무거운 닻을 휘둘러 내리찍는다', trait: '닻을 휘두르는 완력가' },
-  centipede:  { name: '소택지 독지네', elem: 'wood', wtype: 'spear', tier: 3, hp: 1260, atk: 147, def: 50, spd: 12, eva: 8, xp: 105, silver: [36, 64], poison: [0.35, 0.02, 3], gear: [3, 0.06],
-    atkText: '긴 몸으로 휘감으며 독 다리를 박는다', trait: '휘감는 요수 (중독)' },
-  iceSpirit:  { name: '빙화수요', elem: 'water', wtype: 'hidden', tier: 3, hp: 1365, atk: 142, def: 75, spd: 10, eva: 10, xp: 115, silver: [40, 70], weak: { elem: 'earth', mult: 0.25 }, gear: [3, 0.06],
-    atkText: '냉기 장막 너머에서 얼음 바늘을 흩뿌린다', trait: '냉기 장막(높은 방어) · 토(土) 기공에 취약' },
+  centipede:  { drain: 10, name: '소택지 독지네', elem: 'wood', wtype: 'spear', tier: 3, hp: 1260, atk: 147, def: 50, spd: 12, eva: 8, xp: 105, silver: [36, 64], poison: [0.35, 0.02, 3], gear: [3, 0.06],
+    atkText: '긴 몸으로 휘감으며 독 다리를 박는다', trait: '휘감는 요수 (중독) · 흡혈 10%' },
+  iceSpirit:  { drain: 25, name: '빙화수요', elem: 'water', wtype: 'hidden', tier: 3, hp: 1365, atk: 142, def: 75, spd: 10, eva: 10, xp: 115, silver: [40, 70], weak: { elem: 'earth', mult: 0.25 }, gear: [3, 0.06],
+    atkText: '냉기 장막 너머에서 얼음 바늘을 흩뿌린다', trait: '냉기 장막(높은 방어) · 토(土) 기공에 취약 · 흡혈 25%' },
   byeokhaeryong: { name: '수룡방주 벽해룡', elem: 'water', wtype: 'spear', hp: 5200, atk: 150, def: 80, spd: 14, eva: 10, xp: 500, silver: [500, 700], gear: [3, 1], boss: 'boss3', hits: 2,
     atkText: '삼지창을 용처럼 휘몰아쳐 물기둥째 찔러 온다', trait: '용처럼 휘몰아치는 삼지창술 (2연격)' },
 

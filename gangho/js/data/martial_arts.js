@@ -119,7 +119,12 @@ const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terra
 const MOVE_MULT = [1.4, 2.4, 3.6];
 const MOVE_START = 35;
 const MOVE_PICK = [60, 30, 10];   // 제1초식 · 제2초식 · 오의 (%)
-const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2 };
+const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2,
+  critBase: 1.6,          // 제자 치명 배율 기본 (+ 치명 피해 %)
+  blockCut: 0.4,          // 막기: 막으면 받는 피해 -40%
+  realm: { step: 0.1, cap: 3 },   // 경지 압제: 제자 품계(삼류 0 · 이류 1) − 요수 경지(탐험지 단계 − 1)마다 주는 피해 +10% · 받는 피해 -10% (최대 3단계)
+  aura: { base: 10, perRank: 10, foeTier: 5, foeZone: 10, foeBoss: 15, cut: 0.5, max: 15 },   // 기세: 차이의 절반(%)만큼 약한 쪽 공격력이 꺾인다 (최대 15%)
+};
 /* 쓰러졌을 때 남기는 패배 원인 (관찰·탐험 기록) */
 const DEFEAT_CAUSE = {
   crit: '상대의 날카로운 기습에 호흡이 흐트러졌습니다.',

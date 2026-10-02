@@ -11,7 +11,7 @@ function reaction(dmg, maxHp) { const r = dmg / maxHp; return HIT_TEXT.find(([t]
 function cpVersus(st, R, art) {
   const hit = Math.min(1, (Math.max(55, 95 - R.eva) + (st.acc || 0)) / 100);
   const def = Math.max(0, R.def * (1 - (st.armorPen || 0) / 100) - (st.pierce || 0));
-  const critF = 1 + Math.min(100, st.crit || 0) / 100 * 0.6;
+  const critF = 1 + Math.min(100, st.crit || 0) / 100 * (COMBAT_RULES.critBase - 1 + (st.critDmg || 0) / 100);
   const elemF = 1 + (art.elem ? 0.2 * (st.elem || 0) / 100 : 0);           // 기공이 있으면 다섯 중 하나는 내가 극한다
   const basic = dmgBase(st.atk, def) * hit * critF * elemF;
   // 받는 피해: 회피 · 방어(최소 피해) · 치명(저항) · 연격, 충격으로 적이 쉬는 몫
@@ -19,7 +19,7 @@ function cpVersus(st, R, art) {
   const foeDmg = Math.max(dmgBase(R.atk, st.def), R.atk * COMBAT_RULES.minDmg);
   const foeCrit = 1 + Math.max(0, R.crit - (st.critRes || 0) / 2) / 100 * 0.5;
   const stun = Math.min(0.5, (st.shock || 0) / 100 * hit);
-  let taken = foeDmg * foeHit * foeCrit * (1 + (R.hits - 1) * 0.6) * (1 - stun);
+  let taken = foeDmg * foeHit * foeCrit * (1 + (R.hits - 1) * 0.6) * (1 - stun) * (1 - Math.min(100, st.block || 0) / 100 * COMBAT_RULES.blockCut);   // 막기
   // 초식: 발동 확률 × 셋 중 하나를 고르는 비율 · 내력이 버티는 만큼만
   let skill = 1, sustain = 1;
   if (art.moves) {
@@ -34,7 +34,7 @@ function cpVersus(st, R, art) {
   const counter = Math.min(1, (st.counter || 0) / 100) * foeHit;              // 맞을 때마다 평타 한 번
   const offense = basic * skill + dmgBase(st.atk, def) * hit * critF * counter;
   taken = Math.max(taken * 0.1, taken - offense * (st.lifesteal || 0) / 100);
-  const rounds = st.maxHp / Math.max(1, taken);
+  const rounds = st.maxHp * (1 + (st.shield || 0) / 100) / Math.max(1, taken);   // 호신강기는 활력에 더한 몫
   const first = st.spd + (st.foe ? 0 : attrOf('agi')) + (st.first || 0) >= R.spd ? 0.5 : -0.5;   // 먼저 치면 한 번 더 (요수는 제자 민첩을 더하지 않음)
   return { offense, rounds, hit, critF, skill, sustain, counter, first, value: offense * Math.max(0.5, rounds + first) };
 }
@@ -135,6 +135,7 @@ function fight(eid, opts = {}) {
     bLine(quotes[eid], 'npc');
   }
   bLine(`☯ 상성 — ${affinityText(b.aff)}`, 'aff');
+  battleOpening(b, E);
   const Q = MANUALS[S.active.gigong];
   if (Q && Q.stances) bLine(stanceCall(0, Q.stances[0].name), 'log-stance-desc qi');
   const mt = MANUALS[S.active.mugong];
@@ -148,6 +149,24 @@ function fight(eid, opts = {}) {
   }
   RT.battle = null;
   return b;
+}
+
+/* 요수의 경지(탐험지 단계 − 1) · 기세. 탐험지 밖의 요수(떠돌이)는 경지 0 */
+const foeRealm = eid => Math.max(0, ((ZONES[zoneOfEnemy(eid)] || {}).tier || 1) - 1);
+function foeAura(eid) { const E = ENEMIES[eid], A = COMBAT_RULES.aura; return A.foeTier * Math.max(0, (E.tier || 2) - 1) + A.foeZone * foeRealm(eid) + (E.boss ? A.foeBoss : 0); }
+const myAura = st => COMBAT_RULES.aura.base + COMBAT_RULES.aura.perRank * (S.rank || 0) + (st.aura || 0);
+/* 전투 시작: 경지 압제(b.realm) · 호신강기(b.shield) · 기세 싸움(약한 쪽 공격력이 꺾인다) */
+function battleOpening(b, E) {
+  const R = COMBAT_RULES.realm, d = Math.max(-R.cap, Math.min(R.cap, (S.rank || 0) - foeRealm(b.eid)));
+  b.realm = d;
+  if (d) bLine(d > 0 ? `⛰ 경지 압제 — 한 수 아래의 상대입니다. (주는 피해 +${d * R.step * 100}% · 받는 피해 -${d * R.step * 100}%)` : `⛰ 경지 압제 — 상대의 경지가 높아 숨이 막힙니다. (주는 피해 ${d * R.step * 100}% · 받는 피해 +${-d * R.step * 100}%)`, d > 0 ? 'aff-up' : 'muted');
+  b.shield = Math.round(b.st.maxHp * (b.st.shield || 0) / 100);
+  if (b.shield) bLine(`🛡 호신강기가 몸을 감쌉니다. (${fmt(b.shield)})`, 'log-stance-desc qi');
+  const A = COMBAT_RULES.aura, me = myAura(b.st), foe = foeAura(b.eid), cut = Math.min(A.max, Math.abs(me - foe) * A.cut);
+  if (cut >= 1) {
+    if (me > foe) { b.e.atk *= 1 - cut / 100; bLine(`🔥 기세 싸움 — ${josa(E.name, '이가')} 제자의 기세에 눌려 움츠러듭니다. (상대 공격력 -${Math.round(cut)}%)`, 'aff-up'); }
+    else { b.st = { ...b.st, atk: b.st.atk * (1 - cut / 100) }; bLine(`🔥 기세 싸움 — ${E.name}의 위압에 손끝이 굳습니다. (공격력 -${Math.round(cut)}%)`, 'muted'); }
+  }
 }
 
 /* 전투 기록 한 줄 (견문록이 아니라 전투 기록에만 남는다) */
@@ -252,8 +271,8 @@ function playerHit(b, mult, o) {
   const def = Math.max(0, e.def * (1 - (st.armorPen || 0) / 100) - (st.pierce || 0));   // 방어 무시(%) → 관통력
   let dmg = dmgCalc(st.atk, def) * mult * A.dealt * (o.title && o.cls !== 'counter' ? 1 + (st.qiDmg || 0) : 1);   // 통맥환(초식)
   const crit = Math.random() * 100 < st.crit + (o.critUp || 0);
-  if (crit) dmg *= 1.6;
-  dmg = Math.round(dmg);
+  if (crit) dmg *= COMBAT_RULES.critBase + (st.critDmg || 0) / 100;   // 치명 피해
+  dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step));   // 경지 압제
   e.hpNow = Math.max(0, e.hpNow - dmg);
   if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= e.hp * 0.2 });
   const [, txt, cls] = reaction(dmg, e.hp);
@@ -324,6 +343,16 @@ function enemyTurn(b) {
     let dmg = Math.max(1, Math.round(Math.max(dmgCalc(e.atk, Math.max(0, st.def - (e.pierce || 0))), e.atk * COMBAT_RULES.minDmg) * A.taken * (h > 0 ? 0.6 : 1)));
     const crit = Math.random() * 100 < Math.max(0, (e.crit || 8) - st.critRes / 2);
     if (crit) dmg = Math.round(dmg * 1.5);
+    dmg = Math.max(1, Math.round(dmg * (1 - (b.realm || 0) * COMBAT_RULES.realm.step)));   // 경지 압제
+    if (st.block && Math.random() * 100 < st.block) {                                       // 막기: 일부만 받는다
+      dmg = Math.max(1, Math.round(dmg * (1 - COMBAT_RULES.blockCut)));
+      bLine(`🛡 막기! 팔을 세워 공격을 받아 냅니다. (피해 -${COMBAT_RULES.blockCut * 100}%)`, 'log-stance-desc aff-up');
+    }
+    if (b.shield > 0) {                                                                        // 호신강기: 활력보다 먼저 깎인다
+      const soak = Math.min(b.shield, dmg); b.shield -= soak; dmg -= soak;
+      bLine(`호신강기가 ${fmt(soak)}만큼 막아 냅니다.${b.shield ? '' : ' 호신강기가 흩어졌습니다.'}`, 'log-stance-desc qi');
+    }
+    if (e.drain && dmg > 0) e.hpNow = Math.min(e.hp, e.hpNow + Math.round(dmg * e.drain / 100));   // 요수 흡혈
     S.hp = Math.max(0, S.hp - dmg);
     b.lastBlow = crit ? 'crit' : h > 0 ? 'combo' : A.el < 0 ? 'elem' : dmg >= st.maxHp * 0.2 ? 'heavy' : 'grind';
     hitAny = true;
@@ -349,8 +378,10 @@ function winBattle(b) {
   b.silver = Math.round(rint(...E.silver) * R); S.silver += b.silver;
   if (b.silver) bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다
-  for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < (E.boss ? p : p * EXPEDITION.dropMult)) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
-  if (E.gear && Math.random() < E.gear[1] * EXPEDITION.gearMult) {
+  const luck = 1 + (b.st.luck || 0) / 100;                    // 기연: 드랍 확률 배율
+  if (!HUMANOID.has(b.eid)) { let q = foeRealm(b.eid) + ((E.tier || 0) >= 4 ? 1 : 0) + (E.boss ? 1 : 0); if (Math.random() * 100 < (b.st.luck || 0)) q++; const nd = NAEDAN[Math.min(NAEDAN.length - 1, q)]; if (give(nd, 1, true)) bLine(`${ITEMS[nd].icon} ${hlItem(ITEMS[nd].name)} 획득`, 'loot'); }   // 내단
+  for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < (E.boss ? p : p * EXPEDITION.dropMult) * luck) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
+  if (E.gear && Math.random() < E.gear[1] * EXPEDITION.gearMult * luck) {
     const it = dropGear(E.gear[0], rollDropRarity(!!E.boss));
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
