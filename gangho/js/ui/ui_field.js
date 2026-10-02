@@ -146,7 +146,7 @@ function viewField() {
     ${head('강호행', '江湖行', `<span class="pill">${cur ? `⛰️ ${cur.name}` : '탐험지 미정'}</span>`)}
     ${run ? '' : `<div class="exp-status">
       <div class="exp-next"><small>산문에서 대기 중</small><b data-runclock>${runClockText()}</b></div>
-      <div class="exp-sta"><button class="btn primary sm" data-act="runstart">강호행 시작</button><small class="muted">떠나기 전에 아래 준비를 갖춰 두십시오.</small></div>
+      <div class="exp-sta"><small class="muted">떠나기 전에 아래 준비를 갖춰 두십시오.</small></div>
     </div>`}
     <h4 class="prep-head">출정 준비</h4>
     ${prepPanel()}

@@ -6,6 +6,8 @@
    · 날씨: 강호행 산길에서 바람(늘 낮게) · 비 · 눈(바람이 세짐) · 안개(먹먹한 바람).
    · 브라우저는 사람이 한 번 누르거나 글자를 쳐야 소리를 내 주므로 첫 손길(로그인 화면의 아이디 입력 등)에 시작한다.
      아이폰은 audio.volume이 듣지 않아 Web Audio 크기 마디(gain)로 줄인다. 화면을 내리면 쉰다 */
+/* 소리 전체 스위치 (10월 3일 유저: 효과음 · 배경음악 일단 전부 뺌). false면 소리 · 날씨 소리 · 소리 파일 받기 · 설정 칸 · 행동 감시가 모두 꺼진다 */
+const SOUND_ON = false;
 const SND = { ctx: null, bgmBus: null, sfxBus: null, noise: null, deck: null, track: null, last: {}, amb: null, xf: 4, userAt: 0, hover: null };
 const SND_DEF = { bgmVol: 35, sfxVol: 60 };
 function sndVol(k) {
@@ -15,6 +17,7 @@ function sndVol(k) {
   return Math.max(0, Math.min(100, +v || 0)) / 100;
 }
 function sndInit() {
+  if (!SOUND_ON) return;
   SND.userAt = performance.now();
   if (SND.ctx) { if (SND.ctx.state === 'suspended' && !document.hidden) SND.ctx.resume().catch(() => {}); return; }
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
@@ -211,7 +214,7 @@ function sndHook(name, pick) {
     return r;
   };
 }
-[['equipItem', () => 'equip'], ['autoEquipBest', () => 'equip'], ['unequip', () => 'unequip'],
+if (SOUND_ON) [['equipItem', () => 'equip'], ['autoEquipBest', () => 'equip'], ['unequip', () => 'unequip'],
  ['equipManual', () => 'book'], ['unequipManual', () => 'book'], ['learnManual', () => 'learn'],
  ['useItem', (r, [id]) => (ITEMS[id] && ITEMS[id].use && ITEMS[id].use.learn ? 'learn' : id === 'saenghyeol' ? 'salve' : 'drink')],
  ['forgeEnhance', () => 'enhance'], ['starUp', () => 'starup'], ['studyBind', () => 'merge'], ['pray', () => 'pray'],
