@@ -297,9 +297,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .mslot { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 150px; padding: 14px; border-radius: var(--radius); background: rgba(28, 34, 44, .55); border: 1px solid rgba(212, 175, 55, .35); cursor: pointer; transition: box-shadow .18s, transform .18s; }
 .mslot.empty { cursor: default; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); background: rgba(10, 12, 16, .6); border: 1px dashed rgba(255, 255, 255, .1); }
 .mslot-cat { font-size: 1.1rem; }
-.mslot-name { font-family: var(--serif); font-size: 1.05rem; color: var(--gold-2); }
 .mslot .btn { margin-top: auto; }
-.mcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .mcard { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 14px; border-radius: 6px; border: 1px solid rgba(212, 175, 55, .12); background: rgba(28, 34, 44, .55); cursor: pointer; text-align: left; transition: box-shadow .18s, transform .18s, border-color .18s; }
 .mcard small { color: var(--dim); }
 .mcard b { font-family: var(--serif); font-size: 1rem; }
@@ -416,18 +414,7 @@ body {
 .exp-sta { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 4px; }
 .zones { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
 .zone { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: var(--radius); border: 1px solid rgba(212, 175, 55, .12); background: rgba(28, 34, 44, .55); }
-.exp-rec { border: 1px solid rgba(212, 175, 55, .12); border-radius: var(--radius); background: rgba(28, 34, 44, .45); }
-.exp-rec + .exp-rec { margin-top: 8px; }
-.exp-rec.defeat { border-color: rgba(210, 90, 68, .35); }
-.exp-rec summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 10px 12px; }
-.exp-rec summary time { color: var(--dim); font-variant-numeric: tabular-nums; }
-.exp-rec summary span { color: var(--silver); font-size: .9rem; }
-.exp-loot { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 6px; }
-.exp-loot span { padding: 1px 8px; border-radius: 10px; background: rgba(212, 175, 55, .08); font-size: .8rem; }
-.exp-steps { margin: 0; padding: 4px 12px 12px 32px; display: flex; flex-direction: column; gap: 3px; font-size: .9rem; }
-.exp-steps li.bad, .log p.exp-step.bad { color: #ff9a86; }
-.exp-steps li.gold { color: var(--gold); }
-.exp-steps li.muted { color: var(--dim); }
+.log p.exp-step.bad{ color: #ff9a86; }
 .watch { margin-left: 6px; padding: 1px 8px; border-radius: 10px; border: 1px solid rgba(212, 175, 55, .45); background: rgba(212, 175, 55, .1); color: #f0cf82; font-size: .75rem; font-family: var(--sans); cursor: pointer; vertical-align: 1px; }
 .watch:hover { background: rgba(212, 175, 55, .22); }
 .log p.exp-head { color: var(--ink); font-weight: 700; border-left-color: var(--gold); }
@@ -594,7 +581,6 @@ body {
 .status-chip { position: relative; display: inline-flex; flex-direction: row; align-items: center; gap: 6px; flex: none; height: 28px; padding: 0 10px 0 4px; border-radius: 14px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, .03); white-space: nowrap; line-height: 1; }
 .chip-badge { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 7px; border-radius: 10px; font-size: .7rem; font-weight: 800; letter-spacing: .02em; line-height: 1; }
 .chip-value { font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums; }
-.badge-combat { background: #7a2a1f; color: #fff1ec; }
 .badge-exp { background: #1f5a4a; color: #eafff6; }
 .badge-silver { background: rgba(216, 178, 94, .18); color: var(--gold-2); border: 1px solid rgba(216, 178, 94, .45); }
 .badge-contrib { background: rgba(95, 176, 155, .15); color: #8ee0c8; border: 1px solid rgba(95, 176, 155, .45); }
@@ -620,13 +606,11 @@ body {
 .mslot { min-height: 110px; padding: 8px 12px; gap: 4px; }
 .mslot > * { margin-bottom: 0; }
 .mslot-cat { font-size: 11px; }
-.mslot-name { font-size: 13px; font-weight: 700; }
 .mslot .art-star { font-size: 13px; }
 .mslot .art-star small { font-size: 11px; }
 .mslot .btn, .mslot .starup { padding: 3px 6px; font-size: 10px; min-height: 0; line-height: 1.3; }
 .mslot .btn + .btn { margin-top: 4px; }
 .mslot .realm { font-size: 10px; padding: 0 6px; }
-.mcards { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 6px; }
 .mcard { padding: 6px 10px; gap: 2px; }
 .mcard b { font-size: 13px; }
 .mcard small { font-size: 11px; }
@@ -773,9 +757,6 @@ body {
 .skill-card-compact.mslot { width: 170px; min-height: 0; padding: 8px 10px; background-color: #171513; border: 1px solid #332b21; border-radius: 6px; box-sizing: border-box; }
 .skill-card-compact.mslot:hover { border-color: #c5a059; }
 .skill-card-compact.mslot.empty { border-style: dashed; }
-.skill-level-row { display: flex; align-items: center; gap: 6px; }
-.skill-btn-group { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-.skill-btn-group .btn + .btn { margin-top: 0; }
 @media (max-width: 640px) {
   .mslots.martial-arts-core-layout { gap: 6px; padding: 4px 0; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
   .skill-card-compact.mslot { width: 100%; max-width: 150px; padding: 6px 7px; }
@@ -794,16 +775,12 @@ body {
 .skill-category-tabs .tab-btn { background-color: #171513; border: 1px solid #3d3428; color: #9ca3af; padding: 4px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; transition: all .2s; }
 .skill-category-tabs .tab-btn small { opacity: .7; margin-left: 2px; }
 .skill-category-tabs .tab-btn.active { background-color: #2b2216; border-color: #c5a059; color: #f59e0b; font-weight: 700; }
-.acquired-cards-grid.mcards { display: flex; flex-wrap: wrap; gap: 10px; }
-.acquired-cards-grid .skill-item-card { width: 150px; }
 .card-status-tag { font-size: 10px; color: var(--dim); padding: 1px 6px; border: 1px solid var(--line-2); border-radius: 8px; }
 .card-status-tag.active { color: #8ee0c8; border-color: rgba(95, 176, 155, .5); }
-.card-stage { display: flex; align-items: center; gap: 6px; }
 .empty-notice { font-size: 12px; color: #6b7280; padding: 16px 0; }
 @media (max-width: 640px) {
   .skill-category-tabs { width: 100%; }
   .skill-category-tabs .tab-btn { flex: 1 1 0; padding: 4px 4px; }
-  .acquired-cards-grid .skill-item-card { width: calc(50% - 5px); }
 }
 
 /* ───────── 등급 뱃지: 가로형 알약(Pill) 한 줄 ───────── */
@@ -820,12 +797,8 @@ body {
 .meditation-caption { font-size: 13px; font-weight: 600; letter-spacing: 2px; margin-top: 10px; }
 .skill-card-compact.mslot { width: 140px; min-height: auto; padding: 6px 8px; border-radius: 12px 4px 12px 4px; background: linear-gradient(145deg, #191714 0%, #12100e 100%); border: 1px solid #3d3427; box-shadow: 0 0 15px rgba(197, 160, 89, .08); transition: transform .25s ease, border-color .25s ease; position: relative; z-index: 1; }
 .skill-card-compact .slot-type-label { font-size: 10px; color: #9ca3af; margin-bottom: 2px; }
-.skill-card-compact .skill-title { font-size: 12px; font-weight: 700; color: #fbbf24; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 100%; }
-.skill-card-compact .skill-title .aff-tag { font-size: 9px; }
-.skill-card-compact .skill-level-row { gap: 4px; margin-bottom: 6px; }
 .skill-card-compact .realm { font-size: 9px; padding: 1px 4px; }
 .skill-card-compact .skill-level, .skill-card-compact .art-star { font-size: 11px; }
-.skill-card-compact .skill-btn-group { display: flex; flex-wrap: nowrap; gap: 4px; margin-top: 0; }
 .skill-card-compact .btn-upgrade, .skill-card-compact .btn-unequip { padding: 2px 4px; font-size: 10px; height: 22px; flex: 1; white-space: nowrap; }
 .skill-card-compact .btn-upgrade small { display: none; }
 /* 완전한 십자 대칭을 살짝 흐트러뜨린다 */
@@ -837,7 +810,6 @@ body {
 .qi-orbit { grid-column: 1 / -1; grid-row: 1 / -1; width: min(100%, 600px); height: auto; aspect-ratio: 1; align-self: center; justify-self: center; pointer-events: none; z-index: 0; }
 .qi-orbit .orbit-ink { fill: none; stroke: rgba(197, 160, 89, .16); stroke-width: 10; }
 .qi-orbit .orbit-flow { fill: none; stroke: rgba(240, 207, 130, .45); stroke-width: 1.2; stroke-dasharray: 3 9; animation: orbitFlow 30s linear infinite; transform-origin: 300px 300px; }
-.qi-orbit .orbit-spoke { fill: none; stroke: rgba(197, 160, 89, .22); stroke-width: 1; stroke-dasharray: 2 4; }
 @keyframes orbitFlow { to { transform: rotate(360deg); } }
 @media (max-width: 760px) {
   .meditation-center-frame { width: 170px; height: 170px; margin: 4px; }
@@ -871,7 +843,6 @@ body {
 /* 정청 › 장문인의 토벌 임무 (장문인 가르침 아래) */
 .subq-box { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 6px; padding: 12px 14px; border-left: 3px solid rgba(95, 176, 155, .6); border-radius: 0 8px 8px 0; background: rgba(255, 255, 255, .02); }
 .subq-title { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
-.subq-day { white-space: nowrap; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) {
   .missions li { grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px 10px; }
   .missions li > div:first-child { grid-column: 1 / -1; }

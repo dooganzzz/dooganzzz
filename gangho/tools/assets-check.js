@@ -13,7 +13,9 @@ for (const f of walk(ART)) {
   if (!/\.(png|jpe?g|webp|gif|svg)$/.test(f)) continue;
   const size = fs.statSync(f).size; total += size;
   const stem = path.basename(f).replace(/\.\w+$/, ''), id = stem.replace(/^(hero|foe|walk|run|ground|emb|w|s|b|h)_/, '').replace(/_(atk|[12])$/, '');
-  if (!has(stem) && !has(id)) { unused += size; rows.push(`${(size / 1024).toFixed(0).padStart(6)}KB  ${path.relative(ROOT, f)}`); }
+  const pre = (stem.match(/^([a-z]+_)/) || [])[1];   // 이름을 이어 붙여 쓰는 그림: 'cv_' + 갈래 + 등급, 'map_' + 지역, ASSET 종류 dir의 'sky_' 등
+  const dyn = pre && (src.includes(`'${pre}'`) || src.includes(`'${pre}`) || src.includes(`/${pre}'`)) || /_hz$/.test(stem) && src.includes(`'_hz'`) && has(stem.replace(/_hz$/, ''));
+  if (!has(stem) && !has(id) && !dyn) { unused += size; rows.push(`${(size / 1024).toFixed(0).padStart(6)}KB  ${path.relative(ROOT, f)}`); }
 }
 console.log(rows.length ? `안 쓰는 후보 ${rows.length}개:\n${rows.join('\n')}` : '안 쓰는 그림 없음');
 console.log(`전체 ${(total / 1048576).toFixed(1)}MB · 안 쓰는 후보 ${(unused / 1048576).toFixed(1)}MB`);

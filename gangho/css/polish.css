@@ -14,7 +14,7 @@
 .muted { color: var(--dim); }
 .story { color: #c9ccd2; }
 .slot-item-name.empty { color: #77736c; }
-.item-category, .card-meta, .slot-type-label, .skill-card-compact .slot-type-label { color: #a3a9b2; }
+.item-category, .slot-type-label, .skill-card-compact .slot-type-label{ color: #a3a9b2; }
 small { font-size: .82rem; }
 
 /* 키보드로 움직일 때 지금 어디에 있는지 분명하게 */

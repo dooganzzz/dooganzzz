@@ -46,4 +46,9 @@
 
 ## 배포 순서
 1. `node gangho/tools/stamp.js` (?v= 버전 · version.json 갱신)
-2. 번들 · 검사 → 커밋 → `git push -u origin <작업 브랜치>` → 아티팩트 갱신 → PR 설명 갱신
+2. `python3 gangho/tools/bundle.py <scratchpad>` → `node gangho/tools/bundle-check.js <scratchpad>` → `node gangho/tests/check-layers.js`
+3. 커밋 → `git push -u origin <작업 브랜치>` → 아티팩트 갱신(gangho.html + files에 admin.html) → PR 설명 갱신
+
+## 인계 · 시문
+- 지금 상태 · 링크 · 유저가 아직 고르지 않은 건의는 `gangho/docs/인계.md`. 큰 작업을 마치면 여기도 고친다.
+- 시문(무공 · 초식 · 시)은 `gangho/docs/시문.md` (`node gangho/tools/poems-doc.js`로 다시 만듦). 모든 무공 그림은 시문 + 무공 이름을 바탕으로 그린다.

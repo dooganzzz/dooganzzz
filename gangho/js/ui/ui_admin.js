@@ -62,16 +62,6 @@ function gmRender() {
 
 /* ───────── 명령: 오버레이에선 바로, 별도 창에선 게임에 보내 게임 쪽에서 실행 ───────── */
 const GM_CMDS = {
-  apply(vals) {
-    if (!S) return;
-    const changed = [];
-    for (const [k, n] of GM_FIELDS) {
-      if (!(k in vals) || Math.round(S[k]) === vals[k]) continue;
-      S[k] = Math.max(0, vals[k]); changed.push(`${n} ${S[k]}`);
-    }
-    clampVitals();
-    gmTrace('gm', changed.length ? `상태 적용: ${changed.join(', ')}` : '상태 적용: 바뀐 값 없음');
-  },
   spawn(id, n) {
     if (!S || !ITEMS[id]) return;
     const ok = give(id, n, true);
@@ -242,7 +232,7 @@ function gmBindPanel(panel) {
     if (d.gm === 'cloudsync') { cloudSync(true); return; }
     if (d.gm) return gmCheat(d.gm);
   });
-  panel.addEventListener('submit', e => { e.preventDefault(); if (e.target.dataset.gmform === 'state' && S) gmApplyState(e.target); if (e.target.dataset.gmform === 'supa') supaLoadPlayers(e.target.elements.pass.value); });
+  panel.addEventListener('submit', e => { e.preventDefault(); if (e.target.dataset.gmform === 'supa') supaLoadPlayers(e.target.elements.pass.value); });
   panel.addEventListener('input', e => { const k = e.target.dataset.gminput; if (k) { GM[k] = e.target.value; gmRenderItems(); } });
 }
 

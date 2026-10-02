@@ -442,10 +442,6 @@
 .watch.unseen { background: #a8412a; color: #fff; border-color: #7d2d1c; }
 .watch.claim { background: linear-gradient(#e2bb62, #b88a36); color: #2b1d08; border-color: #8a6420; font-weight: 700; }
 .chron-row.enc .chron-text { color: #7d2d1c; }
-.loot-grid { list-style: none; padding: 0; margin: 10px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
-.loot-grid li { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(212, 166, 76, .25); animation: lootIn .45s ease-out backwards; }
-.loot-grid li:nth-child(2) { animation-delay: .06s; } .loot-grid li:nth-child(3) { animation-delay: .12s; } .loot-grid li:nth-child(4) { animation-delay: .18s; } .loot-grid li:nth-child(n+5) { animation-delay: .24s; }
-.loot-grid li b { flex: 1; font-size: 13px; } .loot-grid li span { font-variant-numeric: tabular-nums; }
 @keyframes lootIn { from { opacity: 0; transform: translateY(8px) scale(.96); } }
 
 /* 창 열림: 짧게 떠오르기 (깜빡임 없이) */
@@ -737,7 +733,7 @@ html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: 
 .study-btns { justify-content: center; margin-top: 12px; }   /* 연혼: 단추는 그림 아래 (혼로를 가리지 않게) */
 /* 연혼 엮기 연출 (3.9초): 여덟 거울이 등급 색(--gc)으로 빛나고 → 넋이 명경으로 모이고 → 명경 속 비급이 등급 색으로 물들며 또렷해지고
    → 명경에 금이 가 깨지며(같은 그림 조각이 흩어짐) → 엮은 비급이 튀어나온다 */
-.furnace-stage.study, .yh-stage { --gc: #7fc4ff; --gtint: none; }
+.furnace-stage.study { --gc: #7fc4ff; --gtint: none; }
 .yh-fx { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
 .yh-fx .glow { position: absolute; width: 6.5%; aspect-ratio: 1; transform: translate(-50%, -50%) scale(.4); border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .95), color-mix(in srgb, var(--gc) 75%, transparent) 40%, transparent 70%); opacity: 0; animation: yhGlow 2.6s ease-out forwards; }
 @keyframes yhGlow { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); } 55% { opacity: .7; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(.8); } }
@@ -746,12 +742,12 @@ html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: 
 @keyframes yhSoul { 0% { opacity: 0; left: var(--x0); top: var(--y0); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; left: 50%; top: 35.2%; } }
 .yh-fx .core { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; border-radius: 50%; opacity: 0; background: radial-gradient(circle, rgba(255, 255, 255, .95), color-mix(in srgb, var(--gc) 60%, transparent) 40%, transparent 72%); animation: yhCore 2.1s ease-out forwards; }
 @keyframes yhCore { 0%, 52% { opacity: 0; transform: scale(.6); } 70% { opacity: 1; transform: scale(1.25); } 100% { opacity: 0; transform: scale(1.8); } }
-.furnace-stage.study.binding .yh-book, .yh-stage.binding .book { animation: yhBookBind 2.1s ease-out forwards !important; }
+.furnace-stage.study.binding .yh-book { animation: yhBookBind 2.1s ease-out forwards !important; }
 @keyframes yhBookBind { 0% { opacity: .1; filter: blur(3px); } 45% { opacity: .7; filter: blur(1.5px) var(--gtint); } 100% { opacity: 1; filter: blur(0) var(--gtint) brightness(1.4) drop-shadow(0 0 8px var(--gc)); } }
 /* 금 · 깨짐: 같은 장면의 '금 간 명경' 그림(Higgsfield)이 번쩍이며 드러나고 떨린 뒤, 그 그림 조각이 흩어진다 */
 .yh-fx .crack { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; opacity: 0; animation: yhCrack .5s ease-out 2.0s forwards, yhGone .05s linear 2.5s forwards; filter: drop-shadow(0 0 10px var(--gc)); }
 @keyframes yhCrack { 0% { opacity: 0; transform: scale(1); filter: brightness(2.2) drop-shadow(0 0 10px var(--gc)); } 25% { opacity: 1; } 40% { transform: translate(-1%, .6%); } 55% { transform: translate(1%, -.6%); } 70% { transform: translate(-.5%, .3%); } 100% { opacity: 1; transform: none; filter: brightness(1) drop-shadow(0 0 10px var(--gc)); } }
-.furnace-stage.study.binding .yh-book, .yh-stage.binding .book { transition: none; }
+.furnace-stage.study.binding .yh-book { transition: none; }
 .yh-fx .shards { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; }
 .yh-fx .shard { position: absolute; inset: 0; background: var(--bg) center / 100% 100% no-repeat; filter: brightness(1.15) drop-shadow(0 0 4px var(--gc)); opacity: 0; animation: yhShard .9s cubic-bezier(.2, .7, .3, 1) 2.5s forwards; }
 @keyframes yhShard { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.7); } }
@@ -782,7 +778,7 @@ html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: 
 .rku .title small { display: block; margin-top: 4px; font-size: 13px; color: #f0cf82; letter-spacing: .2em; }
 @keyframes rkuStamp { 0% { opacity: 0; transform: translate(-50%, 0) scale(1.6); } 60% { opacity: 1; transform: translate(-50%, 0) scale(.95); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
 html.calm .rku * { animation-duration: .01s !important; animation-delay: 0s !important; }
-.rankup-sheet { text-align: center; padding-bottom: 20px; } .rankup-sheet .rku-box { padding: 70px 0 120px; overflow: hidden; display: grid; place-items: center; }
+.rankup-sheet { text-align: center; padding-bottom: 20px; }
 /* 내 정보창: 활력 막대 바로 아래 내력 막대 (가늘게, 푸른색 · 숫자는 막대 안) */
 .live-hp.me .lh-mp { position: absolute; left: 28.4%; top: 57.5%; width: 55.3%; height: 4.6%; z-index: 3; border-radius: 3px; background: rgba(8, 14, 26, .85); box-shadow: inset 0 0 0 1px rgba(90, 150, 230, .35); overflow: visible; }
 .live-hp.me .lh-mp i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; border-radius: 3px; background: linear-gradient(180deg, #8fc6ff, #2e6fd0); transition: width .45s cubic-bezier(.2, .8, .3, 1); }

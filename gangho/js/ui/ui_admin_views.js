@@ -1,33 +1,5 @@
-/* [화면] GM 콘솔의 탭 화면: 유저 상태 · 행동 추적 · 아이템 DB · 조합법 · 쾌속 치트 · 유저 · AI 자동 플레이 · 게임 DB
+/* [화면] GM 콘솔의 탭 화면: 행동 추적 · 아이템 DB · 조합법 · 쾌속 치트 · 유저 · AI 자동 플레이 · 게임 DB
    (콘솔 뼈대 · 명령 · 별도 창 연결 · 입력은 ui_admin.js) */
-/* 1. 유저 상태: 요약·장착 무공·행낭·원시 데이터는 1초마다 갱신, 입력 칸은 그대로 둔다 */
-const GM_FIELDS = [['silver', '은자'], ['hp', '활력'], ['mp', '내력'], ['stamina', '기력'], ['contrib', '공헌도']];
-function gmViewState() {
-  return `<form class="gm-edit" data-gmform="state">${GM_FIELDS.map(([k, n]) => `<label>${n}<input type="number" name="${k}" value="${Math.round(S[k])}" step="1"></label>`).join('')}<button class="gm-btn primary" type="submit">[적용]</button></form>
-    <div id="gmLive"></div>
-    <details class="gm-raw" open><summary>원시 데이터 (S)</summary><pre id="gmRaw"></pre></details>`;
-}
-function gmRenderLive() {
-  const box = $('#gmLive'), raw = $('#gmRaw'); if (!box || !S) return;
-  const st = calcStats();
-  const row = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
-  const arts = CAT_ORDER.map(c => { const id = S.active[c], m = id && S.manuals[id];
-    return `<tr><td>${CATS[c].name}</td><td><code>${id || '—'}</code></td><td>${id ? MANUALS[id].name : ''}</td><td>${m ? m.star + '성' : ''}</td><td>${m ? (m.star >= MAX_STAR ? '대성' : `다음 ${fmt(starCost(id))}${GATES[m.star] ? ' + ' + GATES[m.star] : ''}${starUpBlock(id) ? '' : ' ✔'}`) : ''}</td></tr>`; }).join('');
-  const X = S.expedition, run = activeRun();
-  const inv = Object.entries(S.inv).map(([id, n]) => `<span class="gm-chip"><code>${id}</code> ×${n}</span>`).join('') || '<span class="gm-muted">비어 있음</span>';
-  box.innerHTML = `<div class="gm-kv">${row('투력', fmt(calculateCombatPower(S)))}${row('활력', `${Math.round(S.hp)} / ${st.maxHp}`)}${row('내력', `${Math.round(S.mp)} / ${st.maxMp}`)}${row('기력', `${Math.round(S.stamina)} / ${st.maxSta}`)}${row('은자', fmt(S.silver))}${row('공헌도', fmt(S.contrib))}${row('수련치', fmt(S.exp))}${row('탐험지', X.zone || '미정')}${row('강호행', run ? `${Math.floor((now() - run.at) / 60000)}분째 · ${run.steps.length}걸음` : '대기')}${row('기록', `${S.expeditions.length} / ${EXPEDITION.keep}`)}${row('행낭', `${bagUsed()} / ${bagCap()}칸`)}</div>
-    <table class="gm-table"><thead><tr><th>분류</th><th>ID</th><th>무공</th><th>성</th><th>다음 성급</th></tr></thead><tbody>${arts}</tbody></table>
-    <div class="gm-chips">${inv}</div>
-    ${S.gear.length ? `<div class="gm-chips">${S.gear.map(g => `<span class="gm-chip">uid ${g.uid} · ${g.name}${g.enh ? ' +' + g.enh : ''}</span>`).join('')}</div>` : ''}`;
-  const keep = raw.scrollTop;
-  raw.textContent = JSON.stringify({ ...S, log: `[견문록 ${S.log.length}줄 생략]` }, null, 2);
-  raw.scrollTop = keep;
-}
-function gmApplyState(form) {
-  const vals = {};
-  for (const [k] of GM_FIELDS) { const v = Number(form.elements[k].value); if (Number.isFinite(v)) vals[k] = v; }
-  gmDo('apply', vals);
-}
 
 /* 2. 행동 추적 */
 function gmViewTrace() {
