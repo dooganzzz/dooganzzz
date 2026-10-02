@@ -211,11 +211,14 @@ function ougiPlay(sc, o) {
         if (k < 1) requestAnimationFrame(step); else blade.style.opacity = ''; };
       fx.style.transformOrigin = '50% 50%'; requestAnimationFrame(step);
     }
-    glowOn = true; gather(1000);   // 기운이 모여 병기로 빨려 든다 (제 오의도 같은 모으기 — 빛깔은 그 오의의 rgb)
-    if (o.callout) { await OG_W(1000); await o.callout(); }   // 기 모으기 → 두루마리가 펼쳐지고 시문 → 감기기 시작하면 바로 공격 (감기는 것과 동시에)
+    glowOn = true;   // 기운이 모여 병기로 빨려 든다 (제 오의도 같은 모으기 — 빛깔은 그 오의의 rgb)
+    const blaze = () => { if (C.glow === 'blade') blade.classList.add('on', 'blaze'); else if (!C.kunai) handGlows.forEach(g => g.classList.add('on', 'blaze')); };
+    if (o.callout) {   // 오의 공식: 두루마리가 펼쳐지며 기를 모은다 → 시문이 나올 때 모인 기가 칼 전체로 모여 광채를 뿜는다 → 시문이 끝나면 공격하며 두루마리가 접힌다
+      const co = o.callout(); gather(CO_TL.poem); setTimeout(blaze, CO_TL.poem); await co;
+    } else gather(1000);
     if (!C.noFx && !C.own) setTimeout(playFx, Math.max(0, reach - (C.impact - from) * per));   // 제 오의는 아래 '터지는 순간'에 바로 튼다 (먼저 터지지 않게)
-    if (C.kunai) { kHeld = true; kunai.style.removeProperty('--a'); kunai.className = 'og-kunai on'; kunai.style.opacity = ''; kunai.animate([{ '--g': .2 }, { '--g': 1 }], { duration: 1000, fill: 'forwards' }); setTimeout(() => kunai.classList.add('charged'), 450); } aura.classList.add('fadeout'); await OG_W(250); if (C.glow === 'blade') blade.classList.add('on'); else if (!C.kunai) handGlows.forEach(g => g.classList.add('on'));
-    await OG_W(500); aura.className = 'og-aura';
+    if (C.kunai) { kHeld = true; kunai.style.removeProperty('--a'); kunai.className = 'og-kunai on'; kunai.style.opacity = ''; kunai.animate([{ '--g': .2 }, { '--g': 1 }], { duration: 1000, fill: 'forwards' }); setTimeout(() => kunai.classList.add('charged'), 450); } aura.classList.add('fadeout'); if (!o.callout) await OG_W(250); if (C.glow === 'blade') blade.classList.add('on'); else if (!C.kunai) handGlows.forEach(g => g.classList.add('on'));
+    if (!o.callout) await OG_W(500); aura.className = 'og-aura';   // 두루마리를 썼으면 감기기 시작하는 순간 바로 돌진
     if (w === 'blade') {   // 도: 달려가다 뛰어올라 공중에서 도를 치켜들고, 내려앉으며 내려친다
       const hr = R(H), er = R(E), left = er.x + er.w * C.reachInto - C.reachAt[0] * hr.w;
       H.style.transition = 'left .62s cubic-bezier(.35, .1, .45, 1)'; H.style.left = left + 'px';
@@ -237,7 +240,7 @@ function ougiPlay(sc, o) {
     else { E.classList.remove('charge', 'flinch'); void E.offsetWidth; E.classList.add('flinch'); }   // 몬스터의 최후는 숨통을 끊을 때만
     re(flash, 'play');
     await OG_W(450); F(w === 'hidden' ? 0 : 6); await OG_W(550);
-    blade.classList.remove('on'); handGlows.forEach(g => g.classList.remove('on')); glowOn = false;
+    blade.classList.remove('on', 'blaze'); handGlows.forEach(g => g.classList.remove('on', 'blaze')); glowOn = false;
     stage.classList.remove('dark'); H.classList.remove('jump'); H.style.transition = 'left .36s cubic-bezier(.5, .05, .35, 1)'; H.style.left = hb.left + 'px'; F(0); await OG_W(360);
     await OG_W(250); cancelAnimationFrame(raf);
     o.heroEl.style.visibility = ''; o.foeEl.style.visibility = ''; if (o.kill) o.foeEl.classList.add('og-dead');
