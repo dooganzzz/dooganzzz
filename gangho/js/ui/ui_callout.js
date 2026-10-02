@@ -19,7 +19,7 @@ const CO_POEM = {
 function calloutPreload(mid, n) {
   const C = calloutOf(mid, n); if (C) preloadImgs([ASSET.callout(C.art), ASSET.callout(C.art + '_hz'), ASSET.callout(C.ax), ASSET.callout('face')]);
 }
-function calloutPlay(sc, mid, n) {
+function calloutPlay(sc, mid, n, full) {
   const C = calloutOf(mid, n), M = MANUALS[mid];
   if (!C || !M || !sc) return Promise.resolve();
   const st = M.stances[n - 1], hj = (st.name.match(/\(([^)]*)\)/) || [])[1] || '', P = (M.poem && M.poem.lines) || [];
@@ -55,7 +55,7 @@ function calloutPlay(sc, mid, n) {
     const t0 = performance.now(); let freed = false;
     const step = now => {
       const ms = now - t0;
-      if (!freed && ms >= CO_TL.outStart) { freed = true; done(); }   // 대사가 끝나 두루마리가 감기기 시작하면 바로 초식을 펼친다 (감기는 것과 동시에)
+      if (!full && !freed && ms >= CO_TL.outStart) { freed = true; done(); }   // 대사가 끝나 두루마리가 감기기 시작하면 바로 초식을 펼친다 (감기는 것과 동시에)
       const p = ms < CO_TL.inEnd ? easeOut(ms / CO_TL.inEnd) : ms < CO_TL.outStart ? 1 : ms < CO_TL.outEnd ? 1 - easeIn((ms - CO_TL.outStart) / (CO_TL.outEnd - CO_TL.outStart)) : 0;
       const x = W * p, grow = 1 + (CO_AX.start - 1) * (1 - p);              // 감긴 종이가 풀릴수록 축이 가늘어진다
       paper.style.clipPath = `inset(0 ${((1 - p) * 100).toFixed(2)}% 0 0)`;
