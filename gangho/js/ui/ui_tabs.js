@@ -2,7 +2,7 @@
 
 /* 화면 상태 (저장하지 않음): 탭·접힘·화로 투입·창·행낭 필터·선택 슬롯 */
 let ui = { fold: { hq: true, missions: true, library: true },   // 아코디언은 모두 접힌 채로 시작 (true = 접힘)
-  tab: 'sect', sectSub: 'hall', pot: {}, craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'gear', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null, libTab: 'equipment', skillTab: 'attack' };
+  tab: 'sect', sectSub: 'hall', pot: {}, craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'observe', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null, libTab: 'equipment', skillTab: 'attack' };
 
 /* 시스템 신호 → 화면. 한 동작에서 신호가 여러 번 와도 한 번만 다시 그린다 (그리기 전에 모아 처리) */
 let renderQueued = false;
@@ -81,7 +81,7 @@ const TABS = [
 ];
 /* 2차 탭 (청풍문 시설 · 상태) */
 const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
-const STATUS_SUBS = [['gear', '무장', '武裝'], ['martial', '무공', '武功']];
+const STATUS_SUBS = [['observe', '관조', '觀照'], ['gear', '무장', '武裝'], ['martial', '무공', '武功']];   // 관조: 활력 · 내력 · 투력 · 수련치 · 은자 · 공헌
 const SUBS = { sect: SECT_SUBS, status: STATUS_SUBS };
 const SUB_KEY = { sect: 'sectSub', status: 'statusSub' };
 
@@ -121,7 +121,7 @@ function cpDeltaHtml(cp) {
 /* 헤더 수치: 10만 이상은 만·억 단위로 줄인다 (폰에서도 한 줄). 정확한 값은 툴팁에 */
 const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
   return a >= 1e8 ? `${+(n / 1e8).toFixed(1)}억` : a >= 1e5 ? `${+(n / 1e4).toFixed(1)}만` : fmt(n); };
-/* 머리: 이름 줄만. 활력 · 내력 · 수련치 · 은자 · 공헌은 상태 탭 맨 위(#vitals)에, 투력은 그 아래 투력 카드에 (유저 요청). 매초 다시 그린다 */
+/* 머리: 이름 줄만. 활력 · 내력 · 수련치 · 은자 · 공헌 · 투력은 상태 › 관조 탭(#vitals · 투력 카드)에 (유저 요청). 매초 다시 그린다 */
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S), dl = cpDeltaHtml(cp);
   setHTML($('#status'), `
@@ -178,8 +178,8 @@ function render() {
   if (!S) return;
   renderHeader(); renderTabs();
   const main = $('#main');
-  const scr = screen(), bar = (ui.tab === 'status' ? `<section class="vitals" id="vitals">${vitalsHtml()}</section>${cpCard()}` : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
-  setHTML(main, bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: () => ui.fieldMap !== false && !activeRun() ? mapScreen() : viewField(), chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
+  const scr = screen(), bar = SUBS[ui.tab] ? subtabBar(ui.tab) : '';
+  setHTML(main, bar + ({ observe: () => `<section class="vitals" id="vitals">${vitalsHtml()}</section>${cpCard()}`, gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: () => ui.fieldMap !== false && !activeRun() ? mapScreen() : viewField(), chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
   renderModal();
   typewriteAll();
   wireImages();

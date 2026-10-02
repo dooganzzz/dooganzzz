@@ -39,7 +39,7 @@ module.exports = async (b) => {
     ok('1 실시간 갱신 (1초 틱)', await p.evaluate(() => JSON.parse(document.querySelector('#gmRaw').textContent).silver === 4321 && /4,321/.test(document.querySelector('#gmLive').textContent)));
     await p.fill('.gm-edit input[name="silver"]', '777'); await p.fill('.gm-edit input[name="hp"]', '999999');
     await p.click('.gm-edit button[type="submit"]');
-    const ap = await p.evaluate(() => ({ silver: S.silver, hp: S.hp, max: calcStats().maxHp, header: (ui.tab = 'status', render(), document.querySelector('#vitals').textContent.includes('777')) }));
+    const ap = await p.evaluate(() => ({ silver: S.silver, hp: S.hp, max: calcStats().maxHp, header: (ui.tab = 'status', ui.statusSub = 'observe', render(), document.querySelector('#vitals').textContent.includes('777')) }));
     ok('1 [적용]: 은자 반영 · 활력은 최대치로 제한 · 게임 화면도 갱신', ap.silver === 777 && ap.hp === ap.max && ap.header, JSON.stringify(ap));
 
     // 2. 행동 추적

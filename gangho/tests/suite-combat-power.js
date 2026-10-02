@@ -41,18 +41,18 @@ module.exports = async (b) => {
     ok('1 성급 올리기 → 거울 값 갱신', br2.now === br2.calc && br2.now > br.before, JSON.stringify({ br, br2 }));
 
     // 2. 상단 헤더 · 변화량
-    const hd = await p.evaluate(() => { ui.tab = 'status'; render(); const el = document.querySelector('.cp-card .cp-main'); return { badge: el.querySelector('.cp-label').textContent.slice(0, 2), value: el.querySelector('.cp-value').textContent, title: el.closest('.cp-card').getAttribute('aria-label'), cp: fmt(calculateCombatPower(S)) }; });
+    const hd = await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'observe'; render(); const el = document.querySelector('.cp-card .cp-main'); return { badge: el.querySelector('.cp-label').textContent.slice(0, 2), value: el.querySelector('.cp-value').textContent, title: el.closest('.cp-card').getAttribute('aria-label'), cp: fmt(calculateCombatPower(S)) }; });
     ok('2 상태 탭 투력 카드 ([투력] 한글)', hd.badge === '투력' && hd.value === hd.cp && hd.title.startsWith('투력'), JSON.stringify(hd));
     const dl = await p.evaluate(async () => { const tick = () => new Promise(r => setTimeout(r, 0)); unequip('weapon'); await tick(); const d = document.querySelector('.cp-card .cp-delta'); const r = { down: d && d.classList.contains('down') && d.textContent.startsWith('▼') }; equipItem(S.gear[S.gear.length - 1].uid); await tick(); const u = document.querySelector('.cp-card .cp-delta'); r.up = u && u.classList.contains('up'); return r; });   // 다시 그리기는 마이크로태스크로 모아서 한다
     ok('2 투력이 바뀌면 ▲/▼ 변화량 잠깐 표시', dl.down && dl.up, JSON.stringify(dl));
     ok('2 변화량은 잠시 뒤 사라짐 (2.5초)', await p.waitForFunction(() => !document.querySelector('.cp-card .cp-delta'), null, { timeout: 4500 }).then(() => true, () => false));
 
-    // 2. 상태 탭 맨 위 카드
-    await p.click('[data-tab="status"]');
-    const card = await p.evaluate(() => { const c = document.querySelector('#main > .cp-card'); return c && { first: !!c.previousElementSibling && c.previousElementSibling.id === 'vitals' && document.querySelector('#main').firstElementChild.id === 'vitals', value: c.querySelector('.cp-value').textContent, cp: fmt(calculateCombatPower(S)), parts: c.querySelectorAll('.cp-parts span').length, label: c.querySelector('.cp-label .ko').textContent }; });
-    ok('2 상태 탭 맨 위 수치 바로 아래 투력 카드 (공세 · 수세 같은 내역은 보여 주지 않음)', card && card.first && card.value === card.cp && card.parts === 0 && card.label === '투력', JSON.stringify(card));
+    // 2. 상태 › 관조: 수치 아래 투력 카드
+    await p.click('[data-tab="status"]'); await p.click('[data-sub="observe"]');
+    const card = await p.evaluate(() => { const c = document.querySelector('#main > .cp-card'); return c && { first: !!c.previousElementSibling && c.previousElementSibling.id === 'vitals', value: c.querySelector('.cp-value').textContent, cp: fmt(calculateCombatPower(S)), parts: c.querySelectorAll('.cp-parts span').length, label: c.querySelector('.cp-label .ko').textContent }; });
+    ok('2 관조 탭: 수치 바로 아래 투력 카드 (공세 · 수세 같은 내역은 보여 주지 않음)', card && card.first && card.value === card.cp && card.parts === 0 && card.label === '투력', JSON.stringify(card));
     await p.click('[data-sub="martial"]');
-    ok('2 무공 하위 탭에서도 카드 유지', await p.evaluate(() => !!document.querySelector('#main > #vitals + .cp-card')));
+    ok('2 무공 하위 탭에는 수치 · 투력 카드 없음', await p.evaluate(() => !document.querySelector('#main #vitals') && !document.querySelector('#main .cp-card')));
     await p.click('[data-tab="bag"]');
     ok('2 다른 탭에는 카드 없음', await p.evaluate(() => !document.querySelector('.cp-card')));
 
