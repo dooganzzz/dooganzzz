@@ -576,7 +576,7 @@
 .stage-info .chip.sm { padding: 1px 8px; font-size: 11.5px; margin-left: auto; }
 /* 맞붙는 동안 무대 위 정보 창 (내 창 · 적 창): 마른 붓 먹획 + 팔괘 얼굴 창 그림(ui/hp_me · hp_foe) 속 칸에 얼굴 · 막대를 맞춰 얹는다.
    막대 위 이름 · 막대 안 활력 숫자 · 막대 아래 투력. 크기는 유저가 연출 미리보기에서 맞춘 값 (글자 단위 cqi = 창 너비의 1%) */
-.live-scene { --hp-w: 44%; --hp-top: 4%; --hp-nm: 5.8cqi; --hp-nmmin: 12.5px; --hp-nmy: 65%; --hp-em: 3.2cqi; --hp-emmin: 8px; --hp-cp: 4.7cqi; --hp-cpmin: 10px; --hp-cpy: 65%; }
+.live-scene { --hp-w: 38.5%; --hp-top: 4%; --hp-nm: 6cqi; --hp-nmmin: 12.5px; --hp-nmy: 65%; --hp-em: 3.2cqi; --hp-emmin: 8px; --hp-cp: 4.7cqi; --hp-cpmin: 10px; --hp-cpy: 65%; }
 @media (max-width: 600px) { .live-scene { --hp-w: 43%; --hp-top: 3.5%; --hp-nm: 3.4cqi; --hp-nmmin: 10px; --hp-nmy: 63%; --hp-em: 2.9cqi; --hp-emmin: 5.5px; --hp-cp: 4.8cqi; --hp-cpmin: 7.5px; --hp-cpy: 66.5%; } }   /* 모바일 (유저 조정): 창 43% · 위 3.5% · 이름 3.4(최소 10px) · 숫자 2.9(최소 5.5px) · 투력 4.8(최소 7.5px) 높이 66.5% */
 .live-hp { position: absolute; z-index: 6; top: var(--hp-top); width: var(--hp-w); aspect-ratio: 613 / 147; display: none; pointer-events: none; container-type: inline-size; }
 .live-hp.me { left: .6%; } .live-hp.foe { right: .6%; aspect-ratio: 610 / 149; }
@@ -703,7 +703,7 @@
 .stance-cut { position: absolute; z-index: 6; pointer-events: none; background: 0 0 / 1000% 100% no-repeat; animation: liveCut 1s steps(9) forwards;
   filter: drop-shadow(0 0 1.5px rgba(10, 40, 110, .85)) drop-shadow(0 0 6px rgba(60, 140, 255, .55)) saturate(1.5); }   /* 밝은 산길에서도 보이게 테두리 그늘 */
 .stance-cut.screen { mix-blend-mode: screen; }
-.stance-cut.hit { filter: none; }   /* 맞는 자리에서 터지는 빛 그림(MANUAL_HIT): 테두리 빛 없이 그대로 스며들게 */
+.stance-cut.hit, .stance-cut.glow { filter: none; }   /* 맞는 자리에서 터지는 빛 그림(MANUAL_HIT): 테두리 빛 없이 그대로 스며들게 */
 .stance-cut.solid { filter: drop-shadow(0 0 1px rgba(255, 236, 190, .8)) drop-shadow(0 0 5px rgba(255, 200, 90, .35)); }   /* 철사장: 돌 · 쇠빛 그림은 섞지 않고 그대로, 따뜻한 테두리 빛 */
 .stance-cut.ink { filter: drop-shadow(0 0 1px rgba(250, 244, 226, .85)) drop-shadow(0 0 5px rgba(250, 244, 226, .35)); }   /* 먹빛 무공(유묵검법): 파란 빛 대신 종이빛 테두리, 섞지 않고 그대로 */
 @keyframes liveCut { from { background-position: 0 0; } to { background-position: 100% 0; } }

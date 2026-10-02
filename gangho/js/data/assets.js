@@ -32,7 +32,8 @@ const MANUAL_ART = {
   sw1a: ['cut_1', 'cut_2', 'ougi'],    // 한상검법: 제1 · 2초식 컷 · 오의
   sw1b: ['cut_1', 'cut_2', 'ougi'],    // 추상검법: 제1 · 2초식 컷 · 오의 서리 별
   sw1c: ['cut_1', 'cut_2', 'ougi'],    // 유묵검법: 제1 · 2초식 컷 · 오의 큰 붓 한 점 (먹빛 수묵화)
-  fs1a: ['cut_1', 'cut_2', 'ougi'],    // 철사장: 취기(장풍) · 박쇄석(갈라지는 바위판) · 철장쇄흉골(금빛 충격파)
+  fs1a: ['cut_1', 'cut_2', 'ougi'],
+  fs1b: ['cut_2'],                    // 통비권: 제2초식 진비출(고요한 물 위 파문이 주먹에서 뻗어 금빛으로 터짐). 제1초식 · 오의는 아직 없음 → 평타    // 철사장: 취기(장풍) · 박쇄석(갈라지는 바위판) · 철장쇄흉골(금빛 충격파)
 };
 /* 먹빛(검은) 그림의 무공: 밝게 섞기(screen)로는 먹이 지워지므로 그대로 겹치고, 테두리 빛 · 오의 막도 종이빛으로 (CSS .ink) */
 const MANUAL_INK = ['sw1c'];
@@ -40,6 +41,8 @@ const MANUAL_INK = ['sw1c'];
 const MANUAL_SOLID = ['fs1a'];
 /* 권장(연속 때리기)처럼 맞는 자리에서 터지는 초식: 제1초식 그림이 허공을 가르지 않고 요수 몸 위에 얹힌다 (크기 · 자리는 ui_sprite.js HIT_GEO) */
 const MANUAL_HIT = ['fs1b'];
+/* 검은 바탕에 빛과 기운으로 그린 무공(유저 확정 화풍): 칼 그림용 파란 테두리 빛 없이 그대로 스며들게 (CSS .stance-cut.glow) */
+const MANUAL_GLOW = ['fs1b'];
 /* 확장자가 기본과 다른 파일 (종류:이름) */
 const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg', 'font:rank_hanja': 'woff2' };
 /* PNG는 모두 무손실 WebP로 바꿨다 (픽셀 동일, 약 37% 작음). 이미 손실 압축된 WebP · JPG는 다시 압축하지 않는다 */
