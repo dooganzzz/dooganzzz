@@ -18,23 +18,29 @@ function walkMeta(w, mode = 'run') {
    달릴 때 · 쉴 때도 제자는 같은 자리 */
 const LIVE_POS = { hero: 10, lunge: 38, foeR: 10, foeW: 21.2, k: .72 }, LIVE_FAR = .35;
 let liveAnim = { f: 0, last: 0, acc: 0, x: 0, raf: 0, breath: 0, walkMs: 0, nextShow: 0, show: null, queued: null };
-/* 길가 소품: 걷는 동안 가끔 표지석 · 돌탑 · 이정표 · 사당 · 주막 깃발이 땅과 같은 빠르기로 지나간다 (h = 제자 키 대비 높이) */
-const LIVE_PROPS = { stele: .5, cairn: .42, signpost: .56, shrine: .5, tavern: 1.05 };
-const LIVE_PROP_ZONE = { cheongpung: ['stele', 'cairn', 'signpost', 'shrine', 'tavern'], suryong: ['stele', 'cairn', 'signpost', 'tavern'], yeomhwa: ['stele', 'signpost', 'cairn'] };
+/* 길가 소품: 걷는 동안 가끔 길가 구조물이 땅과 같은 빠르기로 지나간다 (h = 제자 키 대비 높이, 발밑 그림자 여백 PROP_PAD 제외).
+   그림마다 발치를 땅으로 스미게 지우고 그림자를 함께 그려 두었다(tools/props_ground.py). 멀리 놓인 것은 조금 작고 높게 · 옅게 */
+const LIVE_PROPS = { stele: .5, cairn: .42, signpost: .56, shrine: .5, tavern: 1.05, jangseung: .95, stone_lantern: .62, well: .55, haystack: .45, cart: .5, haetae: .45, pagoda: .9, gate: 1.2, jars: .42, sword_rock: .5 };
+const LIVE_PROP_ZONE = {
+  cheongpung: ['stele', 'cairn', 'signpost', 'shrine', 'tavern', 'jangseung', 'stone_lantern', 'well', 'haystack', 'haetae', 'pagoda', 'gate', 'sword_rock'],
+  suryong: ['stele', 'cairn', 'signpost', 'tavern', 'well', 'haystack', 'cart', 'jars', 'jangseung', 'stone_lantern'],
+  yeomhwa: ['stele', 'signpost', 'cairn', 'cart', 'jars', 'sword_rock', 'haetae', 'pagoda', 'gate'],
+}, PROP_PAD = .05;
 function liveProps(sc, walker, dt) {
   const W = sc.offsetWidth || 1, h = walker ? walker.offsetHeight : 120;
   for (const p of sc.querySelectorAll('.live-prop')) {
     const x = +p.dataset.x0 - (liveAnim.x - +p.dataset.at);
-    if (x < -p.offsetWidth - 10) p.remove(); else p.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+    if (x < -p.offsetWidth - 10) p.remove(); else p.style.transform = `translate3d(${x.toFixed(1)}px,${(PROP_PAD / (1 + PROP_PAD) * 100).toFixed(2)}%,0)`;
   }
   liveAnim.propMs = (liveAnim.propMs || 0) + dt;
   if (!liveAnim.nextProp) liveAnim.nextProp = 4000 + Math.random() * 6000;
   if (liveAnim.propMs < liveAnim.nextProp) return;
   liveAnim.propMs = 0; liveAnim.nextProp = 9000 + Math.random() * 12000;
-  const pool = LIVE_PROP_ZONE[sc.dataset.zone] || LIVE_PROP_ZONE.cheongpung, k = pool[Math.floor(Math.random() * pool.length)];
+  const pool = (LIVE_PROP_ZONE[sc.dataset.zone] || LIVE_PROP_ZONE.cheongpung).filter(n => n !== liveAnim.lastProp), k = pool[Math.floor(Math.random() * pool.length)], far = Math.random();   // 같은 것이 잇달아 나오지 않게
   const im = document.createElement('img'); im.className = 'live-prop'; im.dataset.live = 1; im.src = ASSET.prop(k); im.alt = '';
-  im.style.height = (h * LIVE_PROPS[k]).toFixed(0) + 'px'; im.dataset.x0 = W + 10; im.dataset.at = liveAnim.x;
-  im.style.transform = `translate3d(${W + 10}px,0,0)`; sc.appendChild(im);
+  liveAnim.lastProp = k; im.style.height = (h * LIVE_PROPS[k] * (1 + PROP_PAD) * (1 - far * .12)).toFixed(0) + 'px'; im.dataset.x0 = W + 10; im.dataset.at = liveAnim.x;
+  im.style.bottom = (11 + far * 2.5).toFixed(2) + '%'; im.style.opacity = (1 - far * .18).toFixed(2);
+  im.style.transform = `translate3d(${W + 10}px,${(PROP_PAD / (1 + PROP_PAD) * 100).toFixed(2)}%,0)`; sc.appendChild(im);
 }
 /* 발자국: 시트에서 발이 땅에 닿는 칸(잰 값)에, 그 발 밑창 자리에 찍는다. 땅과 같은 빠르기로 뒤로 흘러가며 옅어진다.
    STEP_CONTACT[모드][병기] = [[칸, 발 가운데 x(400px 칸 기준)], ...] · 발바닥 높이 STEP_SOLE_Y(380px 칸 기준) */
