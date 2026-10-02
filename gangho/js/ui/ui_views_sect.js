@@ -73,7 +73,7 @@ function viewHall() {
   // 서브 퀘스트: 열린 단계마다 반복 토벌 (지금 탐험지가 먼저, 받을 수 있는 것이 위로)
   const sq = subqList().sort((a, b) => (subqReady(b.zid, b.n) - subqReady(a.zid, a.n)) || ((b.zid === S.expedition.zone) - (a.zid === S.expedition.zone)) || ZONE_ORDER.indexOf(a.zid) - ZONE_ORDER.indexOf(b.zid) || a.n - b.n);
   const missions = `
-    <div class="subq-box"><p class="subq-title"><b>장문인의 토벌 임무 · ${ZONES[subqZone()].name}</b> <small class="muted">장문인과 정한 탐험지에서만 셉니다. 단계마다 ${SUBQ.kills}번 이기면 보상 · 오늘 ${subqLeft()}/${SUBQ.daily}번 남음. 지역은 장문인에게 [토벌 지역 정하기].</small></p>
+    <div class="subq-box"><p class="subq-title"><small class="muted">보조 퀘스트 · 반복</small> <b>토벌 임무 · ${ZONES[subqZone()].name}</b> <small class="muted">장문인과 정한 탐험지에서만 셉니다. 단계마다 ${SUBQ.kills}번 이기면 보상 · 오늘 ${subqLeft()}/${SUBQ.daily}번 남음. 지역은 장문인에게 [토벌 지역 정하기].</small></p>
     <ul class="missions">${sq.map(({ zid, n }) => {
       const p = subqProg(zid, n), R = subqReward(zid, n), ok = subqReady(zid, n), left = subqLeft();
       return `<li class="${ok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(zid, n)} <small class="muted">${n >= STAGE.count ? '두목' : `${n}단계`}</small></div><div class="mprog"><span style="width:${p / SUBQ.kills * 100}%"></span></div><span class="num">${p}/${SUBQ.kills}</span><span class="reward">공헌 ${R.contrib} · 은자 ${R.silver} · 수련치 ${R.exp} · 생혈고 ${R.pot}</span><button class="btn sm ${ok ? 'primary' : ''}" data-subq="${zid}:${n}" ${ok ? '' : 'disabled'}>${left ? '보상' : '내일'}</button></li>`;

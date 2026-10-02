@@ -87,7 +87,7 @@ function jounGuide() {
     [!(S.expedition && S.expedition.zone), '아직 탐험지를 안 정했구나. 강호행에서 갈 곳을 정하고 [강호행 시작]을 눌러라. 쓰러질 때까지 알아서 나아간다.'],
     [Object.keys(S.manuals).some(id => !starUpBlock(id)), '수련치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
     [!has('saenghyeol', 3), '생혈고가 떨어져 간다. 탐험 중에 위급하면 그걸 바르니, 화로에서 달이든 전방에서 사든 넉넉히 챙겨라.'],
-    [ready, `토벌 임무 ${ready}건을 채웠구나. 내게 토벌 보상을 받아 가라.`],
+    [ready, `토벌 임무 ${ready}건을 채웠다. 정청 아래 토벌 임무 칸에서 보상을 받아라.`],
     [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].defeats, '지난 강호행에서 쓰러졌다지? 한 단계 아래에서 토벌 임무를 채우며 생혈고와 은자를 모으고, 무공과 장비를 올린 뒤 다시 올라가라.'],
     [S.gear.length >= 3, '행낭에 안 쓰는 장비가 쌓였다. 청풍전방 왕 가에게 가면 은자로 바꿔 준다.'],
     [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],
