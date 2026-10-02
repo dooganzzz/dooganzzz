@@ -943,16 +943,16 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .school-tag.s-sa { color: #f0a3a3; background: rgba(240, 163, 163, .14); }
 
 /* ───────── 무공 탭 2단 (10월 3일): 왼쪽 운기조식 · 오른쪽 습득 비급 ─────────
-   운기조식 원(고리 · 가운데 인물 · 네 비급 칸 · 불꽃 구름)은 zoom으로 통째 80% — 칸 크기 · 자리 · 배경이 같은 비율로 줄어 서로 틀어지지 않는다.
+   운기조식 원(고리 · 가운데 인물 · 네 비급 칸 · 불꽃 구름)은 zoom으로 통째 80% (2단이면 왼쪽, 좁으면 가운데) — 칸 크기 · 자리 · 배경이 같은 비율로 줄어 서로 틀어지지 않는다.
    오른쪽 패널은 height 0 + min-height 100%로 줄 높이를 운기조식에만 맡기고, 넘치는 목록은 패널 안에서만 스크롤. 폭이 모자라면 한 줄씩 아래로 */
 .martial-duo { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 @media (min-width: 641px) {
-  .martial-slots .mslots.martial-arts-core-layout { zoom: .8; margin: 0; }
+  .martial-slots .mslots.martial-arts-core-layout { zoom: .8; margin: 0 auto; }   /* 2단이 아닐 때는 가운데 */
 }
 @media (min-width: 1180px) {
   .martial-duo { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: stretch; }
   .martial-duo > .martial-slots { width: max-content; }
-  .martial-duo > .martial-slots .mslots.martial-arts-core-layout { width: 820px; }
+  .martial-duo > .martial-slots .mslots.martial-arts-core-layout { width: 820px; margin: 0; }   /* 2단에서는 왼쪽에 붙임 */
   .martial-duo > .martial-learned { height: 0; min-height: 100%; display: flex; flex-direction: column; overflow: hidden; }
   .martial-duo > .martial-learned .section-header-row { flex: none; flex-wrap: wrap; gap: 8px; }
   .martial-learned-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; display: grid; gap: 8px; align-content: start; }
