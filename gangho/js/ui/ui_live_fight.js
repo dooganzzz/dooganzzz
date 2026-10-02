@@ -46,6 +46,13 @@ function liveShowPlan(sh, w) {
     heroF(s + T(560), 0);
     return s + T(700);
   };
+  // 초식 일격: 제자는 제자리에서 칼을 휘두르고(돌진하는 평타 동작 없이), 칼끝에서 나간 검기가 요수에 닿을 때 맞는다
+  const skillAtk = (t0, ev, sk) => {
+    heroF(t0, 4); q.push({ at: t0 + T(90), k: 'skill', sk }); heroF(t0 + T(140), 5);
+    const hitAt = t0 + T(sk.n >= 2 ? 560 : 450);
+    q.push({ ...ev, at: hitAt }); heroF(t0 + T(420), 6); heroF(t0 + T(900), 0);
+    return t0 + T(1050);
+  };
   const foeAtk = (t0, ev) => {
     q.push({ at: t0, k: 'fx', x: -9 }); q.push({ at: t0, k: 'fa', f: 0 }); q.push({ at: t0 + T(160), k: 'fa', f: 1 });
     q.push({ ...ev, at: t0 + T(230) }); q.push({ at: t0 + T(380), k: 'fa', f: 2 });
@@ -54,7 +61,7 @@ function liveShowPlan(sh, w) {
   };
   const num = t => +String(t).replace(/[^\d]/g, '') || 0;
   let t = 900, me = B.start.me.hp, foe = B.start.foe.hp;
-  const called = new Set();
+  const called = new Set(); let pending = null;
   for (const r of B.rounds) {
     const used = new Set();
     for (let i = 0; i < r.fx.length; i++) {
@@ -67,14 +74,15 @@ function liveShowPlan(sh, w) {
         if (f.k === 'move' && f.mid && f.n) {
           const co = f.n < 3 && typeof calloutOf === 'function' && calloutOf(f.mid, f.n) && !called.has(f.mid + f.n);   // 초식 외침: 전투마다 그 초식을 처음 쓸 때 한 번
           if (co) { called.add(f.mid + f.n); q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }
-          q.push({ at: t, k: 'skill', sk: { mid: f.mid, tier: f.n >= 3 ? 2 : 1, name: f.t, noName: !!co } }); t += T(f.n >= 3 ? 700 : 420);
+          pending = { mid: f.mid, n: f.n, tier: f.n >= 3 ? 2 : 1, name: f.t, noName: !!co };   // 초식은 바로 뒤의 일격에 실어 낸다 (평타 동작과 겹치지 않게)
         }
         continue;
       }
-      if (f.side === 'foe') { if (f.k !== 'miss') foe = Math.max(0, foe - num(f.t)); t = heroAtk(t, { k: 'hitR', f, hp: foe }); }
+      if (f.side === 'foe') { if (f.k !== 'miss') foe = Math.max(0, foe - num(f.t)); const ev = { k: 'hitR', f, hp: foe }; t = pending ? skillAtk(t, ev, pending) : heroAtk(t, ev); pending = null; }
       else if (f.k === 'heal') { me = Math.min(B.start.me.maxHp, me + num(f.t)); q.push({ at: t, k: 'heal', f, hp: me }); t += T(520); }
       else { if (f.k !== 'dodge') me = Math.max(0, me - num(f.t)); t = foeAtk(t, { k: 'hurtR', f, hp: me }); }
     }
+    if (pending) { q.push({ at: t, k: 'skill', sk: pending }); t += T(420); pending = null; }   // 뒤따르는 일격이 없으면 그림만
     me = r.me.hp; foe = r.foe; q.push({ at: t, k: 'sync', me, foe });
     t += T(160);
   }
@@ -86,11 +94,11 @@ function liveShowPlan(sh, w) {
 function liveSkillOf() {
   const id = S.active.mugong, M = id && MANUALS[id]; if (!M || !M.weapon || !M.stances) return null;
   const n = unlockedMoves(S.manuals[id].star); if (!n) return null;
-  return { mid: id, tier: n >= 3 ? 2 : 1, name: stanceShort(M.stances[n - 1].name) };   // tier: 화면 단계 (오의만 광휘)
+  return { mid: id, n, tier: n >= 3 ? 2 : 1, name: stanceShort(M.stances[n - 1].name) };   // tier: 화면 단계 (오의만 광휘)
 }
 function liveSkill(sc, sk) {
   const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}${sk.name.length > 9 ? ' long' : ''}`; lab.dataset.live = 1; lab.textContent = `「${sk.name}」`;
-  const v = stanceFxEl(sc, sk.mid, sk.tier, `live-skill n${sk.tier}`, document.getElementById('liveHero'), sc.querySelector('.live-foe')); v.dataset.live = 1;
+  const v = stanceFxEl(sc, sk.mid, sk.n || sk.tier, `live-skill n${sk.tier}`, document.getElementById('liveHero'), sc.querySelector('.live-foe')); v.dataset.live = 1;
   if (sk.noName) lab.hidden = true;                  // 방금 두루마리로 외친 초식은 이름 글자를 또 띄우지 않는다
   sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
   if (sk.tier === 2) liveShake(sc);
@@ -122,10 +130,10 @@ function liveShowStart(sc, sh) {
   const spr = foe.querySelector('.sp-fspr'), atk = foe.querySelector('.sp-fatk');
   spr.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid)}')`; spr.style.backgroundSize = `${n * 100}% 100%`;
   atk.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid, 1)}')`; atk.style.backgroundSize = '300% 100%';
-  const sk = liveSkillOf(); if (sk) preloadImgs([stanceFxSrc(sk.mid, sk.tier)]);
+  const sk = liveSkillOf(); if (sk) preloadImgs([stanceFxSrc(sk.mid, sk.n)]);
   const R = sh.ref && findExpedition(sh.ref.rid), B = R && R.battles[sh.ref.bi];
   sh.rec = B && B.rounds && B.rounds.length ? B : null;
-  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { preloadImgs([stanceFxSrc(f.mid, f.n >= 3 ? 2 : 1)]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
+  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { preloadImgs([stanceFxSrc(f.mid, f.n)]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
   if (typeof OG_CFG !== 'undefined' && sh.rec && sh.rec.rounds.some(r => r.fx.some(f => f.mid && f.n >= 3))) {   // 오의가 나가는 전투: 오의 그림을 미리
     const C = OG_CFG[weaponType()]; preloadImgs([ASSET.fx('aura'), ASSET.fx('dart'), ...(C && C.fx ? [ASSET.fx(C.fx)] : [])]); }
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1);

@@ -10,12 +10,14 @@ const manualFx = id => (MANUALS[id] && MANUALS[id].fx) || id;   // 비급의 초
    CUT_FX: 확정본 검기 컷(10컷, 왼쪽 끝 = 칼끝)이 있는 무공. 칼끝 = 제자 그림 너비의 tip 지점 · 그림 너비 = 칼끝~요수 가운데 × reach · 세로 가운데는 제자 가운데보다 dy(제자 키 비율) 위 */
 const CUT_FX = { sw1a: 1, sw1b: 1, sw1c: 1 };
 const CUT_GEO = { 1: { tip: .75, reach: 1.07, dy: .18, ar: 640 / 200, ms: 1000 }, 2: { tip: .7, reach: 1.04, dy: .35, ar: 640 / 360, ms: 1300, screen: true } };
-const stanceFxSrc = (mid, tier) => CUT_FX[mid] ? ASSET.fx(`cut_${mid}_${tier}`) : SPRITE_SRC.fx(`${manualFx(mid)}_${tier}`);
+/* n: 초식 번호 (1 · 2 · 3=오의). 확정본 컷은 초식마다(제1 · 제2), 옛 한 장 그림은 제1 · 제2초식 공용(_1) · 오의(_2) */
+const stanceCutN = n => Math.min(2, Math.max(1, n || 1));
+const stanceFxSrc = (mid, n) => CUT_FX[mid] ? ASSET.fx(`cut_${mid}_${stanceCutN(n)}`) : SPRITE_SRC.fx(`${manualFx(mid)}_${n >= 3 ? 2 : 1}`);
 /* stage: 그림을 붙일 무대 · imgCls: 옛 한 장 그림일 때 붙일 클래스 · hero · foe: 칼끝 · 거리를 잴 요소 (없으면 무대 가운데를 가로지름) */
-function stanceFxEl(stage, mid, tier, imgCls, hero, foe) {
-  if (!CUT_FX[mid]) { const v = document.createElement('img'); v.className = imgCls; v.src = stanceFxSrc(mid, tier); v.alt = ''; return v; }
-  const g = CUT_GEO[tier], v = document.createElement('div'); v.className = `stance-cut${g.screen ? ' screen' : ''}`;
-  v.style.backgroundImage = `url('${stanceFxSrc(mid, tier)}')`; v.style.animationDuration = g.ms + 'ms';
+function stanceFxEl(stage, mid, n, imgCls, hero, foe) {
+  if (!CUT_FX[mid]) { const v = document.createElement('img'); v.className = imgCls; v.src = stanceFxSrc(mid, n); v.alt = ''; return v; }
+  const g = CUT_GEO[stanceCutN(n)], v = document.createElement('div'); v.className = `stance-cut${g.screen ? ' screen' : ''}`;
+  v.style.backgroundImage = `url('${stanceFxSrc(mid, n)}')`; v.style.animationDuration = g.ms + 'ms';
   const s = stage.getBoundingClientRect(), h = hero && hero.getBoundingClientRect();
   if (!h || !h.width) { Object.assign(v.style, { left: '5%', width: '90%', top: '50%', aspectRatio: String(g.ar), transform: 'translateY(-50%)' }); return v; }
   const f = foe && foe.getBoundingClientRect(), foeX = f && f.width && f.left < s.right ? f.left + f.width / 2 - s.left : s.width * .8;
@@ -151,7 +153,7 @@ async function spHeroAttack(f, stance, gap) {
   const skill = () => {
     if (!tier) return;
     if (stance.t) playFx([stance]);
-    if (stance.mid) { const st = $('#spStage'), v = st && stanceFxEl(st, stance.mid, tier, `sp-vfx n${tier}`, h, e); if (v) { st.appendChild(v); setTimeout(() => v.remove(), tier === 2 ? 1300 : 1000); } }
+    if (stance.mid) { const st = $('#spStage'), v = st && stanceFxEl(st, stance.mid, stance.n, `sp-vfx n${tier}`, h, e); if (v) { st.appendChild(v); setTimeout(() => v.remove(), tier === 2 ? 1300 : 1000); } }
     if (tier === 2) { spShake(); setTimeout(spShake, 260 * k); }
   };
   if (w === 'sword' && !tier) {                          // 검 평타: 힘껏 찌르기
