@@ -711,6 +711,7 @@
 .stance-cut { position: absolute; z-index: 6; pointer-events: none; background: 0 0 / 1000% 100% no-repeat; animation: liveCut 1s steps(9) forwards;
   filter: drop-shadow(0 0 1.5px rgba(10, 40, 110, .85)) drop-shadow(0 0 6px rgba(60, 140, 255, .55)) saturate(1.5); }   /* 밝은 산길에서도 보이게 테두리 그늘 */
 .stance-cut.screen { mix-blend-mode: screen; }
+.stance-cut.solid { filter: drop-shadow(0 0 1px rgba(255, 236, 190, .8)) drop-shadow(0 0 5px rgba(255, 200, 90, .35)); }   /* 철사장: 돌 · 쇠빛 그림은 섞지 않고 그대로, 따뜻한 테두리 빛 */
 .stance-cut.ink { filter: drop-shadow(0 0 1px rgba(250, 244, 226, .85)) drop-shadow(0 0 5px rgba(250, 244, 226, .35)); }   /* 먹빛 무공(유묵검법): 파란 빛 대신 종이빛 테두리, 섞지 않고 그대로 */
 @keyframes liveCut { from { background-position: 0 0; } to { background-position: 100% 0; } }
 }

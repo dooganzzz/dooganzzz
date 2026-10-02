@@ -32,9 +32,12 @@ const MANUAL_ART = {
   sw1a: ['cut_1', 'cut_2', 'ougi'],    // 한상검법: 제1 · 2초식 컷 · 오의
   sw1b: ['cut_1', 'cut_2', 'ougi'],    // 추상검법: 제1 · 2초식 컷 · 오의 서리 별
   sw1c: ['cut_1', 'cut_2', 'ougi'],    // 유묵검법: 제1 · 2초식 컷 · 오의 큰 붓 한 점 (먹빛 수묵화)
+  fs1a: ['cut_1', 'cut_2', 'ougi'],    // 철사장: 취기(장풍) · 박쇄석(갈라지는 바위판) · 철장쇄흉골(금빛 충격파)
 };
 /* 먹빛(검은) 그림의 무공: 밝게 섞기(screen)로는 먹이 지워지므로 그대로 겹치고, 테두리 빛 · 오의 막도 종이빛으로 (CSS .ink) */
 const MANUAL_INK = ['sw1c'];
+/* 돌 · 쇠빛처럼 꽉 찬 그림의 무공: 밝게 섞기(screen)로는 바위가 비쳐 사라지므로 초식 컷을 그대로 겹치고 따뜻한 테두리 빛 (CSS .solid). 오의는 기본 그대로 */
+const MANUAL_SOLID = ['fs1a'];
 /* 확장자가 기본과 다른 파일 (종류:이름) */
 const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg', 'font:rank_hanja': 'woff2' };
 /* PNG는 모두 무손실 WebP로 바꿨다 (픽셀 동일, 약 37% 작음). 이미 손실 압축된 WebP · JPG는 다시 압축하지 않는다 */

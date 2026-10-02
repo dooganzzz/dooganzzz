@@ -20,7 +20,7 @@ const OG_CFG = {
    o = { w 병기, name 오의 이름, heroEl · foeEl 무대의 제자 · 요수, foeImg 요수 그림(조각용), dmg 실제 피해, kill 숨통을 끊는가, onImpact 맞는 순간 } */
 /* [SSOT] 오의 고르기: 무공에 제 오의(OG_MANUAL)가 있으면 그 그림 · 빛깔을 쓰고, 병기 공용 오의의 겹치는 막(기운 오라 · 모이는 기운 · 칼빛 · 터지는 고리)은 끈다.
    없으면 병기 공용 오의(OG_CFG). 오의 그림은 이 함수 하나에서만 고른다 (옛 그림이 새 그림 위에 겹치지 않게) */
-const OG_MANUAL = { sw1a: { keep: true }, sw1b: { rgb: '190,220,255', impact: 5 }, sw1c: { rgb: '30,30,48', impact: 5 } };   // 무공 오의의 빛깔 · 터지는 컷. keep: 기운 오라 · 고리 · 마무리까지 함께 (한상검법). 그림은 그 무공 폴더의 ougi
+const OG_MANUAL = { sw1a: { keep: true }, sw1b: { rgb: '190,220,255', impact: 5 }, sw1c: { rgb: '30,30,48', impact: 5 }, fs1a: { rgb: '230,210,150', impact: 5 } };   // 무공 오의의 빛깔 · 터지는 컷. keep: 기운 오라 · 고리 · 마무리까지 함께 (한상검법). 그림은 그 무공 폴더의 ougi
 /* 무공마다 공용 오의의 일부만 바꿀 때 (제 그림 없이): 추상검법은 온몸에서 아지랑이가 피어올라 검 속으로 빨려 든다 */
 const OG_TWEAK = { sw1b: { gather: 'haze', rgb: '190,220,255' }, sw1c: { gather: 'haze', rgb: '30,30,48' } };   // 유묵검법: 기 모음도 먹빛 아지랑이
 function ougiCfg(w, mid) {
