@@ -890,8 +890,12 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .slot-lite .mslot-cover { flex: none; width: 40px; height: 52px; font-size: 30px; } .slot-lite .mslot-cover img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px #000); }
 .mslot.slot-lite .slot-type-label { font: 700 14px/1.2 var(--serif, serif); color: #e9dcc0; text-shadow: 0 0 6px #000, 0 0 2px #000; margin: 0; } .slot-lite .slot-type-label .aff-tag { margin-left: 4px; }
 .mslot.slot-lite .art-star { display: block; font: 800 20px/1.1 system-ui, sans-serif; color: #f0cf82; text-shadow: 0 0 8px rgba(0, 0, 0, .9); } .mslot.slot-lite .art-star small { font-size: 12px; }
-.slot-lite.empty { opacity: .75; } .slot-lite.empty small { display: block; font-size: 11px; }
-@media (max-width: 640px) { .skill-card-compact.mslot.slot-lite, .pos-12 .skill-card-compact.mslot.slot-lite, .pos-6 .skill-card-compact.mslot.slot-lite { width: auto; } .slot-lite .mslot-cover { width: 32px; height: 42px; } }
+.slot-lite .mslot-box { flex: none; display: grid; place-items: center; width: 58px; height: 58px; border: 1px solid rgba(212, 175, 55, .45); border-radius: 4px; background: rgba(12, 11, 9, .72); box-shadow: inset 0 0 10px rgba(0, 0, 0, .7), 0 0 8px rgba(197, 160, 89, .12); }
+.slot-lite .mslot-box .mslot-cover { width: 40px; height: 52px; }
+.slot-lite.empty .mslot-box { border-style: dashed; }
+.mslot.slot-lite .mslot-name { display: block; font: 600 12px/1.25 var(--serif, serif); color: #f3e6c4; text-shadow: 0 0 6px #000, 0 0 2px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+.slot-lite.empty { opacity: .75; } .slot-lite.empty small { display: block; font-size: 11px; white-space: nowrap; }
+@media (max-width: 640px) { .skill-card-compact.mslot.slot-lite, .pos-12 .skill-card-compact.mslot.slot-lite, .pos-6 .skill-card-compact.mslot.slot-lite { width: auto; } .slot-lite .mslot-cover, .slot-lite .mslot-box .mslot-cover { width: 32px; height: 42px; } .slot-lite .mslot-box { width: 46px; height: 46px; } .mslot.slot-lite .mslot-name { font-size: 11px; max-width: 96px; } }
 @media (max-width: 640px) { .mslots.martial-arts-core-layout > .slot-pos.pos-3, .mslots.martial-arts-core-layout > .slot-pos.pos-6 { display: flex; justify-content: flex-end; text-align: right; } }   /* 폰: 오른쪽 두 칸(기공 · 경공)은 오른쪽 끝에 붙인다 */
 /* 습득 비급 A안: 한 줄 목록 */
 .mrows { display: grid; gap: 8px; }

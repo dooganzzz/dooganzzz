@@ -66,13 +66,13 @@ function cpCard() {
 function viewMartial() {
   // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
   const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };
-  // 장착 칸: 배경 · 단추 없이 표지 · 갈래 이름 · 성급만 (불꽃 게이지를 가리지 않게). 누르면 그 갈래 창
+  // 장착 칸: 네모 칸 안의 표지 · 갈래 이름 · 비급 이름 · 성급 (속성은 상세 창에서만). 누르면 그 비급 상세, 빈 칸은 그 갈래 창
   const card = cat => {
     const id = S.active[cat], C = CATS[cat];
-    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">비어 있음</small></div></div>`;
+    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><span class="mslot-box"></span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><small class="muted">비어 있음</small></div></div></div>`;
     const m = S.manuals[id];
-    return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog" title="《${MANUALS[id].name}》">
-      ${manualIco(id, 'mslot-cover')}<div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}${manualAffTag(id)}</div><span class="art-star skill-level">${m.star}<small>성</small></span></div>
+    return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite" data-mart="${id}" role="button" tabindex="0" aria-haspopup="dialog" title="《${MANUALS[id].name}》 — 눌러서 상세">
+      <span class="mslot-box">${manualIco(id, 'mslot-cover')}</span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><b class="mslot-name">《${MANUALS[id].name}》</b><span class="art-star skill-level">${m.star}<small>성</small></span></div>
     </div></div>`;
   };
   // 습득 비급 한 줄 (A안): 표지 · 이름 · 등급 · 경지 · 장착 중 · 성급 구슬 12개(돌파단 자리 표시) · 효과 한 줄 · 단추
