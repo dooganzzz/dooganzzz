@@ -787,3 +787,16 @@ html.calm .rku * { animation-duration: .01s !important; animation-delay: 0s !imp
 .live-hp.me .lh-mp { position: absolute; left: 28.4%; top: 57.5%; width: 55.3%; height: 4.6%; z-index: 3; border-radius: 3px; background: rgba(8, 14, 26, .85); box-shadow: inset 0 0 0 1px rgba(90, 150, 230, .35); overflow: visible; }
 .live-hp.me .lh-mp i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; border-radius: 3px; background: linear-gradient(180deg, #8fc6ff, #2e6fd0); transition: width .45s cubic-bezier(.2, .8, .3, 1); }
 .live-hp.me .lh-mp em { display: none; position: absolute; inset: -60% 0; place-items: center; font: 700 max(calc(var(--hp-emmin) * .8), calc(var(--hp-em) * .75))/1 system-ui, sans-serif; font-style: normal; color: #eaf4ff; text-shadow: 0 0 2px #000, 0 0 3px #000; font-variant-numeric: tabular-nums; }
+/* 승급 창: 품계 고리가 타오르고 번쩍 → 고리가 물러나며 확정본(붓 한 획 원)이 드러나고 → 글자가 찍힌다. 고리는 그림 속 붓 원 자리에 맞춤 */
+.rku-stage { position: relative; width: min(100%, 420px); aspect-ratio: 1; margin: 0 auto 12px; overflow: hidden; border-radius: 10px; background: #0d0c0a; }
+.rku-stage .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.rku-stage .rku { position: absolute; left: 46.8%; top: 35.5%; width: 62%; transform: translate(-50%, -50%); margin: 0; }
+.rku-stage .rku .title { top: 112%; bottom: auto; width: 150%; white-space: normal; }
+.rku-stage .rku .title b { font-size: clamp(26px, 7vw, 40px); color: #1d1610; text-shadow: 0 0 6px rgba(250, 240, 220, .9), 0 0 2px rgba(250, 240, 220, .9); }
+.rku-stage .rku .title small { color: #7a2a1a; text-shadow: 0 0 4px rgba(250, 240, 220, .9); font-weight: 700; }
+.rku-stage.play .art { animation: rvArt 1.4s ease-out 1.5s forwards; }
+.rku-stage.play .rku .ring.on { animation: rkuSweep 1.2s cubic-bezier(.4, 0, .6, 1) forwards, rkuBlaze 1.2s ease-out 1.2s forwards, rvFade .8s ease-in 2s forwards; }
+.rku-stage.play .rku .ring.off { animation: rvFade .8s ease-in 2s forwards; }
+@keyframes rvArt { from { opacity: 0; transform: scale(1.06); } to { opacity: 1; transform: scale(1); } }
+@keyframes rvFade { to { opacity: 0; } }
+html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage .ring { display: none; }

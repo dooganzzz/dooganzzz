@@ -166,7 +166,7 @@ function renderModal() {
   }
   if (ui.modal === 'mirror') setHTML(m, mirrorModal());
   if (ui.modal === 'rankup') { const R = warriorRank();   // 이류무사 승급: 24칸이 한 바퀴 켜지고 → 고리 폭발 → 번쩍 → 二流武士
-    setHTML(m, `<div class="sheet rankup-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武士 · 품계 승급</p><div class="rku-box"><div class="rku"><img class="ring off" src="${ASSET.ui('rank_ring_off')}" alt=""><img class="ring on" src="${ASSET.ui('rank_ring_on')}" alt=""><img class="med" src="${ASSET.scene('meditation')}" alt=""><i class="flash"></i><div class="title"><b>${R.hanja}</b><small>${R.name} · 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%</small></div></div></div>
+    setHTML(m, `<div class="sheet rankup-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武士 · 품계 승급</p><div class="rku-stage play"><img class="art" src="${ASSET.scene('rankup_2')}" alt=""><div class="rku"><img class="ring off" src="${ASSET.ui('rank_ring_off')}" alt=""><img class="ring on" src="${ASSET.ui('rank_ring_on')}" alt=""><i class="flash"></i><div class="title"><b>${R.hanja}</b><small>${R.name} · 전체 능력치 +${Math.round((R.mult - 1) * 100)}%</small></div></div></div>
       <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`); }
   if (ui.modal === 'awaken' && ui.awaken) { const a = ui.awaken;
     setHTML(m, `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>
