@@ -139,7 +139,7 @@ function startNewGame(name, mugongId, opts = {}) {
   S.equip.armor = makeNamedGear(STARTER_GEAR.armor);
   const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp;
   S.mainQ = 0; S.qv = 2;                             // 장문인에게 말을 걸어야 첫 가르침이 드러난다 (qv: 가르침 목록 판)
-  log('🗿 청풍문 무신상의 돌 눈꺼풀 너머로, 새 제자 하나가 산문을 들어섭니다. 당신의 목소리는 오직 그 제자에게만 들립니다.', 'gold');
+  log('🗿 몰락한 청풍문의 산문으로, 새 제자 하나가 들어섭니다. 마당의 무신상이 말없이 그 걸음을 내려다봅니다.', 'gold');
   if (S.talent) log(`주력 기예 ${hlItem(TALENTS[S.talent].name)}: ${TALENTS[S.talent].desc}`, 'good');
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·초상비·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
   log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 강호에 나가 부딪혀라."', 'npc');

@@ -5,9 +5,9 @@ function viewShrine() {
   const res = ui.gachaResult;
   const old = S.shrine.total ? `<div class="blessings"><div><small>공격력</small><b>+${S.shrine.atk}</b></div><div><small>최대 내력</small><b>+${S.shrine.mp}</b></div><div><small>회피율</small><b>+${S.shrine.eva}%</b></div><div><small>치명타율</small><b>+${Math.floor(S.shrine.total / 10) * 2}%</b></div></div><p class="muted">예전 봉헌(${S.shrine.total}회)으로 받은 힘은 그대로 남아 있습니다.</p>` : '';
   return `<section class="panel altar">
-    ${head('무신상', '武神像', `<span class="pill">나 · 我</span>`)}
+    ${head('무신상', '武神像')}
     <div class="shrine-stage">${shrineArt()}</div>
-    <p class="story">청풍문 마당의 이끼 낀 석상. 이 안에 갇힌 것이 바로 당신입니다. 제자가 화로에서 태워 먹은 찌꺼기를 바치면, 당신은 그 탁한 기운을 삼켜 쓸 만한 무언가로 돌려줍니다. 무엇이 나올지는 당신도 모릅니다.</p>
+    <p class="story">청풍문 마당에 앉은 이끼 낀 무신상. 개파조사가 세웠다는 이 석상은, 화로에서 타고 남은 찌꺼기를 바치면 그 탁한 기운을 삼키고 쓸 만한 무언가를 내려 줍니다. 무엇이 나올지는 아무도 모릅니다.</p>
     <div class="gacha">
       <div class="gacha-have"><span class="offer-icon">${itemIco('slag')}</span><b>${ITEMS.slag.name}</b><span class="num">${fmt(n)}개</span></div>
       <div class="btns">
@@ -46,7 +46,7 @@ function viewYeonmu() {
   }).join('');
   return `<section class="panel yeonmu">
     ${head('심상수련장', '心象修練場')}
-    <p class="story">연무장 한가운데 앉아 눈을 감으면, 석상의 목소리가 제자의 마음속에 싸움 하나를 그려 줍니다. 강호에서 한 번이라도 마주친 상대만 불러낼 수 있습니다. 기력은 들지 않고, 얻는 것도 잃는 것도 없습니다. 지금 차림(무공·병기·장비)과 상성이 그대로 반영됩니다.</p>
+    <p class="story">연무장 한가운데 앉아 눈을 감으면, 마음속에 싸움 하나가 그려집니다. 강호에서 한 번이라도 마주친 상대만 불러낼 수 있습니다. 기력은 들지 않고, 얻는 것도 잃는 것도 없습니다. 지금 차림(무공·병기·장비)과 상성이 그대로 반영됩니다.</p>
     ${ids.length ? `${zbar}<ul class="sim-list">${rows}</ul>` : '<p class="story muted">아직 강호에서 마주친 상대가 없습니다. 강호행에서 탐험을 다녀오십시오.</p>'}
   </section>`;
 }

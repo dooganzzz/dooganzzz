@@ -145,10 +145,10 @@ module.exports = async (b) => {
     ok('5 결과는 약재·소모품·광석·장비·영단·비급 중 하나', gc.kinds && ['herb', 'supply', 'ore', 'gear'].every(k => gc.dist[k] > 0), JSON.stringify(gc.dist));
     ok('5 비급은 드물게 · 같은 비급은 두 번 나오지 않음', (gc.dist.book || 0) <= gc.nBooks && new Set(gc.books).size === gc.books.length, JSON.stringify(gc.books));
     await p.evaluate(() => { S.inv.slag = 7; S.statueResidueCount = 0; ui.modal = null; goTab('sect', 'shrine'); render(); });   // 위 표본 공양으로 무신이 깨어났으면 창을 닫는다
-    const sh = await p.evaluate(() => ({ one: !document.querySelector('[data-pray="1"]').disabled, ten: !document.querySelector('[data-pray="10"]').disabled, me: /나/.test(document.querySelector('.altar .pill').textContent), rate: document.querySelectorAll('.gacha-table li').length, purify: !!document.querySelector('.purify') }));
+    const sh = await p.evaluate(() => ({ one: !document.querySelector('[data-pray="1"]').disabled, ten: !document.querySelector('[data-pray="10"]').disabled, me: !document.querySelector('.altar .pill'), rate: document.querySelectorAll('.gacha-table li').length, purify: !!document.querySelector('.purify') }));
     await p.click('[data-pray="1"]'); await p.click('[data-act="confirmok"]');
     const sh2 = await p.evaluate(() => ({ res: document.querySelectorAll('.gacha-res li').length, slag: count('slag'), log: /공양/.test(S.log[S.log.length - 1].text) }));
-    ok('5 무신상(나) 화면: 공양 1회/10회 · 확률표 없음 · 탁기 정화 게이지', sh.one && sh.ten && sh.me && sh.rate === 0 && sh.purify, JSON.stringify(sh));
+    ok('5 무신상 화면(나 표시 없음): 공양 1회/10회 · 확률표 없음 · 탁기 정화 게이지', sh.one && sh.ten && sh.me && sh.rate === 0 && sh.purify, JSON.stringify(sh));
     ok('5 공양하면 돌아온 것 표시 · 견문록 기록', sh2.res === 1 && sh2.slag === 4 && sh2.log, JSON.stringify(sh2));
 
     // 6. 심상수련장
