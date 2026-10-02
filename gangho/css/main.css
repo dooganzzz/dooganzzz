@@ -900,15 +900,15 @@ body {
   .skill-card-compact.mslot, .pos-12 .skill-card-compact.mslot, .pos-6 .skill-card-compact.mslot { width: 100%; max-width: none; }
   .mslot-head .mslot-cover { width: 26px; height: 34px; }
 }
-/* 무사 품계 게이지: 좌선 둥근 테두리가 삼류 무공 성급만큼(--rk) 파랗게 타오른다. 다 차면(.full) 테두리 전체가 타오르며 이류무사 */
-.meditation-center-frame { --rk: 0%; }
-.meditation-center-frame .rank-flame { position: absolute; inset: -9px; border-radius: 50%; pointer-events: none; z-index: 0;
-  background: conic-gradient(from 0deg, #7fd0ff 0%, #3a8cff calc(var(--rk) * .6), #9fe6ff var(--rk), transparent var(--rk));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px), #000 calc(100% - 2px), transparent 100%);
-          mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px), #000 calc(100% - 2px), transparent 100%);
-  filter: drop-shadow(0 0 6px rgba(90, 170, 255, .85)) drop-shadow(0 0 14px rgba(60, 140, 255, .55)); animation: rankFlame 1.6s ease-in-out infinite; }
-.meditation-center-frame.full .rank-flame { background: conic-gradient(#7fd0ff, #3a8cff, #9fe6ff, #3a8cff, #7fd0ff); filter: drop-shadow(0 0 8px rgba(110, 190, 255, .95)) drop-shadow(0 0 22px rgba(60, 140, 255, .7)); }
-@keyframes rankFlame { 0%, 100% { opacity: .82; transform: scale(1); } 50% { opacity: 1; transform: scale(1.012); } }
-html.calm .meditation-center-frame .rank-flame { animation: none; }
+/* 무사 품계 게이지: 좌선 둥근 테두리 = 24칸 청동 고리(확정본 그림). 켜진 칸(--rk)만큼 같은 그림의 '불 켜진 판'이 드러나 파랗게 넘실댄다.
+   칸 경계는 부드럽게 (불꽃이 칸에 얽매이지 않게), 다 차면(.full) 고리 전체가 타오른다 */
+.meditation-center-frame { --rk: 0%; overflow: visible; }
+.meditation-center-frame .rank-ring { position: absolute; inset: -36.2%; width: 172.4%; height: 172.4%; max-width: none; pointer-events: none; z-index: 0; }
+.meditation-center-frame .rank-ring.on { -webkit-mask: conic-gradient(#000 0 var(--rk), transparent calc(var(--rk) + 2.5%)); mask: conic-gradient(#000 0 var(--rk), transparent calc(var(--rk) + 2.5%)); animation: rankFlame 2.4s ease-in-out infinite; transform-origin: 50% 50%; }
+.meditation-center-frame.full .rank-ring.on { -webkit-mask: none; mask: none; }
+.meditation-center-frame[data-lit="0"] .rank-ring.on { display: none; }
+@keyframes rankFlame { 0%, 100% { opacity: .85; transform: scale(1) rotate(0deg); filter: brightness(1); } 35% { opacity: 1; transform: scale(1.015) rotate(.4deg); filter: brightness(1.15); } 70% { opacity: .9; transform: scale(.995) rotate(-.3deg); } }
+html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .meditation-caption .rank-name { display: block; font-size: 11px; letter-spacing: .2em; color: #8fc6ff; opacity: .85; }
 .meditation-caption .rank-name.up { color: #bfe3ff; text-shadow: 0 0 8px rgba(90, 170, 255, .8); }
+.mslots.martial-arts-core-layout { overflow-x: clip; }   /* 좌선 불꽃 고리가 폰에서 옆으로 넘쳐 가로 스크롤이 생기지 않게 */

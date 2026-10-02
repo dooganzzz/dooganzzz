@@ -382,7 +382,9 @@ const GACHA = {
 /* 화로 한 번에 넣을 수 있는 재료 수 · 연구 노트에 남기는 시도 수 */
 const POT_MAX = 10;
 /* 화로 › 연혼: 찢어진 비급 조각 8장 → 그 등급의 온전한 비급 한 권 (아직 없는 것 가운데 무작위) */
-const STUDY = { need: 8, scraps: { scrap2: '이류', scrap3: '일류' } };
+const STUDY = { need: 8, scraps: { scrap2: '이류', scrap3: '일류' },
+  color: { scrap2: '#58d08a', scrap3: '#5aa8ff' },                                  // 등급 색 (이류 녹 · 일류 청) — 조각 칸 · 엮기 연출의 넋 · 명경 속 비급
+  tint: { scrap2: 'sepia(1) saturate(2.6) hue-rotate(75deg)', scrap3: 'sepia(1) saturate(2.6) hue-rotate(175deg)' } };
 const CRAFT_NOTE_MAX = 80;
 
 /* 장비 강화: +1마다 기본 능력치 10% 상승, 최대 +10. 실패해도 등급은 떨어지지 않고 은자만 사라진다. */

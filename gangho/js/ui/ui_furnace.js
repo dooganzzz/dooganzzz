@@ -21,10 +21,26 @@ function viewStudy() {
     <div class="btns plaque-btns study-btns"><button class="btn plaque primary" data-act="mirror">내력 주입하기</button></div>
   </section>`;
 }
+/* 엮기 연출: 여덟 거울(자리 %) → 넋이 명경(50%, 35.2%)으로 모임 → 비급이 또렷해지며 번쩍. 끝나면 resolve */
+const YH_MIRRORS = [[50, 8.45], [60.91, 17.06], [64.73, 33.32], [60.73, 49.24], [50, 53.31], [39.27, 49.24], [35, 33.32], [38.91, 17.06]];
+function studyBindFx(stage, scrap, id) {
+  if (!stage || reduceMotion()) return Promise.resolve();
+  const fx = document.createElement('div'); fx.className = 'yh-fx';
+  stage.style.setProperty('--gc', STUDY.color[scrap]); stage.style.setProperty('--gtint', STUDY.tint[scrap]);
+  // 깨진 명경 조각: 같은 그림의 명경 안쪽을 삼각형으로 잘라 바깥으로 흩뿌린다
+  const SH = [[0, 0, 50, 0, 50, 50], [50, 0, 100, 0, 50, 50], [100, 0, 100, 50, 50, 50], [100, 50, 100, 100, 50, 50], [100, 100, 50, 100, 50, 50], [50, 100, 0, 100, 50, 50], [0, 100, 0, 50, 50, 50], [0, 50, 0, 0, 50, 50]];
+  const shards = SH.map((p, i) => { const a = (i + .5) / SH.length * Math.PI * 2;
+    return `<i class="shard" style="clip-path:polygon(${p[0]}% ${p[1]}%,${p[2]}% ${p[3]}%,${p[4]}% ${p[5]}%);--dx:${(Math.sin(a) * 120).toFixed(0)}%;--dy:${(-Math.cos(a) * 120).toFixed(0)}%;--rot:${(i % 2 ? 1 : -1) * (25 + i * 7)}deg"></i>`; }).join('');
+  fx.innerHTML = YH_MIRRORS.map(([x, y], i) => `<i class="glow" style="left:${x}%;top:${y}%;animation-delay:${i * .05}s"></i><i class="soul" style="--x0:${x}%;--y0:${y}%;left:${x}%;top:${y}%;animation-delay:${.45 + i * .04}s"></i>`).join('')
+    + `<i class="core"></i><div class="crack"><svg viewBox="0 0 100 100"><path d="M50 50 L18 12 M50 50 L86 20 M50 50 L92 62 M50 50 L60 96 M50 50 L10 70 M50 50 L40 4 M30 28 L18 40 M70 30 L80 44 M66 74 L82 80 M34 72 L22 86"/></svg></div><div class="shards" style="--bg:url('${ART_SRC.yeonhonBook()}')">${shards}</div>`
+    + (id ? `<div class="burst">${manualIco(id, 'burst-book')}</div>` : '');
+  stage.appendChild(fx); stage.classList.add('binding');
+  return new Promise(done => setTimeout(() => { fx.remove(); stage.classList.remove('binding'); done(); }, 3900));
+}
 /* 명경을 누르면: 등급마다 조각 칸 (다 모인 등급만 [엮기]) */
 function mirrorModal() {
   const rows = Object.entries(STUDY.scraps).map(([id, grade]) => { const n = count(id), ok = n >= STUDY.need;
-    return `<li class="study-row ${ok ? 'ready' : ''}"><span class="icon">${itemIco(id)}</span><div><b>${ITEMS[id].name}</b><div class="mprog"><span style="width:${Math.min(100, n / STUDY.need * 100)}%"></span></div><small class="muted">${n} / ${STUDY.need}장${ok ? '' : ' — 다 모여야 엮을 수 있습니다'}</small></div>
+    return `<li class="study-row ${ok ? 'ready' : ''}" style="--gc:${STUDY.color[id]}"><span class="icon">${itemIco(id)}</span><div><b>${ITEMS[id].name}</b><div class="mprog"><span style="width:${Math.min(100, n / STUDY.need * 100)}%"></span></div><small class="muted">${n} / ${STUDY.need}장${ok ? '' : ' — 다 모여야 엮을 수 있습니다'}</small></div>
       <button class="btn sm ${ok ? 'primary' : ''}" data-bind="${id}" ${ok ? '' : 'disabled'}>엮기</button></li>`; }).join('');
   return `<div class="sheet mirror-sheet"><p class="eyebrow">煉魂 · 明鏡</p><h2>명경</h2><ul class="study-list">${rows}</ul>
     <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
