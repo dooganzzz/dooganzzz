@@ -18,9 +18,6 @@
 .slot:not(.full), .dslot.empty {
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); background: rgba(10, 12, 16, .6); border: 1px dashed rgba(255, 255, 255, .1);
 }
-@media (prefers-reduced-motion: reduce) {
-  .btn:hover, .chip:hover, .art:hover, .dslot:hover, .starter:hover { transform: none; }
-}
 .mslot:hover { box-shadow: 0 0 12px rgba(212, 175, 55, .25); transform: translateY(-1px); }
 .mslot.empty:hover { transform: none; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); }
 .mcard:hover { box-shadow: 0 0 12px rgba(212, 175, 55, .25); transform: translateY(-1px); border-color: rgba(212, 175, 55, .55); }
@@ -55,9 +52,6 @@
 /* 타자기 커서 */
 .typing::after { content: '▍'; margin-left: 1px; color: var(--gold); animation: caretBlink .7s steps(1) infinite; }
 @keyframes caretBlink { 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .typing::after { content: none; }
-}
 /* 상태 하위 탭 호버 */
 .subtab { transition: color .18s, background .18s; }
 .subtab:not(.on):hover { color: var(--ink); background: rgba(212, 175, 55, .08); }

@@ -270,9 +270,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .dslot { min-height: 56px; }
   .pot-slots { gap: 6px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-}
 /* ───── 먹빛 글래스 (Ink Glass) ───── */
 .panel, .side { background: rgba(18, 22, 29, .85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, .15); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
 .sheet { background: rgba(18, 22, 29, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, .22); }

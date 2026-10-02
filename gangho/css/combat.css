@@ -63,9 +63,6 @@
   .vs span { font-size: 1.5rem; }
   .seal-av { width: 52px; height: 52px; font-size: 1.5rem; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .fx-num { animation-duration: .01s; }
-}
 /* 연출 겹침 정리 */
 .fx-num { top: -16px; }
 .move-banner span { padding: 10px 46px; background: radial-gradient(ellipse at center, rgba(8, 10, 12, .94) 45%, rgba(8, 10, 12, 0) 75%); }

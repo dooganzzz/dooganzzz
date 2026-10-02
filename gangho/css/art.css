@@ -102,9 +102,6 @@
 @keyframes rays { to { transform: rotate(360deg); } }
 
 /* ───────── 바닥글 · 움직임 줄이기 ───────── */
-@media (prefers-reduced-motion: reduce) {
-  .btn.talk-btn.ready, .scene *, .statue *, .enh-stage *, .portrait-img, .meditation-art > img, .gear-ico > img, .shrine-art > img, .replay-sheet.won .arena-bg::after, .settle-sheet { animation: none !important; }
-}
 .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
 
 /* ───────── 그림 파일이 있으면 SVG 자리 그림은 처음부터 감춘다 (예전 그림이 비쳤다가 바뀌지 않게).
@@ -410,7 +407,6 @@
 .stance-vfx img { width: 100%; height: 100%; object-fit: contain; }
 .stance-vfx.n1 img { animation: spVfx1 1.2s ease-out forwards; }
 .stance-vfx.n2 img { mix-blend-mode: screen; animation: spVfx2 1.4s ease-out forwards; }
-@media (prefers-reduced-motion: reduce) { .sp-vfx, .stance-vfx { display: none; } }
 
 /* 실시간 강호행: 왼쪽 산길 무대(제자가 걷고 배경이 흐른다) · 오른쪽 배속 견문록 */
 .live-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 28%); gap: 12px; align-items: start; }   /* PC 무대 30% 키움 (유저 요청): 견문록은 오른쪽 좁은 칸 */
@@ -460,7 +456,6 @@
 .live-walker .walk-ghost.g2 { transform: translateX(-28%); opacity: .16; }
 .live-wind { position: absolute; z-index: 3; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .85)); animation: liveWind .55s linear forwards; pointer-events: none; }
 @keyframes liveWind { from { opacity: .9; transform: translateX(0); } to { opacity: 0; transform: translateX(-160px); } }
-@media (prefers-reduced-motion: reduce) { .live-wind { display: none; } }
 .live-scene:not(.rest):not(.fight) .live-hero, .live-scene.rest .live-walker, .live-scene.fight .live-walker { display: none; }
 .live-hero.sp-hero { transition: left .3s cubic-bezier(.3, .7, .3, 1); }
 
@@ -620,7 +615,6 @@
 .live-gain.good span { color: #ffe08a; } .live-gain.bad span { color: #ff8a70; } .live-gain.muted span { color: #cfc6b2; } .live-gain.npc span { color: #b9e0ff; }
 .live-gain.bad { padding-left: 9px; }
 @keyframes liveGain { from { opacity: 0; transform: translateY(10px) scale(.9); } 15% { opacity: 1; transform: none; } 75% { opacity: 1; } to { opacity: 0; transform: translateY(-28px); } }
-@media (prefers-reduced-motion: reduce) { .live-gim, .live-gain { animation: none; } }
 /* 기력: 패널 막대 · 걷는 동안은 경공 잔상을 숨긴다 */
 .live-prog.mp span { background: linear-gradient(90deg, #2c5a8a, #5ab0e0); }   /* 활력 빨강 · 내력 파랑 · 기력 노랑 */
 .live-prog.sta span { background: linear-gradient(90deg, #9a7420, #e6c24a); }
@@ -676,7 +670,6 @@
   80% { opacity: 0.5; transform: translate(calc(-50% + var(--sx) * 0.8), calc(-50% - var(--up) * 0.64 + var(--fall) * 0.64)) scale(0.9); }
   90% { opacity: 0.25; transform: translate(calc(-50% + var(--sx) * 0.9), calc(-50% - var(--up) * 0.36 + var(--fall) * 0.81)) scale(0.85); }
   100% { opacity: 0; transform: translate(calc(-50% + var(--sx) * 1.0), calc(-50% - var(--up) * 0.0 + var(--fall) * 1.0)) scale(0.8); } }
-@media (prefers-reduced-motion: reduce) { .map-spot:hover + .map-pillar, .map-spot:hover + .map-pillar > img { animation: none; opacity: 1; -webkit-mask: none; mask: none; } .map-dust, .map-flash, .map-ring { display: none; } }
 .map-spot.locked { cursor: not-allowed; }
 /* 지도 글씨: 붓글씨 그림(ui/map_*)만 — 작게, 배경 · 테두리 없이 먹이 종이에 스며든 듯(곱하기), 각 그림의 머리 위쪽에 */
 .map-box > .map-word { position: absolute; z-index: 3; border-radius: 0; object-fit: contain; transform: translate(-50%, -50%); width: 10%; height: auto; pointer-events: none; mix-blend-mode: multiply; opacity: 1; transition: opacity .2s, filter .2s; }
@@ -703,7 +696,6 @@
 .live-fallen .lf-weapon.w-hidden { width: 24%; bottom: -16%; --r: 0deg; }
 @keyframes lfDown { 0% { opacity: 0; transform: translateY(-14%) rotate(-6deg); } 70% { opacity: 1; transform: translateY(2%) rotate(1deg); } 100% { opacity: 1; transform: none; } }
 @keyframes lfDrop { 0% { opacity: 0; transform: translate(-30%, -160%) rotate(calc(var(--r, 45deg) - 120deg)); } 55% { opacity: 1; transform: translate(0, 0) rotate(var(--r, 45deg)) scaleY(.75); } 72% { transform: translate(6%, -18%) rotate(calc(var(--r, 45deg) + 8deg)) scaleY(.75); } 88%, 100% { opacity: 1; transform: rotate(var(--r, 45deg)) scaleY(.75); } }
-@media (prefers-reduced-motion: reduce) { .live-fallen .lf-body, .live-fallen .lf-weapon { animation: none; } }
 
 .live-skname.long { font-size: 16px; letter-spacing: .06em; white-space: nowrap; }
 .live-skname.n2.long { font-size: 18px; }
@@ -711,6 +703,7 @@
 .stance-cut { position: absolute; z-index: 6; pointer-events: none; background: 0 0 / 1000% 100% no-repeat; animation: liveCut 1s steps(9) forwards;
   filter: drop-shadow(0 0 1.5px rgba(10, 40, 110, .85)) drop-shadow(0 0 6px rgba(60, 140, 255, .55)) saturate(1.5); }   /* 밝은 산길에서도 보이게 테두리 그늘 */
 .stance-cut.screen { mix-blend-mode: screen; }
+.stance-cut.hit { filter: none; }   /* 맞는 자리에서 터지는 빛 그림(MANUAL_HIT): 테두리 빛 없이 그대로 스며들게 */
 .stance-cut.solid { filter: drop-shadow(0 0 1px rgba(255, 236, 190, .8)) drop-shadow(0 0 5px rgba(255, 200, 90, .35)); }   /* 철사장: 돌 · 쇠빛 그림은 섞지 않고 그대로, 따뜻한 테두리 빛 */
 .stance-cut.ink { filter: drop-shadow(0 0 1px rgba(250, 244, 226, .85)) drop-shadow(0 0 5px rgba(250, 244, 226, .35)); }   /* 먹빛 무공(유묵검법): 파란 빛 대신 종이빛 테두리, 섞지 않고 그대로 */
 @keyframes liveCut { from { background-position: 0 0; } to { background-position: 100% 0; } }

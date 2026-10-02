@@ -199,7 +199,7 @@ function meditationSvg() {
 
 /* ───────── 움직임 줄이기: 기기 설정 또는 게임 설정(설정 탭) ───────── */
 const calmOn = () => !!(S && S.settings && S.settings.calm);
-function reduceMotion() { return calmOn() || matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function reduceMotion() { return calmOn(); }   // 게임 설정 '차분히'만 따른다 — 휴대폰의 '애니메이션 줄이기'(절전 모드에서 저절로 켜지기도 함)를 따르면 강호행 무대가 멈춘 것처럼 보인다
 const calloutOn = () => !(S && S.settings && S.settings.callout === false);   // 초식 외침 두루마리 (기본 켬)
 function toggleCallout() {
   S.settings = { ...(S.settings || {}), callout: !calloutOn() };

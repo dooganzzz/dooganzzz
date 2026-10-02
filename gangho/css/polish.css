@@ -230,7 +230,6 @@ small { font-size: .82rem; }
 .alert-dot { display: inline-block; width: 6px; height: 6px; margin-left: 3px; border-radius: 50%; background: #e0412a; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .35), 0 0 4px rgba(224, 65, 42, .7); vertical-align: top; animation: alertPulse 1.6s ease-in-out infinite; }
 .tab .alert-dot, .subtab .alert-dot { position: absolute; top: 4px; right: 10%; margin: 0; }
 @keyframes alertPulse { 50% { transform: scale(1.25); } }
-@media (prefers-reduced-motion: reduce) { .alert-dot { animation: none; } }
 /* 설정 탭 · 대량 구매 슬라이더 */
 .settings-panel .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid rgba(212, 175, 55, .15); }
 .set-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 220px; }

@@ -16,7 +16,7 @@ const stanceFxSrc = (mid, n) => n >= 3 ? null : ASSET.manual(mid, 'cut_' + stanc
 /* stage: 그림을 붙일 무대 · imgCls: 옛 한 장 그림일 때 붙일 클래스 · hero · foe: 칼끝 · 거리를 잴 요소 (없으면 무대 가운데를 가로지름) */
 function stanceFxEl(stage, mid, n, imgCls, hero, foe) {
   if (!stanceFxSrc(mid, n)) return null;
-  const au = stanceCutN(n) === 1 && ASSET.hit(mid), g = au ? HIT_GEO : CUT_GEO[stanceCutN(n)], v = document.createElement('div'); v.className = `stance-cut${g.screen && !ASSET.ink(mid) && !ASSET.solid(mid) ? ' screen' : ''}${ASSET.ink(mid) ? ' ink' : ''}${ASSET.solid(mid) ? ' solid' : ''}`;
+  const au = stanceCutN(n) === 1 && ASSET.hit(mid), g = au ? HIT_GEO : CUT_GEO[stanceCutN(n)], v = document.createElement('div'); v.className = `stance-cut${au ? ' hit' : ''}${g.screen && !ASSET.ink(mid) && !ASSET.solid(mid) ? ' screen' : ''}${ASSET.ink(mid) ? ' ink' : ''}${ASSET.solid(mid) ? ' solid' : ''}`;
   v.style.backgroundImage = `url('${stanceFxSrc(mid, n)}')`; v.style.animationDuration = g.ms + 'ms';
   const s = stage.getBoundingClientRect(), h = hero && hero.getBoundingClientRect();
   if (!h || !h.width) { Object.assign(v.style, { left: '5%', width: '90%', top: '50%', aspectRatio: String(g.ar), transform: 'translateY(-50%)' }); return v; }

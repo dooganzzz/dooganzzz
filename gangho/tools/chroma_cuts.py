@@ -3,6 +3,7 @@
    python3 tools/chroma_cuts.py 2 in.png out.webp     제2초식 컷 시트 (10컷, 640x360)
    python3 tools/chroma_cuts.py ougi in.png out.webp  오의 시트 (16컷, 240x240)
    python3 tools/chroma_cuts.py hit in.png out.webp   맞는 자리에서 터지는 제1초식(MANUAL_HIT) 시트 (10컷, 480x360 · 그림을 자르지 않고 통째로 맞춤)
+   python3 tools/chroma_cuts.py glow in.png out.webp  검은 바탕 그림(빛 · 기운) → 맞는 자리에서 터지는 시트 (밝기를 알파로, 10컷 480x360)
    결과 webp를 assets/art/manual/<무공id>/(cut_1 · cut_2 · ougi)에 넣는다. 먹 그림은 게임에서 screen 겹치기로는 지워지므로 그 무공만 normal 겹치기가 필요하다."""
 from PIL import Image
 import numpy as np, sys
@@ -55,9 +56,27 @@ def hit(src,out):
         A=np.asarray(c).astype(float); A[...,3]*=o; fr.append(A)
     Image.fromarray(np.concatenate(fr,1).astype('uint8'),'RGBA').save(out,'WEBP',quality=82,method=6)
 
+def glow_key(im):
+    """검은 바탕 → 투명: 밝은 만큼 보이게(알파 = 가장 밝은 채널), 색은 알파로 나눠 되살린다. 빛 그림이 배경에 스며든다"""
+    a=np.asarray(im.convert('RGB')).astype(float); m=a.max(2)
+    al=np.clip((m-26)/(210-26),0,1)**.9   # 아주 옅은 안개 빛은 버려 네모난 그늘이 생기지 않게
+    rgb=np.clip(a/np.maximum(al,1e-3)[...,None],0,255)
+    return Image.fromarray(np.dstack([rgb,al*255]).astype('uint8'),'RGBA')
+def glow(src,out):
+    im=glow_key(Image.open(src)); W,H=480,360; base=fit(im,W/H,W,H); fr=[]
+    for f in range(10):
+        s=.62+.38*min(1,f/3)**.6 if f<4 else 1+.025*(f-3); o=1 if f<6 else max(0,1-(f-5)/4.5)
+        t=base.resize((max(1,int(W*s)),max(1,int(H*s))),Image.LANCZOS); c=Image.new('RGBA',(W,H))
+        ox,oy=(W-t.size[0])//2,(H-t.size[1])//2
+        if s<=1: c.alpha_composite(t,(ox,oy))
+        else: c=t.crop((-ox,-oy,-ox+W,-oy+H))
+        A=np.asarray(c).astype(float); A[...,3]*=o; fr.append(A)
+    Image.fromarray(np.concatenate(fr,1).astype('uint8'),'RGBA').save(out,'WEBP',quality=82,method=6)
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if len(a) == 3 and a[0] in ("1", "2"): sheet(a[1], a[2], int(a[0]))
     elif len(a) == 3 and a[0] == "ougi": ougi(a[1], a[2])
     elif len(a) == 3 and a[0] == "hit": hit(a[1], a[2])
+    elif len(a) == 3 and a[0] == "glow": glow(a[1], a[2])
     else: print(__doc__)
