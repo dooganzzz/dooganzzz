@@ -10,7 +10,7 @@ const SPRITE_SRC = ASSET;
 const CUT_GEO = { 1: { tip: .75, reach: 1.07, dy: .18, ar: 640 / 200, ms: 1000 }, 2: { tip: .7, reach: 1.04, dy: .35, ar: 640 / 360, ms: 1300, screen: true } };
 /* n: 초식 번호 (1 · 2 · 3=오의). 확정본 컷은 초식마다(제1 · 제2), 옛 한 장 그림은 제1 · 제2초식 공용(_1) · 오의(_2) */
 const stanceCutN = n => Math.min(2, Math.max(1, n || 1));
-const stanceFxSrc = (mid, n) => ASSET.manual(mid, 'cut_' + stanceCutN(n));   // 그림이 없는 무공은 초식 그림 없이 (일격만)
+const stanceFxSrc = (mid, n) => n >= 3 ? null : ASSET.manual(mid, 'cut_' + stanceCutN(n));   // 그 무공 폴더에 없으면 null → 평타   // 그림이 없는 무공은 초식 그림 없이 (일격만)
 /* stage: 그림을 붙일 무대 · imgCls: 옛 한 장 그림일 때 붙일 클래스 · hero · foe: 칼끝 · 거리를 잴 요소 (없으면 무대 가운데를 가로지름) */
 function stanceFxEl(stage, mid, n, imgCls, hero, foe) {
   if (!stanceFxSrc(mid, n)) return null;
@@ -110,7 +110,7 @@ function spDust(x, dx = -18, n = 2) {
 /* 이펙트 그림 한 장 띄우기 (cls: n1 소성 먹빛 · n2 대성 광휘 · hit · crit · dodge) */
 function spVfx(name, cls, ms = 900) {
   const st = $('#spStage'); if (!st) return null;
-  const v = document.createElement('img'); v.className = `sp-vfx ${cls}`; v.src = SPRITE_SRC.fx(name); v.alt = '';
+  const v = document.createElement('img'); v.className = `sp-vfx ${cls}`; v.src = ASSET.vfx(name); v.alt = '';
   st.appendChild(v); setTimeout(() => v.remove(), ms); return v;
 }
 /* 대성 초식: 무대가 어두워지고 발밑에 금빛 기운이 솟는다 */

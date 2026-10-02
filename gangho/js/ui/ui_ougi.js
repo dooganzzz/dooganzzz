@@ -5,29 +5,30 @@
    ui_live.js(강호행 무대)가 오의가 나간 합에서 부른다. 그림 경로는 ASSET으로만. */
 const OG_W = ms => new Promise(r => setTimeout(r, ms));
 const OG_CFG = {
-  sword: { rgb: '90,140,255', fx: 'ougi_sword', impact: 10, glow: 'blade', gather: 'smoke', death: 'shatter', dash: true,
+  sword: { rgb: '90,140,255', impact: 10, glow: 'blade', gather: 'smoke', death: 'shatter', dash: true,
     seg: { 0: [.48, .57, .61, .87], 1: [.52, .53, .73, .67], 2: [.32, .54, .50, .69], 4: [.46, .43, .29, .28], 5: [.74, .29, .93, .26], 6: [.70, .46, .79, .52] }, reachFrame: 5, reachAt: [.93, .26], reachInto: .38 },
-  blade: { rgb: '255,165,55', fx: 'ougi_blade', impact: 11, fxFrom: 5, fxPer: 85, fxAnchor: 'bottom', fxFromBlade: true, glow: 'blade', gather: 'embers', death: 'split', dash: true,
+  blade: { rgb: '255,165,55', impact: 11, fxFrom: 5, fxPer: 85, fxAnchor: 'bottom', fxFromBlade: true, glow: 'blade', gather: 'embers', death: 'split', dash: true,
     seg: { 0: [.52, .40, .60, .35], 1: [.45, .49, .33, .75], 2: [.41, .47, .30, .58], 4: [.56, .17, .32, .06], 5: [.58, .56, .74, .73], 6: [.58, .73, .77, .83] }, reachFrame: 5, reachAt: [.74, .73], reachInto: .45 },
-  spear: { rgb: '40,215,185', fx: 'ougi_spear', impact: 9, glow: 'blade', gather: 'spiral', death: 'pierce', dash: true,
+  spear: { rgb: '40,215,185', impact: 9, glow: 'blade', gather: 'spiral', death: 'pierce', dash: true,
     seg: { 0: [.22, .68, .63, .10], 1: [.30, .51, .64, .47], 2: [.27, .47, .66, .47], 4: [.26, .23, .67, .62], 5: [.27, .56, .80, .38], 6: [.55, .86, .63, .03] }, reachFrame: 5, reachAt: [.80, .38], reachInto: .3 },
   hidden: { rgb: '170,95,255', noFx: true, kunai: true, impact: 10, glow: 'hands', gather: 'smoke', death: 'riddle', dash: false,
     hands: { 0: [[.55, .20]], 4: [[.37, .13], [.62, .36]], 5: [[.71, .27]], 6: [[.45, .30]] } },
-  fist: { rgb: '255,85,50', fx: 'ougi_fist', impact: 9, glow: 'hands', gather: 'flame', death: 'launch', dash: true,
+  fist: { rgb: '255,85,50', impact: 9, glow: 'hands', gather: 'flame', death: 'launch', dash: true,
     hands: { 0: [[.55, .26]], 1: [[.60, .41]], 2: [[.63, .38]], 4: [[.70, .26]], 5: [[.69, .09], [.49, .17]], 6: [[.69, .29]] }, reachFrame: 4, reachAt: [.70, .26], reachInto: .3 },
 };
 /* 오의를 펼친다: 무대(sc) 위에 오의 막을 덮고, 실제 제자 · 요수 자리에서 연출한 뒤 막을 걷는다. 끝나면 풀리는 Promise.
    o = { w 병기, name 오의 이름, heroEl · foeEl 무대의 제자 · 요수, foeImg 요수 그림(조각용), dmg 실제 피해, kill 숨통을 끊는가, onImpact 맞는 순간 } */
 /* [SSOT] 오의 고르기: 무공에 제 오의(OG_MANUAL)가 있으면 그 그림 · 빛깔을 쓰고, 병기 공용 오의의 겹치는 막(기운 오라 · 모이는 기운 · 칼빛 · 터지는 고리)은 끈다.
    없으면 병기 공용 오의(OG_CFG). 오의 그림은 이 함수 하나에서만 고른다 (옛 그림이 새 그림 위에 겹치지 않게) */
-const OG_MANUAL = { sw1b: { rgb: '190,220,255', impact: 5 } };   // 무공 제 오의의 빛깔 · 터지는 컷. 그림은 그 무공 폴더의 ougi (ASSET.manual)
+const OG_MANUAL = { sw1a: { keep: true }, sw1b: { rgb: '190,220,255', impact: 5 } };   // 무공 오의의 빛깔 · 터지는 컷. keep: 기운 오라 · 고리 · 마무리까지 함께 (한상검법). 그림은 그 무공 폴더의 ougi
 /* 무공마다 공용 오의의 일부만 바꿀 때 (제 그림 없이): 추상검법은 온몸에서 아지랑이가 피어올라 검 속으로 빨려 든다 */
 const OG_TWEAK = { sw1b: { gather: 'haze', rgb: '190,220,255' } };
 function ougiCfg(w, mid) {
-  const T = mid && OG_TWEAK[mid], B = OG_CFG[w] && (T ? { ...OG_CFG[w], ...T } : OG_CFG[w]); if (!B) return B;
-  const own = mid && ASSET.manual(mid, 'ougi');   // 제 오의 그림은 그 무공 폴더에만 있다 → 있으면 그것, 없으면 병기 공용(common/ougi_병기)
-  return own ? { ...B, ...(OG_MANUAL[mid] || {}), own: true, fxSrc: own } : { ...B, fxSrc: B.fx ? ASSET.common(B.fx) : null };
+  const art = mid && ASSET.manual(mid, 'ougi'); if (!art || !OG_CFG[w]) return null;   // 오의 그림이 없는 무공은 오의 연출이 없다 (평타가 나간다). 공용 오의는 없다
+  const T = OG_TWEAK[mid], M = OG_MANUAL[mid] || {};
+  return { ...OG_CFG[w], ...(T || {}), ...M, own: !M.keep, fxSrc: art };
 }
+const ougiHas = mid => !!(mid && ASSET.manual(mid, 'ougi'));
 function ougiPreload(w, mid) { const C = ougiCfg(w, mid); if (C) preloadImgs([...(C.own ? [] : [ASSET.fx('aura'), ASSET.fx('dart')]), ...(C.fxSrc ? [C.fxSrc] : [])]); }
 function ougiPlay(sc, o) {
   const w = o.w, C = ougiCfg(w, o.mid);

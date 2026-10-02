@@ -66,7 +66,7 @@ function liveShowPlan(sh, w) {
     const used = new Set();
     for (let i = 0; i < r.fx.length; i++) {
       const f = r.fx[i]; if (used.has(i)) continue;
-      if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function') {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
+      if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function' && ougiHas(f.mid)) {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
         const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
         const co = g && g.k !== 'miss' && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);
         if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }   // 오의 외침: 무공 시계(CO_MOVE_AT.ougi)가 되면 오의 막
@@ -74,7 +74,7 @@ function liveShowPlan(sh, w) {
       }
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
-          const co = f.n < 3 && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);   // 초식 외침: 초식을 펼칠 때마다 (설정에서 끔)
+          const co = typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);   // 초식 외침: 초식을 펼칠 때마다 (설정에서 끔)
           if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(20); }   // 감기기 시작하면 바로 초식
           pending = { mid: f.mid, n: f.n, tier: f.n >= 3 ? 2 : 1, name: f.t, noName: !!co };   // 초식은 바로 뒤의 일격에 실어 낸다 (평타 동작과 겹치지 않게)
         }
@@ -103,7 +103,7 @@ function liveSkill(sc, sk) {
   const v = stanceFxEl(sc, sk.mid, sk.n || sk.tier, `live-skill n${sk.tier}`, document.getElementById('liveHero'), sc.querySelector('.live-foe')); if (v) v.dataset.live = 1;
   if (sk.noName) lab.hidden = true;                  // 방금 두루마리로 외친 초식은 이름 글자를 또 띄우지 않는다
   sc.append(lab, ...(v ? [v] : [])); setTimeout(() => { lab.remove(); if (v) v.remove(); }, sk.tier === 2 ? 1500 : 1200);
-  if (sk.tier === 2) liveShake(sc);
+  if (sk.tier === 2 && v) liveShake(sc);   // 그림 없는 초식 · 오의는 평타처럼
 }
 function liveShake(sc) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); clearTimeout(sc._shakeT); sc._shakeT = setTimeout(() => sc.classList.remove('shake'), 650); }
 function liveNum(sc, t, left, cls) {
@@ -120,7 +120,7 @@ function liveProj(sc, sh, dur) {
   setTimeout(() => el.remove(), Math.max(120, dur) + 60);
 }
 function liveVfx(sc, name, left, cls) {
-  const v = document.createElement('img'); v.className = `live-vfx ${cls || ''}`; v.dataset.live = 1; v.src = SPRITE_SRC.fx(name); v.alt = ''; v.style.left = left + '%';
+  const v = document.createElement('img'); v.className = `live-vfx ${cls || ''}`; v.dataset.live = 1; v.src = ASSET.vfx(name); v.alt = ''; v.style.left = left + '%';
   sc.appendChild(v); setTimeout(() => v.remove(), 650);
 }
 function liveShowStart(sc, sh) {
