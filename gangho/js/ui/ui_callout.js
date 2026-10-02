@@ -7,7 +7,9 @@ const CALLOUT = {
   2: { art: 'sw1a_2', ax: 'sw1a_ax', t: .413, b: .711, glow: '255, 190, 80', tone: 'gold' },   // 제2초식 — 금박 연기 (GPT Image 2.5 확정본)
   3: { art: 'sw1a_3', ax: 'sw1a_ax', t: .394, b: .694, glow: '255, 90, 60', tone: 'red' },   // 오의 — 봉황 날개 (GPT Image 2.5 확정본)
 };
-const CO_TL = { inEnd: 900, poem: 1000, outStart: 2500, outEnd: 2950, end: 3050 };   // ms
+const CO_TL = { inEnd: 900, poem: 1000, outStart: 2500, outEnd: 2950, end: 3050 };   // ms — 두루마리 시계 (두루마리 자신의 움직임)
+/* 무공 시계: 두루마리가 뜬 뒤 몇 ms에 무공(초식 · 오의)이 시작하는가. 두루마리 시계와 따로 센다 (서로 기다리지 않는다) */
+const CO_MOVE_AT = { move: 2500, ougi: 3050 };   // 초식: 감기기 시작할 때 · 오의: 다 거둬진 뒤
 const CO_AX = { w: .5, len: .75, start: 1.5, h0: 2.2, c0: .38, aspect: 135 / 505, frames: 16, turn: 4.6 };   // 축 굵기 · 길이 · 다 감겼을 때 굵기 배율 · 그림 비율 · 무늬 한 바퀴(라디안)
 const calloutOf = (mid, n) => (MANUALS[mid] && MANUALS[mid].weapon && MANUALS[mid].stances && MANUALS[mid].stances[n - 1] && CALLOUT[n]) || null;   // 병기 무공이면 모두
 /* 시구 크기 · 자리 (유저가 미리보기에서 맞춤): one = 한 줄 시구(제1 · 제2초식) · two = 두 줄 시구(오의), pc · mo(폭 640px 이하)
@@ -19,7 +21,7 @@ const CO_POEM = {
 function calloutPreload(mid, n) {
   const C = calloutOf(mid, n); if (C) preloadImgs([ASSET.callout(C.art), ASSET.callout(C.art + '_hz'), ASSET.callout(C.ax), ASSET.callout('face')]);
 }
-function calloutPlay(sc, mid, n, full) {
+function calloutPlay(sc, mid, n) {
   const C = calloutOf(mid, n), M = MANUALS[mid];
   if (!C || !M || !sc) return Promise.resolve();
   const st = M.stances[n - 1], hj = (st.name.match(/\(([^)]*)\)/) || [])[1] || '', P = (M.poem && M.poem.lines) || [];
@@ -52,10 +54,10 @@ function calloutPlay(sc, mid, n, full) {
   const easeOut = x => 1 - Math.pow(1 - x, 3), easeIn = x => x * x * x;
   const gap = Math.min(75, 1300 / Math.max(1, chars.length));
   return new Promise(done => {
-    const t0 = performance.now(); let freed = false;
+    const t0 = performance.now();
+    setTimeout(done, CO_MOVE_AT[n >= 3 ? 'ougi' : 'move']);   // 무공 시계: 두루마리와 따로 세어 그때 무공을 시작한다
     const step = now => {
       const ms = now - t0;
-      if (!full && !freed && ms >= CO_TL.outStart) { freed = true; done(); }   // 대사가 끝나 두루마리가 감기기 시작하면 바로 초식을 펼친다 (감기는 것과 동시에)
       const p = ms < CO_TL.inEnd ? easeOut(ms / CO_TL.inEnd) : ms < CO_TL.outStart ? 1 : ms < CO_TL.outEnd ? 1 - easeIn((ms - CO_TL.outStart) / (CO_TL.outEnd - CO_TL.outStart)) : 0;
       const x = W * p, grow = 1 + (CO_AX.start - 1) * (1 - p);              // 감긴 종이가 풀릴수록 축이 가늘어진다
       paper.style.clipPath = `inset(0 ${((1 - p) * 100).toFixed(2)}% 0 0)`;
@@ -65,7 +67,7 @@ function calloutPlay(sc, mid, n, full) {
       chars.forEach((c, i) => c.classList.toggle('on', ms > CO_TL.poem + i * gap && ms < CO_TL.outStart + 200));
       box.style.opacity = ms > CO_TL.outEnd ? 0 : 1;
       if (ms < CO_TL.end && box.isConnected) requestAnimationFrame(step);
-      else { box.remove(); poem.remove(); if (!freed) done(); }
+      else { box.remove(); poem.remove(); }
     };
     requestAnimationFrame(step);
   });

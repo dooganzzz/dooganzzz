@@ -171,6 +171,9 @@
 @keyframes ogFlick { to { filter: brightness(1.35); } }
 .og-wisp { position: absolute; z-index: 4; width: 3.4%; aspect-ratio: 1.8; border-radius: 50%; pointer-events: none; mix-blend-mode: screen; filter: blur(2.5px);
   background: radial-gradient(ellipse, rgba(255, 255, 255, .95) 0, rgba(var(--c), .75) 30%, rgba(var(--c), .35) 55%, rgba(var(--c), 0) 72%); }
+.og-wisp.haze { width: 1.6%; aspect-ratio: .45; border-radius: 50%; filter: blur(2.2px); background: radial-gradient(ellipse, rgba(255, 255, 255, .85) 0 20%, rgba(var(--c), .55) 50%, rgba(var(--c), 0) 75%); }   /* 추상검법: 피어오르는 아지랑이 */
+.og-shimmer { animation: ogShimmer .22s ease-in-out infinite alternate; }
+@keyframes ogShimmer { from { filter: drop-shadow(0 0 4px rgba(190, 220, 255, .7)) brightness(1.05); } to { filter: drop-shadow(0 0 10px rgba(190, 220, 255, .95)) brightness(1.18) blur(.3px); } }
 .og-wisp.ember { width: 1.4%; aspect-ratio: 1; filter: blur(.6px); background: radial-gradient(circle, #fff6d0 0 25%, rgba(var(--c), .9) 50%, rgba(var(--c), 0) 75%); }
 .og-wisp.spiral { width: 2.2%; aspect-ratio: 2.6; filter: blur(1.4px); }
 .og-wisp.dart { width: 2.2%; aspect-ratio: 2.4; border-radius: 40% 60% 60% 40%; filter: blur(.4px); background: linear-gradient(90deg, rgba(var(--c), 0), rgba(var(--c), .9) 60%, #fff); }

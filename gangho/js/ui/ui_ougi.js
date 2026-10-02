@@ -21,7 +21,9 @@ const OG_CFG = {
 /* [SSOT] 오의 고르기: 무공에 제 오의(OG_MANUAL)가 있으면 그 그림 · 빛깔을 쓰고, 병기 공용 오의의 겹치는 막(기운 오라 · 모이는 기운 · 칼빛 · 터지는 고리)은 끈다.
    없으면 병기 공용 오의(OG_CFG). 오의 그림은 이 함수 하나에서만 고른다 (옛 그림이 새 그림 위에 겹치지 않게) */
 const OG_MANUAL = {};   // 예: sw1b: { fx: 'ougi_sw1b', rgb: '200,225,255', impact: 5 } — impact: 16컷 중 터지는 컷 (일격 순간에 맞춤) · 확정본이 들어오면 여기에
-function ougiCfg(w, mid) { const M = mid && OG_MANUAL[mid]; return M && OG_CFG[w] ? { ...OG_CFG[w], ...M, own: true } : OG_CFG[w]; }
+/* 무공마다 공용 오의의 일부만 바꿀 때 (제 그림 없이): 추상검법은 온몸에서 아지랑이가 피어올라 검 속으로 빨려 든다 */
+const OG_TWEAK = { sw1b: { gather: 'haze', rgb: '190,220,255' } };
+function ougiCfg(w, mid) { const M = mid && OG_MANUAL[mid], T = mid && OG_TWEAK[mid], B = OG_CFG[w] && T ? { ...OG_CFG[w], ...T } : OG_CFG[w]; return M && B ? { ...B, ...M, own: true } : B; }
 function ougiPreload(w, mid) { const C = ougiCfg(w, mid); if (C) preloadImgs([...(C.own ? [] : [ASSET.fx('aura'), ASSET.fx('dart')]), ...(C.fx ? [ASSET.fx(C.fx)] : [])]); }
 function ougiPlay(sc, o) {
   const w = o.w, C = ougiCfg(w, o.mid);
@@ -105,7 +107,24 @@ function ougiPlay(sc, o) {
     };
     requestAnimationFrame(step);
   }
+  /* 아지랑이: 온몸 곳곳에서 일렁이며 피어오르다가(앞 55%) 검 속으로 빨려 든다(뒤 45%) */
+  function haze(ms) {
+    const r = R(H); H.classList.add('og-shimmer'); setTimeout(() => H.classList.remove('og-shimmer'), ms);
+    for (let i = 0; i < 46; i++) {
+      const el = document.createElement('i'); el.className = 'og-wisp haze'; stage.appendChild(el);
+      const x0 = r.x + r.w * (.28 + Math.random() * .44), y0 = r.y + r.h * (.12 + Math.random() * .82), lift = r.h * (.15 + Math.random() * .2), sway = (Math.random() - .5) * r.w * .25;
+      const [ex, ey] = target(), delay = Math.random() * ms * .3, d = ms - delay;
+      el.animate([
+        { left: x0 + 'px', top: y0 + 'px', opacity: 0, transform: 'translate(-50%,-50%) scale(.6, 1)' },
+        { left: x0 + sway + 'px', top: y0 - lift * .5 + 'px', opacity: .75, transform: 'translate(-50%,-50%) scale(.9, 1.6) skewX(8deg)', offset: .3 },
+        { left: x0 - sway * .6 + 'px', top: y0 - lift + 'px', opacity: .65, transform: 'translate(-50%,-50%) scale(.8, 1.9) skewX(-8deg)', offset: .55 },
+        { left: ex + 'px', top: ey + 'px', opacity: 0, transform: 'translate(-50%,-50%) scale(.2, .5)' }
+      ], { duration: d, delay, easing: 'cubic-bezier(.3,.1,.6,1)', fill: 'both' });
+      setTimeout(() => el.remove(), ms + 50);
+    }
+  }
   function gather(ms) {
+    if (C.gather === 'haze') return;   // 아지랑이는 막이 열릴 때부터 (haze)
     const [bx, by] = body(), r = R(H);
     const n = { smoke: 30, embers: 34, spiral: 26, darts: 14, flame: 30 }[C.gather];
     for (let i = 0; i < n; i++) {
@@ -188,7 +207,9 @@ function ougiPlay(sc, o) {
     const [cx, cy] = foeC(), fw = fx.offsetWidth;
     fx.style.left = (cx - fw / 2) + 'px'; fx.style.top = (C.fxAnchor === 'bottom' ? cy - fw * .82 : cy - fw / 2) + 'px';
     F(4); stage.classList.add('dark'); track(); if (!o.noName) re(ban, 'play');   // 두루마리가 이미 이름을 외쳤으면 오의 이름 띠는 다시 띄우지 않는다
-    if (!C.own) { pos(aura, ...body()); aura.className = 'og-aura on'; } await OG_W(700);   // 제 오의는 공용 기운 오라를 띄우지 않는다
+    if (!C.own) { pos(aura, ...body()); aura.className = 'og-aura on'; }
+    if (C.gather === 'haze') haze(1700);   // 기를 모으는 첫 순간부터 온몸에서 아지랑이
+    await OG_W(700);   // 제 오의는 공용 기운 오라를 띄우지 않는다
     // 이펙트 시작은 '터지는 컷'이 공격 순간에 오도록 계산해 둔다 (16컷 2초 → 한 컷 125ms)
     const reach = { sword: 1400, blade: 1370, spear: 1820, hidden: 1550, fist: 1790 }[w];   // 이 시점부터 공격이 닿기까지 (아래 동작 시간의 합)
     // 이펙트: from컷부터 재생. 컷당 시간(ms)은 병기마다 (도는 공중에서 도를 치켜든 순간부터 빠르게 호랑이가 된다)

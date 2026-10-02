@@ -69,7 +69,7 @@ function liveShowPlan(sh, w) {
       if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function') {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
         const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
         const co = g && g.k !== 'miss' && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);
-        if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n, full: true }); t += T(200); }   // 오의 외침: 두루마리가 다 거둬진 뒤 오의 막 (처음 방식)
+        if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }   // 오의 외침: 무공 시계(CO_MOVE_AT.ougi)가 되면 오의 막
         if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, name: f.t, noName: !!co, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
       }
       if (f.side === 'banner') {
@@ -182,7 +182,7 @@ function liveShowStep(sc, sh, ts, dt) {
     }
     else if (e.k === 'callout') {                     // 초식 외침: 대사가 끝나 두루마리가 감기기 시작할 때까지 순서를 멈춘다 (감기는 동안 초식이 함께 나간다)
       sh.hold = true; const t1 = performance.now();
-      calloutPlay(sc, e.mid, e.n, e.full).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
+      calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
     else if (e.k === 'proj') liveProj(sc, sh, e.dur);
