@@ -186,6 +186,8 @@ function liveLoop(ts) {
 }
 /* 강호행 제목 옆 지역 이름: 붓글씨 폰트(Gangho Brush, 225글자)로 쓴다 — 머리 배너 '강호견문록'도 이 폰트. 폰트에 없는 글자는 기본 글씨로 */
 if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush', `url(${ASSET.font('gangho_brush_477')})`).load().then(f => document.fonts.add(f)).catch(() => {});
+// 품계 한자(一 · 二 · 三 · 流 · 武 · 士)만 담은 붓글씨 (Ma Shan Zheng, OFL — 6자 부분 글꼴). 'Gangho Brush'에 없는 글자만 이 글꼴로
+if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush', `url(${ASSET.font('rank_hanja')})`, { unicodeRange: 'U+4E00, U+4E09, U+4E8C, U+58EB, U+6B66, U+6D41' }).load().then(f => document.fonts.add(f)).catch(() => {});
 function liveWhere(zid, n) {
   return `<span class="live-where" data-k="${zid}${n}">${esc(stageName(zid, n))}</span>`;
 }

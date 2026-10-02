@@ -18,11 +18,11 @@ const ASSET_KIND = {
   beast:    { dir: 'beasts/', ext: 'webp' },
   item:     { dir: 'items/', ext: 'webp' },
   ui:       { dir: 'ui/', ext: 'webp' },
-  font:     { dir: 'fonts/', ext: 'woff' },           // 붓글씨 폰트 gangho_brush_477 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
+  font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_477 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
   callout:  { dir: 'callout/', ext: 'webp' },        // 초식 외침 두루마리: 무공_초식(종이) · _hz(기운 12컷) · 무공_ax(도는 축 16컷) · face(제자 얼굴)
   portrait: { dir: 'portraits/', ext: 'webp' },
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene · yeonhon · rankup_2(이류무사 승급)
 };
 /* 확장자가 기본과 다른 파일 (종류:이름) */
-const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg' };
+const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg', 'font:rank_hanja': 'woff2' };
 /* PNG는 모두 무손실 WebP로 바꿨다 (픽셀 동일, 약 37% 작음). 이미 손실 압축된 WebP · JPG는 다시 압축하지 않는다 */
