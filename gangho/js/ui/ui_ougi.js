@@ -18,8 +18,13 @@ const OG_CFG = {
 };
 /* 오의를 펼친다: 무대(sc) 위에 오의 막을 덮고, 실제 제자 · 요수 자리에서 연출한 뒤 막을 걷는다. 끝나면 풀리는 Promise.
    o = { w 병기, name 오의 이름, heroEl · foeEl 무대의 제자 · 요수, foeImg 요수 그림(조각용), dmg 실제 피해, kill 숨통을 끊는가, onImpact 맞는 순간 } */
+/* [SSOT] 오의 고르기: 무공에 제 오의(OG_MANUAL)가 있으면 그 그림 · 빛깔을 쓰고, 병기 공용 오의의 겹치는 막(기운 오라 · 모이는 기운 · 칼빛 · 터지는 고리)은 끈다.
+   없으면 병기 공용 오의(OG_CFG). 오의 그림은 이 함수 하나에서만 고른다 (옛 그림이 새 그림 위에 겹치지 않게) */
+const OG_MANUAL = {};   // 예: sw1b: { fx: 'ougi_sw1b', rgb: '200,225,255' } — 확정본이 들어오면 여기에
+function ougiCfg(w, mid) { const M = mid && OG_MANUAL[mid]; return M && OG_CFG[w] ? { ...OG_CFG[w], ...M, own: true } : OG_CFG[w]; }
+function ougiPreload(w, mid) { const C = ougiCfg(w, mid); if (C) preloadImgs([...(C.own ? [] : [ASSET.fx('aura'), ASSET.fx('dart')]), ...(C.fx ? [ASSET.fx(C.fx)] : [])]); }
 function ougiPlay(sc, o) {
-  const w = o.w, C = OG_CFG[w];
+  const w = o.w, C = ougiCfg(w, o.mid);
   if (!C || !sc || !o.heroEl || !o.foeEl) return Promise.resolve();
   const stage = document.createElement('div'); stage.className = 'og-layer'; stage.dataset.live = 1;
   stage.style.setProperty('--c', C.rgb); stage.style.setProperty('--aura-f', OG_AURA_F[w]);
@@ -183,7 +188,7 @@ function ougiPlay(sc, o) {
     const [cx, cy] = foeC(), fw = fx.offsetWidth;
     fx.style.left = (cx - fw / 2) + 'px'; fx.style.top = (C.fxAnchor === 'bottom' ? cy - fw * .82 : cy - fw / 2) + 'px';
     F(4); stage.classList.add('dark'); track(); re(ban, 'play');
-    pos(aura, ...body()); aura.className = 'og-aura on'; await OG_W(700);
+    if (!C.own) { pos(aura, ...body()); aura.className = 'og-aura on'; } await OG_W(700);   // 제 오의는 공용 기운 오라를 띄우지 않는다
     // 이펙트 시작은 '터지는 컷'이 공격 순간에 오도록 계산해 둔다 (16컷 2초 → 한 컷 125ms)
     const reach = { sword: 1400, blade: 1370, spear: 1820, hidden: 1550, fist: 1790 }[w];   // 이 시점부터 공격이 닿기까지 (아래 동작 시간의 합)
     // 이펙트: from컷부터 재생. 컷당 시간(ms)은 병기마다 (도는 공중에서 도를 치켜든 순간부터 빠르게 호랑이가 된다)
@@ -207,7 +212,7 @@ function ougiPlay(sc, o) {
       fx.style.transformOrigin = '50% 50%'; requestAnimationFrame(step);
     }
     if (!C.noFx) setTimeout(playFx, Math.max(0, reach - (C.impact - from) * per));
-    glowOn = true; gather(1000);
+    glowOn = !C.own; if (!C.own) gather(1000);   // 제 오의는 공용 칼빛 · 모이는 기운을 끈다
     if (C.kunai) { kHeld = true; kunai.style.removeProperty('--a'); kunai.className = 'og-kunai on'; kunai.style.opacity = ''; kunai.animate([{ '--g': .2 }, { '--g': 1 }], { duration: 1000, fill: 'forwards' }); setTimeout(() => kunai.classList.add('charged'), 450); } aura.classList.add('fadeout'); await OG_W(250); if (C.glow === 'blade') blade.classList.add('on'); else if (!C.kunai) handGlows.forEach(g => g.classList.add('on'));
     await OG_W(500); aura.className = 'og-aura';
     if (w === 'blade') {   // 도: 달려가다 뛰어올라 공중에서 도를 치켜들고, 내려앉으며 내려친다
@@ -224,7 +229,7 @@ function ougiPlay(sc, o) {
     else if (w === 'spear') { for (let i = 0; i < 6; i++) { F(i % 2 ? 4 : 5, true); if (i % 2 === 0) { spark(...foeC()); hitNum(part(.12)); } await OG_W(70); } F(4, true); await OG_W(150); F(5, true); }   // 창: 쾌속 연타 → 길게 꿰뚫기
     else if (w === 'hidden') { F(4, true); await OG_W(220); F(5, true); kHeld = false; handGlows.forEach(g => g.classList.remove('on')); await fly8(); }   // 암기: 기가 맺힌 비수를 던지면 몬스터를 축으로 8자를 그리며 거듭 꿰뚫는다
     else if (w === 'fist') { for (const f of [4, 5, 6, 4, 5]) { F(f, true); E.classList.remove('flinch'); void E.offsetWidth; E.classList.add('flinch'); spark(...foeC()); hitNum(part(.1)); await OG_W(108); } F(6, true); }   // 권장: 주먹 · 발 · 장 연타 → 마지막 일장
-    E.classList.add('charge'); pos(ring, ...foeC()); re(ring, 'play'); re(flash, 'play'); if (typeof liveShake === 'function') liveShake(sc); if (o.onImpact) o.onImpact();   // 터지는 순간 (체력패도 이때)
+    E.classList.add('charge'); if (!C.own) { pos(ring, ...foeC()); re(ring, 'play'); } re(flash, 'play'); if (typeof liveShake === 'function') liveShake(sc); if (o.onImpact) o.onImpact();   // 터지는 순간 (체력패도 이때)
     await OG_W(300); { const r = R(E); pos(num, r.x + r.w * .5, r.y + r.h * .1); } re(num, 'play');
     if (o.kill) death[C.death](); else { E.classList.remove('charge', 'flinch'); void E.offsetWidth; E.classList.add('flinch'); }   // 몬스터의 최후는 숨통을 끊을 때만
     re(flash, 'play');

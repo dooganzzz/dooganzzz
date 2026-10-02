@@ -65,6 +65,10 @@ for (const f of [...uiFiles, ...sysFiles, 'core.js', 'app.js'].filter(f => f !==
 for (const f of [...uiFiles, 'app.js'].filter(f => f !== 'ui/ui_sprite.js')) {
   read(f).split('\n').forEach((line, i) => { if (/\bmanualFx\(|['"`]cut_\$\{/.test(line)) bad.push(`${f}:${i + 1} 초식 그림을 직접 고름 — stanceFxEl · stanceFxSrc를 쓸 것`); });
 }
+// 오의 그림 · 설정은 ui_ougi.js의 ougiCfg 한 곳에서만 고른다 (무공 제 오의가 병기 공용 오의와 겹치지 않게)
+for (const f of [...uiFiles, 'app.js'].filter(f => f !== 'ui/ui_ougi.js')) {
+  read(f).split('\n').forEach((line, i) => { if (/\bOG_CFG\b|\bOG_MANUAL\b|['"`]ougi_/.test(line)) bad.push(`${f}:${i + 1} 오의 그림을 직접 고름 — ui_ougi.js의 ougiCfg를 쓸 것`); });
+}
 const html = fs.readFileSync(path.join(JS, '..', 'index.html'), 'utf8');
 const order = [...html.matchAll(/<script src="js\/([^"?]+)/g)].map(m => m[1]);
 const rank = f => f === 'core.js' ? 0 : f.startsWith('data/') ? 1 : f.startsWith('systems/') ? 2 : f.startsWith('ui/') ? 3 : f === 'app.js' ? 4 : 9;

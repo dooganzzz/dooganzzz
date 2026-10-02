@@ -69,7 +69,7 @@ function liveShowPlan(sh, w) {
       if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function') {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
         const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
         if (g && g.k !== 'miss' && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n)) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }   // 오의 외침 → 오의 막
-        if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', name: f.t, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
+        if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, name: f.t, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
       }
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
@@ -135,8 +135,8 @@ function liveShowStart(sc, sh) {
   const R = sh.ref && findExpedition(sh.ref.rid), B = R && R.battles[sh.ref.bi];
   sh.rec = B && B.rounds && B.rounds.length ? B : null;
   for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { preloadImgs([stanceFxSrc(f.mid, f.n)]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
-  if (typeof OG_CFG !== 'undefined' && sh.rec && sh.rec.rounds.some(r => r.fx.some(f => f.mid && f.n >= 3))) {   // 오의가 나가는 전투: 오의 그림을 미리
-    const C = OG_CFG[weaponType()]; preloadImgs([ASSET.fx('aura'), ASSET.fx('dart'), ...(C && C.fx ? [ASSET.fx(C.fx)] : [])]); }
+  const og = sh.rec && sh.rec.rounds.flatMap(r => r.fx).find(f => f.mid && f.n >= 3);   // 오의가 나가는 전투: 오의 그림을 미리
+  if (og && typeof ougiPreload === 'function') ougiPreload(weaponType(), og.mid);
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1, S.name, calculateCombatPower(S));
   liveMp(sc, sh.rec ? sh.rec.start.me.mp : S.mp, sh.rec ? sh.rec.start.me.maxMp : calcStats().maxMp);
   liveHp(sc, 'foe', sh.rec ? sh.rec.start.foe.hp : 1, sh.rec ? sh.rec.start.foe.maxHp : 1, ENEMIES[sh.eid].name, foeCombatPower(sh.eid));
@@ -175,7 +175,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'skill') liveSkill(sc, e.sk);
     else if (e.k === 'ougi') {
       sh.hold = true; const t1 = performance.now();
-      ougiPlay(sc, { w: hero.dataset.w || weaponType(), name: e.name, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
+      ougiPlay(sc, { w: hero.dataset.w || weaponType(), mid: e.mid, name: e.name, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
         onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }

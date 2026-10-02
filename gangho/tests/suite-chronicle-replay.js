@@ -54,7 +54,7 @@ module.exports = async (b) => {
     const m0 = await p.evaluate(() => ({ purse: document.querySelector('.exp-purse b').textContent, btn: document.querySelectorAll('.mrow [data-starup]:not([disabled])').length }));
     await p.click('.mrow [data-starup]:not([disabled])'); await p.click('[data-act="confirmok"]');
     ok('8 상태 › 무공: 수련치 표시 · [▲ 성급] → 올라가고 수련치 줄어듦', m0.purse === '12,345' && m0.btn >= 1 && await p.evaluate(() => S.exp < 12345 && Object.values(S.manuals).some(m => m.star >= 2)), JSON.stringify(m0));
-    await p.click('.mcard[data-mart]');
+    await p.click('.mrow-cover[data-mart]');
     const md = await p.evaluate(() => ({ btn: !!document.querySelector('.sheet [data-starup]'), kv: document.querySelector('.sheet').textContent.includes('필요 수련치') }));
     ok('8 무공 상세 창에도 성급 올리기', md.btn && md.kv, JSON.stringify(md));
     await p.evaluate(() => { ui.modal = null; render(); });

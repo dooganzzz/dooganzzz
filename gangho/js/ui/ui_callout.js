@@ -1,14 +1,15 @@
 /* [화면] 초식 외침: 말린 두루마리가 무대 왼쪽 바깥에서 굴러 들어오며 풀리고 → 무공 · 초식 이름과 시구 → 다시 말아 거둔다.
    두루마리 · 기운은 한 그림(확정본)에서 나눈 것: 종이(고정) + 기운만 12컷으로 일렁임 · 축은 굴러간 거리만큼 비단 무늬가 돈다(16컷).
-   그림이 있는 초식만 외친다 (CALLOUT). 실시간 전투(ui_live_fight.js)에서 초식을 펼칠 때마다 · 오의는 오의 막이 내려오기 전에 (설정 탭에서 끌 수 있음). */
+   병기 무공의 모든 초식이 외친다 (CALLOUT: 초식 번호마다 같은 두루마리). 실시간 전투(ui_live_fight.js)에서 초식을 펼칠 때마다 · 오의는 오의 막이 내려오기 전에 (설정 탭에서 끌 수 있음). */
+/* 두루마리는 모든 비급이 같다 (유저 확정): 초식 번호마다 한 그림, 안의 글(무공 · 초식 이름)과 시구만 그 비급 것으로 바뀐다 */
 const CALLOUT = {
-  'sw1a:1': { art: 'sw1a_1', ax: 'sw1a_ax', t: .384, b: .783, glow: '90, 160, 255' },   // 한상검법 제1초식 — 푸른 불띠 (t · b: 그림 속 종이 띠 위 · 아래)
-  'sw1a:2': { art: 'sw1a_2', ax: 'sw1a_ax', t: .413, b: .711, glow: '255, 190, 80', tone: 'gold' },   // 제2초식 — 금박 연기 (GPT Image 2.5 확정본)
-  'sw1a:3': { art: 'sw1a_3', ax: 'sw1a_ax', t: .394, b: .694, glow: '255, 90, 60', tone: 'red' },   // 오의 — 봉황 날개 (GPT Image 2.5 확정본)
+  1: { art: 'sw1a_1', ax: 'sw1a_ax', t: .384, b: .783, glow: '90, 160, 255' },   // 제1초식 — 푸른 불띠 (t · b: 그림 속 종이 띠 위 · 아래)
+  2: { art: 'sw1a_2', ax: 'sw1a_ax', t: .413, b: .711, glow: '255, 190, 80', tone: 'gold' },   // 제2초식 — 금박 연기 (GPT Image 2.5 확정본)
+  3: { art: 'sw1a_3', ax: 'sw1a_ax', t: .394, b: .694, glow: '255, 90, 60', tone: 'red' },   // 오의 — 봉황 날개 (GPT Image 2.5 확정본)
 };
 const CO_TL = { inEnd: 900, poem: 1000, outStart: 2500, outEnd: 2950, end: 3050 };   // ms
 const CO_AX = { w: .5, len: .75, start: 1.5, h0: 2.2, c0: .38, aspect: 135 / 505, frames: 16, turn: 4.6 };   // 축 굵기 · 길이 · 다 감겼을 때 굵기 배율 · 그림 비율 · 무늬 한 바퀴(라디안)
-const calloutOf = (mid, n) => CALLOUT[`${mid}:${n}`] || null;
+const calloutOf = (mid, n) => (MANUALS[mid] && MANUALS[mid].weapon && MANUALS[mid].stances && MANUALS[mid].stances[n - 1] && CALLOUT[n]) || null;   // 병기 무공이면 모두
 /* 시구 크기 · 자리 (유저가 미리보기에서 맞춤): one = 한 줄 시구(제1 · 제2초식) · two = 두 줄 시구(오의), pc · mo(폭 640px 이하)
    k 종이 띠 높이 대비 글자 크기(%) · min 최소 글자(px) · w 한 줄 폭(무대 너비 %) · dx · dy 두루마리 오른쪽 · 종이 띠 위끝에서 옮긴 거리(무대 너비 · 높이 %) */
 const CO_POEM = {
