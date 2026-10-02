@@ -1,25 +1,35 @@
 /* [시스템] 청풍문: 문파 임무·인물(조운·아린·장문인)·장경각·창고·하산 (DOM 조작 금지) */
 
 /* ───────── 서브 퀘스트: 단계별 토벌 (반복) ─────────
-   열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'. 다 채우면 장문인에게 보상을 받고, 진행은 처음부터 다시 쌓인다 (단계마다 하루 SUBQ.daily번까지).
-   보상: 공헌도 · 은자 · 수련치 · 생혈고 (단계 × 탐험지 티어에 비례). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
-const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 3 };   // daily: 단계마다 하루에 보상을 받을 수 있는 횟수
+   장문인과 말해 정한 탐험지 한 곳(S.subqZone)에서만 센다. 그 탐험지의 열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'.
+   다 채우면 장문인에게 보상을 받고, 진행은 처음부터 다시 쌓인다. 보상은 모든 단계를 합쳐 하루 SUBQ.daily번까지.
+   보상: 공헌도 · 은자 · 수련치 · 생혈고 (단계에 비례 · 높은 탐험지일수록 tierUp만큼 소폭 더). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
+const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 3, tierUp: 0.2 };   // daily: 하루 보상 횟수(전체) · tierUp: 탐험지 한 등급마다 +20%
 const subqKey = (zid, n) => `${zid}:${n}`;
-function subqReward(zid, n) { const t = ZONES[zid].tier; return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
+function subqReward(zid, n) { const t = 1 + SUBQ.tierUp * (ZONES[zid].tier - 1); return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
+/* 토벌할 탐험지: 장문인에게 정한 곳 (안 정했거나 닫혔으면 지금 강호행 탐험지 · 청풍산) */
+function subqZone() { const z = S.subqZone; if (z && ZONES[z] && zoneUnlocked(z)) return z; const x = S.expedition && S.expedition.zone; return x && zoneUnlocked(x) ? x : ZONE_ORDER[0]; }
 function subqProg(zid, n) { return ((S.subq || {})[subqKey(zid, n)]) || 0; }
-function subqAdd(zid, n) { S.subq = S.subq || {}; const k = subqKey(zid, n); S.subq[k] = Math.min(SUBQ.kills, (S.subq[k] || 0) + 1); }
-/* 오늘 그 단계에서 보상을 받은 횟수 (자정이 지나면 0부터) */
-function subqToday(zid, n) { const d = S.subqDay; return d && d.date === today() ? d.n[subqKey(zid, n)] || 0 : 0; }
-const subqLeft = (zid, n) => Math.max(0, SUBQ.daily - subqToday(zid, n));
-const subqReady = (zid, n) => subqProg(zid, n) >= SUBQ.kills && subqLeft(zid, n) > 0;
-/* 지금 받을 수 있는 서브 퀘스트 목록: 열린 탐험지의 열린 단계 */
-function subqList() { const out = []; for (const z of ZONE_ORDER) if (zoneUnlocked(z)) for (let n = 1; n <= stageMax(z); n++) out.push({ zid: z, n }); return out; }
+function subqAdd(zid, n) { if (zid !== subqZone()) return; S.subq = S.subq || {}; const k = subqKey(zid, n); S.subq[k] = Math.min(SUBQ.kills, (S.subq[k] || 0) + 1); }
+/* 오늘 보상을 받은 횟수 (모든 단계 합 · 자정이 지나면 0부터) */
+function subqToday() { const d = S.subqDay; return d && d.date === today() ? (d.total != null ? d.total : Object.values(d.n || {}).reduce((a, v) => a + v, 0)) : 0; }
+const subqLeft = () => Math.max(0, SUBQ.daily - subqToday());
+const subqReady = (zid, n) => zid === subqZone() && subqProg(zid, n) >= SUBQ.kills && subqLeft() > 0;
+/* 지금 토벌 임무 목록: 정한 탐험지의 열린 단계 */
+function subqList() { const z = subqZone(), out = []; for (let n = 1; n <= stageMax(z); n++) out.push({ zid: z, n }); return out; }
+/* 장문인과 말해 토벌 탐험지 정하기 */
+function subqAsk() { log(`노벽송: "어디서 토벌을 하겠느냐? 한 곳을 정하면 그곳에서 이긴 것만 세어 주마. 보상은 하루 ${SUBQ.daily}번이다. 높은 땅일수록 조금 더 얹어 주마."`, 'npc'); }
+function setSubqZone(z) {
+  if (!ZONES[z] || !zoneUnlocked(z)) return false;
+  S.subqZone = z; log(`노벽송: "${ZONES[z].name}이라… 좋다. 이제부터 ${ZONES[z].name}에서 이긴 것만 세겠다."`, 'npc'); notify.refresh(); return true;
+}
 function subqReadyCount() { return subqList().filter(q => subqReady(q.zid, q.n)).length; }
 function claimSubq(zid, n) {
   if (!ZONES[zid] || !subqReady(zid, n)) return false;
   const r = subqReward(zid, n);
+  const done = subqToday();
   if (!S.subqDay || S.subqDay.date !== today()) S.subqDay = { date: today(), n: {} };
-  S.subqDay.n[subqKey(zid, n)] = subqToday(zid, n) + 1;
+  S.subqDay.total = done + 1; S.subqDay.n[subqKey(zid, n)] = (S.subqDay.n[subqKey(zid, n)] || 0) + 1;
   S.subq[subqKey(zid, n)] = 0; S.contrib += r.contrib; S.silver += r.silver; S.exp += r.exp; give('saenghyeol', r.pot, true);
   S.subqDone = (S.subqDone || 0) + 1;
   log(`📜 토벌 임무 완료 — ${stageName(zid, n)}: ${hlContrib('+' + r.contrib)}, ${hlSilver(r.silver)}, 수련치 +${r.exp}, 생혈고 ${r.pot}`, 'good');
@@ -153,6 +163,7 @@ function questBook(R, w) {
   return ids.find(id => !S.manuals[id] && !has('bk_' + id)) || ids[0];
 }
 const st10 = (z, n) => () => stageCleared(z) >= n;
+const allStar = n => () => CAT_ORDER.every(c => S.active[c] && S.manuals[S.active[c]] && S.manuals[S.active[c]].star >= n);   // 네 갈래 장착 무공이 모두 n성
 const QUESTS = [
   { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '상태 탭의 무공에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.',
     talk: '비급은 읽기만 해선 소용없다. 행낭의 비급 네 권을 익히고, 상태 › 무공에서 네 자리에 모두 걸어라.', reward: { silver: 30, items: { saenghyeol: 5 } } },
@@ -162,30 +173,68 @@ const QUESTS = [
     talk: '싸우고 돌아오면 수련치가 쌓인다. 그걸로 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.', reward: { silver: 50, items: { saenghyeol: 5 } } },
   { t: '조운 대사형에게 오늘의 보급품 받기', done: () => !!S.flags.supplied, hint: '정청의 조운에게 보급품을 받으십시오.',
     talk: '조운이 녀석이 보급품을 챙겨 뒀을 게다. 가서 받아 오너라. 하루에 한 번이다.', reward: { items: { saenghyeol: 3, potionMp: 2 } } },
+  { t: '네 갈래 무공 모두 2성', done: allStar(2), hint: '장착한 무공 · 심법 · 경공 · 기공을 모두 2성 이상으로 올리십시오.',
+    talk: '한 갈래만 키우면 절름발이다. 심법 · 경공 · 기공도 고루 2성까지 끌어올려라.', reward: { silver: 60, items: { potionMp: 3 } } },
+  { t: '청풍산 산길 돌파 (2단계)', done: st10('cheongpung', 2), hint: '청풍산 2단계를 돌파하십시오.',
+    talk: '초입은 맛보기였다. 한 단계 더 올라가 보거라. 이기면 이길수록 다음 걸음이 가볍다.', reward: { silver: 60, items: { saenghyeol: 5 } } },
+  { t: '요수 30마리 쓰러뜨리기', done: () => (S.kills || 0) >= 30, hint: '강호행에서 요수를 모두 30마리 쓰러뜨리십시오.',
+    talk: '칼은 휘둘러 봐야 손에 붙는다. 요수 서른을 쓰러뜨리고 오너라.', reward: { silver: 80, items: { gigeokdan: 1 } } },
+  { t: '청풍산 3단계 돌파', done: st10('cheongpung', 3), hint: '청풍산 3단계를 돌파하십시오.',
+    talk: '숨이 차느냐? 기력이 다하면 걸음이 느려진다. 기력단을 아끼지 말고 3단계를 넘어라.', reward: { gear: ['ring', 1, 1] } },
   { t: '청풍산 약초 비탈 돌파 (4단계)', done: st10('cheongpung', 4), hint: '청풍산 4단계 「약초 비탈」을 돌파하십시오. 막히면 아래 단계에서 토벌 임무를 채우며 힘을 기르십시오.',
     talk: '약초 비탈 너머부터는 흑풍채 놈들이 어슬렁댄다. 발이 가벼워야 산다.', reward: { gear: ['boots', 1, 1] } },
+  { t: '화로에서 조합법 하나 알아내기', done: () => (S.codex || []).length >= 1, hint: '청풍문 › 화로에서 재료를 넣고 단조나 연단을 해 조합법을 알아내십시오.',
+    talk: '약초 비탈에서 캔 것들을 썩히지 마라. 화로에 넣고 이것저것 섞다 보면 쓸 만한 게 나온다.', reward: { silver: 80, items: { herb: 3, lingzhi: 1 } } },
   { t: '청풍산 흑풍채 초소 돌파 (5단계)', done: st10('cheongpung', 5), hint: '청풍산 5단계 「흑풍채 초소」를 돌파하십시오.',
     talk: '흑풍채 초소를 깨면 청풍문의 진짜 무공을 내주마. 네 병기에 맞는 것으로.', reward: { book: 'weapon' } },
-  { t: '화로에서 소성 돌파단 달이기', done: () => S.codex.includes('a_low') || bestMugongStar() >= 6, hint: '장문인에게 말을 걸면 귀띔해 줄지도 모릅니다.',
-    talk: '5성에 이르면 벽에 막힌다. 소성 돌파단이 있어야 넘는다. 화로에서 직접 달여 보거라.', reward: { silver: 80 }, pill: 'pillLow' },
+  { t: '무공 3성', done: () => bestMugongStar() >= 3, hint: '공격 무공을 3성까지 올리십시오.',
+    talk: '새 비급을 받았으면 손에 익혀야지. 공격 무공을 3성까지 올려라.', reward: { silver: 80, items: { saenghyeol: 5 } } },
+  { t: '청풍산 6단계 돌파', done: st10('cheongpung', 6), hint: '청풍산 6단계를 돌파하십시오.',
+    talk: '흑풍채 초소 너머는 놈들의 앞마당이다. 한 걸음씩 밀고 들어가라.', reward: { silver: 100, items: { saenghyeol: 5 } } },
+  { t: '무신상에 열 번 공양하기', done: () => (S.shrine && S.shrine.pulls || 0) >= 10, hint: '청풍문 › 무신상에서 공양을 열 번 올리십시오.',
+    talk: '무신상께 공양을 올려 보거라. 정성이 쌓이면 뜻밖의 것을 내리신다.', reward: { silver: 100 } },
+  { t: '무공 5성 — 소성(小成) 관문에 이르기', done: () => bestMugongStar() >= 5, hint: '수련치로 무공 하나를 5성까지 올리십시오.',
+    talk: '5성에 이르면 벽에 막힌다. 소성 돌파단이 있어야 넘는다. 5성에 닿으면 하나 내주마.', reward: { items: { pillLow: 1 }, silver: 80 } },
+  { t: '청풍산 7단계 돌파', done: st10('cheongpung', 7), hint: '청풍산 7단계를 돌파하십시오.',
+    talk: '이제 산의 중턱이다. 여기서부터는 요수도 독하다. 생혈고를 열 개는 챙겨라.', reward: { silver: 120, items: { gigeokdan: 1 } } },
   { t: '청풍산 안개 골짜기 돌파 (8단계)', done: st10('cheongpung', 8), hint: '청풍산 8단계 「안개 골짜기」를 돌파하십시오.',
     talk: '안개 골짜기에서는 갑옷이 목숨이다. 돌파하면 쓸 만한 걸 내주마.', reward: { gear: ['armor', 1, 2] } },
+  { t: '좌선 고리 여섯 칸 밝히기', done: () => rankProgress().lit >= 6, hint: '네 갈래 삼류 무공의 성급을 올려 상태 › 무공 가운데 고리를 여섯 칸 밝히십시오.',
+    talk: '좌선할 때 둘레에 푸른 불이 하나씩 켜지는 걸 보았느냐. 네 갈래가 고르게 자라야 불이 붙는다. 여섯 칸을 밝혀 보거라.', reward: { silver: 150 } },
+  { t: '청풍산 9단계 돌파', done: st10('cheongpung', 9), hint: '청풍산 9단계를 돌파하십시오.',
+    talk: '굴 앞이다. 호랑이 냄새가 나지? 마지막으로 숨을 고르고 9단계를 넘어라.', reward: { silver: 120, items: { saenghyeol: 10 } } },
   { t: '청풍산 두목 적염 호랑이 토벌 (10단계)', done: st10('cheongpung', 10), hint: '청풍산 10단계 「적염호 굴」에서 두목을 쓰러뜨리십시오.',
     talk: '청풍산 가장 깊은 굴에 적염 호랑이가 산다. 잡아 오면 청풍문의 병기를 내주마.', reward: { lib: 'weapon', silver: 150 } },
   { t: '무공 6성 — 소성(小成) 돌파', done: () => bestMugongStar() >= 6, hint: '5성 무공을 수련치와 소성 돌파단으로 올리십시오.',
     talk: '6성, 소성(小成)의 문턱을 넘어라. 수련치와 돌파단, 둘 다 필요하다.', reward: { book: 'sm' } },
+  { t: '염화채 3단계 돌파', done: st10('yeomhwa', 3), hint: '탐험지를 염화채로 바꾸고 3단계를 돌파하십시오.',
+    talk: '염화채는 불의 땅이다. 처음 들어서면 소성 돌파단 하나가 손에 들어올 게다. 3단계까지 밀고 가라.', reward: { silver: 150, items: { saenghyeol: 5 } } },
   { t: '염화채 벌목장 돌파 (5단계)', done: st10('yeomhwa', 5), hint: '탐험지를 염화채로 바꾸고 5단계 「벌목장」을 돌파하십시오.',
     talk: '호랑이를 잡았다니 대견하구나. 이제 염화채다. 불길 속에선 도포가 너를 지킨다.', reward: { lib: 'lg_armor' } },
+  { t: '네 갈래 무공 모두 6성', done: allStar(6), hint: '장착한 무공 · 심법 · 경공 · 기공을 모두 6성 이상으로 올리십시오.',
+    talk: '공격 무공만 소성이면 반쪽이다. 심법 · 경공 · 기공도 모두 6성에 올려라.', reward: { silver: 200, items: { pillLow: 1 } } },
+  { t: '염화채 8단계 돌파', done: st10('yeomhwa', 8), hint: '염화채 8단계를 돌파하십시오.',
+    talk: '채주의 대청이 멀지 않다. 놈들의 수가 많으니 기공으로 몸을 단단히 하라.', reward: { silver: 200, items: { saenghyeol: 10 } } },
   { t: '염화채주 적패천 토벌 (10단계)', done: st10('yeomhwa', 10), hint: '염화채 10단계 「채주의 대청」에서 적패천을 쓰러뜨리십시오.',
     talk: '산적 연합의 채주 적패천을 꺾어라. 꺾으면 청풍문 기공의 정수를 주마.', reward: { book: 'gi', lib: 'lg_jade' } },
   { t: '수룡방 강습대 초소 돌파 (3단계)', done: st10('suryong', 3), hint: '탐험지를 수룡방으로 바꾸고 3단계를 돌파하십시오.',
-    talk: '물 위의 놈들은 빠르다. 바람을 타는 보법이 필요하다.', reward: { book: 'gy', gear: ['ring', 2, 2] } },
+    talk: '물 위의 놈들은 빠르다. 바람을 타는 보법이 필요하다. 처음 들어서면 대성 돌파단 하나가 손에 들어올 게다.', reward: { book: 'gy', gear: ['ring', 2, 2] } },
+  { t: '무공 9성', done: () => bestMugongStar() >= 9, hint: '공격 무공을 9성까지 올리십시오.',
+    talk: '9성이면 강호에서도 제법 이름이 날 게다. 대성까지 세 걸음 남았다.', reward: { silver: 250, items: { gigeokdan: 2 } } },
+  { t: '수룡방 6단계 돌파', done: st10('suryong', 6), hint: '수룡방 6단계를 돌파하십시오.',
+    talk: '물살이 거세지는 곳이다. 발을 헛디디면 끝이다. 6단계를 넘어라.', reward: { silver: 250, items: { saenghyeol: 10 } } },
   { t: '수룡방주 벽해룡 토벌 (10단계)', done: st10('suryong', 10), hint: '수룡방 10단계 「수룡방 본채」에서 벽해룡을 쓰러뜨리십시오.',
     talk: '수룡방주 벽해룡. 물 위의 용이다. 꺾으면 한철로 벼린 병기를 내주마.', reward: { gear: ['weapon', 3, 2], silver: 500 } },
+  { t: '무공 11성 — 대성(大成) 관문에 이르기', done: () => bestMugongStar() >= 11, hint: '수련치로 무공 하나를 11성까지 올리십시오.',
+    talk: '11성이면 대성(大成)의 문턱이다. 대성 돌파단이 있어야 넘는다. 11성에 닿으면 하나 내주마.', reward: { items: { pillHigh: 1 }, silver: 300 } },
   { t: '무공 12성 — 대성(大成) 돌파', done: () => bestMugongStar() >= 12, hint: '11성 무공을 수련치와 대성 돌파단으로 올리십시오.',
-    talk: '12성, 대성(大成)이다. 대성 돌파단은 피와 물과 불, 셋이 서로를 다스려야 빚어진다.', reward: { silver: 300 }, pill: 'pillHigh' },
+    talk: '12성, 대성이다. 이 고비를 넘으면 초식의 끝, 오의가 열린다.', reward: { silver: 400, items: { pillHigh: 1 } } },
+  { t: '이류무사로 승급하기', done: () => (S.rank || 0) >= 1, hint: '네 갈래 삼류 무공을 모두 12성(대성)으로 올려 좌선 고리를 다 밝히십시오.',
+    talk: '네 갈래를 모두 대성에 올려 고리를 다 밝히면 이류무사다. 그날이 오면 나도 너를 제자라 부르지 않으마.', reward: { silver: 500 } },
   { t: '장문인에게 하산령 받기', done: () => !!S.flags.hasan, hint: '장문인을 찾아가십시오.', talk: '… 여기까지 왔구나. 나를 찾아와라. 하산을 허하마.', reward: null },
 ];
+/* 가르침 2판(촘촘히 · 34개)으로 바꾸며 옛 저장 옮기기: 옛 S.mainQ(받은 수 0~16) → 새 목록에서 같은 다음 가르침의 자리 */
+const QUEST_V2_MAP = [0, 1, 2, 3, 8, 10, 14, 16, 19, 20, 22, 25, 26, 29, 30, 33, 34];
 /* 지금 가르침 번호 (보상까지 받은 수) */
 function questIndex() { return Math.min(S.mainQ || 0, QUESTS.length); }
 /* 보상 미리보기 문장 */

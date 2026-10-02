@@ -208,6 +208,8 @@ function startRun(t = now()) {
     defeats: 0, villages: 0, rests: 0, wins: 0, losses: 0,
     terrain: { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(tm * (1 - (st.staSave || 0) / 100) * 1000) / 1000, extra: 0 } };
   X.run = rec.id; S.expeditions.push(rec);
+  const gift = ZONE_FIRST_GIFT[zid], seen = S.flags.zoneGift = S.flags.zoneGift || {};   // 처음 들어선 탐험지의 돌파단
+  if (gift && !seen[zid]) { seen[zid] = 1; give(gift, 1, true); log(`🎁 ${Z.name}에 처음 들어서며 ${ITEMS[gift].name} 하나를 품에 넣었습니다.`, 'gold', t); }
   // 기록은 최근 EXPEDITION.keep번만
   while (S.expeditions.length > EXPEDITION.keep) { const i = S.expeditions.findIndex(r => !r.live); if (i < 0) break; S.expeditions.splice(i, 1); }
   log(`⛰️ ${josa(stageName(zid, stage), '으로')} 강호행을 떠납니다. ${pick(EXP_TEXT.depart)}`, 'place', t);

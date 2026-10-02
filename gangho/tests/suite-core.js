@@ -51,11 +51,11 @@ module.exports = async (b) => {
   await p.evaluate(() => { S.silver = 100; render(); });
   await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');
   ok('7 아린 힌트 버튼 제거됨', !(await p.$('[data-act="hint"]')));
-  await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_low'); i++) { Object.assign(S.inv, { herb: 2, lingzhi: 1 }); ui.pot = { herb: 2, lingzhi: 1 }; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(ui.craft, ui.pot); } });
+  await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_haedok'); i++) { Object.assign(S.inv, { silentReed: 2, centipedeLeg: 1 }); ui.pot = { silentReed: 2, centipedeLeg: 1 }; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(ui.craft, ui.pot); } });
   await p.click('[data-tab="codex"]'); await p.click('[data-codextab="alchemy"]');
   ok('6 안내문 없음', !(await p.$('.codex ~ .lede, .panel .lede')) && !(await p.content()).includes('아직 아무것도 모릅니다'));
   ok('6 미발견 비법은 숨김 (??? · 개수 없음)', await p.evaluate(() => document.querySelectorAll('.recipe-row').length === 1 && !document.querySelector('.recipe-row.unknown') && !/\?\?\?/.test(document.querySelector('#main').textContent)));
-  await p.click('.recipe-row [data-recipe="a_low"]');
+  await p.click('.recipe-row [data-recipe="a_haedok"]');
   const modalBtn = await p.$eval('.sheet [data-fill]', e => e.textContent.trim());
   ok('6 조합법 모달 + 화로로 가기', modalBtn === '[ 화로로 가기 ]' && !!(await p.$('.mats-list li')), modalBtn);
   await p.click('.sheet [data-fill]');

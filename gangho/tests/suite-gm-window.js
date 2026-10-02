@@ -37,8 +37,8 @@ module.exports = async (b) => {
   await admin.waitForFunction(n => count('lingzhi') === n + 10, n0, { timeout: 3000 });
   ok('3 [+10 소환] → 게임 행낭 +10 · 관리자 표도 갱신', await admin.evaluate(() => [...document.querySelectorAll('#gmItemRows tr')].some(r => r.textContent.includes('lingzhi') && r.children[4].textContent === String(count('lingzhi')))));
   await admin.click('.gm-tab[data-gmtab="recipes"]');
-  await admin.click('[data-gmmats="a_high"]');
-  ok('4 [필요 재료 지급] → 게임 행낭에 재료', await game.waitForFunction(() => has('bloodginseng') && has('lotus') && has('firegrass'), null, { timeout: 3000 }).then(() => true, () => false));
+  await admin.click('[data-gmmats="a_haedok"]');
+  ok('4 [필요 재료 지급] → 게임 행낭에 재료', await game.waitForFunction(() => has('silentReed') && has('centipedeLeg'), null, { timeout: 3000 }).then(() => true, () => false));
   await admin.click('.gm-tab[data-gmtab="cheat"]');
   await admin.click('[data-gm="silver"]');
   await game.waitForFunction(() => S.silver === 1050, null, { timeout: 3000 });

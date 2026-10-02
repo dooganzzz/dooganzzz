@@ -36,7 +36,4 @@ const RECIPES = [
   { id: 'a_haedok',   craft: 'alchemy', in: { silentReed: 2, centipedeLeg: 1 },              out: 'haedok' },
   { id: 'a_cheongsim',craft: 'alchemy', in: { silentReed: 1, treeSap: 2 },                   out: 'clearPill' },
 
-  // ───── 돌파단 (기존 조합식 유지) ─────
-  { id: 'a_low',  craft: 'alchemy', in: { herb: 2, lingzhi: 1 }, out: 'pillLow', hint: '노벽송: "소성 돌파단이라… 산약초 둘에 영지 하나. 불은 약하게, 마음은 급하게 먹지 말고."' },
-  { id: 'a_high', craft: 'alchemy', in: { bloodginseng: 1, lotus: 1, firegrass: 1 }, out: 'pillHigh', hint: '노벽송: "대성… 피(혈삼), 물(수련화), 불(화령초). 셋이 서로를 다스려야 한다."' },
 ];
