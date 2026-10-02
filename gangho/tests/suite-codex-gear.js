@@ -43,7 +43,7 @@ module.exports = async (b) => {
       const valid = c => getFilteredMaterials(c).every(id => RECIPES.some(r => r.craft === c && r.in[id]));
       const r = { forge: getFilteredMaterials('forge'), alchemy: getFilteredMaterials('alchemy'), vf: valid('forge'), va: valid('alchemy') };
       // 단조 탭에서 단약 재료를 억지로 넣으려 해도 막힌다
-      ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.forgeMode = 'mat'; ui.pot = {}; render();
+      ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.pot = {}; render();
       const btn = document.createElement('button'); btn.dataset.add = 'wildGinseng'; document.querySelector('#main').appendChild(btn); btn.click();
       r.blocked = !ui.pot.wildGinseng; render();
       return r;

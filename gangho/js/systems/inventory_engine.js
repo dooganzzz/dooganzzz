@@ -177,6 +177,16 @@ function forgeEnhance(mainUid, matUid) {
   return { kind, name: gearName(it), cost };
 }
 
+/* 정렬 (유저 확정): 등급이 높은 것이 앞, 같은 등급이면 가나다순. 목록마다 이 두 함수만 쓴다 */
+const koCmp = (a, b) => String(a).localeCompare(String(b), 'ko');
+const gearSort = list => [...list].sort((a, b) => b.rarity - a.rarity || koCmp(a.name, b.name) || (b.enh || 0) - (a.enh || 0));
+function itemRank(id) {                                           // 비급은 무공 등급, 조각은 조각 등급, 단약은 품(1품이 최상), 그 밖은 같은 등급
+  const I = ITEMS[id], L = I.use && I.use.learn;
+  if (L && MANUALS[L]) return Object.keys(GRADES).indexOf(MANUALS[L].grade) + 1;
+  if (/^scrap\d$/.test(id)) return +id.slice(5);
+  const q = /^(\d+)품$/.exec(I.grade || ''); return q ? 10 - +q[1] : 0;
+}
+const itemSort = ids => [...ids].sort((a, b) => itemRank(b) - itemRank(a) || koCmp(ITEMS[a].name, ITEMS[b].name));
 const gearName = it => `${it.name}${it.enh ? ` +${it.enh}` : ''}`;
 /* ───────── 전방(상점) 거래 ─────────
    은자는 S.silver, 소지품은 S.inv{아이템: 개수}, 보관 장비는 S.gear[]. 청풍문 안에서만 거래한다. */

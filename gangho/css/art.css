@@ -169,7 +169,7 @@
 
 /* ───────── 화로: 단조는 대장간 풍경, 연단은 수묵 단로 ─────────
    그림 가장자리는 먹빛으로 번지고, 재료 칸은 모루(단조) · 단로 몸통(연단) 위에 놓인다 */
-.pot.furnace-stage { position: relative; overflow: hidden; padding: 0; gap: 0; min-height: 440px; justify-content: flex-end; border: 1px solid #3b2f22; border-radius: 10px; background: #0d0a08; box-shadow: inset 0 0 40px rgba(0, 0, 0, .7); }
+.pot.furnace-stage { position: relative; overflow: hidden; padding: 0; gap: 0; width: 100%; max-width: 760px; margin-inline: auto; aspect-ratio: 1280 / 716; min-height: 0;   /* 단조 · 연단 · 연혼 세 화면이 같은 크기 */ justify-content: flex-end; border: 1px solid #3b2f22; border-radius: 10px; background: #0d0a08; box-shadow: inset 0 0 40px rgba(0, 0, 0, .7); }
 .furnace-stage .stage-bg { position: absolute; inset: 0; pointer-events: none; }
 .furnace-stage .stage-bg .art-frame { width: 100%; height: 100%; }
 .furnace-stage .stage-bg .art-frame > img { object-fit: cover; object-position: 50% 45%; }
@@ -193,7 +193,8 @@
 .plaque-btns { gap: 10px; justify-content: center; }
 .furnace-stage .note-warn, .furnace-stage .result { position: relative; z-index: 1; margin: 0 16px 16px; }
 @media (max-width: 640px) {
-  .pot.furnace-stage { min-height: 380px; }
+  .pot.furnace-stage { min-height: 380px; aspect-ratio: auto; }
+  .pot.furnace-stage.study { min-height: 0; aspect-ratio: 1280 / 716; }
   .furnace-stage .pot-slots { gap: 7px; }
   .btn.plaque { min-width: 130px; padding: 9px 16px; }
 }

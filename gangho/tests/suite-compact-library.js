@@ -93,7 +93,7 @@ module.exports = async (b) => {
     await p.click('.mrow [data-starup]:not([disabled])');
     await p.click('.confirm-sheet [data-act="closemodal"]');
     ok('7 성급 올리기 확인 창 → 취소하면 수련치 그대로', await p.evaluate(e => S.exp === e && !ui.modal, e0));
-    await p.evaluate(() => { goTab('sect', 'forge'); ui.craft = 'forge'; ui.forgeMode = 'mat'; S.inv.roughOre = 3; render(); });
+    await p.evaluate(() => { goTab('sect', 'forge'); ui.craft = 'forge'; S.inv.roughOre = 3; render(); });
     await p.click('[data-add="roughOre"]');
     ok('7 재료 넣기는 확인 없이 바로', await p.evaluate(() => ui.modal === null && potTotal(ui.pot) === 1));
     await p.click('[data-act="craft"]');

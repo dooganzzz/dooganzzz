@@ -76,7 +76,6 @@ function onClick(e) {
   if (d.pray) return askPray(+d.pray);
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
-  if (d.forgemode) { ui.forgeMode = d.forgemode; ui.enhResult = null; return render(); }
   if (d.enhmain) { ui.enhMain = +d.enhmain; ui.enhResult = null; return render(); }
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
   if (d.bind) { if (count(d.bind) < STUDY.need) return; const scrap = d.bind, id = studyBind(scrap); if (!id) return; ui.modal = null; render();   // 엮은 뒤 연출 (비급이 명경을 깨고 나옴) → 알림

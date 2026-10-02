@@ -34,7 +34,7 @@ module.exports = async (b) => {
       return { enh: w.enh, atk0, atk1: calcStats().atk, spent: 99999 - S.silver };
     });
     ok('4 장비 강화: 단계·공격력 상승, 은자 소모', enh.enh === 3 && enh.atk1 > enh.atk0 && enh.spent > 0, JSON.stringify(enh));
-    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.forgeMode = 'gear'; ui.enhMain = S.equip.weapon.uid; render(); });
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.enhMain = S.equip.weapon.uid; render(); });
     ok('4 화로 › 단조 › 장비 강화 버튼', !!(await p.$('[data-act="enhance"]')));
     await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'shop'; render(); });
     ok('4 청풍문 › 전방 진열', (await p.$$('[data-buy]')).length === await p.evaluate(() => SHOP_STOCK.length));

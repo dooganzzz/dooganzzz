@@ -13,8 +13,7 @@ const getValidAlchemyMaterials = () => CRAFT_MATS.alchemy || new Set();
 /* 화로 탭(기예)에 올릴 수 있는 재료: 행낭에 1개 이상 있고, 그 기예의 유효 재료인 것 */
 function getFilteredMaterials(craft) {
   const valid = craft === 'forge' ? getValidForgeMaterials() : getValidAlchemyMaterials();
-  return Object.keys(S.inv).filter(id => ITEMS[id] && ITEMS[id].kind === '재료' && valid.has(id) && count(id) > 0)
-    .sort((a, b) => ITEMS[a].name.localeCompare(ITEMS[b].name));
+  return itemSort(Object.keys(S.inv).filter(id => ITEMS[id] && ITEMS[id].kind === '재료' && valid.has(id) && count(id) > 0));
 }
 
 function potTotal(pot) { return Object.values(pot).reduce((a, b) => a + b, 0); }

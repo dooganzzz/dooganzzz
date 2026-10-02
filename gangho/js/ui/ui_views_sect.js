@@ -114,8 +114,8 @@ function viewShop() {
       + (bt === 'items' ? `<div class="wares">${wares}</div>`
         : tabs('shopgear', gt, Object.entries(SHOP_GEAR_TABS).map(([id, g]) => [id, g.ko, g.hj]), 'shop-gear-tabs') + (gearRows ? `<div class="wares">${gearRows}</div>` : '<p class="story muted">지금은 들여놓은 물건이 없소.</p>'));
   } else {
-    const items = Object.keys(S.inv).filter(id => itemSellPrice(id) > 0);
-    const gears = S.gear.filter(it => gearSellPrice(it) > 0);
+    const items = itemSort(Object.keys(S.inv).filter(id => itemSellPrice(id) > 0));
+    const gears = gearSort(S.gear.filter(it => gearSellPrice(it) > 0));
     const rowI = id => { const I = ITEMS[id], n = count(id), pr = itemSellPrice(id); return `<div class="ware"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num">×${n}</span><small>한 개 ${fmt(pr)}냥</small></div>${price(pr * n)}<div class="btns"><button class="btn sm" data-sell="${id}">1개 팔기</button>${n > 1 ? `<button class="btn ghost sm" data-sellall="${id}">전부</button>` : ''}</div></div>`; };
     const rowG = it => `<div class="ware"><span class="icon">${gearIco(it)}</span><div><b class="r${it.rarity}">[${RARITY[it.rarity].name}] ${gearName(it)}</b> <span class="num muted">${SLOTS[it.slot].name}</span><small>${statLine(it)}</small></div>${price(gearSellPrice(it))}<button class="btn sm" data-sellgear="${it.uid}">팔기</button></div>`;
     body = items.length || gears.length

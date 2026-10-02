@@ -36,7 +36,7 @@ module.exports = async (b) => {
   });
   ok('2 승리 시 수련치 = 적 수련치 × 보정 × 강호행 수련치 배율', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect > 0, JSON.stringify(xp));
   // 6 화로: [단조] | [연단] 두 탭, 탭마다 그 기예의 조합식에 쓰이는 재료만 보인다
-  await p.evaluate(() => { ITEMS.testMat = { name: '시험재', icon: '❔', kind: '재료' }; Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2, testMat: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; ui.forgeMode = 'mat'; render(); });   // 단조는 재료 탭에서 조합
+  await p.evaluate(() => { ITEMS.testMat = { name: '시험재', icon: '❔', kind: '재료' }; Object.assign(S.inv, { roughOre: 2, wildGinseng: 2, treeSap: 1, herb: 2, testMat: 1 }); ui.tab = 'sect'; ui.sectSub = 'forge'; render(); });   // 단조는 재료 탭에서 조합
   const f = {};
   f.tabs = await p.$$eval('.furnace-tabs [data-craft]', e => e.map(x => x.textContent).join('|'));
   for (const c of ['forge', 'alchemy']) { await p.click(`[data-craft="${c}"]`); f[c] = await p.$$eval('[data-add]', e => e.map(x => x.dataset.add).sort().join(',')); }

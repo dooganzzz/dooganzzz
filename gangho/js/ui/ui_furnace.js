@@ -47,11 +47,7 @@ function mirrorModal() {
   return `<div class="sheet mirror-sheet"><p class="eyebrow">煉魂 · 明鏡</p><h2>명경</h2><ul class="study-list">${rows}</ul>
     <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
 }
-/* 단조 › 장비: 같은 장비 강화. 본템을 고르면 행낭의 같은 이름 · 같은 등급 · 강화 안 된 장비를 재료로 쓴다 */
-const FORGE_MODES = [['gear', '장비', '裝備'], ['mat', '재료', '材料']];
-function forgeModeTabs() {
-  return `<div class="chips forge-modes" role="tablist">${FORGE_MODES.map(([k, ko, hj]) => `<button class="chip ${ui.forgeMode === k ? 'on' : ''}" data-forgemode="${k}">${ko} <small>${hj}</small></button>`).join('')}</div>`;
-}
+/* 단조의 장비 재료: 같은 장비 강화. 본템을 고르면 행낭의 같은 이름 · 같은 등급 · 강화 안 된 장비를 재료로 쓴다 */
 /* 강화 연출 (모루 무대): 망치 세 번 → 불똥 → 결과(성공 금빛 고리 · 그대로 연기 · 파괴 파편). 화면이 다시 그려져도 처음부터 되풀이되지 않게
    지난 시간만큼 애니메이션을 당겨(--el) 이어서 재생한다. 5초가 지나면 연출 없이 멈춘 모루만 */
 const ENH_FX_MS = 5000, ENH_HIT = [234, 598, 1014];
@@ -75,7 +71,7 @@ function enhStage(main, res) {
 }
 function viewForgeGear() {
   const all = [...Object.values(S.equip).filter(Boolean), ...S.gear].filter(it => !it.shop);
-  const rows = all.map(it => ({ it, n: enhMaterials(it).length, worn: Object.values(S.equip).includes(it) })).sort((a, b) => (b.n > 0) - (a.n > 0) || b.it.rarity - a.it.rarity || (b.it.enh || 0) - (a.it.enh || 0));
+  const rows = all.map(it => ({ it, n: enhMaterials(it).length, worn: Object.values(S.equip).includes(it) })).sort((a, b) => b.it.rarity - a.it.rarity || koCmp(a.it.name, b.it.name) || (b.it.enh || 0) - (a.it.enh || 0));
   const main = ui.enhMain != null && gearByUid(ui.enhMain), res = ui.enhResult;
   let panel = '<p class="muted">강화할 장비를 고르십시오. 같은 이름 · 같은 등급의 강화 안 된 장비가 행낭에 있어야 재료로 쓸 수 있습니다.</p>';
   if (main) {
@@ -101,12 +97,6 @@ function viewForgeGear() {
 function viewFurnace() {
   if (ui.craft === 'study') return viewStudy();
   if (!CRAFTS[ui.craft]) ui.craft = 'forge';
-  if (ui.craft === 'forge' && ui.forgeMode !== 'mat') return `<section class="panel furnace">
-    ${head('화로', '火爐', `<span class="num muted">단조 ${craftGrade((S.crafts.forge || { lv: 1 }).lv)}</span>`)}
-    ${furnaceTabs()}${forgeModeTabs()}
-    <p class="muted furnace-desc">같은 장비 둘을 겹쳐 두드려 벼립니다. 재료로 쓴 장비는 부서져 본템에 흡수됩니다. +1~3 · +4~7 · +8~10 단계마다 은자와 성공 확률이 달라지고, +8부터는 부서질 수도 있습니다. 등급이 높을수록 은자가 두 배씩 듭니다.</p>
-    ${viewForgeGear()}
-  </section>`;
   const C = CRAFTS[ui.craft], lv = S.crafts[ui.craft] || { lv: 1, xp: 0 };
   // 탭(기예)마다 그 기예의 조합식에 쓰이는 재료만 보인다
   const mats = getFilteredMaterials(ui.craft);
@@ -114,7 +104,7 @@ function viewFurnace() {
   const res = ui.craftResult;
   return `<section class="panel furnace">
     ${head('화로', '火爐', `<span class="num muted">${C.name} ${craftGrade(lv.lv)}${S.talent === ui.craft ? ' · 주력' : ''}</span>`)}
-    ${furnaceTabs()}${ui.craft === 'forge' ? forgeModeTabs() : ''}
+    ${furnaceTabs()}
     <p class="muted furnace-desc">${C.desc} 조합식은 알려져 있지 않습니다. 성공하면 도감에 적힙니다.</p>
     <div class="forge">
       <div class="pot furnace-stage ${ui.craft}">
@@ -129,9 +119,12 @@ function viewFurnace() {
         ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${chronDecor(res.text)}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
       </div>
       <div class="mats">
-        <h4>재료</h4>
+        <h4>${ui.craft === 'forge' ? '조합 재료' : '재료'}</h4>
         ${mats.length ? `<div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : `<p class="muted">${C.name}에 쓸 재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>`}
       </div>
+      ${ui.craft === 'forge' ? `<div class="mats forge-equip"><h4>장비 재료</h4>
+        <p class="muted furnace-desc">같은 장비 둘을 겹쳐 두드려 벼립니다. 재료로 쓴 장비는 부서져 본템에 흡수됩니다. +1~3 · +4~7 · +8~10 단계마다 은자와 성공 확률이 달라지고, +8부터는 부서질 수도 있습니다. 등급이 높을수록 은자가 두 배씩 듭니다.</p>
+        ${viewForgeGear()}</div>` : ''}
     </div>
   </section>
   ${researchNotes(ui.craft)}`;

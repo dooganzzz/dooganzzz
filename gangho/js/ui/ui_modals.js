@@ -73,7 +73,7 @@ function fillPot(rid) {
 
 /* ───────── 상태 › 무장: 장비 칸을 누르면 그 부위 장비 목록 (장착·교체·해제·강화) ───────── */
 function equipModal(slot) {
-  const cur = S.equip[slot], list = S.gear.filter(g => g.slot === slotAccepts(slot));
+  const cur = S.equip[slot], list = gearSort(S.gear.filter(g => g.slot === slotAccepts(slot)));
   const mw = S.active.mugong && MANUALS[S.active.mugong].weapon;
   const card = (it, btns) => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(gearName(it), RARITY[it.rarity].name, gearIco(it, 'card'))}${it.wtype ? `<small class="muted item-category">${WEAPON_SHORT[it.wtype]}</small>` : ''}
     <small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}${slot === 'weapon' && mw && it.wtype !== mw ? `<small class="warn">장착 무공은 ${WEAPON_TYPES[mw]} 무공이라 초식이 나가지 않습니다</small>` : ''}
