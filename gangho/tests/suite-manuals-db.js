@@ -1,4 +1,4 @@
-/* 무공 DB(skills.js) 120종 · 전투 묘사(선언 · 결과) · 청풍산 요수 10종 · 5대 지형 · 장비 등급 6단계 · 하급 장비 37종 */
+/* 무공 DB(skills.js) 168종 · 전투 묘사(선언 · 결과) · 청풍산 요수 10종 · 5대 지형 · 장비 등급 6단계 · 하급 장비 37종 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -16,10 +16,10 @@ module.exports = async (b) => {
 
     // 1. 무공 DB
     const db = await p.evaluate(() => {
-      // 8분류(검·도·창·권장·암기 · 경공·기공·심법) × 5등급(삼류~초절정) × 3종 = 120종. 공격 무공은 초식 3개, 경공은 지형, 기공은 오행
+      // 8분류(검·도·창·권장·암기 · 경공·기공·심법) × 5등급(삼류~초절정) × 3종 = 120종 + 신규 48종(삼류 d·e·f · 이류 d·e · 일류 d). 공격 무공은 초식 3개, 경공은 지형, 기공은 오행
       const PRE = { sword: 'sw', blade: 'bd', spear: 'sp', fist: 'fs', hidden: 'hd', gyeonggong: 'gy', gigong: 'gi', simbeop: 'sm' }, G = ['삼류', '이류', '일류', '절정', '초절정'];
       const r = { n: Object.keys(MANUALS).length, missing: [], bad: [] };
-      for (const [k, pre] of Object.entries(PRE)) for (let g = 1; g <= 5; g++) for (const v of 'abc') {
+      for (const [k, pre] of Object.entries(PRE)) for (let g = 1; g <= 5; g++) for (const v of ({ 1: 'abcdef', 2: 'abcde', 3: 'abcd' }[g] || 'abc')) {   // 신규 48종: 삼류 d·e·f · 이류 d·e · 일류 d
         const id = pre + g + v, M = MANUALS[id]; if (!M) { r.missing.push(id); continue; }
         const cat = ['gyeonggong', 'gigong', 'simbeop'].includes(k) ? k : 'mugong';
         if (M.cat !== cat || M.grade !== G[g - 1] || (cat === 'mugong' && (M.weapon !== k || M.stances.length !== 3)) || (cat === 'gyeonggong' && !TERRAINS[M.terrain]) || (cat === 'gigong' && !ELEMENTS[M.elem]) || !ITEMS['bk_' + id]) r.bad.push(id);
@@ -30,7 +30,10 @@ module.exports = async (b) => {
       r.starters = STARTERS.every(id => MANUALS[id].stances.length === 3);
       return r;
     });
-    ok('1 비급 120종 (8분류 × 5등급 × 3) · 비급서 · 경공 지형 · 기공 오행 · 공양 비급은 삼류', db.n === 120 && !db.missing.length && !db.bad.length && db.gacha, JSON.stringify(db));
+    ok('1 비급 168종 (8분류 × 5등급 × 3 + 신규 삼류 3 · 이류 2 · 일류 1) · 비급서 · 경공 지형 · 기공 오행 · 공양 비급은 삼류', db.n === 168 && !db.missing.length && !db.bad.length && db.gacha, JSON.stringify(db));
+    const pm = await p.evaluate(() => { const bad = []; const chk = (id, L) => { if (!L || !L.length || L.length > 4 || L.some(l => !l || l.length > 40)) bad.push(id + ':' + (L ? L.length : 0)); }; for (const [id, M] of Object.entries(MANUALS)) if (M.poem) chk(id, M.poem.lines); for (const [k, a] of Object.entries(CAT_POEMS)) a.forEach((L, i) => chk('CAT.' + k + i, L));
+      const one = MANUALS.sw1a, many = MANUALS.sw3a; return { bad, o1: poemFor(many, 1), o2: poemFor(many, 2), o3: poemFor(many, 3), single: poemFor({ poem: { lines: ['한 줄'] } }, 3) }; });
+    ok('1 시문 규칙: 시는 최대 4줄(한 줄 40자 이내) · 두루마리는 1초식 한 줄 · 2초식 한 줄 · 오의 두 줄', !pm.bad.length && pm.o1.length === 1 && pm.o2.length === 1 && pm.o3.length === 2 && pm.single.length === 1, JSON.stringify(pm));
     ok('1 무공 DB는 skills.js · 입문 무공도 초식 템플릿(stances)', db.src && db.starters && !db.old, JSON.stringify(db));
     const fill = await p.evaluate(() => [stanceFill('{attacker}{이가} {weapon}{을를} 쥔다 · {target}{은는}', { attacker: '청운', weapon: '목검', target: '살쾡이' }), stanceFill('{attacker}{이가} {weapon}{을를}', { attacker: '하나', weapon: '표창', target: '' })]);
     ok('1 초식 지문: 받침에 맞춰 조사', fill[0] === '청운이 목검을 쥔다 · 살쾡이는' && fill[1] === '하나가 표창을', fill.join(' / '));

@@ -14,6 +14,8 @@ const CO_AX = { w: .5, len: .75, start: 1.5, h0: 2.2, c0: .38, aspect: 135 / 505
 /* [SSOT] 무공의 시: 검법은 비급마다 제 시(poem), 그 밖의 갈래는 갈래별 시(CAT_POEMS) 중 등급에 맞는 한 편. 두루마리 외침과 비급 상세 창이 함께 쓴다 (한쪽만 고쳐 시구가 비는 일이 없게) */
 const POEM_TIER = { '삼류': 0, '이류': 0, '일류': 1, '절정': 1, '초절정': 2 };
 const manualPoem = M => M.poem || (CAT_POEMS[M.weapon || M.cat] && { title: '', lines: CAT_POEMS[M.weapon || M.cat][POEM_TIER[M.grade] || 0] }) || null;
+/* [SSOT] 두루마리에 올릴 시구 (유저 확정): 1초식 = 첫 줄 · 2초식 = 둘째 줄 · 오의 = 마지막 두 줄(시가 두 줄이면 그 둘). 시는 최대 4줄, 한 줄짜리면 같은 줄을 쓴다 */
+const poemFor = (M, n) => { const L = (manualPoem(M) || {}).lines || []; if (!L.length) return []; return n >= 3 ? L.slice(-2) : [L[Math.min(n - 1, L.length - 1)]]; };
 const calloutOf = (mid, n) => (MANUALS[mid] && MANUALS[mid].weapon && MANUALS[mid].stances && MANUALS[mid].stances[n - 1] && CALLOUT[n]) || null;   // 병기 무공이면 모두
 /* 시구 크기 · 자리 (유저가 미리보기에서 맞춤): one = 한 줄 시구(제1 · 제2초식) · two = 두 줄 시구(오의), pc · mo(폭 640px 이하)
    k 종이 띠 높이 대비 글자 크기(%) · min 최소 글자(px) · w 한 줄 폭(무대 너비 %) · dx · dy 두루마리 오른쪽 · 종이 띠 위끝에서 옮긴 거리(무대 너비 · 높이 %) */
@@ -27,8 +29,8 @@ function calloutPreload(mid, n) {
 function calloutPlay(sc, mid, n) {
   const C = calloutOf(mid, n), M = MANUALS[mid];
   if (!C || !M || !sc) return Promise.resolve();
-  const st = M.stances[n - 1], hj = (st.name.match(/\(([^)]*)\)/) || [])[1] || '', P = (manualPoem(M) || {}).lines || [];
-  const lines = (n >= 3 ? P : [P[n - 1]]).filter(Boolean);   // 오의는 시 두 줄을 다
+  const st = M.stances[n - 1], hj = (st.name.match(/\(([^)]*)\)/) || [])[1] || '';
+  const lines = poemFor(M, n);   // 1초식 한 줄 · 2초식 한 줄 · 오의 두 줄
   const box = document.createElement('div'); box.className = 'co'; box.dataset.live = 1; if (C.tone) box.dataset.tone = C.tone;   // 기운 빛깔 (기본 푸름)
   box.innerHTML = `<div class="co-paper"><i class="co-base"></i><i class="co-hz"></i>
       <div class="co-body"><i class="co-face"></i><div class="co-txt"><div class="co-art">${M.name}<small>${M.hanja || ''}</small></div>
@@ -52,6 +54,11 @@ function calloutPlay(sc, mid, n) {
   body.style.paddingLeft = Math.round((sc.offsetWidth || 400) * .045) + 'px';
   box.style.width = (body.offsetWidth * 1.04) + 'px';
   poem.style.left = (box.offsetLeft + box.offsetWidth + SW * (.03 + PV.dx / 100)) + 'px'; poem.style.top = (box.offsetTop + C.t * wh + S * PV.dy / 100) + 'px';
+  { // 시 한 줄은 한 줄에: 무대 오른쪽 끝까지의 너비에 들어가게 글자를 줄인다 (70%보다 작아야 하면 줄바꿈을 허용)
+    const avail = SW * .97 - parseFloat(poem.style.left), f0 = parseFloat(poem.style.fontSize); poem.style.maxWidth = 'none'; poem.style.whiteSpace = 'nowrap';
+    const need = Math.max(...[...poem.querySelectorAll('.co-line')].map(l => l.scrollWidth)), k = need > 0 ? avail / need : 1;
+    if (k < 1) { if (k >= .7) poem.style.fontSize = f0 * k + 'px'; else { poem.style.whiteSpace = ''; poem.style.maxWidth = PV.w + '%'; } }
+  }
   const axH = CO_AX.h0 * CO_AX.len * band; ax.style.height = axH + 'px'; ax.style.top = (C.t * wh + CO_AX.c0 * band - axH / 2) + 'px';   // 축 크기 · 자리는 종이 띠 기준
   const W = box.offsetWidth, rr = axH * CO_AX.aspect * (CO_AX.w / CO_AX.len) / 2;   // 다 풀린 축의 반지름 (px)
   const easeOut = x => 1 - Math.pow(1 - x, 3), easeIn = x => x * x * x;

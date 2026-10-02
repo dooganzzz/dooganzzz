@@ -170,6 +170,55 @@ const ITEMS = {
   bk_sm5a: { name: '《대진제황천심록》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm5a' }, desc: '읽고 익히면 대진제황천심록(大秦帝皇天心錄)을(를) 운용할 수 있다.' },
   bk_sm5b: { name: '《태상감응무극진경》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm5b' }, desc: '읽고 익히면 태상감응무극진경(太上感應無極眞經)을(를) 운용할 수 있다.' },
   bk_sm5c: { name: '《보리천화원통결》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm5c' }, desc: '읽고 익히면 보리천화원통결(菩提天花圓通訣)을(를) 운용할 수 있다.' },
+  // 신규 비급 48종 (10월 2일, 삼류 3 · 이류 2 · 일류 1 × 8갈래)
+  bk_sw1d: { name: '《월한검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1d' }, desc: '읽고 익히면 월한검(月寒劍)을(를) 운용할 수 있다.' },
+  bk_sw1e: { name: '《단운검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1e' }, desc: '읽고 익히면 단운검(斷雲劍)을(를) 운용할 수 있다.' },
+  bk_sw1f: { name: '《용음검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1f' }, desc: '읽고 익히면 용음검(龍吟劍)을(를) 운용할 수 있다.' },
+  bk_sw2d: { name: '《구천한광검》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw2d' }, desc: '읽고 익히면 구천한광검(九天寒光劍)을(를) 운용할 수 있다.' },
+  bk_sw2e: { name: '《지수검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw2e' }, desc: '읽고 익히면 지수검법(止水劍法)을(를) 운용할 수 있다.' },
+  bk_sw3d: { name: '《만리광한검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw3d' }, desc: '읽고 익히면 만리광한검법(萬里光寒劍法)을(를) 운용할 수 있다.' },
+  bk_bd1d: { name: '《단강도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'bd1d' }, desc: '읽고 익히면 단강도(斷江刀)을(를) 운용할 수 있다.' },
+  bk_bd1e: { name: '《지풍도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'bd1e' }, desc: '읽고 익히면 지풍도(止風刀)을(를) 운용할 수 있다.' },
+  bk_bd1f: { name: '《무회도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'bd1f' }, desc: '읽고 익히면 무회도(無回刀)을(를) 운용할 수 있다.' },
+  bk_bd2d: { name: '《열풍광도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'bd2d' }, desc: '읽고 익히면 열풍광도(裂風狂刀)을(를) 운용할 수 있다.' },
+  bk_bd2e: { name: '《천산중도법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'bd2e' }, desc: '읽고 익히면 천산중도법(千山重刀法)을(를) 운용할 수 있다.' },
+  bk_bd3d: { name: '《사양독립도법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'bd3d' }, desc: '읽고 익히면 사양독립도법(斜陽獨立刀法)을(를) 운용할 수 있다.' },
+  bk_sp1d: { name: '《관일창》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sp1d' }, desc: '읽고 익히면 관일창(貫日槍)을(를) 운용할 수 있다.' },
+  bk_sp1e: { name: '《출룡창》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sp1e' }, desc: '읽고 익히면 출룡창(出龍槍)을(를) 운용할 수 있다.' },
+  bk_sp1f: { name: '《한성창》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sp1f' }, desc: '읽고 익히면 한성창(寒星槍)을(를) 운용할 수 있다.' },
+  bk_sp2d: { name: '《도월장창》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sp2d' }, desc: '읽고 익히면 도월장창(挑月長槍)을(를) 운용할 수 있다.' },
+  bk_sp2e: { name: '《백병왕창법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sp2e' }, desc: '읽고 익히면 백병왕창법(百兵王槍法)을(를) 운용할 수 있다.' },
+  bk_sp3d: { name: '《천군직입창법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sp3d' }, desc: '읽고 익히면 천군직입창법(千軍直入槍法)을(를) 운용할 수 있다.' },
+  bk_fs1d: { name: '《쇄악권》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'fs1d' }, desc: '읽고 익히면 쇄악권(碎岳拳)을(를) 운용할 수 있다.' },
+  bk_fs1e: { name: '《풍뢰장》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'fs1e' }, desc: '읽고 익히면 풍뢰장(風雷掌)을(를) 운용할 수 있다.' },
+  bk_fs1f: { name: '《장천수》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'fs1f' }, desc: '읽고 익히면 장천수(藏天手)을(를) 운용할 수 있다.' },
+  bk_fs2d: { name: '《경신권법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'fs2d' }, desc: '읽고 익히면 경신권법(驚神拳法)을(를) 운용할 수 있다.' },
+  bk_fs2e: { name: '《부운유장》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'fs2e' }, desc: '읽고 익히면 부운유장(浮雲柔掌)을(를) 운용할 수 있다.' },
+  bk_fs3d: { name: '《산하일월신권》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'fs3d' }, desc: '읽고 익히면 산하일월신권(山河日月神拳)을(를) 운용할 수 있다.' },
+  bk_hd1d: { name: '《수성표》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hd1d' }, desc: '읽고 익히면 수성표(袖星鏢)을(를) 운용할 수 있다.' },
+  bk_hd1e: { name: '《무성비도》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hd1e' }, desc: '읽고 익히면 무성비도(無聲飛刀)을(를) 운용할 수 있다.' },
+  bk_hd1f: { name: '《무영침》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hd1f' }, desc: '읽고 익히면 무영침(無影針)을(를) 운용할 수 있다.' },
+  bk_hd2d: { name: '《낙화무흔수》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hd2d' }, desc: '읽고 익히면 낙화무흔수(落花無痕手)을(를) 운용할 수 있다.' },
+  bk_hd2e: { name: '《만점비우》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hd2e' }, desc: '읽고 익히면 만점비우(萬點飛雨)을(를) 운용할 수 있다.' },
+  bk_hd3d: { name: '《소리단혼수》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'hd3d' }, desc: '읽고 익히면 소리단혼수(笑裏斷魂手)을(를) 운용할 수 있다.' },
+  bk_gy1d: { name: '《답설보》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gy1d' }, desc: '읽고 익히면 답설보(踏雪步)을(를) 운용할 수 있다.' },
+  bk_gy1e: { name: '《승풍행》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gy1e' }, desc: '읽고 익히면 승풍행(乘風行)을(를) 운용할 수 있다.' },
+  bk_gy1f: { name: '《천리보》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gy1f' }, desc: '읽고 익히면 천리보(千里步)을(를) 운용할 수 있다.' },
+  bk_gy2d: { name: '《낙엽표신법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gy2d' }, desc: '읽고 익히면 낙엽표신법(落葉飄身法)을(를) 운용할 수 있다.' },
+  bk_gy2e: { name: '《답수무파》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gy2e' }, desc: '읽고 익히면 답수무파(踏水無波)을(를) 운용할 수 있다.' },
+  bk_gy3d: { name: '《이형유영신법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gy3d' }, desc: '읽고 익히면 이형유영신법(移形留影身法)을(를) 운용할 수 있다.' },
+  bk_gi1d: { name: '《장홍공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gi1d' }, desc: '읽고 익히면 장홍공(長虹功)을(를) 운용할 수 있다.' },
+  bk_gi1e: { name: '《장해공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gi1e' }, desc: '읽고 익히면 장해공(藏海功)을(를) 운용할 수 있다.' },
+  bk_gi1f: { name: '《탄천공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gi1f' }, desc: '읽고 익히면 탄천공(吞天功)을(를) 운용할 수 있다.' },
+  bk_gi2d: { name: '《백맥주천공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gi2d' }, desc: '읽고 익히면 백맥주천공(百脈周天功)을(를) 운용할 수 있다.' },
+  bk_gi2e: { name: '《풍운토납공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gi2e' }, desc: '읽고 익히면 풍운토납공(風雲吐納功)을(를) 운용할 수 있다.' },
+  bk_gi3d: { name: '《건곤일기신공》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'gi3d' }, desc: '읽고 익히면 건곤일기신공(乾坤一氣神功)을(를) 운용할 수 있다.' },
+  bk_sm1d: { name: '《명경결》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm1d' }, desc: '읽고 익히면 명경결(明鏡訣)을(를) 운용할 수 있다.' },
+  bk_sm1e: { name: '《귀일결》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm1e' }, desc: '읽고 익히면 귀일결(歸一訣)을(를) 운용할 수 있다.' },
+  bk_sm1f: { name: '《무아결》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm1f' }, desc: '읽고 익히면 무아결(無我訣)을(를) 운용할 수 있다.' },
+  bk_sm2d: { name: '《정심만법결》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm2d' }, desc: '읽고 익히면 정심만법결(靜心萬法訣)을(를) 운용할 수 있다.' },
+  bk_sm2e: { name: '《수일파마결》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm2e' }, desc: '읽고 익히면 수일파마결(守一破魔訣)을(를) 운용할 수 있다.' },
+  bk_sm3d: { name: '《심외무경심법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sm3d' }, desc: '읽고 익히면 심외무경심법(心外無經心法)을(를) 운용할 수 있다.' },
 };
 
 /* 장비 등급: 하급 < 중급 < 상급 < 진품 < 명품 < 극품 (능력치 배율) */
@@ -373,7 +422,7 @@ const GACHA = {
   awaken: 300,                                             // 누적 공양 찌꺼기가 이만큼 차면 무신이 깨어난다 (초과분 보존)
   awakenPill: { pillLow: 10, pillHigh: 5 },             // 각성 때 덤으로 돌파단: 소성 10% · 대성 5% (나머지 85%는 없음, 유저 요청)
   awakenScrap: { scrap2: 90, scrap3: 10 },                 // 각성마다 찢어진 비급 조각 1장: 이류 90% · 일류 10% (유저 요청 — 영구 능력치 · 완제품 하사는 없앰)
-  books: ['sw1a', 'sw1b', 'sw1c', 'bd1a', 'bd1b', 'bd1c', 'sp1a', 'sp1b', 'sp1c', 'fs1a', 'fs1b', 'fs1c', 'hd1a', 'hd1b', 'hd1c', 'gy1a', 'gy1b', 'gy1c', 'gi1a', 'gi1b', 'gi1c', 'sm1a', 'sm1b', 'sm1c'],   // 삼류 40종
+  books: ['sw1a', 'sw1b', 'sw1c', 'bd1a', 'bd1b', 'bd1c', 'sp1a', 'sp1b', 'sp1c', 'fs1a', 'fs1b', 'fs1c', 'hd1a', 'hd1b', 'hd1c', 'gy1a', 'gy1b', 'gy1c', 'gi1a', 'gi1b', 'gi1c', 'sm1a', 'sm1b', 'sm1c', 'sw1d', 'sw1e', 'sw1f', 'bd1d', 'bd1e', 'bd1f', 'sp1d', 'sp1e', 'sp1f', 'fs1d', 'fs1e', 'fs1f', 'hd1d', 'hd1e', 'hd1f', 'gy1d', 'gy1e', 'gy1f', 'gi1d', 'gi1e', 'gi1f', 'sm1d', 'sm1e', 'sm1f'],   // 삼류 40종 + 신규 삼류 24종
 };
 
 /* 화로 한 번에 넣을 수 있는 재료 수 · 연구 노트에 남기는 시도 수 */

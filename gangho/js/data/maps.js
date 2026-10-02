@@ -75,6 +75,10 @@ const PEDDLER_WARES = {
     ['bk_sp1a', 60], ['bk_sp1b', 150], ['bk_sp1c', 150], ['bk_fs1a', 60], ['bk_fs1b', 150], ['bk_fs1c', 150],
     ['bk_hd1a', 60], ['bk_hd1b', 150], ['bk_hd1c', 150], ['bk_gy1a', 150], ['bk_gy1b', 150], ['bk_gy1c', 150],
     ['bk_gi1a', 150], ['bk_gi1b', 150], ['bk_gi1c', 150], ['bk_sm1a', 150], ['bk_sm1b', 150], ['bk_sm1c', 150],
+    ['bk_sw1d', 150], ['bk_sw1e', 150], ['bk_sw1f', 150], ['bk_bd1d', 150], ['bk_bd1e', 150], ['bk_bd1f', 150],
+    ['bk_sp1d', 150], ['bk_sp1e', 150], ['bk_sp1f', 150], ['bk_fs1d', 150], ['bk_fs1e', 150], ['bk_fs1f', 150],
+    ['bk_hd1d', 150], ['bk_hd1e', 150], ['bk_hd1f', 150], ['bk_gy1d', 150], ['bk_gy1e', 150], ['bk_gy1f', 150],
+    ['bk_gi1d', 150], ['bk_gi1e', 150], ['bk_gi1f', 150], ['bk_sm1d', 150], ['bk_sm1e', 150], ['bk_sm1f', 150],
   ],
   gear: [
     ['g_bandage', 30], ['g_hideTosu', 35], ['g_woodFist', 35], ['g_copperGlove', 40], ['g_studFist', 40], ['g_rustySword', 30],
