@@ -32,7 +32,8 @@ function aiAct(note) {
   // 4. 장비: 투력이 오르면 갈아 끼우고, 행낭이 차면 못 쓰는 장비를 판다
   aiPickGear(note);
   // 5. 문파 임무 · 무신상 공양
-  for (const q of subqList()) if (subqReady(q.zid, q.n)) claimSubq(q.zid, q.n);
+  if (subqReady()) claimSubq();
+  if (!subqCur() && subqLeft() && S.expedition.zone) acceptSubq(S.expedition.zone, stageMax(S.expedition.zone));   // AI: 지금 탐험지의 가장 높은 열린 단계를 받는다
   for (const E of encountersWaiting()) { const ev = EVENTS.find(x => x.id === E.ev), ok = encChoices(E).map((c, i) => [c, i]).filter(([c]) => !reqFail(c.req)); resolveEncounter(E.uid, (ok.find(([c]) => c.req) || ok[0] || [0, 0])[1]); }   // 기연은 쌓이므로 AI가 고른다
   if (count('slag') >= GACHA.cost) pray(Math.floor(count('slag') / GACHA.cost));
   // 6. 돌파단 · 생혈고

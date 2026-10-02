@@ -25,15 +25,16 @@ module.exports = async (b) => {
 
     // 2. 장문인 토벌 임무: 단계마다 SUBQ.kills번 이기면 보상 · 하루 SUBQ.daily번까지
     const ms = await p.evaluate(() => {
-      const r = {}, c0 = S.contrib; S.subq = {}; S.subqDay = null;
+      const r = {}, c0 = S.contrib; S.subqCur = null; S.subqDay = null;
+      r.noQuest = !subqReady(); acceptSubq('cheongpung', 1);
       for (let i = 0; i < SUBQ.kills; i++) subqAdd('cheongpung', 1);
-      r.ready = subqReady('cheongpung', 1); r.got = claimSubq('cheongpung', 1) && S.contrib > c0;
-      let n = 1; for (let k = 0; k < SUBQ.daily + 2; k++) { for (let i = 0; i < SUBQ.kills; i++) subqAdd('cheongpung', 1); if (claimSubq('cheongpung', 1)) n++; }
-      r.n = n; r.daily = SUBQ.daily; r.left = subqLeft('cheongpung', 1);
+      r.ready = subqReady(); r.got = claimSubq() && S.contrib > c0 && !subqCur();
+      let n = 1; for (let k = 0; k < SUBQ.daily + 2; k++) { acceptSubq('cheongpung', 1); for (let i = 0; i < SUBQ.kills; i++) subqAdd('cheongpung', 1); if (claimSubq()) n++; }
+      r.n = n; r.daily = SUBQ.daily; r.left = subqLeft(); r.blocked = !acceptSubq('cheongpung', 1);
       return r;
     });
-    ok('2 토벌 임무: 다 채우면 보상 · 공헌도 오름', ms.ready && ms.got, JSON.stringify(ms));
-    ok('2 토벌 임무는 단계마다 하루 정해진 횟수까지', ms.n === ms.daily && ms.left === 0, JSON.stringify(ms));
+    ok('2 토벌 임무: 장문인에게 받아 다 채우면 보상 · 공헌도 오름', ms.noQuest && ms.ready && ms.got, JSON.stringify(ms));
+    ok('2 토벌 임무는 하루 정해진 횟수까지 (다 하면 더 못 받음)', ms.n === ms.daily && ms.left === 0 && ms.blocked, JSON.stringify(ms));
 
     // 3. 장경각 3탭 · 이류 장비 (4대 스탯 보정 포함) · 공헌도
     await p.evaluate(() => { S.contrib = 1000; goTab('sect', 'hall'); ui.fold.library = false; render(); });

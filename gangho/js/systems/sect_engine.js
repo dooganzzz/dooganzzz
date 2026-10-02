@@ -1,38 +1,39 @@
 /* [시스템] 청풍문: 문파 임무·인물(조운·아린·장문인)·장경각·창고·하산 (DOM 조작 금지) */
 
-/* ───────── 서브 퀘스트: 단계별 토벌 (반복) ─────────
-   장문인과 말해 정한 탐험지 한 곳(S.subqZone)에서만 센다. 그 탐험지의 열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'.
-   다 채우면 장문인에게 보상을 받고, 진행은 처음부터 다시 쌓인다. 보상은 모든 단계를 합쳐 하루 SUBQ.daily번까지.
+/* ───────── 보조 퀘스트: 토벌 임무 (반복) ─────────
+   장문인에게 탐험지 · 단계를 골라 하나씩 받는다 (S.subqCur = { zid, n, prog }). 그 단계에서 SUBQ.kills번 이기면 보상을 받고,
+   보상을 받으면 다시 받을 수 있다. 보상은 하루 SUBQ.daily번까지 (모든 지역 합).
    보상: 공헌도 · 은자 · 수련치 · 생혈고 (단계에 비례 · 높은 탐험지일수록 tierUp만큼 소폭 더). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
-const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 5, tierUp: 0.2 };   // daily: 하루 보상 횟수(모든 지역 · 단계 합) · tierUp: 탐험지 한 등급마다 +20%
-const subqKey = (zid, n) => `${zid}:${n}`;
+const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 5, tierUp: 0.2 };   // daily: 하루 보상 횟수(모든 지역 합) · tierUp: 탐험지 한 등급마다 +20%
 function subqReward(zid, n) { const t = 1 + SUBQ.tierUp * (ZONES[zid].tier - 1); return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
-/* 토벌할 탐험지: 장문인에게 정한 곳 (안 정했거나 닫혔으면 지금 강호행 탐험지 · 청풍산) */
-function subqZone() { const z = S.subqZone; if (z && ZONES[z] && zoneUnlocked(z)) return z; const x = S.expedition && S.expedition.zone; return x && zoneUnlocked(x) ? x : ZONE_ORDER[0]; }
-function subqProg(zid, n) { return ((S.subq || {})[subqKey(zid, n)]) || 0; }
-function subqAdd(zid, n) { if (zid !== subqZone()) return; S.subq = S.subq || {}; const k = subqKey(zid, n); S.subq[k] = Math.min(SUBQ.kills, (S.subq[k] || 0) + 1); }
-/* 오늘 보상을 받은 횟수 (모든 단계 합 · 자정이 지나면 0부터) */
+const subqCur = () => { const q = S.subqCur; return q && ZONES[q.zid] ? q : null; };
+function subqAdd(zid, n) { const q = subqCur(); if (q && q.zid === zid && q.n === n) q.prog = Math.min(SUBQ.kills, (q.prog || 0) + 1); }
+/* 오늘 보상을 받은 횟수 (자정이 지나면 0부터) */
 function subqToday() { const d = S.subqDay; return d && d.date === today() ? (d.total != null ? d.total : Object.values(d.n || {}).reduce((a, v) => a + v, 0)) : 0; }
 const subqLeft = () => Math.max(0, SUBQ.daily - subqToday());
-const subqReady = (zid, n) => zid === subqZone() && subqProg(zid, n) >= SUBQ.kills && subqLeft() > 0;
-/* 지금 토벌 임무 목록: 정한 탐험지의 열린 단계 */
-function subqList() { const z = subqZone(), out = []; for (let n = 1; n <= stageMax(z); n++) out.push({ zid: z, n }); return out; }
-/* 장문인과 말해 토벌 탐험지 정하기 */
-function subqAsk() { log(`노벽송: "어디서 토벌을 하겠느냐? 한 곳을 정하면 그곳에서 이긴 것만 세어 주마. 보상은 하루 ${SUBQ.daily}번이다. 높은 땅일수록 조금 더 얹어 주마."`, 'npc'); }
-function setSubqZone(z) {
-  if (!ZONES[z] || !zoneUnlocked(z)) return false;
-  S.subqZone = z; log(`노벽송: "${ZONES[z].name}이라… 좋다. 이제부터 ${ZONES[z].name}에서 이긴 것만 세겠다."`, 'npc'); notify.refresh(); return true;
+const subqReady = () => { const q = subqCur(); return !!q && (q.prog || 0) >= SUBQ.kills && subqLeft() > 0; };
+const subqReadyCount = () => (subqReady() ? 1 : 0);
+/* 장문인에게 토벌 임무 받기: 탐험지 → 단계 고르기 */
+function subqAsk() {
+  const q = subqCur();
+  if (!subqLeft()) return log(`노벽송: "오늘 토벌은 ${SUBQ.daily}번 다 했다. 내일 오너라."`, 'npc');
+  log(q ? `노벽송: "${stageName(q.zid, q.n)} 토벌을 맡고 있지 않느냐. 다른 곳으로 바꾸면 쌓은 것은 사라진다. 어디로 가겠느냐?"`
+    : `노벽송: "토벌을 맡겠느냐? 어느 땅, 어느 길목에서 할지 골라라. 보상은 하루 ${SUBQ.daily}번이다. 높은 땅일수록 조금 더 얹어 주마."`, 'npc');
 }
-function subqReadyCount() { return subqList().filter(q => subqReady(q.zid, q.n)).length; }
-function claimSubq(zid, n) {
-  if (!ZONES[zid] || !subqReady(zid, n)) return false;
-  const r = subqReward(zid, n);
-  const done = subqToday();
+function subqPickZone(z) { if (!ZONES[z] || !zoneUnlocked(z)) return false; log(`노벽송: "${ZONES[z].name}이라… 어느 길목이냐?"`, 'npc'); return true; }
+function acceptSubq(z, n) {
+  if (!ZONES[z] || !zoneUnlocked(z) || n < 1 || n > stageMax(z) || !subqLeft()) return false;
+  S.subqCur = { zid: z, n, prog: 0 };
+  log(`노벽송: "좋다. ${stageName(z, n)}에서 ${SUBQ.kills}번 이기고 오너라."`, 'npc'); notify.refresh(); return true;
+}
+function claimSubq() {
+  const q = subqCur(); if (!q || !subqReady()) return false;
+  const r = subqReward(q.zid, q.n), done = subqToday();
   if (!S.subqDay || S.subqDay.date !== today()) S.subqDay = { date: today(), n: {} };
-  S.subqDay.total = done + 1; S.subqDay.n[subqKey(zid, n)] = (S.subqDay.n[subqKey(zid, n)] || 0) + 1;
-  S.subq[subqKey(zid, n)] = 0; S.contrib += r.contrib; S.silver += r.silver; S.exp += r.exp; give('saenghyeol', r.pot, true);
+  S.subqDay.total = done + 1;
+  S.subqCur = null; S.contrib += r.contrib; S.silver += r.silver; S.exp += r.exp; give('saenghyeol', r.pot, true);
   S.subqDone = (S.subqDone || 0) + 1;
-  log(`📜 토벌 임무 완료 — ${stageName(zid, n)}: ${hlContrib('+' + r.contrib)}, ${hlSilver(r.silver)}, 수련치 +${r.exp}, 생혈고 ${r.pot}`, 'good');
+  log(`📜 토벌 임무 완료 — ${stageName(q.zid, q.n)}: ${hlContrib('+' + r.contrib)}, ${hlSilver(r.silver)}, 수련치 +${r.exp}, 생혈고 ${r.pot}`, 'good');
   notify.refresh();
   return true;
 }
