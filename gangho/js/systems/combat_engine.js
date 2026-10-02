@@ -35,7 +35,7 @@ function cpVersus(st, R, art) {
   const offense = basic * skill + dmgBase(st.atk, def) * hit * critF * counter;
   taken = Math.max(taken * 0.1, taken - offense * (st.lifesteal || 0) / 100);
   const rounds = st.maxHp / Math.max(1, taken);
-  const first = st.spd + attrOf('agi') + (st.first || 0) >= R.spd ? 0.5 : -0.5;   // 먼저 치면 한 번 더
+  const first = st.spd + (st.foe ? 0 : attrOf('agi')) + (st.first || 0) >= R.spd ? 0.5 : -0.5;   // 먼저 치면 한 번 더 (요수는 제자 민첩을 더하지 않음)
   return { offense, rounds, hit, critF, skill, sustain, counter, first, value: offense * Math.max(0.5, rounds + first) };
 }
 function combatPowerParts(player = S) {
@@ -58,6 +58,13 @@ function combatPowerParts(player = S) {
   } finally { S = prev; }
 }
 function calculateCombatPower(player = S) { return combatPowerParts(player).total; }
+/* 요수 투력: 제자 투력과 같은 잣대 — 요수를 제자 자리에 세우고 같은 기준 상대(CP_REF)들과 겨뤄 기하평균 (무대 정보 창에 제자 투력과 나란히) */
+function foeCombatPower(eid) {
+  const E = ENEMIES[eid]; if (!E) return 0;
+  const st = { atk: E.atk * (1 + ((E.hits || 1) - 1) * 0.6), def: E.def || 0, maxHp: E.hp, eva: E.eva || 0, crit: E.crit || 0, spd: E.spd || 0, foe: true };   // 연격은 공격력에 녹인다
+  const vs = CP_REF.map(R => cpVersus(st, R, { elem: false, moves: 0 }));
+  return Math.round(CP_SCALE * Math.exp(vs.reduce((a, v) => a + Math.log(Math.max(1e-6, v.value)), 0) / vs.length));
+}
 /* 장비를 잠깐 끼워 보고 투력 · 공세 · 수세가 얼마나 바뀌는지 (slot을 안 주면 그 장비가 들어갈 칸 중 가장 나은 칸) */
 function cpTryGear(it, slot) {
   const base = combatPowerParts(S), slots = slot ? [slot] : SLOT_ORDER.filter(s => slotAccepts(s) === it.slot);
