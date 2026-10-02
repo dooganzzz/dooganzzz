@@ -909,7 +909,8 @@ body {
 .meditation-center-frame[data-lit="0"] .rank-ring.on { display: none; }
 @keyframes rankFlame { 0%, 100% { opacity: .85; transform: scale(1) rotate(0deg); filter: brightness(1); } 35% { opacity: 1; transform: scale(1.015) rotate(.4deg); filter: brightness(1.15); } 70% { opacity: .9; transform: scale(.995) rotate(-.3deg); } }
 html.calm .meditation-center-frame .rank-ring.on { animation: none; }
-.meditation-caption .rank-name { display: block; font-size: 11px; letter-spacing: .2em; color: #8fc6ff; opacity: .85; }
+.meditation-caption { text-align: center; }
+.meditation-caption .rank-name { display: block; font-size: 11px; letter-spacing: .2em; padding-left: .2em; text-align: center; color: #8fc6ff; opacity: .85; }   /* 글자 사이 띄움(.2em)이 끝에만 붙어 왼쪽으로 쏠리지 않게 앞에도 같은 만큼 */
 .meditation-caption .rank-name.up { color: #bfe3ff; text-shadow: 0 0 8px rgba(90, 170, 255, .8); }
 .mslots.martial-arts-core-layout { overflow-x: clip; }   /* 좌선 불꽃 고리가 폰에서 옆으로 넘쳐 가로 스크롤이 생기지 않게 */
 /* 상태 › 무공 장착 칸 (가벼운 판): 배경 · 테두리 없이 표지 + 갈래 이름 + 성급 */
@@ -920,6 +921,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .mslot.slot-lite .art-star { display: block; font: 800 20px/1.1 system-ui, sans-serif; color: #f0cf82; text-shadow: 0 0 8px rgba(0, 0, 0, .9); } .mslot.slot-lite .art-star small { font-size: 12px; }
 .slot-lite.empty { opacity: .75; } .slot-lite.empty small { display: block; font-size: 11px; }
 @media (max-width: 640px) { .skill-card-compact.mslot.slot-lite, .pos-12 .skill-card-compact.mslot.slot-lite, .pos-6 .skill-card-compact.mslot.slot-lite { width: auto; } .slot-lite .mslot-cover { width: 32px; height: 42px; } }
+@media (max-width: 640px) { .mslots.martial-arts-core-layout > .slot-pos.pos-3, .mslots.martial-arts-core-layout > .slot-pos.pos-6 { display: flex; justify-content: flex-end; text-align: right; } }   /* 폰: 오른쪽 두 칸(기공 · 경공)은 오른쪽 끝에 붙인다 */
 /* 습득 비급 A안: 한 줄 목록 */
 .mrows { display: grid; gap: 8px; }
 .mrow { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid #2f2a22; border-radius: 10px; background: linear-gradient(90deg, rgba(212, 175, 55, .06), transparent 60%); }
