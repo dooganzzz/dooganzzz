@@ -49,7 +49,7 @@ function liveShowPlan(sh, w) {
   // 초식 일격: 제자는 제자리에서 칼을 휘두르고 (연속 때리기 무공은 아래에서 달려가 붙음)(돌진하는 평타 동작 없이), 칼끝에서 나간 검기가 요수에 닿을 때 맞는다
   const skillAtk = (t0, ev, sk) => {
     if (!ranged && sk.mid && ASSET.hit(sk.mid)) {   // 연속 때리기(MANUAL_HIT): 달려가 붙어서 때리고, 맞는 자리에 초식 그림이 터진 뒤 돌아온다
-      q.push({ at: t0, k: 'hx', x: LIVE_POS.lunge }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);
+      q.push({ at: t0, k: 'hx', x: Math.max(LIVE_POS.lunge, (sh.foeX || 0) - 17) }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);   // 주먹이 닿게 요수 코앞까지
       const s = t0 + T(330), hitAt = s + T(150);
       heroF(s, 4); heroF(s + T(120), 5); q.push({ at: hitAt - T(40), k: 'skill', sk }); q.push({ ...ev, at: hitAt }); heroF(s + T(300), 6);
       q.push({ at: s + T(520), k: 'hx', x: LIVE_POS.hero }); heroF(s + T(560), 0);
