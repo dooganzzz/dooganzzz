@@ -11,6 +11,9 @@ const CO_TL = { inEnd: 900, poem: 1000, outStart: 2500, outEnd: 2950, end: 3050 
 /* 무공 시계: 두루마리가 뜬 뒤 몇 ms에 무공(초식 · 오의)이 시작하는가. 두루마리 시계와 따로 센다 (서로 기다리지 않는다) */
 const CO_MOVE_AT = { move: 2500, ougi: 3050 };   // 초식: 감기기 시작할 때 · 오의: 다 거둬진 뒤
 const CO_AX = { w: .5, len: .75, start: 1.5, h0: 2.2, c0: .38, aspect: 135 / 505, frames: 16, turn: 4.6 };   // 축 굵기 · 길이 · 다 감겼을 때 굵기 배율 · 그림 비율 · 무늬 한 바퀴(라디안)
+/* [SSOT] 무공의 시: 검법은 비급마다 제 시(poem), 그 밖의 갈래는 갈래별 시(CAT_POEMS) 중 등급에 맞는 한 편. 두루마리 외침과 비급 상세 창이 함께 쓴다 (한쪽만 고쳐 시구가 비는 일이 없게) */
+const POEM_TIER = { '삼류': 0, '이류': 0, '일류': 1, '절정': 1, '초절정': 2 };
+const manualPoem = M => M.poem || (CAT_POEMS[M.weapon || M.cat] && { title: '', lines: CAT_POEMS[M.weapon || M.cat][POEM_TIER[M.grade] || 0] }) || null;
 const calloutOf = (mid, n) => (MANUALS[mid] && MANUALS[mid].weapon && MANUALS[mid].stances && MANUALS[mid].stances[n - 1] && CALLOUT[n]) || null;   // 병기 무공이면 모두
 /* 시구 크기 · 자리 (유저가 미리보기에서 맞춤): one = 한 줄 시구(제1 · 제2초식) · two = 두 줄 시구(오의), pc · mo(폭 640px 이하)
    k 종이 띠 높이 대비 글자 크기(%) · min 최소 글자(px) · w 한 줄 폭(무대 너비 %) · dx · dy 두루마리 오른쪽 · 종이 띠 위끝에서 옮긴 거리(무대 너비 · 높이 %) */
@@ -24,7 +27,7 @@ function calloutPreload(mid, n) {
 function calloutPlay(sc, mid, n) {
   const C = calloutOf(mid, n), M = MANUALS[mid];
   if (!C || !M || !sc) return Promise.resolve();
-  const st = M.stances[n - 1], hj = (st.name.match(/\(([^)]*)\)/) || [])[1] || '', P = (M.poem && M.poem.lines) || [];
+  const st = M.stances[n - 1], hj = (st.name.match(/\(([^)]*)\)/) || [])[1] || '', P = (manualPoem(M) || {}).lines || [];
   const lines = (n >= 3 ? P : [P[n - 1]]).filter(Boolean);   // 오의는 시 두 줄을 다
   const box = document.createElement('div'); box.className = 'co'; box.dataset.live = 1; if (C.tone) box.dataset.tone = C.tone;   // 기운 빛깔 (기본 푸름)
   box.innerHTML = `<div class="co-paper"><i class="co-base"></i><i class="co-hz"></i>

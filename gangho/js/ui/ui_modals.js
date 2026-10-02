@@ -2,7 +2,7 @@
 
 /* 비급에 실린 과거 시: 검법은 비급마다 한 편, 나머지 갈래는 등급에 맞는 갈래 시 (짧은 시 · 보통 시 · 긴 시) */
 function manualPoemHtml(id) {
-  const M = MANUALS[id], key = M.weapon || M.cat, P = M.poem || (CAT_POEMS[key] && { title: '', lines: CAT_POEMS[key][{ '삼류': 0, '이류': 0, '일류': 1, '절정': 1, '초절정': 2 }[M.grade] || 0] });
+  const M = MANUALS[id], P = manualPoem(M);
   return P ? `<blockquote class="manual-poem">${P.title ? `<b>${P.title}</b>` : ''}${P.lines.map(l => `<span>${l}</span>`).join('')}</blockquote>` : '';
 }
 function manualModal(cat) {
