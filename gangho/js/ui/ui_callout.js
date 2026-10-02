@@ -52,9 +52,10 @@ function calloutPlay(sc, mid, n) {
   const easeOut = x => 1 - Math.pow(1 - x, 3), easeIn = x => x * x * x;
   const gap = Math.min(75, 1300 / Math.max(1, chars.length));
   return new Promise(done => {
-    const t0 = performance.now();
+    const t0 = performance.now(); let freed = false;
     const step = now => {
       const ms = now - t0;
+      if (!freed && ms >= CO_TL.outStart) { freed = true; done(); }   // 대사가 끝나 두루마리가 감기기 시작하면 바로 초식을 펼친다 (감기는 것과 동시에)
       const p = ms < CO_TL.inEnd ? easeOut(ms / CO_TL.inEnd) : ms < CO_TL.outStart ? 1 : ms < CO_TL.outEnd ? 1 - easeIn((ms - CO_TL.outStart) / (CO_TL.outEnd - CO_TL.outStart)) : 0;
       const x = W * p, grow = 1 + (CO_AX.start - 1) * (1 - p);              // 감긴 종이가 풀릴수록 축이 가늘어진다
       paper.style.clipPath = `inset(0 ${((1 - p) * 100).toFixed(2)}% 0 0)`;
@@ -64,7 +65,7 @@ function calloutPlay(sc, mid, n) {
       chars.forEach((c, i) => c.classList.toggle('on', ms > CO_TL.poem + i * gap && ms < CO_TL.outStart + 200));
       box.style.opacity = ms > CO_TL.outEnd ? 0 : 1;
       if (ms < CO_TL.end && box.isConnected) requestAnimationFrame(step);
-      else { box.remove(); poem.remove(); done(); }
+      else { box.remove(); poem.remove(); if (!freed) done(); }
     };
     requestAnimationFrame(step);
   });

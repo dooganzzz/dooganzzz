@@ -69,13 +69,13 @@ function liveShowPlan(sh, w) {
       if (f.side === 'banner' && f.k === 'move' && f.mid && f.n >= 3 && typeof ougiPlay === 'function') {   // 오의: 바로 뒤의 일격을 오의 연출로 (빗나가면 예전처럼 이름만)
         const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
         const co = g && g.k !== 'miss' && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);
-        if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }   // 오의 외침 → 오의 막
+        if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(20); }   // 오의 외침 → (두루마리가 감기기 시작하면 바로) 오의 막
         if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, name: f.t, noName: !!co, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
       }
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
           const co = f.n < 3 && typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);   // 초식 외침: 초식을 펼칠 때마다 (설정에서 끔)
-          if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }
+          if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(20); }   // 감기기 시작하면 바로 초식
           pending = { mid: f.mid, n: f.n, tier: f.n >= 3 ? 2 : 1, name: f.t, noName: !!co };   // 초식은 바로 뒤의 일격에 실어 낸다 (평타 동작과 겹치지 않게)
         }
         continue;
@@ -180,7 +180,7 @@ function liveShowStep(sc, sh, ts, dt) {
         onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
-    else if (e.k === 'callout') {                     // 초식 외침 두루마리가 다 거둬질 때까지 순서를 멈춘다
+    else if (e.k === 'callout') {                     // 초식 외침: 대사가 끝나 두루마리가 감기기 시작할 때까지 순서를 멈춘다 (감기는 동안 초식이 함께 나간다)
       sh.hold = true; const t1 = performance.now();
       calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
