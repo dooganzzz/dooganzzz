@@ -800,9 +800,6 @@ body {
 .pos-6 { transform: translateY(4px) rotate(.5deg); }
 /* 기운 순환 궤적 */
 .qi-orbit { grid-column: 1 / -1; grid-row: 1 / -1; width: min(100%, 600px); height: auto; aspect-ratio: 1; align-self: center; justify-self: center; pointer-events: none; z-index: 0; }
-.qi-orbit .orbit-ink { fill: none; stroke: rgba(197, 160, 89, .16); stroke-width: 10; }
-.qi-orbit .orbit-flow { fill: none; stroke: rgba(240, 207, 130, .45); stroke-width: 1.2; stroke-dasharray: 3 9; animation: orbitFlow 30s linear infinite; transform-origin: 300px 300px; }
-@keyframes orbitFlow { to { transform: rotate(360deg); } }
 @media (max-width: 760px) {
   .meditation-center-frame { width: 170px; height: 170px; margin: 4px; }
   .meditation-silhouette { width: 90px; height: 90px; }
@@ -848,15 +845,25 @@ body {
 
 /* ───────── 상태 › 무공: 십자 배치 대신 기운 고리 위에 비스듬히 (11시 심법 · 2시 기공 · 5시 경공 · 8시 무공) ─────────
    고리를 따라 기운이 도는 순서대로 놓아 딱딱한 십자 대칭을 없앤다. 자리는 각도(--a)와 반지름(--r)으로 정한다 */
-.mslots.martial-arts-core-layout { display: block; position: relative; width: min(100%, 660px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; padding: 0; --r: 37%; }
+.mslots.martial-arts-core-layout { display: block; position: relative; width: min(100%, 860px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; padding: 0; --r: 39.3%; }   /* --r: 고리 그림(qi_ring)의 기운 띠 한가운데 — 비급 칸이 그 선 위에 꿰인다 */
 .mslots.martial-arts-core-layout > .qi-orbit { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mslots.martial-arts-core-layout > .meditation-center-frame { position: absolute; left: 50%; top: 50%; width: 42%; height: 42%; margin: 0; transform: translate(-50%, -50%); }
 .mslots.martial-arts-core-layout .meditation-silhouette { width: 52%; height: 52%; }
-.mslots.martial-arts-core-layout > .slot-pos { position: absolute; z-index: 2; left: calc(50% + var(--r) * sin(var(--a))); top: calc(50% - var(--r) * cos(var(--a))); transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)); }
+.mslots.martial-arts-core-layout > .slot-pos { position: absolute; z-index: 2; left: calc(50% + var(--r) * sin(var(--a))); top: calc(50% - var(--r) * cos(var(--a))); transform: translate(-35px, -50%) rotate(var(--tilt, 0deg)); }   /* 표지 칸(58px + 여백) 한가운데가 고리 선에 오게 */
 .slot-pos.pos-12 { --a: -38deg; --tilt: -1.2deg; }
 .slot-pos.pos-3 { --a: 58deg; --tilt: 1deg; }
 .slot-pos.pos-6 { --a: 142deg; --tilt: -.8deg; }
 .slot-pos.pos-9 { --a: 232deg; --tilt: 1.3deg; }
+/* 고리 그림 · 도는 빛 한 점: 빛이 칸의 각도(--a)에 닿는 때(6초 한 바퀴 중 --a/360)에 맞춰 그 칸이 환해진다 */
+.mslots.martial-arts-core-layout > .qi-ring { z-index: 1; mix-blend-mode: screen; opacity: .6; pointer-events: none; animation: qiSpin 90s linear infinite; }
+.qi-comet { position: absolute; inset: 0; z-index: 3; pointer-events: none; animation: qiSpin 6s linear infinite; }
+.qi-comet i { position: absolute; left: 50%; top: calc(50% - var(--r)); width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; mix-blend-mode: screen; background: radial-gradient(circle, rgba(255, 246, 214, .95) 0, rgba(240, 207, 130, .5) 30%, rgba(240, 207, 130, 0) 70%); }
+.qi-comet i::after { content: ''; position: absolute; right: 50%; top: 18px; width: 150px; height: 16px; transform-origin: right center; transform: rotate(-12deg); border-radius: 50%; background: linear-gradient(90deg, rgba(240, 207, 130, 0), rgba(255, 240, 200, .5)); filter: blur(3px); }
+@keyframes qiSpin { to { transform: rotate(360deg); } }
+.martial-arts-core-layout .slot-pos .mslot-box { animation: qiBoxFlare 6s linear infinite; }
+.slot-pos.pos-3 .mslot-box { animation-delay: .967s; } .slot-pos.pos-6 .mslot-box { animation-delay: 2.367s; } .slot-pos.pos-9 .mslot-box { animation-delay: 3.867s; } .slot-pos.pos-12 .mslot-box { animation-delay: 5.367s; }
+@keyframes qiBoxFlare { 0% { box-shadow: inset 0 0 10px rgba(0, 0, 0, .7), 0 0 26px 6px rgba(255, 226, 150, .75); border-color: rgba(255, 236, 180, .95); } 12%, 100% { box-shadow: inset 0 0 10px rgba(0, 0, 0, .7), 0 0 8px rgba(197, 160, 89, .12); border-color: rgba(212, 175, 55, .45); } }
+html.calm .qi-ring, html.calm .qi-comet, html.calm .martial-arts-core-layout .slot-pos .mslot-box { animation: none; }
 .skill-card-compact.mslot { width: 168px; }
 .mslot-head { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; margin-bottom: 4px; }
 .mslot-head-txt { min-width: 0; flex: 1; }
@@ -865,6 +872,7 @@ body {
 @media (max-width: 640px) {   /* 폰: 위 두 칸(심법 · 기공) — 가운데 좌선 — 아래 두 칸(무공 · 경공). 고리는 좌선 뒤에만 */
   .mslots.martial-arts-core-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "heart aura" "core core" "attack agility"; gap: 10px 8px; aspect-ratio: auto; width: 100%; }
   .mslots.martial-arts-core-layout > .slot-pos { position: relative; left: auto; top: auto; transform: rotate(var(--tilt, 0deg)); justify-self: stretch; min-width: 0; }
+  .qi-comet { display: none; } .martial-arts-core-layout .slot-pos .mslot-box { animation: none; }   /* 폰: 칸이 고리 위에 있지 않아 도는 빛 · 칸 빛남은 뺀다 */
   .slot-pos.pos-12 { grid-area: heart; } .slot-pos.pos-3 { grid-area: aura; } .slot-pos.pos-9 { grid-area: attack; } .slot-pos.pos-6 { grid-area: agility; }
   .mslots.martial-arts-core-layout > .meditation-center-frame { grid-area: core; position: relative; left: auto; top: auto; transform: none; justify-self: center; width: min(62vw, 240px); height: auto; aspect-ratio: 1; margin: 4px 0; }
   .mslots.martial-arts-core-layout > .qi-orbit { grid-area: core; position: relative; inset: auto; width: min(80vw, 300px); height: auto; aspect-ratio: 1; justify-self: center; align-self: center; margin: -30px 0; }

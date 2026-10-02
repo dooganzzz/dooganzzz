@@ -80,12 +80,8 @@ function viewMartial() {
     const why = starUpBlock(id), pill = GATES[m.star];
     return `<button class="btn ${why ? '' : 'primary'} sm starup btn-upgrade" data-starup="${id}" ${why ? 'disabled' : ''} title="${why || `수련치 ${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name : ''}`}">▲ ${m.star + 1}성 <small>${fmt(starCost(id))}${pill ? ' + ' + ITEMS[pill].name.replace(' 돌파단', '단') : ''}</small></button>`; };
   const pips = star => `<span class="star-pips" aria-label="${star} / ${MAX_STAR}성">${Array.from({ length: MAX_STAR }, (_, i) => `<i class="${i < star ? 'on' : ''} ${GATES[i] ? 'gate' : ''}"></i>`).join('')}</span>`;
-  // 기운 순환 궤적: 가운데 좌선과 네 방위를 잇는 먹선 고리 (격자 뒤에 깔린다)
-  const orbit = `<svg class="qi-orbit" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-    <defs><filter id="inkBlur"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
-    <circle cx="300" cy="300" r="238" class="orbit-ink" filter="url(#inkBlur)"/>
-    <circle cx="300" cy="300" r="238" class="orbit-flow"/>
-  </svg>`;
+  // 기운 순환 고리(확정본 그림 qi_ring): 천천히 돌고, 빛 한 점이 고리를 따라 돌며 비급 칸을 지날 때 칸이 환해진다 (칸은 고리 선 위에 꿰여 있음)
+  const orbit = `<img class="qi-orbit qi-ring" src="${ASSET.ui('qi_ring')}" alt="" aria-hidden="true"><div class="qi-comet" aria-hidden="true"><i></i></div>`;
   const rp = rankProgress(), R = warriorRank();   // 좌선 테두리: 삼류 무공 성급만큼 파랗게 타오르는 게이지
   const slots = `${orbit}${card('simbeop')}${card('mugong')}<div class="meditation-center-frame ${rp.frac >= 1 ? 'full' : ''}" style="--rk:${(rp.lit / WARRIOR_RANK.lamps * 100).toFixed(3)}%" data-lit="${rp.lit}" title="${R.name} — 삼류 무공 성급 ${rp.per.reduce((a, v) => a + v, 0)} / ${CAT_ORDER.length * MAX_STAR}${rp.frac < 1 ? ' (네 갈래 모두 대성하면 이류무사)' : ''}"><img class="rank-ring off" src="${ASSET.ui('rank_ring_off')}" alt="" aria-hidden="true"><img class="rank-ring on" src="${ASSET.ui('rank_ring_on')}" alt="" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)<small class="rank-name ${rp.frac >= 1 && S.rank ? 'up' : ''}">${R.name}</small></div></div>${card('gigong')}${card('gyeonggong')}`;
   const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat) || Object.keys(GRADES).indexOf(MANUALS[b].grade) - Object.keys(GRADES).indexOf(MANUALS[a].grade) || koCmp(MANUALS[a].name, MANUALS[b].name));
