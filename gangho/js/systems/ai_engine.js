@@ -263,9 +263,11 @@ function aiRun(days, patternKey = 'life') {
   const report = { days, pattern: P.name, startedAt: start, before: aiSnapshot(), daily: [], notes: [], after: null };
   Bus.mute(true); AI_FRONT.key = ''; AI_FRONT.tries = 0; AI_FARM.pos = -1; AI_FARM.init = 0; AI_FARM.seen = Math.max(0, ...S.expeditions.map(r => r.id));
   try {
+    // 진행 중인 강호행은 지금(실제 시각)에 귀환시키고 시작한다. 그대로 두면 다음 걸음 시각이 '지금'이라 N일 전으로 돌린 시계에서는
+    // 끝까지 오지 않아, 강호행 · 수련치 · 토벌이 하나도 진행되지 않았다 (10월 2일, 7일 돌려도 0탐험)
+    if (activeRun()) { recallRun(now()); report.notes.push({ t: now(), day: 1, text: 'AI 시작: 진행 중이던 강호행을 귀환시키고 새로 떠남' }); }
     CLOCK.shift = -hours * AI_HOUR;
     if (!S.expedition.zone) S.expedition.zone = ZONE_ORDER[0];
-    const cur = activeRun(); if (cur) cur.next = Math.max(cur.next, now());   // 진행 중인 강호행은 앞당긴 시계에서 이어 간다
     let day = null;
     const mark = new Set(S.expeditions.filter(r => !r.live).map(r => r.id));
     const tally = d => { for (const r of S.expeditions) if (!r.live && !mark.has(r.id)) { mark.add(r.id); d.runs++; d.wins += r.wins; d.losses += r.losses; d.defeats += r.defeats; d.bosses += r.battles.filter(b => b.boss && b.win).length; } };
