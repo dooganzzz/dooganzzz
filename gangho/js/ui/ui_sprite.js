@@ -4,6 +4,25 @@
 const SPRITE_STAGES = new Set(['cheongpung', 'yeomhwa', 'suryong']);
 const SPRITE_SRC = ASSET;
 const manualFx = id => (MANUALS[id] && MANUALS[id].fx) || id;   // 비급의 초식 그림 (새 비급은 옛 그림을 이어 씀)   // 그림 경로는 data/assets.js
+/* [SSOT] 초식 그림 고르기: 어느 무공 · 단계(1 = 초식 · 2 = 오의 단계)에 어떤 그림을 띄울지는 이 함수 하나만 정한다.
+   강호행 무대 · 관찰 창 무대 · 초식 알림 모두 이것을 부른다. 새 그림을 넣을 때 여기만 바꾸면 옛 그림이 다른 화면에 남아 겹치지 않는다
+   (manualFx · cut_ 그림을 다른 파일에서 직접 쓰면 check-layers가 막는다).
+   CUT_FX: 확정본 검기 컷(10컷, 왼쪽 끝 = 칼끝)이 있는 무공. 칼끝 = 제자 그림 너비의 tip 지점 · 그림 너비 = 칼끝~요수 가운데 × reach · 세로 가운데는 제자 가운데보다 dy(제자 키 비율) 위 */
+const CUT_FX = { sw1a: 1, sw1b: 1, sw1c: 1 };
+const CUT_GEO = { 1: { tip: .75, reach: 1.07, dy: .18, ar: 640 / 200, ms: 1000 }, 2: { tip: .7, reach: 1.04, dy: .35, ar: 640 / 360, ms: 1300, screen: true } };
+const stanceFxSrc = (mid, tier) => CUT_FX[mid] ? ASSET.fx(`cut_${mid}_${tier}`) : SPRITE_SRC.fx(`${manualFx(mid)}_${tier}`);
+/* stage: 그림을 붙일 무대 · imgCls: 옛 한 장 그림일 때 붙일 클래스 · hero · foe: 칼끝 · 거리를 잴 요소 (없으면 무대 가운데를 가로지름) */
+function stanceFxEl(stage, mid, tier, imgCls, hero, foe) {
+  if (!CUT_FX[mid]) { const v = document.createElement('img'); v.className = imgCls; v.src = stanceFxSrc(mid, tier); v.alt = ''; return v; }
+  const g = CUT_GEO[tier], v = document.createElement('div'); v.className = `stance-cut${g.screen ? ' screen' : ''}`;
+  v.style.backgroundImage = `url('${stanceFxSrc(mid, tier)}')`; v.style.animationDuration = g.ms + 'ms';
+  const s = stage.getBoundingClientRect(), h = hero && hero.getBoundingClientRect();
+  if (!h || !h.width) { Object.assign(v.style, { left: '5%', width: '90%', top: '50%', aspectRatio: String(g.ar), transform: 'translateY(-50%)' }); return v; }
+  const f = foe && foe.getBoundingClientRect(), foeX = f && f.width && f.left < s.right ? f.left + f.width / 2 - s.left : s.width * .8;
+  const x = h.left - s.left + h.width * g.tip, w = Math.max(s.width * .3, (foeX - x) * g.reach), cy = h.top - s.top + h.height * (.5 - g.dy);
+  Object.assign(v.style, { left: x + 'px', top: (cy - w / g.ar / 2) + 'px', width: w + 'px', height: (w / g.ar) + 'px' });
+  return v;
+}
 /* 그림 미리 풀기: 한 번 푼 그림은 기억해 두어 다음엔 곧바로 (Image 객체를 붙들어 브라우저가 풀어 둔 그림을 버리지 않게) */
 const IMG_CACHE = new Map();
 function preloadImgs(urls) {
@@ -132,7 +151,7 @@ async function spHeroAttack(f, stance, gap) {
   const skill = () => {
     if (!tier) return;
     if (stance.t) playFx([stance]);
-    if (stance.mid) spVfx(`${manualFx(stance.mid)}_${tier}`, `n${tier}`, tier === 2 ? 1300 : 1000);
+    if (stance.mid) { const st = $('#spStage'), v = st && stanceFxEl(st, stance.mid, tier, `sp-vfx n${tier}`, h, e); if (v) { st.appendChild(v); setTimeout(() => v.remove(), tier === 2 ? 1300 : 1000); } }
     if (tier === 2) { spShake(); setTimeout(spShake, 260 * k); }
   };
   if (w === 'sword' && !tier) {                          // 검 평타: 힘껏 찌르기

@@ -61,6 +61,10 @@ for (const f of [...uiFiles, ...sysFiles, 'core.js', 'app.js'].filter(f => f !==
   read(f).replace(/\/\*[\s\S]*?\*\//g, '').split('\n').forEach((line, i) => { if (/assets\//.test(line.replace(/\/\/.*$/, ''))) bad.push(`${f}:${i + 1} 그림 경로 직접 사용 (ASSET으로): ${line.trim().slice(0, 60)}`); });
 }
 // index.html 읽는 순서: core → data → systems → ui → app
+// 초식 그림은 ui_sprite.js의 stanceFxSrc · stanceFxEl 한 곳에서만 고른다 (화면마다 따로 고르면 그림을 바꿔도 옛 그림이 다른 화면에 남는다)
+for (const f of [...uiFiles, 'app.js'].filter(f => f !== 'ui/ui_sprite.js')) {
+  read(f).split('\n').forEach((line, i) => { if (/\bmanualFx\(|['"`]cut_\$\{/.test(line)) bad.push(`${f}:${i + 1} 초식 그림을 직접 고름 — stanceFxEl · stanceFxSrc를 쓸 것`); });
+}
 const html = fs.readFileSync(path.join(JS, '..', 'index.html'), 'utf8');
 const order = [...html.matchAll(/<script src="js\/([^"?]+)/g)].map(m => m[1]);
 const rank = f => f === 'core.js' ? 0 : f.startsWith('data/') ? 1 : f.startsWith('systems/') ? 2 : f.startsWith('ui/') ? 3 : f === 'app.js' ? 4 : 9;
