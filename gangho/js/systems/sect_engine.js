@@ -4,7 +4,7 @@
    장문인과 말해 정한 탐험지 한 곳(S.subqZone)에서만 센다. 그 탐험지의 열린 단계마다 '그 단계에서 SUBQ.kills번 이기기'.
    다 채우면 장문인에게 보상을 받고, 진행은 처음부터 다시 쌓인다. 보상은 모든 단계를 합쳐 하루 SUBQ.daily번까지.
    보상: 공헌도 · 은자 · 수련치 · 생혈고 (단계에 비례 · 높은 탐험지일수록 tierUp만큼 소폭 더). 진행은 강호행에서 그 단계 전투를 이길 때마다 오른다 */
-const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 3, tierUp: 0.2 };   // daily: 하루 보상 횟수(전체) · tierUp: 탐험지 한 등급마다 +20%
+const SUBQ = { kills: 10, contrib: 3, contribBase: 5, silver: 4, exp: 12, pot: 1, daily: 5, tierUp: 0.2 };   // daily: 하루 보상 횟수(모든 지역 · 단계 합) · tierUp: 탐험지 한 등급마다 +20%
 const subqKey = (zid, n) => `${zid}:${n}`;
 function subqReward(zid, n) { const t = 1 + SUBQ.tierUp * (ZONES[zid].tier - 1); return { contrib: Math.round(SUBQ.contrib * n * t + SUBQ.contribBase), silver: Math.round(SUBQ.silver * n * t), exp: Math.round(SUBQ.exp * n * t), pot: SUBQ.pot }; }
 /* 토벌할 탐험지: 장문인에게 정한 곳 (안 정했거나 닫혔으면 지금 강호행 탐험지 · 청풍산) */
