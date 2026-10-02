@@ -83,7 +83,7 @@ function liveShowPlan(sh, w) {
       else { if (f.k !== 'dodge') me = Math.max(0, me - num(f.t)); t = foeAtk(t, { k: 'hurtR', f, hp: me }); }
     }
     if (pending) { q.push({ at: t, k: 'skill', sk: pending }); t += T(420); pending = null; }   // 뒤따르는 일격이 없으면 그림만
-    me = r.me.hp; foe = r.foe; q.push({ at: t, k: 'sync', me, foe });
+    me = r.me.hp; foe = r.foe; q.push({ at: t, k: 'sync', me, foe, mp: r.me.mp });
     t += T(160);
   }
   q.push({ at: t + 200, k: B.win ? 'ko' : B.fled ? 'mist' : 'down' });
@@ -137,6 +137,7 @@ function liveShowStart(sc, sh) {
   if (typeof OG_CFG !== 'undefined' && sh.rec && sh.rec.rounds.some(r => r.fx.some(f => f.mid && f.n >= 3))) {   // 오의가 나가는 전투: 오의 그림을 미리
     const C = OG_CFG[weaponType()]; preloadImgs([ASSET.fx('aura'), ASSET.fx('dart'), ...(C && C.fx ? [ASSET.fx(C.fx)] : [])]); }
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1, S.name, calculateCombatPower(S));
+  liveMp(sc, sh.rec ? sh.rec.start.me.mp : S.mp, sh.rec ? sh.rec.start.me.maxMp : calcStats().maxMp);
   liveHp(sc, 'foe', sh.rec ? sh.rec.start.foe.hp : 1, sh.rec ? sh.rec.start.foe.maxHp : 1, ENEMIES[sh.eid].name, foeCombatPower(sh.eid));
   liveAnim.hpm.foe.face = `url('${ASSET.beast(sh.eid)}')`; const ff = sc.querySelector('.live-hp.foe .lh-face'); if (ff) ff.style.backgroundImage = liveAnim.hpm.foe.face;
   Object.assign(sh, { n, skill: sk, heavy: sh.boss || size >= 1.05, base: Math.max(4, Math.round(calculateCombatPower(S) / 12)), phase: 'approach', x0: liveAnim.x, t0: 0, q: null, bf: 0, bt: 0 });
@@ -195,7 +196,7 @@ function liveShowStep(sc, sh, ts, dt) {
       else { hero.dataset.f = 7; spFlash(hero); liveVfx(sc, 'hit', 22, 'small'); liveNum(sc, f.t.replace('-', ''), 22, 'me'); liveHp(sc, 'me', e.hp); }
     }
     else if (e.k === 'heal') { liveNum(sc, `🩸${e.f.t}`, 22, 'heal'); liveHp(sc, 'me', e.hp); }
-    else if (e.k === 'sync') { liveHp(sc, 'me', e.me); liveHp(sc, 'foe', e.foe); }
+    else if (e.k === 'sync') { liveHp(sc, 'me', e.me); liveHp(sc, 'foe', e.foe); if (e.mp != null) liveMp(sc, e.mp); }
     else if (e.k === 'down') { hero.classList.add('ko'); liveNum(sc, '쓰러짐', 22, 'me'); }
     else if (e.k === 'ko') foe.classList.add('ko');
     else if (e.k === 'mist') foe.classList.add('mist');
@@ -204,6 +205,13 @@ function liveShowStep(sc, sh, ts, dt) {
   return false;
 }
 /* 무대 위 정보 창 (마른 붓 먹획 + 팔괘 얼굴 창): 막대 위 이름 · 막대 안 활력 숫자 · 막대 아래 투력. cp: 투력 (제자 · 요수 같은 잣대) */
+/* 내 정보창의 내력 막대 (활력 막대 바로 아래 가는 푸른 막대) */
+function liveMp(sc, mp, max) {
+  const el = sc && sc.querySelector('.live-hp.me .lh-mp'); if (!el) return;
+  const M = (liveAnim.hpm = liveAnim.hpm || {}).mp = { ...(liveAnim.hpm.mp || {}), ...(max ? { max } : {}), mp };
+  const r = clamp(mp / (M.max || 1), 0, 1); el.querySelector('i').style.width = (r * 100).toFixed(1) + '%';
+  el.title = `내력 ${fmt(Math.max(0, Math.round(mp)))} / ${fmt(M.max || 0)}`; el.querySelector('em').textContent = `${fmt(Math.max(0, Math.round(mp)))} / ${fmt(M.max || 0)}`;
+}
 function liveHp(sc, who, hp, max, name, cp) {
   const el = sc.querySelector(`.live-hp.${who}`); if (!el) return;
   const M = (liveAnim.hpm = liveAnim.hpm || {})[who] = { ...(liveAnim.hpm[who] || {}), ...(max ? { max, name } : {}), ...(cp !== undefined ? { cp } : {}), hp };   // 다시 그려져도 이름 · 최대치 · 투력을 잃지 않게 기억
