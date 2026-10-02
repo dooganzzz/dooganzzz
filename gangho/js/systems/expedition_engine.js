@@ -189,13 +189,13 @@ const runSnap = () => ({ silver: S.silver, exp: S.exp, contrib: S.contrib, inv: 
 /* 한 걸음에서 얻은 것은 그 자리에서 바로 받는다 (요수를 물리치면 곧바로 은자 · 수련치 · 전리품). 여기서는 강호행 합계(gain)에 적기만 한다 */
 function holdStep(rec, b) {
   const g = rec.gain, one = { items: {} };                     // one = 이 걸음에서 얻은 것 (무대에 '+1'로 띄움)
-  for (const k of ['silver', 'exp', 'contrib']) { const d = S[k] - b[k]; if (d > 0 && k === 'silver') one.silver = d; g[k] += d; }
+  for (const k of ['silver', 'exp', 'contrib']) { const d = S[k] - b[k]; if (d > 0 && k !== 'contrib') one[k] = d; g[k] += d; }
   for (const [id, d] of Object.entries(invDelta(b.inv))) {
     if (d > 0) { g.items[id] = (g.items[id] || 0) + d; one.items[id] = d; }
     else if (d < 0) g.used[id] = (g.used[id] || 0) - d;
   }
   const ng = S.gear.slice(b.gear);
-  if (ng.length) { g.gear.push(...ng.map(it => `[${RARITY[it.rarity].name}] ${it.name}`)); one.gear = ng.length; }
+  if (ng.length) { const nm = ng.map(it => `[${RARITY[it.rarity].name}] ${it.name}`); g.gear.push(...nm); one.gear = ng.length; one.gn = nm; }
   return one;
 }
 function startRun(t = now()) {
@@ -234,6 +234,7 @@ function runStep(rec, t) {
   const one = holdStep(rec, b);
   const si = rec.steps.length - 1, s = rec.steps[si];
   s.stage = rec.stage;
+  if (Object.keys(one.items).length || one.silver || one.exp || one.gear) s.got = one;   // 이 걸음에서 얻은 것 (견문 줄 옆에 실시간으로)
   if (s.b === undefined) {                                     // 기믹 걸음: 무대에 보일 얻은 것 · 잃은 활력
     if (Object.keys(one.items).length || one.silver || one.gear) s.g = one;
     const dh = Math.round(S.hp - b.hp); if (dh < 0) s.dh = dh;

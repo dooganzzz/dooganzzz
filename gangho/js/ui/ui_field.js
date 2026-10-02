@@ -39,18 +39,18 @@ function stageStrip() {
 const runClockText = () => { const r = activeRun(); return r ? hhmmss(now() - r.at) : '—'; };
 function liveStepRow(r, i, t) {
   const st = r.steps[i], seen = st.b === undefined || battleSeen(r, st.b);
-  return `<li class="${seen ? st.cls : 'enc'} ${t - stepAt(r, i) < 4000 && r.live ? 'fresh' : ''}"><time>${hhmm(stepAt(r, i))}</time><span>${chronDecor(stepText(r, st))}</span></li>`;   // 전투 관찰은 견문록 탭에서만 (유저 요청)
+  return `<li class="${seen ? st.cls : 'enc'} ${t - stepAt(r, i) < 4000 && r.live ? 'fresh' : ''}"><time>${hhmm(stepAt(r, i))}</time><span>${chronDecor(stepText(r, st))}</span>${seen ? stepGot(st) : ''}</li>`;   // 전투 관찰은 견문록 탭에서만 (유저 요청)
 }
-/* 이번 강호행에서 얻은 것을 합산해 보인다 (은자 · 수련치 · 공헌 · 아이템 · 장비) */
-function lootSummary(r) {
-  const g = r && r.gain; if (!g) return '';
-  const items = Object.entries(g.items).filter(([id]) => ITEMS[id]).map(([id, n]) => `<span class="loot-chip">${itemIco(id, 'sm')}${ITEMS[id].name} ×${fmt(n)}</span>`);
-  const gear = {}; for (const n of g.gear) gear[n] = (gear[n] || 0) + 1;
-  const gears = Object.entries(gear).map(([n, k]) => `<span class="loot-chip gear">${n}${k > 1 ? ` ×${k}` : ''}</span>`);
-  const cur = [g.silver ? `<span class="loot-chip">${hlSilver(g.silver)}</span>` : '', g.exp ? `<span class="loot-chip">수련치 +${fmt(g.exp)}</span>` : '', g.contrib ? `<span class="loot-chip">공헌 +${fmt(g.contrib)}</span>` : ''].filter(Boolean);
-  const all = [...cur, ...items, ...gears];
-  return `<div class="loot-sum"><b>얻은 전리품</b>${all.length ? `<div class="loot-chips">${all.join('')}</div>` : ' <span class="muted">아직 없음</span>'}</div>`;
+/* 얻은 것 칩: 은자 · 수련치 · 공헌 · 아이템 · 장비. lootChips = 이번 강호행 합계(출정 준비 칸), stepGot = 한 걸음에서 얻은 것(견문 줄 옆) */
+const gotChip = (txt, ico = '', cls = '') => `<span class="loot-chip ${cls}">${ico}${txt}</span>`;
+function lootChips(g) {
+  if (!g) return '';
+  const gear = {}; for (const n of g.gear || []) gear[n] = (gear[n] || 0) + 1;
+  return [g.silver ? gotChip(hlSilver(g.silver)) : '', g.exp ? gotChip(`수련치 +${fmt(g.exp)}`) : '', g.contrib ? gotChip(`공헌 +${fmt(g.contrib)}`) : '',
+    ...Object.entries(g.items || {}).filter(([id]) => ITEMS[id]).map(([id, n]) => gotChip(`${ITEMS[id].name} ×${fmt(n)}`, itemIco(id, 'sm'))),
+    ...Object.entries(gear).map(([n, k]) => gotChip(`${n}${k > 1 ? ` ×${k}` : ''}`, '', 'gear'))].filter(Boolean).join('');
 }
+const stepGot = st => st.got ? `<span class="step-got">${lootChips({ silver: st.got.silver, exp: st.got.exp, items: st.got.items, gear: st.got.gn || [] })}</span>` : '';
 function liveSide() {
   const r = liveRec(), t = now(), run = activeRun(), X = S.expedition;
   const startBtn = `<button class="btn primary" data-act="runstart" ${X.zone ? '' : 'disabled'}>강호행 시작</button>`;
@@ -73,7 +73,6 @@ function liveSide() {
     <div class="live-prog sta" title="기력"><span style="width:${clamp(S.stamina / (st.maxSta || 100) * 100, 0, 100).toFixed(1)}%"></span></div>
     <p class="live-vit"><span>기력 ${Math.round(S.stamina / (st.maxSta || 100) * 100)}% · ${r.mode === 'walk' ? '🚶 걷는 중 — 기력이 차면 다시 달립니다' : '🏃 달리는 중'}</span><button class="chip sm" data-act="gigeok" ${count('gigeokdan') ? '' : 'disabled'} title="기력을 가득 채워 곧바로 다시 달립니다 (전방 50냥)">기력단 ${count('gigeokdan')}</button></p>` : ''}
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
-    ${lootSummary(r)}
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">
       ${run ? '<button class="btn ghost" data-act="runstop">귀환하기</button>' : held ? '' : startBtn}
@@ -135,6 +134,7 @@ function prepPanel() {
       const ev = !e ? '<span class="warn">오행 없음 — 기공 무공을 익히고 장착하십시오</span>'
         : `${elemTag(e)} <small>싸울 때의 기운. 요수의 오행과 맞물려 피해가 달라집니다.</small><br><small>${ELEMENTS[win].hanja} 속성 요수에게 <b class="good">주는 피해 +25% · 받는 피해 -25%</b><br><small>${ELEMENTS[lose].hanja} 속성 요수에게는 <span class="warn">주는 피해 -25% · 받는 피해 +40%</span></small>`;
       return row(!!t && m <= 1, '경공 · 지형', tv, go('status', 'martial', '무공')) + row(!!e, '기공 · 오행', ev, go('status', 'martial', '무공')); })()}
+    ${(() => { const lr = liveRec(), c = lr && lootChips(lr.gain); return lr ? row(true, '전리품', c ? `<div class="loot-chips">${c}</div>` : '<span class="muted">아직 없음</span>') : ''; })()}
     ${row(true, '준비한 단약', S.buffs.length ? S.buffs.map(b => b.name).join(', ') : '없음 (철골단·통맥환·해독산·청심단은 다음 원정 동안 효과)', go('bag', null, '행낭'))}
   </ul>`;
 }
@@ -150,7 +150,6 @@ function viewField() {
     </div>`}
     <h4 class="prep-head">출정 준비</h4>
     ${prepPanel()}
-    ${run ? lootSummary(liveRec()) : ''}
   </section>`;
 }
 

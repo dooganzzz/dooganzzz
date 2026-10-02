@@ -910,3 +910,6 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .loot-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .loot-chip { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border: 1px solid var(--line, #3a3a3a); border-radius: 10px; background: rgba(255,255,255,.04); }
 .loot-chip.gear { color: var(--gold, #e0c070); }
+.step-got { display: inline-flex; flex-wrap: wrap; gap: 3px; margin-left: 6px; vertical-align: middle; }
+.step-got .loot-chip { padding: 0 6px; font-size: 11px; line-height: 1.5; }
+.prep .loot-chips { margin-top: 0; }
