@@ -148,7 +148,7 @@ function viewGear() {
   };
   const slotCount = s => { const n = S.gear.filter(g => g.slot === slotAccepts(s)).length; return n ? `<em class="slot-n" title="행낭에 이 칸에 맞는 장비 ${n}점">+${n}</em>` : ''; };
   return `<section class="panel">
-    ${head('무장', '武裝')}
+    ${head('무장', '武裝', `<button class="btn primary sm auto-equip" data-act="autoequip" title="행낭 장비 가운데 투력이 가장 많이 오르는 것으로 한 번에 바꿉니다">⚡ 자동 장착</button>`)}
     <div class="bag-top">
       <div class="armory">
         <!-- 왼쪽: 가락지 · 무기 · 요대 / 가운데: 투구 + 제자 초상 / 오른쪽: 옥대 · 호갑 · 가락지 -->

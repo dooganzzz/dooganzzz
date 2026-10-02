@@ -84,6 +84,29 @@ function equipItem(uid, to) {
   clampVitals(); notify.refresh();
 }
 
+/* 자동 장착: 칸마다 행낭 장비를 하나씩 넣어 보고 투력이 가장 많이 오르는 한 점부터 바꾼다 (더 오르는 것이 없을 때까지).
+   빠진 장비는 행낭으로 돌아온다. 돌려주는 값: { from, to, names } */
+function autoEquipBest() {
+  const from = calculateCombatPower(S), names = [];
+  for (let pass = 0; pass < SLOT_ORDER.length * 2; pass++) {
+    let best = null, bestCp = calculateCombatPower(S);
+    for (const slot of SLOT_ORDER) for (const it of S.gear) {
+      if (it.slot !== slotAccepts(slot) || Object.values(S.equip).includes(it)) continue;
+      const old = S.equip[slot]; S.equip[slot] = it;
+      const cp = calculateCombatPower(S);
+      if (old) S.equip[slot] = old; else delete S.equip[slot];
+      if (cp > bestCp) { bestCp = cp; best = { it, slot }; }
+    }
+    if (!best) break;
+    S.gear.splice(S.gear.indexOf(best.it), 1);
+    if (S.equip[best.slot]) S.gear.push(S.equip[best.slot]);
+    S.equip[best.slot] = best.it; names.push(best.it.name);
+  }
+  const to = calculateCombatPower(S);
+  if (names.length) { log(`자동 장착: ${names.join(' · ')} — 투력 ${fmt(from)} → ${fmt(to)}`); clampVitals(); notify.refresh(); }
+  return { from, to, names };
+}
+
 function unequip(slot) {
   const it = S.equip[slot]; if (!it) return;
   if (bagUsed() >= bagCap()) { notify.toast('행낭이 가득 찼습니다.'); return; }
