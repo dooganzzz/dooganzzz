@@ -1,7 +1,8 @@
 /* [화면] 소리: 배경음악 · 효과음 · 날씨 소리를 여기서만 낸다. 크기는 설정(S.settings.bgmVol · sfxVol 0~100, bgmOff · sfxOff로 끔).
    · 배경음악: 장면마다 곡(data/assets.js BGM_TRACKS, 없으면 정청 곡). 곡 끝과 처음을 SND.xf초 겹쳐 끊김 없이 되풀이하고,
      장면이 바뀌면 2초에 걸쳐 바꿔 튼다.
-   · 효과음: 파일 없이 그 자리에서 합성한다 (대사 도트음 · 누르기 · 포탈 · 발소리 · 칼 · 주먹 · 피격 · 오의 · 물약 · 단조 · 연단 · 장착 · 구매 …).
+   · 효과음: 녹음 묶음(audio/sfx.mp3 · SFX_SPRITE — 누르기 · 발소리 · 칼 · 주먹 · 피격 · 모루 · 장착 · 비급 · 엽전 · 유리)이 있으면 녹음으로,
+     녹음이 없는 소리(대사 도트음 · 포탈 · 휘익 · 물약 · 오의 징 · 두목 북 · 날씨)와 묶음을 받기 전에는 그 자리에서 합성한다.
    · 날씨: 강호행 산길에서 바람(늘 낮게) · 비 · 눈(바람이 세짐) · 안개(먹먹한 바람).
    · 브라우저는 사람이 한 번 누르거나 글자를 쳐야 소리를 내 주므로 첫 손길(로그인 화면의 아이디 입력 등)에 시작한다.
      아이폰은 audio.volume이 듣지 않아 Web Audio 크기 마디(gain)로 줄인다. 화면을 내리면 쉰다 */
@@ -23,6 +24,7 @@ function sndInit() {
   const nb = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = nb.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   SND.noise = nb;
+  fetch(ASSET.audio('sfx')).then(r => r.arrayBuffer()).then(b => c.decodeAudioData(b)).then(buf => { SND.rec = buf; }).catch(() => {});   // 녹음 효과음 묶음
   sndApply(true); sndTick();
 }
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, sndInit, true));
@@ -42,7 +44,7 @@ function sndToggle(kind) {
 
 /* ───────── 배경음악: 곡 하나 = 데크 하나 (audio → 크기 마디 → 배경음악 버스) ───────── */
 function bgmDeck(track, fadeIn) {
-  const c = SND.ctx, el = new Audio(ASSET.bgm(track)); el.preload = 'auto';
+  const c = SND.ctx, el = new Audio(ASSET.audio(track)); el.preload = 'auto';
   const src = c.createMediaElementSource(el), g = c.createGain(); src.connect(g); g.connect(SND.bgmBus);
   g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(1, c.currentTime + fadeIn);
   const dk = { el, g, src, track, xf: false };
@@ -120,6 +122,7 @@ const SFX = {
   crit: t => { sOsc('sine', 90, 40, t, .35, .3); bell(t + .02, 1320, .04, .6); },
   miss: t => sNoise(t, .28, .12, 'bandpass', 700, 2600, 1.2, .1),                                                          // 휘익
   hurt: t => { sOsc('sine', 120, 50, t, .2, .4); sNoise(t, .08, .2, 'lowpass', 900, 300, .7); },
+  salve: t => { sNoise(t, .2, .08, 'bandpass', 1800, 900, .8, .05); sNoise(t + .22, .2, .07, 'bandpass', 1600, 800, .8, .05); sOsc('sine', 660, 660, t + .45, .5, .04); sOsc('sine', 990, 990, t + .57, .6, .035); },   // 생혈고를 바름 · 기운이 돎
   heal: t => { sOsc('sine', 660, 660, t, .5, .05); sOsc('sine', 990, 990, t + .12, .6, .04); },
   ko: t => { sOsc('sine', 90, 35, t, .6, .4); sNoise(t, .3, .15, 'lowpass', 500, 150, .7); },
   boss: t => { sOsc('sine', 65, 38, t, 1.4, .55); sNoise(t, .5, .2, 'lowpass', 300, 80, .7); sOsc('sine', 65, 38, t + .38, 1.2, .45); },   // 큰북 두 번
@@ -144,11 +147,44 @@ const SFX = {
   mirror_crack: t => { sNoise(t, .06, .25, 'highpass', 3000, 5000, .7); sOsc('sine', 3200, 2400, t, .12, .04); },   // 거울에 금 가는 소리
   mirror_break: t => { for (let i = 0; i < 9; i++) { const f = 2500 + Math.random() * 4000; sOsc('sine', f, f, t + i * .03, .3, .03); } sNoise(t, .5, .2, 'highpass', 2500, 6000, .7, .01); },                                                                                            // 무신상 공양 · 풍경
 };
+/* 녹음 효과음: 묶음에서 한 벌을 골라(바로 앞과 다른 것) 낸다. 묶음을 아직 못 받았으면 false → 합성음으로 */
+function rec(name, t, vol = .7, o = {}) {
+  const L = SND.rec && SFX_SPRITE[name]; if (!L) return false;
+  let i = Math.floor(Math.random() * L.length); if (L.length > 1 && i === SND.last['#' + name]) i = (i + 1) % L.length; SND.last['#' + name] = i;
+  const [at, len] = L[i], dur = Math.min(len, o.max || len), c = SND.ctx, s = c.createBufferSource(), g = c.createGain();
+  s.buffer = SND.rec; s.playbackRate.value = (o.rate || 1) * (1 + (Math.random() - .5) * .06);
+  g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, t + Math.max(0, dur - .04)); g.gain.linearRampToValueAtTime(.0001, t + dur);
+  s.connect(g); g.connect(SND.sfxBus); s.start(t, at, dur + .01);
+  return true;
+}
+const REC = {
+  click: t => rec('click', t, .3),
+  step: (t, o) => rec(o.ground === 'snow' ? 'step_snow' : o.ground === 'rain' ? 'step_wet' : 'step_dirt', t, o.run ? .45 : .32, { max: .3 }),
+  slash: (t, o) => rec('slash', t, o.crit ? .9 : .7),
+  pierce: (t, o) => rec('pierce', t, o.crit ? .9 : .7) && rec('soft', t + .03, .5),
+  punch: (t, o) => rec(o.crit ? 'punch_heavy' : 'punch', t, .8),
+  dart: t => rec('soft', t, .6) && (sOsc('triangle', 1700, 900, t, .05, .06), true),
+  crit: t => rec('punch_heavy', t, .5) && (bell(t + .02, 1320, .04, .6), true),
+  hurt: t => rec('hurt', t, .7),
+  ko: t => rec('hurt', t, .8, { rate: .7 }),
+  forge: (t, o) => [0, .24, .48].every(d => rec('anvil', t + d, .55)) && (o.ok ? sNoise(t + .7, .6, .06, 'highpass', 3000, 6000, .5, .1) : sNoise(t + .7, .8, .08, 'lowpass', 600, 200, .7, .2), true),
+  alchemy: (t, o) => rec('pot', t, .5) && (SFX.alchemy(t + .15, o), true),
+  enhance: (t, o) => rec('metal', t, .7) && (o.kind === 'ok' ? (sOsc('sine', 523, 523, t + .3, .5, .05), sOsc('sine', 784, 784, t + .42, .7, .05)) : sOsc('sine', 220, 140, t + .3, .6, .08), true),
+  equip: t => rec('equip', t, .7), unequip: t => rec('unequip', t, .7),
+  book: t => rec('book', t, .7), learn: t => rec('bookOpen', t, .7) && (bell(t + .3, 784, .05, 1.4), true),
+  scroll: t => rec('bookFlip', t, .45),
+  merge: t => rec('bookFlip', t, .6) && rec('bookClose', t + .35, .6) && (bell(t + .7, 660, .06, 1.4), true),
+  buy: t => rec('coins', t, .7), sell: t => rec('coins2', t, .75),
+  mirror_crack: t => rec('glassCrack', t, .6), mirror_break: t => rec('glassBreak', t, .7),
+  pray: t => rec('bellHit', t, .55),
+  salve: t => rec('unequip', t, .35) && rec('unequip', t + .22, .3) && (sOsc('sine', 660, 660, t + .45, .5, .04), sOsc('sine', 990, 990, t + .57, .6, .035), true),
+};
 const SFX_GAP = { type: 45, step: 80, click: 40, portal: 200, equip: 150, unequip: 150, book: 150, buy: 120, sell: 150 };
 function sfx(name, o = {}) {
   const c = SND.ctx; if (!c || c.state !== 'running' || !SFX[name] || !sndVol('sfxVol')) return;
   const n = performance.now(); if (n - (SND.last[name] || 0) < (SFX_GAP[name] || 25)) return; SND.last[name] = n;
-  try { SFX[name](c.currentTime + .005, o); } catch (e) {}
+  const t = c.currentTime + .005;
+  try { if (!(REC[name] && REC[name](t, o))) SFX[name](t, o); } catch (e) {}
 }
 /* 맞힐 때: 병기마다 다른 소리 (검 · 도 = 베기, 창 = 찌르기, 권장 = 주먹, 암기 = 박힘) · 치명타는 쿵 소리를 더한다 */
 function sfxHit(w, crit) { sfx(w === 'fist' ? 'punch' : w === 'hidden' ? 'dart' : w === 'spear' ? 'pierce' : 'slash', { crit }); if (crit) sfx('crit'); }
@@ -177,7 +213,7 @@ function sndHook(name, pick) {
 }
 [['equipItem', () => 'equip'], ['autoEquipBest', () => 'equip'], ['unequip', () => 'unequip'],
  ['equipManual', () => 'book'], ['unequipManual', () => 'book'], ['learnManual', () => 'learn'],
- ['useItem', (r, [id]) => (ITEMS[id] && ITEMS[id].use && ITEMS[id].use.learn ? 'learn' : 'drink')],
+ ['useItem', (r, [id]) => (ITEMS[id] && ITEMS[id].use && ITEMS[id].use.learn ? 'learn' : id === 'saenghyeol' ? 'salve' : 'drink')],
  ['forgeEnhance', () => 'enhance'], ['starUp', () => 'starup'], ['studyBind', () => 'merge'], ['pray', () => 'pray'],
  ['buyItem', () => 'buy'], ['buyGear', () => 'buy'], ['buyManual', () => 'buy'], ['buyBadge', () => 'buy'], ['buyLibraryPill', () => 'buy'], ['buyLibraryGear', () => 'buy'],
  ['sellItem', () => 'sell'], ['sellGear', () => 'sell']].forEach(([n, p]) => sndHook(n, p));

@@ -208,7 +208,7 @@ function liveShowStep(sc, sh, ts, dt) {
       if (f.k === 'dodge') { hero.dataset.f = 8; liveNum(sc, '회피', 22, 'miss'); sfx('miss'); }
       else { hero.dataset.f = 7; spFlash(hero); sfx('hurt'); liveVfx(sc, 'hit', 22, 'small'); liveNum(sc, f.t.replace('-', ''), 22, 'me'); liveHp(sc, 'me', e.hp); }
     }
-    else if (e.k === 'heal') { sfx('heal'); liveNum(sc, `🩸${e.f.t}`, 22, 'heal'); liveHp(sc, 'me', e.hp); }
+    else if (e.k === 'heal') { sfx('salve'); liveNum(sc, `🩸${e.f.t}`, 22, 'heal'); liveHp(sc, 'me', e.hp); }
     else if (e.k === 'sync') { liveHp(sc, 'me', e.me); liveHp(sc, 'foe', e.foe); if (e.mp != null) liveMp(sc, e.mp); }
     else if (e.k === 'down') { sfx('ko'); hero.classList.add('ko'); liveNum(sc, '쓰러짐', 22, 'me'); }
     else if (e.k === 'ko') { sfx('ko'); foe.classList.add('ko'); }
