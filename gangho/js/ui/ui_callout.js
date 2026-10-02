@@ -28,7 +28,7 @@ function calloutPlay(sc, mid, n) {
   box.querySelector('.co-face').style.backgroundImage = `url('${ASSET.callout('face')}')`;
   ax.style.backgroundImage = `url('${ASSET.callout(C.ax)}')`;
   // 크기: 종이 띠 높이를 무대 높이로 정하고, 그림 전체(위아래 기운 포함)를 거꾸로 잡는다. 종이 길이는 글자 길이에 맞춘다
-  const S = sc.offsetHeight || 200, band = Math.min(S * .23, (sc.offsetWidth || 400) * .1), wh = band / (C.b - C.t);   // 넓은 무대에서도 너무 커지지 않게
+  const S = sc.offsetHeight || 200, band = Math.min(S * .23, (sc.offsetWidth || 400) * .1) * .7, wh = band / (C.b - C.t);   // 넓은 무대에서도 너무 커지지 않게 · 세로 30% 줄임 (유저 요청)
   box.style.fontSize = band + 'px'; poem.style.fontSize = (band * .24) + 'px';   // 글자 크기는 종이 띠 높이 기준
   box.style.height = wh + 'px'; box.style.top = (Math.min(S * .3, Math.max(S * .2, C.t * wh + S * .01)) - C.t * wh) + 'px';
   body.style.top = C.t * 100 + '%'; body.style.height = (C.b - C.t) * 100 + '%';
