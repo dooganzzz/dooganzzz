@@ -60,7 +60,7 @@ function manualBonus(id, star) {
 
 
 function gearStats(it) {
-  const mult = 1 + 0.1 * (it.enh || 0), out = {};
+  const mult = 1 + ENH_STEP * (it.enh || 0), out = {};   // 강화: 단계마다 +2.86% (+7 ≈ 한 등급 위)
   for (const [k, v] of Object.entries(it.stats)) out[k] = PCT_STATS.has(k) ? Math.round(v * mult * 10) / 10 : Math.round(v * mult);
   return out;
 }

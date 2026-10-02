@@ -30,14 +30,12 @@ module.exports = async (b) => {
     ok('4 전방에서 은자로 구매 (생혈고 정가)', shop.spent === shop.price && shop.got === 1, JSON.stringify(shop));
     const enh = await p.evaluate(() => {
       S.silver = 99999; const atk0 = calcStats().atk, w = S.equip.weapon;
-      for (let i = 0; i < 40 && (w.enh || 0) < 3; i++) enhanceGear('weapon');
+      for (let i = 0; i < 200 && (w.enh || 0) < 3; i++) { const m = { ...w, uid: S.uid++, enh: 0, shop: undefined }; S.gear.push(m); forgeEnhance(w.uid, m.uid); }
       return { enh: w.enh, atk0, atk1: calcStats().atk, spent: 99999 - S.silver };
     });
     ok('4 장비 강화: 단계·공격력 상승, 은자 소모', enh.enh === 3 && enh.atk1 > enh.atk0 && enh.spent > 0, JSON.stringify(enh));
-    await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'gear'; render(); });
-    await p.click('[data-slot="weapon"]');
-    ok('4 무장 슬롯 팝업의 강화 버튼', !!(await p.$('.sheet [data-enhance="weapon"]')));
-    await p.click('[data-act="closemodal"]');
+    await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'forge'; ui.forgeMode = 'gear'; ui.enhMain = S.equip.weapon.uid; render(); });
+    ok('4 화로 › 단조 › 장비 강화 버튼', !!(await p.$('[data-act="enhance"]')));
     await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'shop'; render(); });
     ok('4 청풍문 › 전방 진열', (await p.$$('[data-buy]')).length === await p.evaluate(() => SHOP_STOCK.length));
 

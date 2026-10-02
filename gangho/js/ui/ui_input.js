@@ -64,7 +64,6 @@ function onClick(e) {
     const it = S.gear.find(g => g.uid === +d.sellgear); if (!it) return;
     return showConfirmModal({ title: '판매 확인', message: `[${RARITY[it.rarity].name}] <b>${esc(gearName(it))}</b>을(를) ${hlSilver(gearSellPrice(it))}에 팔까요? 판 장비는 되찾을 수 없습니다.`, confirmText: '판매', cancelText: '취소', onConfirm: () => sellGear(it.uid) });
   }
-  if (d.enhance) return askEnhance(d.enhance);
   if (d.equipm) { equipManual(d.equipm); if (ui.modal && !ui.modal.startsWith('artslot:')) { ui.modal = 'mart:' + d.equipm; renderModal(); } return; }   // 무공 칸 창에서는 창을 그대로 둔다
   if (d.unequipm) { const id = S.active[d.unequipm]; unequipManual(d.unequipm); if (ui.modal && id && !ui.modal.startsWith('artslot:')) { ui.modal = 'mart:' + id; renderModal(); } return; }
   if (d.artslot) { ui.modal = 'artslot:' + d.artslot; return renderModal(); }
@@ -74,6 +73,8 @@ function onClick(e) {
   if (d.pray) return askPray(+d.pray);
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
+  if (d.forgemode) { ui.forgeMode = d.forgemode; ui.enhResult = null; return render(); }
+  if (d.enhmain) { ui.enhMain = +d.enhmain; ui.enhResult = null; return render(); }
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.craftResult = null; return render(); }
   if (d.bind) { if (count(d.bind) < STUDY.need) return; const scrap = d.bind, id = studyBind(scrap); if (!id) return; ui.modal = null; render();   // 엮은 뒤 연출 (비급이 명경을 깨고 나옴) → 알림
     return studyBindFx(document.querySelector('.furnace-stage.study'), scrap, id).then(() => { toast(`📚 《${MANUALS[id].name}》 비급을 엮었습니다 — 행낭에서 확인하십시오`); render(); }); }
@@ -111,6 +112,13 @@ function onClick(e) {
     },
     logout: () => requestActionConfirm({ title: '로그아웃', description: '저장을 서버에 올리고 로그아웃합니다. 진행 중인 강호행은 다음에 로그인하면 이어집니다.', details: [], confirmText: '로그아웃', onConfirm: logout }),
     gigeok: () => { if (!has('gigeokdan')) { toast('기력단이 없습니다. 전방에서 50냥에 팝니다.'); return; } useItem('gigeokdan'); render(); },
+    enhance: () => {
+      const it = gearByUid(ui.enhMain), mat = it && enhMaterials(it)[0], r = it && enhRule(it);
+      if (!it || !mat || !r) return;
+      const go = () => { ui.enhResult = forgeEnhance(it.uid, mat.uid); if (ui.enhResult && ui.enhResult.kind === 'boom') ui.enhMain = null; render(); };
+      if (r.boom) return requestActionConfirm({ title: '장비 강화', description: `<b>${esc(gearName(it))}</b> +${(it.enh || 0) + 1} 강화 — 실패하면 부서질 수 있습니다 (${r.boom}%).`, details: [`은자 -${fmt(enhCost(it))}냥`, `재료 ${esc(it.name)} 1개 소모`], confirmText: '강화', onConfirm: go });
+      go();
+    },
     runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 이미 받았습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); goTab('sect'); render(); /* 귀환하면 청풍문으로 */ } }),
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },
     gochron: () => {                                          // 결산 창 → 견문록 탭, 방금 탐험의 결산을 펼쳐 보인다
@@ -143,12 +151,6 @@ function askBuyGear(base, tier) {
   const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row || S.silver < row[2]) return buyGear(base, tier);
   const sp = gearSpec(base, tier);
   requestActionConfirm({ title: '장비 구매', description: `<b>${esc(sp.name)}</b>을(를) 사서 행낭에 넣습니다.`, details: [`은자 -${row[2]}냥`, bonusText(sp.stats)], confirmText: '구매', onConfirm: () => buyGear(base, tier) });
-}
-function askEnhance(slot) {
-  const it = S.equip[slot]; if (!it || (it.enh || 0) >= ENH_MAX || S.silver < enhCost(it)) return enhanceGear(slot);
-  const back = ui.modal;
-  requestActionConfirm({ title: '장비 강화', description: `<b>${esc(gearName(it))}</b>을(를) +${(it.enh || 0) + 1}로 벼립니다. 실패해도 은자는 돌아오지 않습니다.`,
-    details: [`은자 -${fmt(enhCost(it))}냥`, `성공 확률 ${enhChance(it)}%`], confirmText: '강화', onConfirm: () => { enhanceGear(slot); if (back && back.startsWith('equip:')) { ui.modal = back; renderModal(); } } });
 }
 function askUse(id) {
   const I = ITEMS[id]; if (!I || !I.use || !has(id)) return useItem(id);

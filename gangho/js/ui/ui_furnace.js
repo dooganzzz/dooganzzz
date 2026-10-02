@@ -47,9 +47,44 @@ function mirrorModal() {
   return `<div class="sheet mirror-sheet"><p class="eyebrow">煉魂 · 明鏡</p><h2>명경</h2><ul class="study-list">${rows}</ul>
     <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
 }
+/* 단조 › 장비: 같은 장비 강화. 본템을 고르면 행낭의 같은 이름 · 같은 등급 · 강화 안 된 장비를 재료로 쓴다 */
+const FORGE_MODES = [['gear', '장비', '裝備'], ['mat', '재료', '材料']];
+function forgeModeTabs() {
+  return `<div class="chips forge-modes" role="tablist">${FORGE_MODES.map(([k, ko, hj]) => `<button class="chip ${ui.forgeMode === k ? 'on' : ''}" data-forgemode="${k}">${ko} <small>${hj}</small></button>`).join('')}</div>`;
+}
+function viewForgeGear() {
+  const all = [...Object.values(S.equip).filter(Boolean), ...S.gear].filter(it => !it.shop);
+  const rows = all.map(it => ({ it, n: enhMaterials(it).length, worn: Object.values(S.equip).includes(it) })).sort((a, b) => (b.n > 0) - (a.n > 0) || b.it.rarity - a.it.rarity || (b.it.enh || 0) - (a.it.enh || 0));
+  const main = ui.enhMain != null && gearByUid(ui.enhMain), res = ui.enhResult;
+  let panel = '<p class="muted">강화할 장비를 고르십시오. 같은 이름 · 같은 등급의 강화 안 된 장비가 행낭에 있어야 재료로 쓸 수 있습니다.</p>';
+  if (main) {
+    const r = enhRule(main), mats = enhMaterials(main), max = (main.enh || 0) >= ENH_MAX, cost = enhCost(main), next = { ...main, enh: (main.enh || 0) + 1 };
+    panel = `<div class="enh-panel">
+      <div class="enh-row"><span class="enh-lab">본템</span><b class="r${main.rarity}">${esc(gearName(main))}</b> <span class="pill">${RARITY[main.rarity].name}</span></div>
+      <div class="enh-row"><span class="enh-lab">재료</span>${mats.length ? `<b>${esc(main.name)}</b> <small class="muted">(강화 안 된 것 · 행낭에 ${mats.length}개 — 하나가 부서져 흡수됩니다)</small>` : '<span class="warn">행낭에 같은 장비(강화 안 된 것)가 없습니다</span>'}</div>
+      ${max ? '<p class="muted">+10 — 더 이상 벼릴 수 없습니다.</p>' : `
+      <div class="enh-row"><span class="enh-lab">능력치</span><small>${statLine(main)}</small></div>
+      <div class="enh-row"><span class="enh-lab">+${next.enh} 되면</span><small class="good">${statLine(next)}</small></div>
+      <div class="enh-row"><span class="enh-lab">확률</span><span>성공 <b class="good">${r.ok}%</b> · 그대로 <b>${100 - r.ok - r.boom}%</b>${r.boom ? ` · 파괴 <b class="warn">${r.boom}%</b>` : ''}</span></div>
+      <div class="btns"><button class="btn primary" data-act="enhance" ${mats.length && S.silver >= cost ? '' : 'disabled'}>🔨 +${next.enh} 강화 · ${hlSilver(cost)}</button></div>`}
+    </div>`;
+  }
+  return `<div class="forge-gear">
+    ${res ? `<div class="result ${res.kind === 'ok' ? 'ok' : 'fail'}"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? '💥 강화 실패 — 장비가 부서졌습니다' : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
+    ${panel}
+    <h4>장비 <span class="num muted">${rows.length}점</span></h4>
+    <div class="enh-list">${rows.map(({ it, n, worn }) => `<button class="enh-item r${it.rarity} ${main && main.uid === it.uid ? 'on' : ''}" data-enhmain="${it.uid}">${gearIco(it, 'sm')}<span><b>${esc(gearName(it))}</b><small class="muted">${RARITY[it.rarity].name}${worn ? ' · 착용 중' : ''} · 재료 ${n}개</small></span></button>`).join('') || '<p class="muted">장비가 없습니다.</p>'}</div>
+  </div>`;
+}
 function viewFurnace() {
   if (ui.craft === 'study') return viewStudy();
   if (!CRAFTS[ui.craft]) ui.craft = 'forge';
+  if (ui.craft === 'forge' && ui.forgeMode !== 'mat') return `<section class="panel furnace">
+    ${head('화로', '火爐', `<span class="num muted">단조 ${craftGrade((S.crafts.forge || { lv: 1 }).lv)}</span>`)}
+    ${furnaceTabs()}${forgeModeTabs()}
+    <p class="muted furnace-desc">같은 장비 둘을 겹쳐 두드려 벼립니다. 재료로 쓴 장비는 부서져 본템에 흡수됩니다. +1~3 · +4~7 · +8~10 단계마다 은자와 성공 확률이 달라지고, +8부터는 부서질 수도 있습니다. 등급이 높을수록 은자가 두 배씩 듭니다.</p>
+    ${viewForgeGear()}
+  </section>`;
   const C = CRAFTS[ui.craft], lv = S.crafts[ui.craft] || { lv: 1, xp: 0 };
   // 탭(기예)마다 그 기예의 조합식에 쓰이는 재료만 보인다
   const mats = getFilteredMaterials(ui.craft);
@@ -57,7 +92,7 @@ function viewFurnace() {
   const res = ui.craftResult;
   return `<section class="panel furnace">
     ${head('화로', '火爐', `<span class="num muted">${C.name} ${craftGrade(lv.lv)}${S.talent === ui.craft ? ' · 주력' : ''}</span>`)}
-    ${furnaceTabs()}
+    ${furnaceTabs()}${ui.craft === 'forge' ? forgeModeTabs() : ''}
     <p class="muted furnace-desc">${C.desc} 조합식은 알려져 있지 않습니다. 성공하면 도감에 적힙니다.</p>
     <div class="forge">
       <div class="pot furnace-stage ${ui.craft}">

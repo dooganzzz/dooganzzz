@@ -153,20 +153,28 @@ function setActive(cat, id) {
   S.active[cat] = id; clampVitals(); notify.refresh();
 }
 
-const enhCost = it => Math.round(15 * (it.tier || 1) * Math.pow((it.enh || 0) + 1, 1.6));
-const enhChance = it => Math.max(30, 100 - (it.enh || 0) * 8);
-
-function enhanceGear(slot) {
-  const it = S.equip[slot]; if (!it) return;
-  if ((it.enh || 0) >= ENH_MAX) { notify.toast('더 이상 벼릴 수 없습니다.'); return; }
-  const cost = enhCost(it);
-  if (S.silver < cost) { notify.toast('은자가 부족합니다.'); return; }
-  S.silver -= cost;
-  if (Math.random() * 100 < enhChance(it)) {
-    it.enh = (it.enh || 0) + 1;
-    log(`🔨 ${hlItem(it.name)} 강화 성공! +${it.enh} (${hlSilver(cost)} 사용)`, 'good');
-  } else log(`🔨 ${hlItem(it.name)} 강화 실패… 쇠가 버티지 못했습니다. (${hlSilver(cost)} 사용)`, 'bad');
+/* 같은 장비 강화: 본템(행낭 · 착용 중) + 재료(행낭의 같은 이름 · 같은 등급 · 강화 안 된 장비). 재료는 사라져 본템에 흡수된다 */
+const enhRule = it => ENH_RULE.find(r => (it.enh || 0) + 1 <= r.to) || null;
+const enhCost = it => { const r = enhRule(it); return r ? r.cost * Math.pow(2, it.rarity || 0) : 0; };   // 등급마다 2배
+const enhSame = (a, b) => !!a && !!b && a.uid !== b.uid && a.name === b.name && a.rarity === b.rarity && a.slot === b.slot && !b.enh && !b.shop;
+const enhMaterials = it => S.gear.filter(g => enhSame(it, g));
+const gearByUid = uid => S.gear.find(g => g.uid === uid) || Object.values(S.equip).find(g => g && g.uid === uid) || null;
+function forgeEnhance(mainUid, matUid) {
+  const it = gearByUid(mainUid), mat = S.gear.find(g => g.uid === matUid), r = it && enhRule(it);
+  if (!it || !mat || !enhSame(it, mat)) { notify.toast('같은 이름 · 같은 등급의 강화 안 된 장비가 재료로 있어야 합니다.'); return null; }
+  if (!r || (it.enh || 0) >= ENH_MAX) { notify.toast('더 이상 벼릴 수 없습니다.'); return null; }
+  const cost = enhCost(it); if (S.silver < cost) { notify.toast('은자가 부족합니다.'); return null; }
+  S.silver -= cost; S.gear = S.gear.filter(g => g.uid !== mat.uid);   // 재료는 부서져 본템에 흡수
+  const roll = Math.random() * 100, before = gearName(it);
+  let kind = 'same';
+  if (roll < r.ok) { it.enh = (it.enh || 0) + 1; kind = 'ok'; log(`🔨 ${hlItem(before)} 강화 성공! → ${hlItem(gearName(it))} (${hlSilver(cost)})`, 'good'); }
+  else if (roll < r.ok + r.boom) {
+    kind = 'boom'; S.gear = S.gear.filter(g => g.uid !== it.uid);
+    for (const k of Object.keys(S.equip)) if (S.equip[k] && S.equip[k].uid === it.uid) delete S.equip[k];
+    log(`💥 ${hlItem(before)} 강화 실패 — 쇠가 견디지 못하고 부서졌습니다. (${hlSilver(cost)})`, 'bad');
+  } else log(`🔨 ${hlItem(before)} — 재료만 녹아들고 아무 일도 일어나지 않았습니다. (${hlSilver(cost)})`, 'muted');
   clampVitals(); notify.refresh();
+  return { kind, name: gearName(it), cost };
 }
 
 const gearName = it => `${it.name}${it.enh ? ` +${it.enh}` : ''}`;

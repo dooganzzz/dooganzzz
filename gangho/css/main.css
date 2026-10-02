@@ -558,6 +558,14 @@ body {
 .recipes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
 .recipe-row { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr; gap: 2px 12px; align-items: baseline; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
 .recipe-row .r-eff { grid-column: 2; }
+.forge-modes { margin-bottom: 10px; }
+.enh-panel { display: grid; gap: 6px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); }
+.enh-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.enh-lab { flex: 0 0 64px; font-size: .78rem; color: var(--dim); }
+.enh-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.enh-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; text-align: left; border: 1px solid var(--line); border-radius: 4px; background: var(--raise); color: inherit; cursor: pointer; min-width: 0; }
+.enh-item > span { display: flex; flex-direction: column; min-width: 0; }
+.enh-item.on { border-color: var(--jade); box-shadow: 0 0 0 1px var(--jade) inset; }
 @media (max-width: 560px) { .recipe-row { grid-template-columns: 1fr; } .recipe-row .r-eff { grid-column: 1; } }
 .blog .log-stance-result.dot { color: #9fd18a; font-size: .9em; }
 
