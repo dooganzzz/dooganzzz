@@ -153,7 +153,7 @@ function askEnhance(slot) {
 function askUse(id) {
   const I = ITEMS[id]; if (!I || !I.use || !has(id)) return useItem(id);
   if (I.use.learn) { const M = MANUALS[I.use.learn];
-    if (S.manuals[I.use.learn]) return useItem(id);
+    if (S.manuals[I.use.learn] || manualRankLocked(I.use.learn)) return useItem(id);   // 이미 익혔거나 이류무사 전이면 알림만
     return requestActionConfirm({ title: '비급 독파', description: `《${M.name}》 비급을 끝까지 읽어 익힙니다. 비급은 사라지고 무공이 몸에 남습니다.`, details: [`${I.name} -1`, `영구 각인: ${bonusText(M.passiveBonus)}`], confirmText: '독파', onConfirm: () => useItem(id) }); }
   requestActionConfirm({ title: '단약 사용', description: `${I.icon} <b>${esc(I.name)}</b>을(를) 씁니다. ${esc(I.desc || '')}`, details: [`${I.name} -1`], confirmText: '사용', onConfirm: () => useItem(id) });
 }

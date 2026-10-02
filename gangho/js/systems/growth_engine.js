@@ -65,5 +65,7 @@ function expGain(base, st) { st = st || calcStats(); return Math.round(base * (1
 /* 공격 무공 초식: 비급을 익히면 제1초식, 소성(6성)에 제2초식, 대성(12성)에 오의(奧義) */
 function unlockedMoves(star) { return star >= MAX_STAR ? 3 : star >= 6 ? 2 : star >= 1 ? 1 : 0; }
 const MOVE_NAME = ['제1초식', '제2초식', '오의'];
+/* 품계 제한: 이류 비급은 이류무사(S.rank 1)가 되어야 익힌다 */
+const manualRankLocked = id => !!MANUALS[id] && MANUALS[id].grade === '이류' && (S.rank || 0) < 1;
 const manualSealed = id => !!MANUALS[id] && !OPEN_GRADES.includes(MANUALS[id].grade);   // 1장 봉인 (일류 이상)
 function bestMugongStar() { return Math.max(0, ...Object.entries(S.manuals).filter(([id]) => MANUALS[id].cat === 'mugong').map(([, m]) => m.star)); }

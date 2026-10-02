@@ -123,6 +123,7 @@ function learnManual(bookId) {
   const mid = ITEMS[bookId].use.learn, M = MANUALS[mid];
   if (manualSealed(mid)) { notify.toast(`봉인된 비급입니다: ${M.name}`); return; }
   if (S.manuals[mid]) { notify.toast(`이미 익힌 무공입니다: ${M.name}`); return; }
+  if (manualRankLocked(mid)) { notify.toast(`이류무사가 되어야 익힐 수 있는 이류 비급입니다: ${M.name}`); return; }
   take(bookId, 1);
   S.manuals[mid] = { star: 1 };
   const pb = Object.entries(M.passiveBonus || {}).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
