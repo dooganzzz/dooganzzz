@@ -89,7 +89,7 @@ module.exports = async (b) => {
     // 7. 행동 확인 창: 되돌릴 수 없는 것만, 취소하면 그대로
     await p.evaluate(() => { S.exp = 9999; goTab('status', 'martial'); render(); });
     const e0 = await p.evaluate(() => S.exp);
-    await p.click('.mslot [data-starup]:not([disabled])');
+    await p.click('.mrow [data-starup]:not([disabled])');
     await p.click('.confirm-sheet [data-act="closemodal"]');
     ok('7 성급 올리기 확인 창 → 취소하면 수련치 그대로', await p.evaluate(e => S.exp === e && !ui.modal, e0));
     await p.evaluate(() => { goTab('sect', 'forge'); ui.craft = 'forge'; S.inv.roughOre = 3; render(); });
