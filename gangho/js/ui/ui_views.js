@@ -103,9 +103,10 @@ function viewMartial() {
     </div>`;
   }).join('');
   const skillTabs = `<div class="skill-category-tabs" role="tablist" aria-label="습득 비급 분류">${SKILL_TABS.map(([k, , n]) => `<button class="tab-btn ${tab[0] === k ? 'active' : ''}" role="tab" aria-selected="${tab[0] === k}" data-skilltab="${k}">${n} <small>${learned.filter(id => MANUALS[id].cat === SKILL_TABS.find(t => t[0] === k)[1]).length}</small></button>`).join('')}</div>`;
-  return `<section class="panel martial-slots">
+  // 2단: 왼쪽 운기조식(80% 크기) · 오른쪽 습득 비급(운기조식 높이에 맞추고 안에서만 스크롤). 좁으면 아래로
+  return `<div class="martial-duo">
+  <section class="panel martial-slots">
     ${head('무공', '武功', `<span class="exp-purse" title="탐험에서 적을 쓰러뜨려 모은 수련치">수련치 <b>${fmt(S.exp)}</b></span>`)}
-    <p class="muted exp-help">탐험에서 모은 수련치로 원하는 무공의 성급을 올립니다. 5→6성(소성)·11→12성(대성)에는 돌파단도 듭니다.</p>
     <div class="mslots martial-arts-core-layout">${slots}</div>
   </section>
   <section class="panel martial-learned acquired-skills-section">
@@ -113,10 +114,13 @@ function viewMartial() {
       <div class="section-title-wrap"><h3 class="section-title">${label('습득 비급', '習得秘笈')}</h3><span class="total-count-badge" id="total-acquired-count">${learned.length}종</span></div>
       ${skillTabs}
     </div>
+    <div class="martial-learned-scroll">
     ${!learned.length ? `<p class="story">아직 익힌 비급이 없습니다. ${books.length ? `비급 ${books.length}권을 가지고 있습니다. 아래에서 [ 익히기 ] 하십시오.` : ''}</p>`
       : shown.length ? `<div class="mrows acquired-cards-grid" id="acquired-cards-container">${cards}</div>` : '<div class="empty-notice">해당 계열에 익힌 비급이 없습니다.</div>'}
     ${books.length ? `<div class="chips">${books.map(k => `<button class="chip" data-use="${k}">📘 ${ITEMS[k].name} 익히기</button>`).join('')}</div>` : ''}
-  </section>`;
+    </div>
+  </section>
+  </div>`;
 }
 
 /* 장비를 끼면 투력이 얼마나 바뀌는지 (▲ 오름 · ▼ 내림). 공세 · 수세 방향은 알려 주지 않는다 */
