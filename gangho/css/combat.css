@@ -240,3 +240,8 @@
 .co-poem .co-line { display: block; opacity: 1; filter: none; transform: none; transition: none; }
 .co-poem .co-line > span { opacity: 0; display: inline-block; filter: blur(4px); transform: translateY(4px); transition: opacity .35s, filter .35s, transform .35s; }
 .co-poem .co-line > span.on { opacity: 1; filter: none; transform: none; }
+
+/* 먹빛 무공의 오의(유묵검법): 먹이 지워지지 않게 그대로 겹치고, 어둑한 막은 옅은 종이빛, 기 모음 아지랑이는 먹빛 */
+.og-layer.ink .og-fx, .og-layer.ink .og-wisp { mix-blend-mode: normal; }
+.og-layer.ink .og-dim { background: radial-gradient(ellipse at 40% 60%, rgba(236, 226, 204, .28), rgba(210, 198, 170, .5)); }
+.og-layer.ink .og-wisp.haze { background: radial-gradient(ellipse, rgba(8, 8, 16, .9) 0 22%, rgba(24, 24, 40, .6) 52%, rgba(24, 24, 40, 0) 78%); }
