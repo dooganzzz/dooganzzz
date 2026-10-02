@@ -54,6 +54,7 @@ function liveShowPlan(sh, w) {
   };
   const num = t => +String(t).replace(/[^\d]/g, '') || 0;
   let t = 900, me = B.start.me.hp, foe = B.start.foe.hp;
+  const called = new Set();
   for (const r of B.rounds) {
     const used = new Set();
     for (let i = 0; i < r.fx.length; i++) {
@@ -62,7 +63,14 @@ function liveShowPlan(sh, w) {
         const j = r.fx.findIndex((g, k) => k > i && g.side === 'foe'), g = j > 0 ? r.fx[j] : null;
         if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', name: f.t, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
       }
-      if (f.side === 'banner') { if (f.k === 'move' && f.mid && f.n) { q.push({ at: t, k: 'skill', sk: { mid: f.mid, tier: f.n >= 3 ? 2 : 1, name: f.t } }); t += T(f.n >= 3 ? 700 : 420); } continue; }
+      if (f.side === 'banner') {
+        if (f.k === 'move' && f.mid && f.n) {
+          const co = f.n < 3 && typeof calloutOf === 'function' && calloutOf(f.mid, f.n) && !called.has(f.mid + f.n);   // 초식 외침: 전투마다 그 초식을 처음 쓸 때 한 번
+          if (co) { called.add(f.mid + f.n); q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }
+          q.push({ at: t, k: 'skill', sk: { mid: f.mid, tier: f.n >= 3 ? 2 : 1, name: f.t, noName: !!co } }); t += T(f.n >= 3 ? 700 : 420);
+        }
+        continue;
+      }
       if (f.side === 'foe') { if (f.k !== 'miss') foe = Math.max(0, foe - num(f.t)); t = heroAtk(t, { k: 'hitR', f, hp: foe }); }
       else if (f.k === 'heal') { me = Math.min(B.start.me.maxHp, me + num(f.t)); q.push({ at: t, k: 'heal', f, hp: me }); t += T(520); }
       else { if (f.k !== 'dodge') me = Math.max(0, me - num(f.t)); t = foeAtk(t, { k: 'hurtR', f, hp: me }); }
@@ -83,6 +91,7 @@ function liveSkillOf() {
 function liveSkill(sc, sk) {
   const lab = document.createElement('div'); lab.className = `live-skname n${sk.tier}${sk.name.length > 9 ? ' long' : ''}`; lab.dataset.live = 1; lab.textContent = `「${sk.name}」`;
   const v = document.createElement('img'); v.className = `live-skill n${sk.tier}`; v.dataset.live = 1; v.src = SPRITE_SRC.fx(`${manualFx(sk.mid)}_${sk.tier}`); v.alt = '';
+  if (sk.noName) lab.hidden = true;                  // 방금 두루마리로 외친 초식은 이름 글자를 또 띄우지 않는다
   sc.append(lab, v); setTimeout(() => { lab.remove(); v.remove(); }, sk.tier === 2 ? 1500 : 1200);
   if (sk.tier === 2) liveShake(sc);
 }
@@ -116,7 +125,7 @@ function liveShowStart(sc, sh) {
   const sk = liveSkillOf(); if (sk) preloadImgs([SPRITE_SRC.fx(`${manualFx(sk.mid)}_${sk.tier}`)]);
   const R = sh.ref && findExpedition(sh.ref.rid), B = R && R.battles[sh.ref.bi];
   sh.rec = B && B.rounds && B.rounds.length ? B : null;
-  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) preloadImgs([SPRITE_SRC.fx(`${manualFx(f.mid)}_${f.n >= 3 ? 2 : 1}`)]);
+  for (const f of sh.rec ? sh.rec.rounds.flatMap(r => r.fx) : []) if (f.mid && f.n) { preloadImgs([SPRITE_SRC.fx(`${manualFx(f.mid)}_${f.n >= 3 ? 2 : 1}`)]); if (typeof calloutPreload === 'function') calloutPreload(f.mid, f.n); }
   if (typeof OG_CFG !== 'undefined' && sh.rec && sh.rec.rounds.some(r => r.fx.some(f => f.mid && f.n >= 3))) {   // 오의가 나가는 전투: 오의 그림을 미리
     const C = OG_CFG[weaponType()]; preloadImgs([ASSET.fx('aura'), ASSET.fx('dart'), ...(C && C.fx ? [ASSET.fx(C.fx)] : [])]); }
   liveHp(sc, 'me', sh.rec ? sh.rec.start.me.hp : 1, sh.rec ? sh.rec.start.me.maxHp : 1);
@@ -158,6 +167,11 @@ function liveShowStep(sc, sh, ts, dt) {
       sh.hold = true; const t1 = performance.now();
       ougiPlay(sc, { w: hero.dataset.w || weaponType(), name: e.name, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
         onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
+      return false;
+    }
+    else if (e.k === 'callout') {                     // 초식 외침 두루마리가 다 거둬질 때까지 순서를 멈춘다
+      sh.hold = true; const t1 = performance.now();
+      calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
     else if (e.k === 'proj') liveProj(sc, sh, e.dur);

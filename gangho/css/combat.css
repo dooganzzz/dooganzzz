@@ -212,3 +212,25 @@
 @keyframes ogBot { 0% { opacity: 1; } 40% { transform: scaleX(-1) translateY(2%); } 100% { transform: scaleX(-1) translateY(12%) scaleY(.85); opacity: 0; } }
 .og-cut { position: absolute; z-index: 4; height: 3px; transform: rotate(-12deg) scaleX(0); background: linear-gradient(90deg, transparent, #fff, rgb(var(--c)), transparent); box-shadow: 0 0 12px rgb(var(--c)); animation: ogCut .6s ease-out forwards; }
 @keyframes ogCut { 30% { transform: rotate(-12deg) scaleX(1.4); opacity: 1; } 100% { transform: rotate(-12deg) scaleX(1.6); opacity: 0; } }
+
+/* ── 초식 외침 (ui_callout.js): 무대 왼쪽 바깥에서 굴러 들어오며 풀리는 두루마리 — 글자 크기 단위 1em = 종이 띠 높이 ── */
+.co { position: absolute; left: -2%; z-index: 7; pointer-events: none; line-height: 1; }
+.co-paper { position: absolute; inset: 0; }
+.co-base, .co-hz { position: absolute; left: 0; width: 100%; background: 0 0 / 100% 100% no-repeat; }
+.co-base { top: 0; height: 100%; }
+.co-hz { top: 0; height: 100%; background-size: 1200% 100%; animation: coHz 1.2s steps(12) infinite; filter: saturate(1.7) brightness(.85) drop-shadow(0 0 1.5px rgba(20, 45, 100, .55)); }
+@keyframes coHz { from { background-position: 0 0; } to { background-position: 109.0909% 0; } }   /* 12컷: 마지막 컷 다음에 처음으로 */
+.co-body { position: absolute; left: 0; width: max-content; display: flex; align-items: center; gap: .14em; padding-right: .36em; }
+.co-face { flex: none; height: .92em; aspect-ratio: 1; background: center 30% / cover no-repeat; -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 52%, transparent 71%); mask-image: radial-gradient(circle at 50% 46%, #000 52%, transparent 71%); }
+.co-txt { display: grid; gap: .02em; }
+.co-art { font: 400 .18em/1.1 'Gangho Brush', var(--serif), serif; color: #6b3a1a; letter-spacing: .06em; }
+.co-art small { font-family: var(--serif), serif; font-size: .72em; color: #8a6a44; margin-left: .35em; }
+.co-move { font: 400 .42em/1.02 'Gangho Brush', var(--serif), serif; color: #2a1608; white-space: nowrap; letter-spacing: .03em; }
+.co-move b { font-weight: 400; color: #8e1d14; }
+.co-move .ord { font-size: .5em; margin-right: .3em; color: #5a3a1a; }
+.co-move .hj { font: 600 .32em var(--serif), serif; color: #8a6a44; letter-spacing: .25em; margin-left: .5em; }
+.co-ax { position: absolute; z-index: 2; aspect-ratio: 135 / 505; background: 0 0 / 1600% 100% no-repeat; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .6)); }
+.co-poem { position: absolute; z-index: 7; margin: 0; max-width: 46%; pointer-events: none; font: 400 1em/1.4 'Gangho Brush', var(--serif), serif; color: #fff4d6; letter-spacing: .06em;
+  text-shadow: 0 0 2px #000, 0 1px 3px rgba(0, 0, 0, .9), 0 0 12px rgba(var(--glow, 90, 160, 255), .9); }
+.co-poem span { opacity: 0; display: inline-block; filter: blur(4px); transform: translateY(4px); transition: opacity .35s, filter .35s, transform .35s; }
+.co-poem span.on { opacity: 1; filter: none; transform: none; }

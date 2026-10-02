@@ -77,6 +77,7 @@ function gmViewCheat() {
   return `<div class="gm-cheats">
     <button class="gm-btn big" data-gm="silver" ${S ? '' : 'disabled'}>[은자 +1,000냥]</button>
     <button class="gm-btn big" data-gm="exp" ${S ? '' : 'disabled'}>[수련치 +1,000]</button>
+    <button class="gm-btn big" data-gm="swordkit" ${S ? '' : 'disabled'}>[한상검법 비급 + 검 (초식 외침 시험)]</button>
     <button class="gm-btn big" data-gm="heal" ${S ? '' : 'disabled'}>[활력/내력 100% 회복]</button>
     <button class="gm-btn big" data-gm="stamina" ${S ? '' : 'disabled'}>[기력 가득]</button>
     <button class="gm-btn big" data-gm="expedite" ${S ? '' : 'disabled'}>[강호행 시작 · 다음 걸음 즉시]</button>

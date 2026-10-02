@@ -103,6 +103,7 @@ const GM_CMDS = {
     if (what === 'heal') { const st = calcStats(); S.hp = st.maxHp; S.mp = st.maxMp; gmTrace('gm', `활력·내력 회복 → ${st.maxHp} / ${st.maxMp}`); }
     if (what === 'stamina') { S.stamina = calcStats().maxSta; gmTrace('gm', `기력 → ${S.stamina}`); }
     if (what === 'exp') { S.exp += 1000; gmTrace('gm', `수련치 +1000 → ${S.exp}`); }
+    if (what === 'swordkit') { give('bk_sw1a', 1, true); giveGear(libraryGear('lg_sword'), true); gmTrace('gm', '시험 세트: 《한상검법》 비급 · 청풍문 패검 (가방에서 읽고 · 차면 제1초식 외침을 볼 수 있음)'); }
     if (what === 'expedite') {                               // 강호행이 없으면 지금 떠나고, 있으면 다음 걸음을 곧바로 치른다
       if (!S.expedition.zone) S.expedition.zone = 'cheongpung';
       let r = activeRun();

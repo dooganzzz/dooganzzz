@@ -18,7 +18,8 @@ const ASSET_KIND = {
   beast:    { dir: 'beasts/', ext: 'webp' },
   item:     { dir: 'items/', ext: 'webp' },
   ui:       { dir: 'ui/', ext: 'webp' },
-  font:     { dir: 'fonts/', ext: 'woff' },           // 붓글씨 폰트 gangho_brush (지역 이름 90글자, tools/brush-font.py로 만듦)
+  font:     { dir: 'fonts/', ext: 'woff' },           // 붓글씨 폰트 gangho_brush (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
+  callout:  { dir: 'callout/', ext: 'webp' },        // 초식 외침 두루마리: 무공_초식(종이) · _hz(기운 12컷) · 무공_ax(도는 축 16컷) · face(제자 얼굴)
   portrait: { dir: 'portraits/', ext: 'webp' },
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene
 };
