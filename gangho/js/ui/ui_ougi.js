@@ -20,7 +20,7 @@ const OG_CFG = {
    o = { w 병기, name 오의 이름, heroEl · foeEl 무대의 제자 · 요수, foeImg 요수 그림(조각용), dmg 실제 피해, kill 숨통을 끊는가, onImpact 맞는 순간 } */
 /* [SSOT] 오의 고르기: 무공에 제 오의(OG_MANUAL)가 있으면 그 그림 · 빛깔을 쓰고, 병기 공용 오의의 겹치는 막(기운 오라 · 모이는 기운 · 칼빛 · 터지는 고리)은 끈다.
    없으면 병기 공용 오의(OG_CFG). 오의 그림은 이 함수 하나에서만 고른다 (옛 그림이 새 그림 위에 겹치지 않게) */
-const OG_MANUAL = {};   // 예: sw1b: { fx: 'ougi_sw1b', rgb: '200,225,255', impact: 5 } — impact: 16컷 중 터지는 컷 (일격 순간에 맞춤) · 확정본이 들어오면 여기에
+const OG_MANUAL = { sw1b: { fx: 'ougi_sw1b_frost', rgb: '190,220,255', impact: 5 } };   // 추상검법: 서리 별 (확정본)   // 예: sw1b: { fx: 'ougi_sw1b', rgb: '200,225,255', impact: 5 } — impact: 16컷 중 터지는 컷 (일격 순간에 맞춤) · 확정본이 들어오면 여기에
 /* 무공마다 공용 오의의 일부만 바꿀 때 (제 그림 없이): 추상검법은 온몸에서 아지랑이가 피어올라 검 속으로 빨려 든다 */
 const OG_TWEAK = { sw1b: { gather: 'haze', rgb: '190,220,255' } };
 function ougiCfg(w, mid) { const M = mid && OG_MANUAL[mid], T = mid && OG_TWEAK[mid], B = OG_CFG[w] && T ? { ...OG_CFG[w], ...T } : OG_CFG[w]; return M && B ? { ...B, ...M, own: true } : B; }
