@@ -41,11 +41,11 @@ module.exports = async (b) => {
     ok('1 성급 올리기 → 거울 값 갱신', br2.now === br2.calc && br2.now > br.before, JSON.stringify({ br, br2 }));
 
     // 2. 상단 헤더 · 변화량
-    const hd = await p.evaluate(() => { const el = document.querySelector('#status .status-chip.combat-power'); return { badge: el.querySelector('.chip-badge').textContent, value: el.querySelector('#header-cp').textContent, title: el.title, cp: fmt(calculateCombatPower(S)) }; });
-    ok('2 헤더 상시 표기 ([투력] 한글 뱃지)', hd.badge === '투력' && hd.value === hd.cp && hd.title.startsWith('투력'), JSON.stringify(hd));
-    const dl = await p.evaluate(async () => { const tick = () => new Promise(r => setTimeout(r, 0)); unequip('weapon'); await tick(); const d = document.querySelector('#status .cp-delta'); const r = { down: d && d.classList.contains('down') && d.textContent.startsWith('▼') }; equipItem(S.gear[S.gear.length - 1].uid); await tick(); const u = document.querySelector('#status .cp-delta'); r.up = u && u.classList.contains('up'); return r; });   // 다시 그리기는 마이크로태스크로 모아서 한다
+    const hd = await p.evaluate(() => { ui.tab = 'status'; render(); const el = document.querySelector('.cp-card .cp-main'); return { badge: el.querySelector('.cp-label').textContent.slice(0, 2), value: el.querySelector('.cp-value').textContent, title: el.closest('.cp-card').getAttribute('aria-label'), cp: fmt(calculateCombatPower(S)) }; });
+    ok('2 상태 탭 투력 카드 ([투력] 한글)', hd.badge === '투력' && hd.value === hd.cp && hd.title.startsWith('투력'), JSON.stringify(hd));
+    const dl = await p.evaluate(async () => { const tick = () => new Promise(r => setTimeout(r, 0)); unequip('weapon'); await tick(); const d = document.querySelector('.cp-card .cp-delta'); const r = { down: d && d.classList.contains('down') && d.textContent.startsWith('▼') }; equipItem(S.gear[S.gear.length - 1].uid); await tick(); const u = document.querySelector('.cp-card .cp-delta'); r.up = u && u.classList.contains('up'); return r; });   // 다시 그리기는 마이크로태스크로 모아서 한다
     ok('2 투력이 바뀌면 ▲/▼ 변화량 잠깐 표시', dl.down && dl.up, JSON.stringify(dl));
-    ok('2 변화량은 잠시 뒤 사라짐 (2.5초)', await p.waitForFunction(() => !document.querySelector('#status .cp-delta'), null, { timeout: 4500 }).then(() => true, () => false));
+    ok('2 변화량은 잠시 뒤 사라짐 (2.5초)', await p.waitForFunction(() => !document.querySelector('.cp-card .cp-delta'), null, { timeout: 4500 }).then(() => true, () => false));
 
     // 2. 상태 탭 맨 위 카드
     await p.click('[data-tab="status"]');

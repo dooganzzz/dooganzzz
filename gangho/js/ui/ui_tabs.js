@@ -121,19 +121,25 @@ function cpDeltaHtml(cp) {
 /* 헤더 수치: 10만 이상은 만·억 단위로 줄인다 (폰에서도 한 줄). 정확한 값은 툴팁에 */
 const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
   return a >= 1e8 ? `${+(n / 1e8).toFixed(1)}억` : a >= 1e5 ? `${+(n / 1e4).toFixed(1)}만` : fmt(n); };
+/* 머리: 이름 줄만. 활력 · 내력 · 수련치 · 은자 · 공헌은 상태 탭 맨 위(#vitals)에, 투력은 그 아래 투력 카드에 (유저 요청). 매초 다시 그린다 */
 function renderHeader() {
-  const st = calcStats(), cp = calculateCombatPower(S);
+  const st = calcStats(), cp = calculateCombatPower(S), dl = cpDeltaHtml(cp);
   setHTML($('#status'), `
-    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name} · ${activeRun() ? `강호행 중 <strong class="highlight-timer" data-runclock>${runClockText()}</strong>` : '대기 중'}` : '탐험지 미정'}</span></div>
-    <div class="status-indicator-row">
+    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name} · ${activeRun() ? `강호행 중 <strong class="highlight-timer" data-runclock>${runClockText()}</strong>` : '대기 중'}` : '탐험지 미정'}</span></div>`);
+  const v = $('#vitals'); if (v) setHTML(v, vitalsHtml(st));
+  const cm = document.querySelector('.cp-card .cp-main');            // 투력이 바뀌면 투력 카드에 잠깐 ▲/▼
+  if (cm) { const old = cm.querySelector('.cp-delta'); if (old) old.remove(); if (dl) cm.insertAdjacentHTML('beforeend', dl); }
+}
+/* 상태 탭 맨 위: 활력 · 내력 막대와 수련치 · 은자 · 공헌 */
+function vitalsHtml(st = calcStats()) {
+  return `<div class="status-indicator-row">
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
       <div class="currency-chips user-status-bar">
-        <div class="status-chip combat combat-power" title="투력 ${fmt(cp)}">${uiIco('h_cp')}<span class="chip-badge badge-combat">투력</span><span class="chip-value" id="header-cp">${fmtShort(cp)}</span>${cpDeltaHtml(cp)}</div>
         <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 수련 · 상태 › 무공에서 성급 올리기)">${uiIco('h_xp')}<span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
         <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}<span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
         <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}">${uiIco('h_contrib')}<span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
       </div>
-    </div>`);
+    </div>`;
 }
 /* 수묵 아이콘 (ASSET.ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
 const uiIco = (id, cls = '') => `<i class="ui-ico ${cls}" style="background-image:url('${ASSET.ui(id)}')" aria-hidden="true"></i>`;
@@ -172,7 +178,7 @@ function render() {
   if (!S) return;
   renderHeader(); renderTabs();
   const main = $('#main');
-  const scr = screen(), bar = (ui.tab === 'status' ? cpCard() : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
+  const scr = screen(), bar = (ui.tab === 'status' ? `<section class="vitals" id="vitals">${vitalsHtml()}</section>${cpCard()}` : '') + (SUBS[ui.tab] ? subtabBar(ui.tab) : '');
   setHTML(main, bar + ({ gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: viewField, chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
   renderModal();
   typewriteAll();

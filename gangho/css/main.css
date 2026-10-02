@@ -589,7 +589,6 @@ body {
 .badge-exp { background: #1f5a4a; color: #eafff6; }
 .badge-silver { background: rgba(216, 178, 94, .18); color: var(--gold-2); border: 1px solid rgba(216, 178, 94, .45); }
 .badge-contrib { background: rgba(95, 176, 155, .15); color: #8ee0c8; border: 1px solid rgba(95, 176, 155, .45); }
-.status-chip .cp-delta { top: -10px; }
 @media (max-width: 640px) {
   .status { flex-basis: 100%; }   /* 폰: 로고 아래 한 줄을 통째로 써서 네 항목이 한 줄에 들어가게 */
   .user-status-bar { width: 100%; gap: 5px; }
