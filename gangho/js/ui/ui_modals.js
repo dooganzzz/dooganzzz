@@ -147,7 +147,6 @@ function renderModal() {
   if (ui.modal.startsWith('artslot:')) setHTML(m, artSlotModal(ui.modal.slice(8)));
   if (ui.modal.startsWith('recipe:')) setHTML(m, recipeModal(ui.modal.slice(7)));
   if (ui.modal.startsWith('settle:')) { const h = settleModal(ui.modal.slice(7).split(',').map(Number)); if (!h) { ui.modal = null; m.hidden = true; return; } setHTML(m, h); }
-  if (ui.modal === 'loot') { const h = lootModal(); if (!h) { ui.modal = null; m.hidden = true; return; } setHTML(m, h); }
   if (ui.modal.startsWith('replay:')) {
     const key = ui.modal.slice(7), box = $('#rpBox');
     if (!box || box.dataset.key !== key) {                   // 다른 이유로 다시 그려져도 재생 중인 관찰 창은 그대로 둔다

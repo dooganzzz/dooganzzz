@@ -586,8 +586,8 @@
 .stage-info .chip.sm { padding: 1px 8px; font-size: 11.5px; margin-left: auto; }
 /* 맞붙는 동안 무대 위 정보 창 (내 창 · 적 창): 마른 붓 먹획 + 팔괘 얼굴 창 그림(ui/hp_me · hp_foe) 속 칸에 얼굴 · 막대를 맞춰 얹는다.
    막대 위 이름 · 막대 안 활력 숫자 · 막대 아래 투력. 크기는 유저가 연출 미리보기에서 맞춘 값 (글자 단위 cqi = 창 너비의 1%) */
-.live-scene { --hp-w: 44%; --hp-top: 4%; --hp-nm: 3.6cqi; --hp-nmmin: 12.5px; --hp-nmy: 63%; --hp-em: 2.6cqi; --hp-emmin: 8px; --hp-cp: 4.9cqi; --hp-cpmin: 10px; --hp-cpy: 65%; }
-@media (max-width: 600px) { .live-scene { --hp-w: 43%; --hp-top: 3.5%; --hp-nm: 3.4cqi; --hp-nmmin: 10px; --hp-em: 2.9cqi; --hp-emmin: 5.5px; --hp-cp: 4.8cqi; --hp-cpmin: 7.5px; --hp-cpy: 66.5%; } }   /* 모바일 (유저 조정): 창 43% · 위 3.5% · 이름 3.4(최소 10px) · 숫자 2.9(최소 5.5px) · 투력 4.8(최소 7.5px) 높이 66.5% */
+.live-scene { --hp-w: 44%; --hp-top: 4%; --hp-nm: 5.8cqi; --hp-nmmin: 12.5px; --hp-nmy: 65%; --hp-em: 3.2cqi; --hp-emmin: 8px; --hp-cp: 4.7cqi; --hp-cpmin: 10px; --hp-cpy: 65%; }
+@media (max-width: 600px) { .live-scene { --hp-w: 43%; --hp-top: 3.5%; --hp-nm: 3.4cqi; --hp-nmmin: 10px; --hp-nmy: 63%; --hp-em: 2.9cqi; --hp-emmin: 5.5px; --hp-cp: 4.8cqi; --hp-cpmin: 7.5px; --hp-cpy: 66.5%; } }   /* 모바일 (유저 조정): 창 43% · 위 3.5% · 이름 3.4(최소 10px) · 숫자 2.9(최소 5.5px) · 투력 4.8(최소 7.5px) 높이 66.5% */
 .live-hp { position: absolute; z-index: 6; top: var(--hp-top); width: var(--hp-w); aspect-ratio: 613 / 147; display: none; pointer-events: none; container-type: inline-size; }
 .live-hp.me { left: .6%; } .live-hp.foe { right: .6%; aspect-ratio: 610 / 149; }
 .live-scene.fight .live-hp { display: block; }

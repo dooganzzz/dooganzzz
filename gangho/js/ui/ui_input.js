@@ -94,7 +94,6 @@ function onClick(e) {
     confirmok: confirmAccept, calm: toggleCalm, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
-    claim: () => { if (!canClaim()) return toast('강호행이 끝나야 받을 수 있습니다.'); replayStop(); ui.lootSum = claimRewards(); ui.modal = 'loot'; render(); },
     runstart: () => { ui.modal = 'map'; render(); },          // 강호행 시작은 지도에서 탐험지를 고르고 [출발]
     mapback: () => { ui.modal = 'map'; render(); },
     mapgo: () => {                                           // 강호행 시작: 쓰러지거나 귀환할 때까지 이어진다
@@ -107,7 +106,7 @@ function onClick(e) {
     },
     logout: () => requestActionConfirm({ title: '로그아웃', description: '저장을 서버에 올리고 로그아웃합니다. 진행 중인 강호행은 다음에 로그인하면 이어집니다.', details: [], confirmText: '로그아웃', onConfirm: logout }),
     gigeok: () => { if (!has('gigeokdan')) { toast('기력단이 없습니다. 전방에서 50냥에 팝니다.'); return; } useItem('gigeokdan'); render(); },
-    runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 [최종보상확인]으로 받습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); render(); } }),
+    runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 이미 받았습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); render(); } }),
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },
     gochron: () => {                                          // 결산 창 → 견문록 탭, 방금 탐험의 결산을 펼쳐 보인다
       replayStop(); ui.modal = null; goTab('chronicle'); ui.chronFilter = 'all'; ui.chronOpen = +d.rec; render();

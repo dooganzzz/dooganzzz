@@ -21,9 +21,8 @@ function aiSnapshot() {
 /* 한 시각의 행동. note(text)로 눈에 띄는 일만 보고서에 남긴다 */
 function aiAct(note) {
   const t = now();
-  // 1. 전투를 다 관찰했다고 치고, 끝난 강호행의 최종보상확인
+  // 1. 전투를 다 관찰했다고 친다
   for (const r of S.expeditions) for (const b of r.battles) if (b.seen === false) b.seen = true;
-  if (pendingRecs().length) claimRewards();
   // 2. 인물: 장문인 가르침 · 조운 보급
   if (tutorReady()) masterTalk();
   if (S.supplyDay !== today()) jounSupply();

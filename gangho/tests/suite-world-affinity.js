@@ -114,7 +114,7 @@ module.exports = async (b) => {
     ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 덜, 아니면 더 · 경공 없으면 보정 없음', tr.mult === tr.expect && tr.none === 1 && tr.hitMult === tr.A.match && tr.missMult === tr.A.miss && tr.A.match < 1 && tr.A.miss > 1, JSON.stringify(tr));
     ok('4 탐험 기록에 지형 일치 여부 · 기력 증감', tr.match.rec && tr.miss.rec && tr.match.extra && tr.miss.extra, JSON.stringify(tr));
     ok('4 지형이 맞으면 같은 걸음에 기력을 덜 쓴다', tr.match.mult < 1 && tr.miss.mult > 1, JSON.stringify(tr));
-    await p.evaluate(() => { claimRewards(); ui.modal = null; goTab('field'); render(); });
+    await p.evaluate(() => { ui.modal = null; goTab('field'); render(); });
     ok('4 탐험 기록 결산 줄에 지형 · 기력 증감', await p.evaluate(() => { const t = document.querySelector('.tr-line'); return !!t && /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 \S+ (일치|불일치) \(기력 \+?[\d.]+ (더 씀|아낌)\)/.test(t.textContent); }));
     ok('4 출정 준비에 상성 줄 (기공 오행 · 경공 지형 · 병기)', await p.evaluate(() => {
       const li = [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent === '상성'), txt = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };

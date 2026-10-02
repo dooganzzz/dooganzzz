@@ -41,7 +41,7 @@ module.exports = async (b) => {
     ok('2 무장으로 전환', await p.evaluate(() => !!document.querySelector('.paperdoll') && ui.statusSub === 'gear'));
 
     // 탐험 결산 창의 [견문록 보기] → 견문록 탭, 해당 탐험 기록 강조
-    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; const r = runExpedition(now()); claimRewards(); /* 결산은 보상을 받은 뒤에 펼쳐진다 */ ui.modal = 'settle:' + r.id; render(); });
+    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; const r = runExpedition(now());  ui.modal = 'settle:' + r.id; render(); });
     await p.click('.settle-sheet [data-act="gochron"]');
     ok('2 결산 창 [견문록 보기] → 견문록 탭 (창 닫힘 · 해당 기록 펼침)', await p.evaluate(() => ui.tab === 'chronicle' && !ui.modal && !!document.querySelector('.chron-open details[open]')));
 

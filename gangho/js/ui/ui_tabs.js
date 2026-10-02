@@ -147,8 +147,8 @@ function gauge(cls, cur, max, name) {
 const questAlert = () => !!S && (tutorReady() || subqReadyCount() > 0);
 const alertDot = on => on ? '<i class="alert-dot" aria-label="받을 보상 있음"></i>' : '';
 function renderTabs() {
-  const qa = questAlert(), loot = !!S && canClaim() && !(typeof liveHeld === 'function' && liveHeld(liveRec()));          // 강호행이 끝나 [최종보상확인]을 기다리면 강호행 탭에도
-  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : id === 'field' ? alertDot(loot) : id === 'encounter' ? alertDot(!!S && encountersWaiting().length > 0) : ''}</button>`).join(''));
+  const qa = questAlert();
+  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : id === 'encounter' ? alertDot(!!S && encountersWaiting().length > 0) : ''}</button>`).join(''));
 }
 
 /* 접기/펼치기 구역: 헤더를 누르면 본문에 .collapsed가 토글된다 (다시 그리지 않아 전환이 부드럽다) */

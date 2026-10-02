@@ -262,6 +262,11 @@ function migrate(st) {
   if (st.expedition) { if (!st.expedition.stage) st.expedition.stage = Math.min(10, (st.stages[st.expedition.zone] || 0) + 1); if (st.expedition.auto === undefined) st.expedition.auto = true; }
   delete st.bossPity;
   for (const r of st.expeditions || []) { if (r.live === undefined) r.live = false; delete r.shownAll; delete r.shownAt; for (const b of r.battles || []) b.seen = true; }   // 전투 결과는 이제 곧바로 보인다
+  // 강호행 보상 즉시 획득 개편: 보관만 하고 아직 받지 않은 것(끝난 · 진행 중인 강호행 모두)은 바로 넣는다
+  for (const r of st.expeditions || []) { const P = r.pend; if (!P) continue;
+    if (!r.claimed) { st.silver = (st.silver || 0) + (P.silver || 0); st.exp = (st.exp || 0) + (P.exp || 0); st.contrib = (st.contrib || 0) + (P.contrib || 0);
+      for (const [id, n] of Object.entries(P.items || {})) st.inv[id] = (st.inv[id] || 0) + n; st.gear = [...(st.gear || []), ...(P.gear || [])]; }
+    delete r.pend; delete r.claimed; }
   if (!st.potGift) { st.potGift = true; st.inv.saenghyeol = (st.inv.saenghyeol || 0) + 10; st.migratedPot = true; }
   ensureCloudId(st);
   for (const it of [...(st.gear || []), ...Object.values(st.equip || {})]) gearNameNow(it);   // 장비 이름 고증 개편 (예전 이름 → 지금 이름)
@@ -346,7 +351,7 @@ function startGame(st) {
   // 자리를 비운 동안에도 강호행은 이어졌다 (최대 8시간). 새 버전이 배포되었으면 그 강호행은 여기서 마친다
   const run = activeRun(), n0 = run ? run.steps.length : 0, r = advanceRun();
   const verChanged = S.gameVer && S.gameVer !== GAME_VER && GAME_VER !== 'dev';
-  if (verChanged && activeRun()) { endRun(activeRun(), now(), 'recall'); log('📜 새 버전이 배포되어 진행 중이던 강호행을 마쳤습니다. 얻은 것은 강호행 탭의 [최종보상확인]으로 받으십시오.', 'gold'); notify.toast('📜 새 버전 배포로 강호행을 마쳤습니다 — 보상을 받으십시오'); }
+  if (verChanged && activeRun()) { endRun(activeRun(), now(), 'recall'); log('📜 새 버전이 배포되어 진행 중이던 강호행을 마쳤습니다. 얻은 것은 이미 받았습니다.', 'gold'); notify.toast('📜 새 버전 배포로 강호행을 마쳤습니다'); }
   else if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 강호행 탭에서 견문과 보상을 확인하십시오`);
   S.gameVer = GAME_VER;
   authFooter();

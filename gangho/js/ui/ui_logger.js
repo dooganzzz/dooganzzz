@@ -56,7 +56,6 @@ function chronDetail(e) {
   if (!e.ref) return '';
   const rec = findExpedition(e.ref.r);
   if (!rec) return '<small class="muted chron-gone">오래된 탐험이라 상세 기록은 지워졌습니다.</small>';
-  if (rec.pend && !rec.claimed && e.ref.s === undefined) return '';                 // 보상을 받기 전에는 결산을 숨긴다
   if (e.ref.s !== undefined && rec.steps[e.ref.s] && rec.steps[e.ref.s].b !== undefined && !battleSeen(rec, rec.steps[e.ref.s].b)) return '';   // 안 본 전투의 속내는 숨긴다
   if (e.ref.s === undefined) {
     const g = rec.gain, part = (o, f) => Object.entries(o || {}).map(([id, n]) => `${itemIco(id, 'sm')}${ITEMS[id].name} ×${n}`).join(' · ') || f;
@@ -76,11 +75,8 @@ function chronDetail(e) {
 function chronLive(e) {
   if (!e.ref) return e;
   const rec = findExpedition(e.ref.r);
-  if (!rec || !rec.pend) return e;                                          // 예전 탐험 기록
-  if (e.ref.s === undefined) {
-    if (!liveDone(rec)) return null;
-    return rec.claimed ? e : { ...e, text: `${e.text} <button class="watch claim" data-act="claim">최종보상확인</button>` };
-  }
+  if (!rec || !rec.steps) return e;                                         // 예전 탐험 기록
+  if (e.ref.s === undefined) return liveDone(rec) ? e : null;
   const st = rec.steps[e.ref.s];
   if (!st) return null;
   const seen = st.b === undefined || battleSeen(rec, st.b);

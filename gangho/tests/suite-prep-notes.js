@@ -69,7 +69,7 @@ module.exports = async (b) => {
     ok('4 사건 보상의 단서 → 수련치', await p.evaluate(() => !JSON.stringify(EVENTS).includes('clue')));
 
     // 5. 견문록 1차 탭 (강호행 두 번을 다녀와 보상을 받은 뒤)
-    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; for (let i = 0; i < 2; i++) { S.hp = 1e9; runExpedition(now(), 10); } claimRewards(); ui.modal = null; render(); });
+    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; for (let i = 0; i < 2; i++) { S.hp = 1e9; runExpedition(now(), 10); } ui.modal = null; render(); });
     await p.click('[data-tab="chronicle"]');
     const ch = await p.evaluate(() => {
       const t = document.querySelector('#tabs');

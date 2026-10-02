@@ -11,7 +11,7 @@ module.exports = async (b) => {
     await startEquipped(p);
 
     // 1. 강호행 한 번 → 보상을 받으면 견문록에 걸음마다 한 줄, 전투에는 [관찰하기]
-    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.hp = 1e9; runExpedition(now(), 12); claimRewards(); ui.modal = null; render(); });
+    await p.evaluate(() => { S.expedition.zone = 'cheongpung'; S.hp = 1e9; runExpedition(now(), 12); ui.modal = null; render(); });
     await p.click('[data-tab="chronicle"]');
     const lg = await p.evaluate(() => {
       const r = S.expeditions[S.expeditions.length - 1], watch = [...document.querySelectorAll('.chron .watch')];
