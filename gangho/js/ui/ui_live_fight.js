@@ -212,6 +212,10 @@ function liveMp(sc, mp, max) {
   const M = (liveAnim.hpm = liveAnim.hpm || {}).mp = { ...(liveAnim.hpm.mp || {}), ...(max ? { max } : {}), mp };
   const r = clamp(mp / (M.max || 1), 0, 1); el.querySelector('i').style.width = (r * 100).toFixed(1) + '%';
   el.title = `내력 ${fmt(Math.max(0, Math.round(mp)))} / ${fmt(M.max || 0)}`; el.querySelector('em').textContent = `${fmt(Math.max(0, Math.round(mp)))} / ${fmt(M.max || 0)}`;
+  if (liveAnim.hold) {                                 // 옆 패널 내력 막대도 무대와 같이
+    liveAnim.hold.mp = mp; const mx = calcStats().maxMp, bar = document.querySelector('#liveSide .live-prog.mp span'), tx = document.querySelector('#liveSide .live-vit-mp');
+    if (bar) bar.style.width = clamp(mp / mx * 100, 0, 100).toFixed(1) + '%'; if (tx) tx.textContent = `내력 ${fmt(Math.round(mp))} / ${fmt(mx)}`;
+  }
 }
 function liveHp(sc, who, hp, max, name, cp) {
   const el = sc.querySelector(`.live-hp.${who}`); if (!el) return;

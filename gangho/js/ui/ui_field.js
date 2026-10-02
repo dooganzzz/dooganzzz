@@ -52,12 +52,14 @@ function liveSide() {
   if (held) rows.unshift(`<li class="enc fresh"><time>${hhmm(stepAt(r, shown))}</time><span>${hs && hs.b === undefined && HELD[hs.k] || '요수와 맞붙었습니다…'}</span></li>`);
   const nb = r.steps.slice(0, shown).filter(s => s.b !== undefined).length;
   const hpNow = held && liveAnim.hold.hp != null ? liveAnim.hold.hp : S.hp;   // 맞붙는 동안은 무대의 활력
+  const mpNow = held && liveAnim.hold.mp != null ? liveAnim.hold.mp : S.mp;   // 내력도 무대와 같이
   const unseen = r.battles.filter(b => b.seen === false).length, st = calcStats(), hpP = clamp(hpNow / st.maxHp * 100, 0, 100);
   const nm = stageName(r.zone, r.stage || 1), cl = r.cleared && r.cleared.length ? ` · 돌파 ${r.cleared.length}번` : '';
   const state = run || held ? `강호행 중 · <span data-runclock>${runClockText()}</span> · 견문 ${shown} · 전투 ${nb}${cl}`
     : r.end === 'dead' ? `<b class="warn">${nm}에서 쓰러져 강호행이 끝났습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`
     : `<b>${nm}에서 돌아왔습니다.</b> 견문 ${r.steps.length} · 전투 ${r.battles.length}${cl}`;
   return `${stageStrip()}${run || held ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span class="live-vit-hp">활력 ${fmt(Math.round(hpNow))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>
+    <div class="live-prog mp" title="내력"><span style="width:${clamp(mpNow / (st.maxMp || 1) * 100, 0, 100).toFixed(1)}%"></span></div><p class="live-vit"><span class="live-vit-mp">내력 ${fmt(Math.round(mpNow))} / ${fmt(st.maxMp)}</span></p>
     <div class="live-prog sta" title="기력"><span style="width:${clamp(S.stamina / (st.maxSta || 100) * 100, 0, 100).toFixed(1)}%"></span></div>
     <p class="live-vit"><span>기력 ${Math.round(S.stamina / (st.maxSta || 100) * 100)}% · ${r.mode === 'walk' ? '🚶 걷는 중 — 기력이 차면 다시 달립니다' : '🏃 달리는 중'}</span><button class="chip sm" data-act="gigeok" ${count('gigeokdan') ? '' : 'disabled'} title="기력을 가득 채워 곧바로 다시 달립니다 (전방 50냥)">기력단 ${count('gigeokdan')}</button></p>` : ''}
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>

@@ -12,8 +12,8 @@ const calloutOf = (mid, n) => CALLOUT[`${mid}:${n}`] || null;
 /* 시구 크기 · 자리 (유저가 미리보기에서 맞춤): one = 한 줄 시구(제1 · 제2초식) · two = 두 줄 시구(오의), pc · mo(폭 640px 이하)
    k 종이 띠 높이 대비 글자 크기(%) · min 최소 글자(px) · w 한 줄 폭(무대 너비 %) · dx · dy 두루마리 오른쪽 · 종이 띠 위끝에서 옮긴 거리(무대 너비 · 높이 %) */
 const CO_POEM = {
-  one: { pc: { k: 24, min: 0, w: 46, dx: 0, dy: 0 }, mo: { k: 24, min: 0, w: 46, dx: 0, dy: 0 } },
-  two: { pc: { k: 24, min: 0, w: 46, dx: 0, dy: 0 }, mo: { k: 24, min: 0, w: 46, dx: 0, dy: 0 } },
+  one: { pc: { k: 46, min: 2.5, w: 46, dx: -1, dy: 0 }, mo: { k: 49, min: 0, w: 46, dx: 0, dy: 0 } },
+  two: { pc: { k: 46, min: 0, w: 46, dx: 0, dy: -4 }, mo: { k: 46, min: 0, w: 50, dx: 0, dy: -3 } },
 };
 function calloutPreload(mid, n) {
   const C = calloutOf(mid, n); if (C) preloadImgs([ASSET.callout(C.art), ASSET.callout(C.art + '_hz'), ASSET.callout(C.ax), ASSET.callout('face')]);
@@ -32,6 +32,7 @@ function calloutPlay(sc, mid, n) {
   poem.innerHTML = lines.map(l => `<span class="co-line">${[...l].map(c => `<span>${c === ' ' ? '&nbsp;' : c}</span>`).join('')}</span>`).join('');
   sc.append(box, poem);
   const paper = box.querySelector('.co-paper'), ax = box.querySelector('.co-ax'), body = box.querySelector('.co-body'), chars = [...poem.querySelectorAll('.co-line > span')];
+  paper.style.clipPath = 'inset(0 100% 0 0)';   // 첫 그림부터 말린 채로 (첫 rAF 전에 다 펼친 종이가 한 번 번쩍이지 않게)
   box.querySelector('.co-base').style.backgroundImage = `url('${ASSET.callout(C.art)}')`;
   box.querySelector('.co-hz').style.backgroundImage = `url('${ASSET.callout(C.art + '_hz')}')`;
   box.querySelector('.co-face').style.backgroundImage = `url('${ASSET.callout('face')}')`;
