@@ -8,7 +8,7 @@ const SPRITE_SRC = ASSET;
    (manualFx · cut_ 그림을 다른 파일에서 직접 쓰면 check-layers가 막는다).
    초식 컷: 무공 고유 폴더(manual/무공id/cut_1 · cut_2, 목록은 data/assets.js MANUAL_ART)의 확정본 검기 컷(10컷, 왼쪽 끝 = 칼끝)이 있는 무공. 칼끝 = 제자 그림 너비의 tip 지점 · 그림 너비 = 칼끝~요수 가운데 × reach · 세로 가운데는 제자 가운데보다 dy(제자 키 비율) 위 */
 /* 요수 몸 위에서 터지는 제1초식(MANUAL_HIT): 컷 4:3, 요수 가운데(가슴 높이)에 요수 키의 1.9배 크기로 */
-const HIT_GEO = { ar: 4 / 3, ms: 1000, fy: .5, size: 1.9 };
+const HIT_GEO = { ar: 4 / 3, ms: 1000, fy: .5, size: 1.9, tipX: .706, tipY: .254, entry: .38 };   // tip: 팔을 곧게 뻗은 칸(4)의 손끝 자리 (권장 제자 그림 hero_fist에서 잼) · entry: 그림 안에서 꿰뚫는 자리
 const CUT_GEO = { 1: { tip: .75, reach: 1.07, dy: .18, ar: 640 / 200, ms: 1000 }, 2: { tip: .7, reach: 1.04, dy: .35, ar: 640 / 360, ms: 1300, screen: true } };
 /* n: 초식 번호 (1 · 2 · 3=오의). 확정본 컷은 초식마다(제1 · 제2), 옛 한 장 그림은 제1 · 제2초식 공용(_1) · 오의(_2) */
 const stanceCutN = n => Math.min(2, Math.max(1, n || 1));
@@ -21,6 +21,10 @@ function stanceFxEl(stage, mid, n, imgCls, hero, foe) {
   const s = stage.getBoundingClientRect(), h = hero && hero.getBoundingClientRect();
   if (!h || !h.width) { Object.assign(v.style, { left: '5%', width: '90%', top: '50%', aspectRatio: String(g.ar), transform: 'translateY(-50%)' }); return v; }
   const f = foe && foe.getBoundingClientRect();
+  if (au && f && f.width && ASSET.hitN(mid) === 1) {   // 한 번 깊게 찌르기(철사장): 손끝에서 꿰뚫는 자리가 시작되게 — 손 뻗는 위치와 그림을 맞춘다
+    const w = f.height * g.size, tx = h.left - s.left + h.width * g.tipX, ty = h.top - s.top + h.height * g.tipY;
+    Object.assign(v.style, { left: (tx - w * g.entry) + 'px', top: (ty - w / g.ar / 2) + 'px', width: w + 'px', height: (w / g.ar) + 'px' }); return v;
+  }
   if (au && f && f.width) { const w = f.height * g.size; Object.assign(v.style, { left: (f.left - s.left + f.width / 2 - w / 2) + 'px', top: (f.top - s.top + f.height * g.fy - w / g.ar / 2) + 'px', width: w + 'px', height: (w / g.ar) + 'px' }); return v; }
   const foeX = f && f.width && f.left < s.right ? f.left + f.width / 2 - s.left : s.width * .8;
   const x = h.left - s.left + h.width * g.tip, w = Math.max(s.width * .3, (foeX - x) * g.reach), cy = h.top - s.top + h.height * (.5 - g.dy);
