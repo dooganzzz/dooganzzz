@@ -163,7 +163,17 @@ function gmPopout() {
 }
 
 /* 관리자 창(admin.html) 쪽 시작: 받은 복사본으로 같은 화면을 그린다 */
+/* GM 창(admin.html)도 새 버전을 알아채면 스스로 다시 연다 (옛 GM 창이 남아 옛 탭 · 옛 코드로 도는 일이 없게) */
+function gmCheckVersion() {
+  if (!/^https?:$/.test(location.protocol) || /claude/.test(location.hostname) || typeof fetch !== 'function') return;
+  const meta = document.querySelector('meta[name="game-ver"]'), cur = meta && meta.content; if (!cur) return;
+  fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j || !j.v || j.v === cur || new URLSearchParams(location.search).get('v') === j.v) return;
+    location.replace(`${location.pathname}?v=${j.v}${location.hash}`);
+  }).catch(() => {});
+}
 function gmRemoteInit() {
+  gmCheckVersion(); setInterval(gmCheckVersion, 60000);
   GM.open = true;
   const panel = $('#gmPanel');
   let lastSeen = 0, drawn = false, hadS = null;
