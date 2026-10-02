@@ -688,7 +688,6 @@
 .map-vit { font-size: 13px; }
 .live-panel.enter { animation: liveEnter .9s ease-out; }
 @keyframes liveEnter { from { opacity: 0; filter: blur(6px) brightness(.4); transform: scale(.985); } to { opacity: 1; filter: none; transform: none; } }
-.map-open .btn { width: 100%; }
 
 /* 쓰러짐: 강호행이 쓰러져 끝나면(보상 받기 전) 제자가 땅에 엎어지고, 놓친 병기가 머리맡에 떨어져 뒹군다 */
 .live-fallen { position: absolute; left: 9%; bottom: 9.5%; width: 23%; aspect-ratio: 640 / 150; z-index: 2; display: none; pointer-events: none; }

@@ -76,7 +76,6 @@ function onClick(e) {
   if (d.pray) return askPray(+d.pray);
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
-  if (d.enhmain) { ui.enhMain = +d.enhmain; ui.enhResult = null; return render(); }
   if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.potGear = []; ui.yhPick = null; ui.craftResult = null; ui.enhResult = null; return render(); }
   if (d.bind) return doBind(d.bind);
   if (d.yhpick) { ui.yhPick = ui.yhPick === d.yhpick ? null : d.yhpick; return render(); }
@@ -110,7 +109,7 @@ function onClick(e) {
   if (d.fill) return fillPot(d.fill);
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
-    craft: () => ui.potGear.length ? ((ui.enhMain = ui.potGear[0]), acts.enhance()) : askCraft(),
+    craft: () => ui.potGear.length ? acts.enhance() : askCraft(),
     confirmok: confirmAccept, calm: toggleCalm, mirror: () => { ui.modal = 'mirror'; render(); }, callout: toggleCallout, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), subqask: () => { npcTalk('master', subqAsk); if (ui.npcTalk && subqLeft()) { ui.npcTalk.zones = true; render(); } }, jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
