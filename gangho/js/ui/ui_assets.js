@@ -6,6 +6,7 @@ ASSET.foe = (e, atk) => assetUrl('foe', atk ? `${e}_atk` : e);
 ASSET.vfx = name => name === 'hit' || name === 'crit' ? assetUrl('common', 'strike_' + name) : assetUrl('fx', name);
 /* 무공 고유 그림: 그 무공(mid)의 폴더에 있는 것만. 없으면 null (공용 그림으로 대신하는 것은 부르는 쪽이 정한다) */
 ASSET.solid = mid => MANUAL_SOLID.includes(mid);   // 꽉 찬 그림의 무공인가 (초식 컷에 .solid)
+ASSET.hit = mid => MANUAL_HIT.includes(mid);   // 제1초식 그림이 요수 몸 위에서 터지는 무공인가
 ASSET.ink = mid => MANUAL_INK.includes(mid);   // 먹빛 그림의 무공인가 (초식 컷 · 오의 막에 .ink)
 ASSET.manual = (mid, name) => MANUAL_ART[mid] && MANUAL_ART[mid].includes(name) ? `${ASSET_ROOT}manual/${mid}/${name}.webp` : null;
 /* 화면별로 한 번에 미리 불러올 그림 묶음 */

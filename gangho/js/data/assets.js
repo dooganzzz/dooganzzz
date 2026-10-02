@@ -38,6 +38,8 @@ const MANUAL_ART = {
 const MANUAL_INK = ['sw1c'];
 /* 돌 · 쇠빛처럼 꽉 찬 그림의 무공: 밝게 섞기(screen)로는 바위가 비쳐 사라지므로 초식 컷을 그대로 겹치고 따뜻한 테두리 빛 (CSS .solid). 오의는 기본 그대로 */
 const MANUAL_SOLID = ['fs1a'];
+/* 권장(연속 때리기)처럼 맞는 자리에서 터지는 초식: 제1초식 그림이 허공을 가르지 않고 요수 몸 위에 얹힌다 (크기 · 자리는 ui_sprite.js HIT_GEO) */
+const MANUAL_HIT = ['fs1b'];
 /* 확장자가 기본과 다른 파일 (종류:이름) */
 const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg', 'font:rank_hanja': 'woff2' };
 /* PNG는 모두 무손실 WebP로 바꿨다 (픽셀 동일, 약 37% 작음). 이미 손실 압축된 WebP · JPG는 다시 압축하지 않는다 */
