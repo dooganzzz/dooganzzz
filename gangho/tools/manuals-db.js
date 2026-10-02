@@ -10,7 +10,7 @@ const M = ctx.__M, CATS = ctx.__C || {}, W = ctx.__W || {}, SN = ctx.__S || {}, 
 const ELEM = { metal: '금', wood: '목', water: '수', fire: '화', earth: '토' };
 const stats = o => Object.entries(o || {}).map(([k, v]) => `${SN[k] || k} +${v}`).join(', ');
 const clean = s => String(s == null ? '' : s).replace(/[\t\r\n]+/g, ' ');
-const head = ['ID', '이름', '한자', '갈래', '등급', '병기', '지형', '오행', '제1초식', '제2초식(소성)', '오의(대성)', '독파 보너스', '장착 고유 능력치', '파', '초식 그림', '시 제목', '시문', '설명'];
+const head = ['ID', '이름', '한자', '갈래', '등급', '병기', '지형', '오행', '제1초식', '제2초식(소성)', '오의(대성)', '독파 보너스', '장착 고유 능력치', '성향', '초식 그림', '시 제목', '시문', '설명'];
 const rows = [head];
 for (const [id, m] of Object.entries(M)) {
   const st = m.stances || [], poem = m.poem;
