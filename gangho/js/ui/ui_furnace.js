@@ -135,11 +135,10 @@ function viewFurnace() {
       ${ui.craft === 'forge' ? forgeGearInfo() : ''}
       </div>
       <div class="mats">
-        <h4>${ui.craft === 'forge' ? '조합 재료' : '재료'}</h4>
-        ${mats.length ? `<div class="chips">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : `<p class="muted">${C.name}에 쓸 재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>`}
-      ${ui.craft === 'forge' ? `<h4>장비 재료</h4>
-        <p class="muted furnace-desc">같은 장비 둘을 솥 칸에 올려 두드립니다 (먼저 올린 것이 본템). 재료로 쓴 장비는 부서져 본템에 흡수됩니다. +1~3 · +4~7 · +8~10 단계마다 은자와 성공 확률이 달라지고, +8부터는 부서질 수도 있습니다.</p>
-        <div class="chips">${forgeGearList().map(g => `<button class="chip gear r${g.rarity}" data-gadd="${g.uid}" title="${esc(gearName(g))}">${gearIco(g, 'sm')} ${esc(gearName(g))}${Object.values(S.equip).includes(g) ? ' <small>착용</small>' : ''}</button>`).join('') || '<p class="muted">장비가 없습니다.</p>'}</div>` : ''}
+        <h4>${ui.craft === 'forge' ? '조합 가능 재료' : '재료'}</h4>
+        ${mats.length ? `<div class="chips ${ui.craft === 'forge' ? 'forge-grid' : ''}">${mats.map(id => { const left = count(id) - (ui.pot[id] || 0); return `<button class="chip" data-add="${id}" ${left <= 0 ? 'disabled' : ''} title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${left}</b></button>`; }).join('')}</div>` : `<p class="muted">${C.name}에 쓸 재료가 없습니다. 사냥터의 요수와 금고에서 모아 오십시오.</p>`}
+      ${ui.craft === 'forge' ? `<h4>장비 강화 재료</h4>
+        <div class="chips forge-grid forge-gear">${forgeGearList().map(g => `<button class="chip gear r${g.rarity}" data-gadd="${g.uid}" title="${esc(gearName(g))}">${gearIco(g, 'sm')}<span class="fg-name">${esc(gearName(g))}</span>${Object.values(S.equip).includes(g) ? '<small class="fg-worn">착용</small>' : ''}</button>`).join('') || '<p class="muted">장비가 없습니다.</p>'}</div>` : ''}
       </div>
     </div>
   </section>

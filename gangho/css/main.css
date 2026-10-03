@@ -957,3 +957,12 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
   .martial-duo > .martial-learned .section-header-row { flex: none; flex-wrap: wrap; gap: 8px; }
   .martial-learned-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; display: grid; gap: 8px; align-content: start; }
 }
+
+/* ───────── 화로 › 단조 재료 (10월 3일): 칩을 같은 크기 칸의 격자로 · 장비 강화 재료는 칸 안에서만 스크롤 ───────── */
+.mats .chips.forge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.mats .chips.forge-grid > .chip { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; margin: 0; padding: 6px 10px; text-align: left; justify-content: flex-start; }
+.mats .chips.forge-grid > .chip > b { margin-left: auto; }
+.mats .chips.forge-gear { max-height: 340px; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; align-content: start; }
+.mats .chips.forge-gear > .chip { height: 40px; flex-direction: row; border-left-width: 1px; background: rgba(12, 11, 9, .55); }   /* 장비 카드(.gear)의 세로 배치 · 굵은 왼쪽 테두리를 단조 칸에서는 끈다 */
+.mats .chips.forge-gear .fg-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mats .chips.forge-gear .fg-worn { flex: none; font-size: 11px; padding: 1px 6px; border-radius: 8px; border: 1px solid rgba(212, 175, 55, .4); color: #d8c48a; }
