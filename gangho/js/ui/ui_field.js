@@ -57,6 +57,8 @@ function liveSide() {
   const pots = `생혈고 <b class="${count('saenghyeol') < 3 ? 'warn' : ''}">${count('saenghyeol')}</b>개`;
   if (!r) return `${stageStrip()}<p class="muted live-empty">${X.zone ? `${josa(stageName(X.zone, X.stage || 1), '으로')} 떠날 준비가 되었습니다. [강호행 시작]을 누르면 단계를 하나씩 돌파하며, 쓰러질 때까지 쭉 나아갑니다. (${pots})` : '아래 탐험지에서 갈 곳을 먼저 정하십시오.'}</p><div class="btns live-btns">${startBtn}</div>`;
   const rows = [], shown = liveShown(r), held = shown < r.steps.length;   // 맞붙는 중인 전투의 결과는 끝난 뒤에
+  const fighting = !!((liveAnim.show && liveAnim.show.real) || (liveAnim.queued && liveAnim.queued.real));   // 무대에서 아직 싸우는 중 (결과는 미리 나와 있어도 연출이 끝날 때까지 버튼을 숨긴다)
+  const homeBtn = '<button class="btn primary" data-act="runhome">귀환하기</button>';   // 끝난 강호행: 산문으로 돌아와 지도에서 다음 갈 곳을 고른다
   for (let i = shown - 1; i >= 0; i--) rows.push(liveStepRow(r, i, t));
   const HELD = { trap: '발밑이 수상합니다…', vault: '길가에 궤짝이 보입니다…', gimmick: '무언가 눈에 띕니다…', event: '기이한 기운이 느껴집니다…' }, hs = held && r.steps[shown];
   if (held) rows.unshift(`<li class="enc fresh"><time>${hhmm(stepAt(r, shown))}</time><span>${hs && hs.b === undefined && HELD[hs.k] || '요수와 맞붙었습니다…'}</span></li>`);
@@ -75,7 +77,7 @@ function liveSide() {
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">
-      ${run ? '<button class="btn ghost" data-act="runstop">귀환하기</button>' : held ? '' : startBtn}
+      ${run ? '<button class="btn ghost" data-act="runstop">귀환하기</button>' : held || fighting ? '' : homeBtn}
     </div>
     ${run ? '<small class="muted">전투에서 지면 쓰러지고 강호행이 끝납니다. 요수를 물리치면 얻은 것을 바로 받습니다.</small>' : !X.zone ? '' : `<small class="muted">${pots} · 전방에서 개당 5냥</small>`}`;
 }
