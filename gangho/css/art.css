@@ -857,3 +857,4 @@ html.calm .pot-hot { animation: none; }
   background: linear-gradient(90deg, #cdbb92, #efe3c6 55%, #d9c79f); box-shadow: -10px 0 24px rgba(0, 0, 0, .45), inset 6px 0 10px rgba(255, 255, 255, .25); border-radius: 0 6px 6px 0; }   /* 종이 뒷면 (말린 부분) */
 .live-page.rev .lp-face { clip-path: inset(0 0 0 calc(var(--p) * 100%)); }
 .live-page.rev .lp-back { right: auto; left: calc(var(--p) * 100%); transform: skewX(6deg); background: linear-gradient(270deg, #cdbb92, #efe3c6 55%, #d9c79f); box-shadow: 10px 0 24px rgba(0, 0, 0, .45); border-radius: 6px 0 0 6px; }
+.live-num.tag { top: 20%; font-size: 15px; font-weight: 700; color: #f2d28a; letter-spacing: .12em; text-shadow: 0 0 4px #000, 0 0 2px #000; }   /* 반격 · 연격 표기 */

@@ -75,7 +75,7 @@ function liveShowPlan(sh, w) {
   };
   const num = t => +String(t).replace(/[^\d]/g, '') || 0;
   let t = 900, me = B.start.me.hp, foe = B.start.foe.hp;
-  let pending = null;
+  let pending = null, tagNext = '', heroLast = false;   // 반격 · 연격 표기 (10월 3일 유저): 반격 깃발 다음 일격 = 반격, 요수 공격 없이 제자가 잇달아 치면 = 연격
   for (const r of B.rounds) {
     const used = new Set();
     for (let i = 0; i < r.fx.length; i++) {
@@ -86,6 +86,7 @@ function liveShowPlan(sh, w) {
         if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(200); }   // 오의 외침: 무공 시계(CO_MOVE_AT.ougi)가 되면 오의 막
         if (g && g.k !== 'miss') { used.add(j); const d = num(g.t); foe = Math.max(0, foe - d); q.push({ at: t, k: 'ougi', mid: f.mid, name: f.t, noName: !!co, dmg: d, hp: foe, kill: foe <= 0 }); t += T(200); continue; }
       }
+      if (f.side === 'banner' && f.k === 'counter') { tagNext = '반격'; continue; }
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
           const co = typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);   // 초식 외침: 초식을 펼칠 때마다 (설정에서 끔)
@@ -94,9 +95,9 @@ function liveShowPlan(sh, w) {
         }
         continue;
       }
-      if (f.side === 'foe') { if (f.k !== 'miss') foe = Math.max(0, foe - num(f.t)); const ev = { k: 'hitR', f, hp: foe }; t = pending ? skillAtk(t, ev, pending) : heroAtk(t, ev); pending = null; }
+      if (f.side === 'foe') { if (f.k !== 'miss') foe = Math.max(0, foe - num(f.t)); const ev = { k: 'hitR', f, hp: foe, tag: tagNext || (heroLast ? '연격' : '') }; tagNext = ''; heroLast = true; t = pending ? skillAtk(t, ev, pending) : heroAtk(t, ev); pending = null; }
       else if (f.k === 'heal') { me = Math.min(B.start.me.maxHp, me + num(f.t)); q.push({ at: t, k: 'heal', f, hp: me }); t += T(520); }
-      else { if (f.k !== 'dodge') me = Math.max(0, me - num(f.t)); t = foeAtk(t, { k: 'hurtR', f, hp: me }); }
+      else { heroLast = false; if (f.k !== 'dodge') me = Math.max(0, me - num(f.t)); t = foeAtk(t, { k: 'hurtR', f, hp: me }); }
     }
     if (pending) { q.push({ at: t, k: 'skill', sk: pending }); t += T(420); pending = null; }   // 뒤따르는 일격이 없으면 그림만
     me = r.me.hp; foe = r.foe; q.push({ at: t, k: 'sync', me, foe, mp: r.me.mp });
@@ -204,6 +205,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'proj') liveProj(sc, sh, e.dur);
     else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 회심 · 빗나감
       const f = e.f;
+      if (e.tag) liveNum(sc, e.tag, sh.foeX - 2, 'tag');   // 반격 · 연격
       if (f.k === 'miss') { liveNum(sc, '빗나감', sh.foeX + 9, 'miss'); sfx('miss'); }
       else { if (!e.noSnd) sfxHit(hero.dataset.w || weaponType(), f.k === 'crit'); spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
     }

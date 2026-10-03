@@ -36,7 +36,7 @@ function setSchoolPick(cat, id) {
 const schoolCount = () => schoolReps().reduce((n, id) => (n[schoolOf(id)]++, n), { jeong: 0, ma: 0, sa: 0 });
 function schoolEdge(mine, theirs) { if (!theirs || !SCHOOLS[theirs]) return 0; return SCHOOLS[mine].beats === theirs ? 1 : SCHOOLS[theirs].beats === mine ? -1 : 0; }
 function calcStats() {
-  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 7.4, critRes: 0, counter: 10, mpRegen: 1, bag: 150, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0, healPct: 0 };
+  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 7.4, critRes: 0, counter: 5, mpRegen: 1, bag: 150, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0, healPct: 0 };
   // 단련 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다. 짝 자질의 계수(scale)는 단련 한 점당 증가량에 곱한다 (기준값 몫은 그대로라 평균 제자는 변함없음)
   const aptPair = Object.fromEntries(Object.entries(APTS).map(([k, P]) => [P.pair, k]));
   for (const [a, D] of Object.entries(ATTRS)) {
@@ -83,7 +83,7 @@ function calcStats() {
   for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'maxSta', 'bag']) s[k] = Math.round(s[k]);
   s.eva = Math.min(60, Math.round(s.eva * 10) / 10);
   s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
-  s.counter = Math.min(60, Math.round(s.counter * 10) / 10);
+  s.counter = Math.min(10, Math.round(s.counter * 10) / 10);   // 반격: 기본 5% · 최대 10% (10월 3일 유저 — 연속 공격이 너무 잦아서)
   s.mpRegen = Math.round(s.mpRegen * 10) / 10;
   { const n = schoolCount(); for (const k of Object.keys(n)) { const f = SCHOOLS[k].step; s[f] = (s[f] || 0) + n[k] * SCHOOL_RULES.step[f]; } }   // 성향: 같은 파 한 칸마다 그 파 효과 한 단계
   for (const k of ['block', 'shield', 'critRes', 'critDmg', 'aura', 'craft', 'mpSave']) s[k] = Math.max(0, Math.round((s[k] || 0) * 10) / 10);   // 심력 · 자질이 기준보다 낮아도 음수로 내려가지 않는다
