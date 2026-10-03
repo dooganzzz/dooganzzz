@@ -8,7 +8,7 @@
      아이폰은 audio.volume이 듣지 않아 Web Audio 크기 마디(gain)로 줄인다. 화면을 내리면 쉰다 */
 /* 소리 전체 스위치 (10월 3일 유저: 효과음 · 배경음악 일단 전부 뺌). false면 소리 · 날씨 소리 · 소리 파일 받기 · 설정 칸 · 행동 감시가 모두 꺼진다 */
 const SOUND_ON = true;   // 10월 3일 밤 유저: 배경음악 · 효과음 · 설정 칸 다시 켬
-const SND = { ctx: null, bgmBus: null, sfxBus: null, noise: null, deck: null, track: null, last: {}, amb: null, xf: 4, userAt: 0, hover: null };
+const SND = { mix: {}, out: null, ctx: null, bgmBus: null, sfxBus: null, noise: null, deck: null, track: null, last: {}, amb: null, xf: 4, userAt: 0, hover: null };
 const SND_DEF = { bgmVol: 5, sfxVol: 5 };   // 처음 크기 (10월 3일 유저: 둘 다 5)
 function sndVol(k) {
   const s = typeof S !== 'undefined' && S && S.settings;
@@ -61,7 +61,7 @@ function sndToggle(kind) {
 function bgmDeck(track, fadeIn) {
   const c = SND.ctx, el = new Audio(ASSET.audio(track)); el.preload = 'auto';
   const src = c.createMediaElementSource(el), g = c.createGain(); src.connect(g); g.connect(SND.bgmBus);
-  g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(1, c.currentTime + fadeIn);
+  g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(SND_MIX[track] ?? 1, c.currentTime + fadeIn);
   const dk = { el, g, src, track, xf: false };
   el.addEventListener('timeupdate', () => {          // 끝나기 SND.xf초 전에 같은 곡을 처음부터 겹쳐 튼다
     if (!dk.xf && SND.deck === dk && el.duration && el.duration - el.currentTime < SND.xf) { dk.xf = true; bgmSwap(track, SND.xf); }
@@ -114,14 +114,14 @@ function sOsc(type, f0, f1, t0, dur, vol) {
   const c = SND.ctx, o = c.createOscillator(), g = c.createGain();
   o.type = type; o.frequency.setValueAtTime(f0, t0); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
   g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .015); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);   // 첫머리를 부드럽게 (딱 소리 없이) · 끝도 잦아들게
-  o.connect(g); g.connect(SND.sfxBus); o.start(t0); o.stop(t0 + dur + .02);
+  o.connect(g); g.connect(SND.out || SND.sfxBus); o.start(t0); o.stop(t0 + dur + .02);
 }
 function sNoise(t0, dur, vol, type, f0, f1, q = 1, att = .004) {
   f0 *= SFX_SHAPE.pitch; f1 *= SFX_SHAPE.pitch; dur = Math.min(dur, SFX_SHAPE.maxDur); att = Math.min(att, dur / 3);
   const c = SND.ctx, s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
   s.buffer = SND.noise; s.loop = true; fl.type = type; fl.frequency.setValueAtTime(f0, t0); if (f1 !== f0) fl.frequency.exponentialRampToValueAtTime(f1, t0 + dur); fl.Q.value = q;
   g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + att); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
-  s.connect(fl); fl.connect(g); g.connect(SND.sfxBus); s.start(t0, Math.random() * 1.5); s.stop(t0 + dur + .02);
+  s.connect(fl); fl.connect(g); g.connect(SND.out || SND.sfxBus); s.start(t0, Math.random() * 1.5); s.stop(t0 + dur + .02);
 }
 const coin = (t, f) => { sOsc('sine', f, f, t, .25, .07); sOsc('sine', f * 2.7, f * 2.7, t, .12, .03); };
 const bell = (t, f, v = .08, d = 1.4) => { [1, 2].forEach((r, i) => sOsc('sine', f * r, f * r, t, d / (1 + i * 1.5), v / (1 + i * 2.5))); };   // 종: 귀를 찌르던 맨 위 배음(5.4배)을 빼고 둥글게 (10월 3일)
@@ -175,7 +175,7 @@ function rec(name, t, vol = .7, o = {}) {
   const [at, len] = L[i], dur = Math.min(len, o.max || len, SFX_SHAPE.recMax), c = SND.ctx, s = c.createBufferSource(), g = c.createGain();
   s.buffer = SND.rec; s.playbackRate.value = (o.rate || 1) * SFX_SHAPE.recRate * (1 + (Math.random() - .5) * .06);
   g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + Math.min(.012, dur / 4)); g.gain.setValueAtTime(vol, t + Math.max(0, dur - .06)); g.gain.linearRampToValueAtTime(.0001, t + dur);   // 녹음도 첫머리 · 끝을 부드럽게
-  s.connect(g); g.connect(SND.sfxBus); s.start(t, at, dur + .01);
+  s.connect(g); g.connect(SND.out || SND.sfxBus); s.start(t, at, dur + .01);
   return true;
 }
 const REC = {
@@ -202,34 +202,42 @@ const REC = {
 };
 const SFX_GAP = { type: 45, step: 80, click: 40, portal: 200, equip: 150, unequip: 150, book: 150, buy: 120, sell: 150 };
 /* 지금 내는 효과음: 대사 도트음 · 누르기 소리만 (10월 3일 유저: 나머지 효과음 · 날씨 소리는 모두 뺌. 다시 켜려면 여기에 이름을 더한다) */
+/* 소리마다 따로 맞춘 크기 (1 = 처음 값. 연출 미리보기 '소리 크기' 슬라이더로 유저가 정한다) · 녹음을 낮춰 다르게 쓰는 것(팔 때 엽전 = 살 때보다 낮게) */
+const SND_MIX = { teahouse: 1, type: 1, click: 1, step: 1, buy: 1, sell: 1, portal: 1, hit_fist: 1, hit_sword: 1, hit_blade: 1, hit_spear: 1, hit_hidden: 1 };
+const SFX_RATE = { sell: .82 };
+function mixNode(name, bus) {
+  let g = SND.mix[name]; if (!g) { g = SND.mix[name] = SND.ctx.createGain(); g.connect(bus); }
+  g.gain.value = SND_MIX[name] ?? 1; return g;
+}
 const SFX_ON = new Set(['type', 'click', 'step', 'hit', 'buy', 'sell', 'portal']);   // 발소리 · 타격음 · 사고팔기 · 지도 위 마우스도 켬 (10월 3일 유저)
 function sfx(name, o = {}) {
   if (!SFX_ON.has(name)) return;
   const c = SND.ctx; if (!c || c.state !== 'running' || !SFX[name] || !sndVol('sfxVol')) return;
   const n = performance.now(); if (n - (SND.last[name] || 0) < (SFX_GAP[name] || 25)) return; SND.last[name] = n;
   const t = c.currentTime + .005;
-  try { if (SND.file && SND.file[name]) playFile(SND.file[name], t, 1); else if (!(REC[name] && REC[name](t, o))) SFX[name](t, o); } catch (e) {}
+  const f = SND.file && SND.file[name]; SND.out = mixNode(name, f ? SND.hitBus : SND.sfxBus);
+  try { if (f) playFile(f, t, 1, SFX_RATE[name]); else if (!(REC[name] && REC[name](t, o))) SFX[name](t, o); } catch (e) {} finally { SND.out = null; }
 }
 /* 맞힐 때: 병기마다 녹음한 타격음 (HIT_SFX) · 치명타는 조금 더 크게 */
 function sfxHit(w, crit) {
   const c = SND.ctx, b = SND.hit && SND.hit[w]; if (!SFX_ON.has('hit') || !b || !c || c.state !== 'running' || !sndVol('sfxVol')) return;
   const n = performance.now(); if (n - (SND.last.hit || 0) < 60) return; SND.last.hit = n;
-  playFile(b, c.currentTime + .005, crit ? 1 : .75);
+  playFile(b, c.currentTime + .005, crit ? 1 : .75, 1, mixNode(HIT_SFX[w], SND.hitBus));
 }
 /* 녹음 파일 한 번 내기 (둥글게 깎지 않는 줄로, 높이를 살짝 흔들어 덜 단조롭게) */
-function playFile(b, t, vol) {
-  const c = SND.ctx, s = c.createBufferSource(), g = c.createGain(); s.buffer = b; s.playbackRate.value = 1 + (Math.random() - .5) * .06; g.gain.value = vol;
-  s.connect(g); g.connect(SND.hitBus); s.start(t);
+function playFile(b, t, vol, rate = 1, out = SND.out || SND.hitBus) {
+  const c = SND.ctx, s = c.createBufferSource(), g = c.createGain(); s.buffer = b; s.playbackRate.value = rate * (1 + (Math.random() - .5) * .06); g.gain.value = vol;
+  s.connect(g); g.connect(out); s.start(t);
 }
 const sfxGround = () => { const W = typeof liveWeather === 'function' ? liveWeather(now()) : {}; return W.snow > .4 ? 'snow' : W.rain > .4 ? 'rain' : 'dirt'; };
 
-/* 누를 수 있는 곳을 누르면 딱 · 지도 탐험지에 마우스를 올리면 포탈 */
+/* 누를 수 있는 곳을 누르면 딱 · 지도 탐험지 · 청풍문 이름표에 마우스를 올리면 톡 */
 addEventListener('pointerdown', e => {
   const b = e.target.closest && e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-artslot], [data-fold], a[href]');
   if (b && !b.disabled && b.getAttribute('aria-disabled') !== 'true') sfx('click');
 }, true);
 document.addEventListener('mouseover', e => {
-  const m = e.target.closest && e.target.closest('.map-spot');
+  const m = e.target.closest && e.target.closest('.map-spot, .ground-tag');
   if (m === SND.hover) return; SND.hover = m;
   if (m && !m.classList.contains('locked')) sfx('portal');
 });
