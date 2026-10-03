@@ -56,7 +56,7 @@ const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 
 /* 상태 탭 맨 위: 투력. 공세 · 수세 같은 내역은 보여 주지 않는다 (유저가 직접 찾아가도록) */
-/* 상태 › 무공 */
+/* 관조 › 무공 */
 function viewMartial() {
   // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
   const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };

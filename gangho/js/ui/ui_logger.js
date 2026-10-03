@@ -48,7 +48,7 @@ function chronDecor(html) {
     part = part.replace(/⚔️/g, () => ico(ASSET.ui(lose ? 'c_lose' : 'c_win')));
     for (const [e, f] of Object.entries(CHRON_UI)) if (part.includes(e)) part = part.split(e).join(ico(ASSET.ui(f)));
     for (const [e, f] of Object.entries(CHRON_ITEM)) if (part.includes(e)) part = part.split(e).join(ico(ITEM_ART(f)));
-    return part.replace(/「([^」]+)」/g, '<b class="kw-place">「$1」</b>');   // 「기연」 · 「상태 › 무공」: 가야 할 곳은 금빛으로
+    return part.replace(/「([^」]+)」/g, '<b class="kw-place">「$1」</b>');   // 「기연」 · 「관조 › 무공」: 가야 할 곳은 금빛으로
   }).join('');
   const who = CHRON_NPC.find(([n]) => out.startsWith(n + ':') || out.startsWith(n + '이 ') || out.startsWith(n + '가 '));
   if (who && IMG[who[1]]) out = `<i class="npc-face" style="background-image:url('${IMG[who[1]]}')"></i>` + out;

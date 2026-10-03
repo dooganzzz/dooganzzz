@@ -132,7 +132,7 @@ function equipModal(slot) {
   </div>`;
 }
 
-/* ───────── 상태 › 무공: 무공 칸을 누르면 그 계열의 익힌 무공 목록 (장착·교체·해제·상세) ───────── */
+/* ───────── 관조 › 무공: 무공 칸을 누르면 그 계열의 익힌 무공 목록 (장착·교체·해제·상세) ───────── */
 function artSlotModal(cat) {
   const cur = S.active[cat], C = CATS[cat];
   const list = Object.keys(S.manuals).filter(id => MANUALS[id].cat === cat && id !== cur);

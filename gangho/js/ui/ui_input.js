@@ -134,7 +134,7 @@ function onClick(e) {
       if (!S.expedition.zone) return toast('탐험지를 먼저 정하십시오.');
       ui.modal = null;
       const go = () => { if (startRun()) { ui.fieldMap = false; toast(`⛰️ 제자가 ${ZONES[S.expedition.zone].name}(으)로 길을 떠났습니다`); ui.enterAt = now(); goTab('field'); render(); } };   // 지도에서 떠나면 무대가 먹빛에서 밝아지며 열린다
-      const warn = [!S.active.mugong && '무공을 하나도 펼치지 않았습니다 — 상태 탭 › 무공에서 비급을 익히고 펼치십시오', !has('saenghyeol') && '생혈고가 하나도 없습니다 — 전방에서 개당 5냥'].filter(Boolean);
+      const warn = [!S.active.mugong && '무공을 하나도 펼치지 않았습니다 — 관조 탭 › 무공에서 비급을 익히고 펼치십시오', !has('saenghyeol') && '생혈고가 하나도 없습니다 — 전방에서 개당 5냥'].filter(Boolean);
       if (warn.length) return requestActionConfirm({ title: '이대로 떠날까요?', description: '준비가 모자라면 금방 쓰러질 수 있습니다. 쓰러지면 강호행은 끝납니다.', details: warn, confirmText: '그래도 떠난다', onConfirm: go });
       go();
     },

@@ -10,7 +10,7 @@ module.exports = async (b) => {
   await p.goto(GAME_URL);
   await p.click('[data-starter="bd1a"]'); await p.click('#begin');
   const tabs = await p.$$eval('.tab .ko', e => e.map(x => x.textContent).join(','));
-  ok('1 1차 탭 순서', tabs === '청풍문,상태,행낭,강호행,견문록,기연,도감,설정', tabs);
+  ok('1 1차 탭 순서', tabs === '청풍문,관조,행낭,강호행,견문록,기연,도감,설정', tabs);
   const st0 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, active: Object.values(S.active).filter(Boolean).length, books: Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').sort().join(',') }));
   ok('2 시작 시 장착·습득 없음', st0.learned === 0 && st0.active === 0);
   const gifts = await p.evaluate(() => Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급' && k !== 'bk_bd1a').map(k => [MANUALS[k.slice(3)].cat, MANUALS[k.slice(3)].grade, schoolOf(k.slice(3))].join('/')).sort().join(','));
@@ -26,7 +26,7 @@ module.exports = async (b) => {
   const l1 = await p.evaluate(() => ({ learned: !!S.manuals.bd1a, left: count('bk_bd1a') }));
   ok('2 익히기: 소모 + 습득 목록 등록', l1.learned && l1.left === 0);
   for (const k of await p.evaluate(() => Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급'))) { await p.evaluate(k => { learnManual(k); render(); }, k); }   // 익히기 단추는 무공 탭에서 뺌 (행낭에서 익힘)
-  // 상태 › 무공
+  // 관조 › 무공
   await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
   const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mrow .mrow-name')].map(e => e.textContent).join(','), total: (document.querySelector('.total-count-badge') || {}).textContent }));
   ok('3 방위 4대 슬롯 (빈 상태 · 12시 심법 9시 무공 3시 기공 6시 경공)', m1.slots === '심법,무공,기공,경공' && m1.empty === 4, m1.slots);

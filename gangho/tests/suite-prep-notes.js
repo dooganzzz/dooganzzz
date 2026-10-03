@@ -32,7 +32,7 @@ module.exports = async (b) => {
     ok('2 무공과 병기가 안 맞으면 경고', warn.weapon, JSON.stringify(warn));
     ok('2 갖추면 경고 해제', warn.fixed, JSON.stringify(warn));
     await p.click('.prep [data-tab="status"][data-sub="martial"]');
-    ok('2 바로가기 → 상태 › 무공', await p.evaluate(() => ui.tab === 'status' && ui.statusSub === 'martial'));
+    ok('2 바로가기 → 관조 › 무공', await p.evaluate(() => ui.tab === 'status' && ui.statusSub === 'martial'));
 
     // 4. 조합: 단서 없음 · 연구 노트
     const nt = await p.evaluate(() => {

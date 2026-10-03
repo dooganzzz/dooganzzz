@@ -185,7 +185,7 @@ const gearArtId = g => g.slot === 'weapon' ? 'w_' + (g.wtype || 'sword') : 's_' 
 /* 장비 그림 둘레에 등급 빛 (하급은 빛 없음 · 중급 초록 … 극품 빨강) */
 const gearIco = (g, cls = '', r = g.rarity || 0) => icoWrap([[ITEM_ART(gearArtId(g))]], '', `gear-ico gr${r} ${cls}`);
 
-/* ───────── 운기조식: 가부좌를 틀고 단전에 기운을 모으는 무림인 (상태 › 무공 가운데) ───────── */
+/* ───────── 운기조식: 가부좌를 틀고 단전에 기운을 모으는 무림인 (관조 › 무공 가운데) ───────── */
 function meditationArt() {
   return artPic(ART_SRC.meditation(), meditationSvg(), 'meditation-art');
 }

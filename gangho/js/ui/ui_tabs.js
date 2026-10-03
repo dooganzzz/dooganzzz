@@ -71,7 +71,7 @@ const label = (ko, hj) => `<b class="ko">${ko}</b><small class="hj">${hj}</small
 /* 1차 탭 */
 const TABS = [
   ['sect', '청풍문', '淸風門'],    // 하위: 정청 · 화로 · 연무장 · 무신상 · 전방
-  ['status', '상태', '狀態'],      // 하위: 무장 · 무공
+  ['status', '관조', '觀照'],      // 하위: 무장 · 무공
   ['bag', '행낭', '行囊'],
   ['field', '강호행', '江湖行'],
   ['chronicle', '견문록', '見聞錄'],
@@ -81,7 +81,7 @@ const TABS = [
 ];
 /* 2차 탭 (청풍문 시설 · 상태) */
 const SECT_SUBS = [['grounds', '전경', '全景'], ['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
-const STATUS_SUBS = [['observe', '관조', '觀照'], ['martial', '무공', '武功']];   // 관조: 능력치(왼쪽) + 무장(오른쪽) — 무장 탭은 관조에 합침 (10월 3일)
+const STATUS_SUBS = [['observe', '상태', '狀態'], ['martial', '무공', '武功']];   // 1차 탭 이름은 관조, 그 안 갈래는 상태 · 무공 (10월 3일 유저: 이름을 서로 바꿈)   // 관조: 능력치(왼쪽) + 무장(오른쪽) — 무장 탭은 관조에 합침 (10월 3일)
 const SUBS = { sect: SECT_SUBS, status: STATUS_SUBS };
 const SUB_KEY = { sect: 'sectSub', status: 'statusSub' };
 

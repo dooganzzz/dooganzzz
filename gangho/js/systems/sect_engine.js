@@ -113,10 +113,10 @@ function jounGuide() {
   const emptySlot = CAT_ORDER.some(c => !S.active[c]) && Object.keys(S.manuals).length;
   const ready = subqReadyCount();
   const tips = [
-    [books, `비급이 ${books}권 있구나. 「상태 › 무공」에서 [ 익히기 ] 해라. 읽기만 해선 소용없다.`],
-    [emptySlot, '익힌 무공은 상태 › 무공에서 장착해야 몸에 붙는다. 빈 자리가 있다.'],
+    [books, `비급이 ${books}권 있구나. 「관조 › 무공」에서 [ 익히기 ] 해라. 읽기만 해선 소용없다.`],
+    [emptySlot, '익힌 무공은 관조 › 무공에서 장착해야 몸에 붙는다. 빈 자리가 있다.'],
     [!(S.expedition && S.expedition.zone), '아직 탐험지를 안 정했구나. 강호행에서 갈 곳을 정하고 [강호행 시작]을 눌러라. 쓰러질 때까지 알아서 나아간다.'],
-    [Object.keys(S.manuals).some(id => !starUpBlock(id)), '수련치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
+    [Object.keys(S.manuals).some(id => !starUpBlock(id)), '수련치가 쌓였다. 관조 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
     [!has('saenghyeol', 3), '생혈고가 떨어져 간다. 탐험 중에 위급하면 그걸 바르니, 화로에서 달이든 전방에서 사든 넉넉히 챙겨라.'],
     [ready, `토벌 임무 ${ready}건을 채웠다. 정청 아래 토벌 임무 칸에서 보상을 받아라.`],
     [S.expeditions && S.expeditions.length && S.expeditions[S.expeditions.length - 1].defeats, '지난 강호행에서 쓰러졌다지? 한 단계 아래에서 토벌 임무를 채우며 생혈고와 은자를 모으고, 무공과 장비를 올린 뒤 다시 올라가라.'],
@@ -146,7 +146,7 @@ function buyManual(id) {
   if (!LIBRARY_BOOKS.includes(id) || S.manuals[id] || has('bk_' + id) || !M.cost || S.contrib < M.cost) return;
   if (!give('bk_' + id, 1, true)) return;
   S.contrib -= M.cost;
-  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 「상태 › 무공」에서 [ 익히기 ] 하십시오.`, 'gold');
+  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 「관조 › 무공」에서 [ 익히기 ] 하십시오.`, 'gold');
   notify.refresh();
 }
 
@@ -207,12 +207,12 @@ function questBook(R, w) {
 const st10 = (z, n) => () => stageCleared(z) >= n;
 const allStar = n => () => CAT_ORDER.every(c => S.active[c] && S.manuals[S.active[c]] && S.manuals[S.active[c]].star >= n);   // 네 갈래 장착 무공이 모두 n성
 const QUESTS = [
-  { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '「상태 › 무공」에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.',
-    talk: '비급은 읽기만 해선 소용없다. 행낭의 비급 네 권을 익히고, 상태 › 무공에서 네 자리에 모두 걸어라.', reward: { silver: 30, items: { saenghyeol: 5 } } },
+  { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '「관조 › 무공」에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.',
+    talk: '비급은 읽기만 해선 소용없다. 행낭의 비급 네 권을 익히고, 관조 › 무공에서 네 자리에 모두 걸어라.', reward: { silver: 30, items: { saenghyeol: 5 } } },
   { t: '청풍산 초입 돌파', done: st10('cheongpung', 1), hint: '「강호행」에서 청풍산을 정하고 [강호행 시작]. 1단계에서 5번 이기면 돌파합니다.',
     talk: '몸에 걸었으면 강호에 나가 부딪혀야지. 청풍산 초입부터 하나씩 꺾어 올라가거라. 생혈고를 넉넉히 챙기고.', reward: { gear: ['helmet', 1, 1] } },
-  { t: '수련치로 무공 성급 올리기', done: () => Object.values(S.manuals).some(m => m.star >= 2), hint: '탐험에서 모은 수련치로 상태 › 무공에서 [ 성급 올리기 ]를 누르십시오.',
-    talk: '싸우고 돌아오면 수련치가 쌓인다. 그걸로 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.', reward: { silver: 50, items: { saenghyeol: 5 } } },
+  { t: '수련치로 무공 성급 올리기', done: () => Object.values(S.manuals).some(m => m.star >= 2), hint: '탐험에서 모은 수련치로 관조 › 무공에서 [ 성급 올리기 ]를 누르십시오.',
+    talk: '싸우고 돌아오면 수련치가 쌓인다. 그걸로 관조 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.', reward: { silver: 50, items: { saenghyeol: 5 } } },
   { t: '조운 대사형에게 문파 일 여쭙기', done: () => !!S.flags.askedJoun, hint: '정청의 조운에게 [문파 일 여쭙기]를 누르십시오. 토벌 임무도 조운이 맡깁니다.',
     talk: '조운이 녀석한테 가서 문파 일을 여쭤라. 토벌 일거리는 그 녀석이 나눠 준다.', reward: { items: { saenghyeol: 3, potionMp: 2 } } },
   { t: '네 갈래 무공 모두 2성', done: allStar(2), hint: '장착한 무공 · 심법 · 경공 · 기공을 모두 2성 이상으로 올리십시오.',
@@ -241,7 +241,7 @@ const QUESTS = [
     talk: '이제 산의 중턱이다. 여기서부터는 요수도 독하다. 생혈고를 열 개는 챙겨라.', reward: { silver: 120, items: { gigeokdan: 1 } } },
   { t: '청풍산 안개 골짜기 돌파 (8단계)', done: st10('cheongpung', 8), hint: '청풍산 8단계 「안개 골짜기」를 돌파하십시오.',
     talk: '안개 골짜기에서는 갑옷이 목숨이다. 돌파하면 쓸 만한 걸 내주마.', reward: { gear: ['armor', 1, 2] } },
-  { t: '좌선 고리 여섯 칸 밝히기', done: () => rankProgress().lit >= 6, hint: '네 갈래 삼류 무공의 성급을 올려 상태 › 무공 가운데 고리를 여섯 칸 밝히십시오.',
+  { t: '좌선 고리 여섯 칸 밝히기', done: () => rankProgress().lit >= 6, hint: '네 갈래 삼류 무공의 성급을 올려 관조 › 무공 가운데 고리를 여섯 칸 밝히십시오.',
     talk: '좌선할 때 둘레에 푸른 불이 하나씩 켜지는 걸 보았느냐. 네 갈래가 고르게 자라야 불이 붙는다. 여섯 칸을 밝혀 보거라.', reward: { silver: 150 } },
   { t: '청풍산 9단계 돌파', done: st10('cheongpung', 9), hint: '청풍산 9단계를 돌파하십시오.',
     talk: '굴 앞이다. 호랑이 냄새가 나지? 마지막으로 숨을 고르고 9단계를 넘어라.', reward: { silver: 120, items: { saenghyeol: 10 } } },
