@@ -2,7 +2,7 @@
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
-const FOES = [['살쾡이', 'wood', 'fist'], ['사나운 멧돼지', 'earth', 'spear'], ['흑비단독사', 'water', 'hidden'], ['청풍산 산토끼', 'wood', 'fist'], ['흑풍채 척후병', 'metal', 'blade'], ['흑풍채 탈영병', 'earth', 'spear'], ['흑풍채 투석수', 'fire', 'hidden'], ['바위 등껍질 거북', 'earth', 'fist'], ['청령목괴', 'wood', 'spear'], ['적염 호랑이', 'fire', 'fist']];
+const FOES = [['살쾡이', 'wood', 'fist'], ['사나운 멧돼지', 'earth', 'spear'], ['흑비단독사', 'wood', 'hidden'], ['청풍산 산토끼', 'wood', 'fist'], ['흑풍채 척후병', 'metal', 'blade'], ['흑풍채 탈영병', 'earth', 'spear'], ['흑풍채 투석수', 'fire', 'hidden'], ['바위 등껍질 거북', 'earth', 'fist'], ['청령목괴', 'wood', 'spear'], ['적염 호랑이', 'fire', 'fist']];
 const WEAPONS = { fist: ['무명 박수포', '가죽 호완', '징 박은 철수투', '목인장 수투', '동사 수투'], sword: ['녹슨 수련검', '날 무딘 철검', '청동 세검', '도목검', '협봉검'], blade: ['이 빠진 마도', '무쇠 안령도', '흑철 박도', '산채 벌도', '요도'], spear: ['대나무 죽창', '녹슨 구겸창', '백랍목 장창', '점강 단창', '사냥꾼 삼고차'], hidden: ['무딘 유엽표', '비황석 주머니', '녹슨 비도', '거친 철질려', '목제 매화침'] };
 const ACC = { armor: ['해진 삼베 도포', '사냥꾼 피의', '청풍문 수련 도포'], ring: ['무쇠 지환', '흑각 지환', '청동 지환'], belt: ['삼베 요대', '우피 요대', '흑사 요대'], jade: ['탁한 청옥대', '백옥대', '운문 옥대'] };
 
@@ -30,7 +30,7 @@ module.exports = async (b) => {
       r.starters = STARTERS.every(id => MANUALS[id].stances.length === 3);
       return r;
     });
-    ok('1 비급 168종 (8분류 × 5등급 × 3 + 신규 삼류 3 · 이류 2 · 일류 1) · 비급서 · 경공 지형 · 기공 오행 · 공양 비급은 삼류', db.n === 168 && !db.missing.length && !db.bad.length && db.gacha, JSON.stringify(db));
+    ok('1 비급 181종 (정파 168 + 마 · 사 비급) · 비급서 · 경공 지형 · 기공 오행 · 공양 비급은 삼류', db.n === 181 && !db.missing.length && !db.bad.length && db.gacha, JSON.stringify(db));
     const pm = await p.evaluate(() => { const bad = []; const chk = (id, L) => { if (!L || !L.length || L.length > 4 || L.some(l => !l || l.length > 40)) bad.push(id + ':' + (L ? L.length : 0)); }; for (const [id, M] of Object.entries(MANUALS)) if (M.poem) chk(id, M.poem.lines); for (const [k, a] of Object.entries(CAT_POEMS)) a.forEach((L, i) => chk('CAT.' + k + i, L));
       const one = MANUALS.sw1a, many = MANUALS.sw3a; return { bad, o1: poemFor(many, 1), o2: poemFor(many, 2), o3: poemFor(many, 3), single: poemFor({ poem: { lines: ['한 줄'] } }, 3) }; });
     ok('1 시문 규칙: 시는 최대 4줄(한 줄 40자 이내) · 두루마리는 1초식 한 줄 · 2초식 한 줄 · 오의 두 줄', !pm.bad.length && pm.o1.length === 1 && pm.o2.length === 1 && pm.o3.length === 2 && pm.single.length === 1, JSON.stringify(pm));
@@ -111,6 +111,7 @@ module.exports = async (b) => {
       S.equip.jade = makeNamedGear('g_dullJade'); r.qi = [calcStats().maxHp - d0, Math.round(q0 * 0.03 * 100) / 100];   // [실제 증가(반올림), 기공 체력의 3%]
       gm.star = star0;
       // 오행 내성: 극당할 때 받는 피해
+      S.manuals.gi1a = S.manuals.gi1a || { star: 1 }; equipManual('gi1a');   // 철포삼(金): 火 투석수에게 극당함
       S.equip.jade = null; const t0 = affinity('slinger').taken; S.equip.jade = makeNamedGear('g_cloudJade'); const t1 = affinity('slinger').taken; r.res = [affinity('slinger').el, t0, t1];
       // 기력 소모 감소 2%
       S.equip.ring = null; S.expedition.zone = 'cheongpung'; S.stamina = 100; const a = runExpedition(now());
@@ -127,7 +128,7 @@ module.exports = async (b) => {
     const drop = await p.evaluate(() => { const n = {}; for (let i = 0; i < 60; i++) { const it = dropGear(1, 0); n[it.named ? 'named' : 'base']= (n[it.named ? 'named' : 'base'] || 0) + 1; } const hi = dropGear(2, 1); return { n, hi: !hi.named && hi.tier === 2 }; });
     ok('4 청풍산(1티어) 하급 드랍·공양은 하급 장비 37종에서 · 그 밖은 기본형', drop.n.named === 60 && drop.hi, JSON.stringify(drop));
     await p.evaluate(() => { goTab('sect', 'shop'); render(); });
-    ok('4 전방 › 구매 › 장비에 하급 장비 진열 (이름 · 하급 뱃지 · 설명, 무기·갑옷·장신구 탭 합계 10종 이상)', await p.evaluate(() => { let n = 0; for (const t of Object.keys(SHOP_GEAR_TABS)) { ui.shopBuy = 'gear'; ui.shopGear = t; render(); n += document.querySelectorAll('[data-buygear]').length; } ui.shopGear = 'weapon'; render(); const w = [...document.querySelectorAll('.shop-panel .ware')].find(e => /협봉검/.test(e.textContent)); return n >= 10 && !!w && /하급/.test(w.textContent); }));
+    ok('4 전방 › 구매 › 장비에 하급 장비 진열 (이름 · 하급 이름 색 · 설명, 무기·갑옷·장신구 탭 합계 10종 이상)', await p.evaluate(() => { let n = 0; for (const t of Object.keys(SHOP_GEAR_TABS)) { ui.shopBuy = 'gear'; ui.shopGear = t; render(); n += document.querySelectorAll('[data-buygear]').length; } ui.shopGear = 'weapon'; render(); const w = [...document.querySelectorAll('.shop-panel .ware')].find(e => /협봉검/.test(e.textContent)); return n >= 10 && !!w && !!w.querySelector('.grade-low'); }));   // 하급은 이름 색(grade-low)으로
 
     // 5. 화면: 무공 상세 초식 · 관찰 창 3단계
     await p.evaluate(() => { S.manuals.fs1b = { star: 12 }; ui.modal = 'mart:fs1b'; renderModal(); });
