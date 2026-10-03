@@ -985,3 +985,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .equipment-view-layout .equip-slot-card.r4 .slot-item-name { color: var(--g4); }
 .equipment-view-layout .equip-slot-card.r5 .slot-item-name { color: var(--g5); }
 .equipment-view-layout .equip-slot-card .slot-item-name { text-shadow: 0 1px 3px #000; }
+
+/* 장경각 무공 카드: 누르면 그 비급 상세 (10월 3일) */
+.lib-item[data-mart] { cursor: pointer; }
+.lib-item[data-mart]:hover { box-shadow: 0 0 0 1px rgba(212, 175, 55, .45); }

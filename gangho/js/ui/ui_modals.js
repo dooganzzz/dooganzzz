@@ -9,7 +9,28 @@ function manualModal(cat) {
   return martialModal(S.active[cat]);
 }
 
+/* 아직 익히지 않은 비급의 상세 (장경각 카드 등): 시문 · 초식 · 상성 · 성급별 장착 능력치 · 독파 각인 · 공헌 */
+function manualPreviewModal(id) {
+  const M = MANUALS[id], cat = M.cat, lib = LIBRARY_BOOKS.includes(id) && M.cost, own = !!(S.manuals[id] || has('bk_' + id));
+  const statTxt = st => Object.entries(manualBonus(id, st)).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
+  const moves = M.stances ? `<h4>${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name, desc }) => `<li><b>${name}</b> <small class="muted">${esc(desc || '')}</small></li>`).join('')}</ol>` : '';
+  return `<div class="sheet">
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 ${schoolTag(id)} <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2></div></div>
+    <p class="story">${M.desc}</p>
+    ${manualPoemHtml(id)}
+    ${M.weapon ? `<p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : ''}
+    ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})</p>` : ''}
+    ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}
+    ${moves}
+    <h4>장착 능력치</h4>
+    <div class="kv"><span>1성</span><b>${statTxt(1)}</b></div><div class="kv"><span>6성 소성</span><b>${statTxt(6)}</b></div><div class="kv"><span>12성 대성</span><b>${statTxt(MAX_STAR)}</b></div>
+    <p class="muted">대성 시 개방 — ${DAESUNG_PASSIVE[cat].text}</p>
+    <p class="passive">독파 각인: ${bonusText(M.passiveBonus)}</p>
+    <div class="btns">${lib ? `<button class="btn primary" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}로 바꾸기`}</button>` : ''}<button class="btn ghost" data-act="closemodal">닫기</button></div>
+  </div>`;
+}
 function martialModal(id) {
+  if (!S.manuals[id]) return manualPreviewModal(id);   // 아직 익히지 않은 비급
   const M = MANUALS[id], m = S.manuals[id], cat = M.cat;
   const worn = S.active[cat] === id;
   const bonus = Object.entries(manualBonus(id, m.star)).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');

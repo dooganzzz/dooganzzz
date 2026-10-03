@@ -79,11 +79,11 @@ function viewHall() {
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
   const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌'], ['pills', '영단', '靈丹']];
   const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';
-  const libCard = (name, grade, part, eff, cost, own, attr, ico = '') => `<div class="item-card shop-item lib-item ${gradeClass(grade)}">${itemCardHead(name, grade, ico)}
+  const libCard = (name, grade, part, eff, cost, own, attr, ico = '', card = '') => `<div class="item-card shop-item lib-item ${gradeClass(grade)}" ${card}>${itemCardHead(name, grade, ico)}
     <div class="item-card-body"><div class="item-category">${part}</div><div class="item-effect lib-eff">${eff}</div></div>
     <button class="btn sm btn-exchange" ${attr} ${own || S.contrib < cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${cost}`}</button></div>`;
   const libItems = lt === 'equipment' ? Object.entries(LIBRARY_GEAR).map(([id, G]) => libCard(G.name, RARITY[1].name, `${SLOTS[G.slot].name}${G.wtype ? ' · ' + WEAPON_SHORT[G.wtype] : ''}`, bonusText(G.stats), G.cost, ownsShop(id), `data-buylib="${id}"`, gearIco(G, 'card', 1)))
-    : lt === 'skills' ? shopManuals.map(([id, M]) => libCard(M.name, M.grade, `${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}`, `${esc(M.desc)}<br><span class="passive">독파 각인: ${bonusText(M.passiveBonus)}</span>`, M.cost, ownsBook(id), `data-buymanual="${id}"`, manualIco(id, 'card')))
+    : lt === 'skills' ? shopManuals.map(([id, M]) => libCard(M.name, M.grade, `${CATS[M.cat].name}${M.weapon ? ' · ' + WEAPON_SHORT[M.weapon] : ''}`, `${esc(M.desc)}<br><span class="passive">독파 각인: ${bonusText(M.passiveBonus)}</span>`, M.cost, ownsBook(id), `data-buymanual="${id}"`, manualIco(id, 'card'), `data-mart="${id}" role="button" tabindex="0" title="《${M.name}》 — 눌러서 상세"`))
     : lt === 'pills' ? Object.entries(LIBRARY_PILLS).map(([id, cost]) => libCard(ITEMS[id].name, '영단', `보유 ${count(id)}개`, esc(ITEMS[id].desc), cost, false, `data-buypill="${id}"`, itemIco(id, 'card')))
     : badges.map(g => libCard(g.name, RARITY[g.rarity].name, '신분패', `수련치 획득 +${g.stats.train}%`, g.cost, ownsShop(g.id), `data-buybadge="${g.id}"`, gearIco(g, 'card')));
   const library = `
