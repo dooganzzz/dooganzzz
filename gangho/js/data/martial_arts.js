@@ -79,7 +79,7 @@ const CP_REF = [
 const CP_SCALE = 170, CP_EXP = 0.38;
 
 /* ───────── 3대 상성 ───────── */
-/* 오행(五行): 장착 기공의 오행과 적의 오행. 극(剋)하는 쪽이 피해 +25%, 극당하는 쪽이 -25%. 상생(相生)은 보정 없음.
+/* 오행(五行): 장착 기공의 오행과 적의 오행. 극(剋)하는 쪽이 피해 +AFFINITY.elem(20%), 극당하는 쪽이 −20%. 상생(相生)은 보정 없음.
    오성은 내가 극할 때의 오행술 위력을 더한다 (APTS.wit.per.elem). */
 const ELEMENTS = {
   wood:  { name: '목', hanja: '木', cls: 'el-wood' },
@@ -110,10 +110,21 @@ const WEAPON_ADV = {
   hidden: { fist: 1,   blade: -1,  spear: 0 },
 };
 
+/* 크기 상성 (10월 3일 유저): 그 병기로 그 크기의 요수를 때릴 때 주는 피해 % — 칸 순서는 SIZE_GRADES (소형 작음 · 보통 · 큼 · 중형 … · 대형 …)
+   기본: 유리 +15 · 불리 −15. 창은 대형에 크게 유리(+30) · 검은 불리해도 −8만 깎임(기교로 빈틈을 찌름) · 권장은 상성 없음.
+   크기 경계의 '작음 · 큼'은 이웃 크기 쪽으로 1/4쯤 기울인 값 (예: 표창은 소형 · 큼부터 덜 불리하고 중형 · 작음은 덜 유리)
+   처음 안(유리 20 · 불리 20 · 창 40 · 검 10)에서 상성 전체 균형을 위해 3/4로 줄임 (10월 3일 유저) */
+const SIZE_DMG = {
+  hidden: [-15, -15,  -8,    8,  15,  15,   15,  15,  15],   // 표창: 큰 놈에게 강한 범용
+  blade:  [ 15,  15,  15,   15,  15,   8,   -8, -15, -15],   // 도: 작은 놈에게 강한 범용
+  spear:  [-15, -15, -15,  -15, -15,  -4,   20,  30,  30],   // 창: 대형 전문, 유리할 때 한 방이 큼
+  sword:  [ 15,  15,   9,   -2,  -8,  -8,   -8,  -8,  -8],   // 검: 불리해도 버티는 안정형
+  fist:   [  0,   0,   0,    0,   0,   0,    0,   0,   0],   // 권장: 상성 없음
+};
+
 /* 상성 계수. elem: 오행 극 · weapAtk: 병기 우세 공격력 · weapHit: 병기 우세 명중 보정(%p) · weapDown: 병기 열세 피해 감소
-   sizeRes: 요수 크기(FOE_SIZES)가 잘 막는 병기로 칠 때 주는 피해 감소
    terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 */
-const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terrainMatch: 0.8, terrainMiss: 1.2, sizeRes: 0.15 };   // sizeRes: 요수 크기가 막기에 능숙한 병기로 칠 때 피해 감소
+const AFFINITY = { elem: 0.2, weapAtk: 0.12, weapHit: 8, weapDown: 0.12, terrainMatch: 0.8, terrainMiss: 1.2 };   // 10월 3일 상성 전체 조정: 오행 25→20 · 병기 15→12 · 명중 10→8 (모든 상성이 곱해져도 1.55배 ~ 0.6배 안)
 /* 전투 보정: minDmg 적 공격의 최소 피해(공격력 대비, 방어로도 못 막는 몫) · elemPenalty 오행 역상성일 때 받는 피해 추가
    powerBase 초식 피해 배율의 기준(장보각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
 /* 초식 피해 배율 (제1초식 · 제2초식 · 오의) · 공격마다 MOVE_START%(+ 연환 combo)로 초식이 발동하고, 발동하면 MOVE_PICK 비율로 셋 중 하나를 펼친다
@@ -138,7 +149,7 @@ const SECTS = {
 };
 const SECT_DEFAULT = 'cheongpung';
 const SCHOOL_RULES = { edge: 0.15, step: { schoolHp: 5, qiDmg: 0.05, healPct: 10 } };
-const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2,
+const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.1, powerBase: 1.5, weakenMax: 0.2,
   finisherExp: 1.5,       // 초식(오의 포함)으로 요수를 마무리하면 수련치 ×1.5 (10월 3일 유저)
   critBase: 1.6,          // 제자 치명 배율 기본 (+ 회심 위력 %)
   blockCut: 0.4,          // 막기: 막으면 받는 피해 -40%

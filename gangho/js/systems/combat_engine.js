@@ -83,6 +83,14 @@ function cpTryGear(it, slot) {
 /* ───────── 3대 상성 (오행 · 병기) ───────── */
 function myElem() { const id = S.active.gigong; return (id && MANUALS[id] && MANUALS[id].elem) || null; }
 function elemRel(a, b) { if (!a || !b) return 0; return ELEM_BEATS[a] === b ? 1 : ELEM_BEATS[b] === a ? -1 : 0; }
+/* 크기 상성: 병기 wt로 크기 z(SIZE_GRADES)를 칠 때 주는 피해 % (data SIZE_DMG) */
+function sizeDmg(wt, z) { const i = SIZE_GRADES.indexOf(z); return i < 0 ? 0 : ((SIZE_DMG[wt] || [])[i] || 0); }
+const sizeName = z => z ? `${FOE_SIZES[z[0]].name}(${FOE_SUB[+z[1] - 1]})` : '';
+/* 무기 쪽에서 본 말: "검 유리 +20%" · "창 불리 −20%" */
+function sizeRelText(wt, pct) {
+  const w = WEAPON_SHORT[wt] || '권장', n = Math.abs(pct);
+  return pct >= 8 ? `<b class="good">${w} 유리 +${n}%</b>` : pct <= -8 ? `<b class="warn">${w} 불리 −${n}%</b>` : pct > 0 ? `${w} 조금 유리 +${n}%` : pct < 0 ? `${w} 조금 불리 −${n}%` : `${w} 보통`;
+}
 function weaponRel(a, b) { if (!a || !b) return 0; return (WEAPON_ADV[WEAPON_CLASS[a]] || {})[WEAPON_CLASS[b]] || 0; }
 /* 나와 적 사이의 상성. dealt: 내가 주는 피해 배율 · taken: 내가 받는 피해 배율 · myHit/foeHit: 명중 보정(%p) */
 function affinity(eid, st = calcStats()) {
@@ -90,10 +98,10 @@ function affinity(eid, st = calcStats()) {
   const el = elemRel(me, E.elem), wp = weaponRel(wt, E.wtype);
   const up = A.elem + (st.elem || 0) / 100;                   // 지력: 내가 극할 때 오행술 위력
   const weak = E.weak && me === E.weak.elem ? E.weak.mult : 0;  // 요수 고유 약점 (예: 청령목괴는 화 기공에 취약)
-  const sz = FOE_SIZES[E.size], guard = !!sz && sz.resist === WEAPON_CLASS[wt];   // 요수 크기: 이 병기를 잘 막는다
+  const sizePct = sizeDmg(wt, E.size);   // 크기 상성: 이 병기로 이 크기를 칠 때 주는 피해 %
   return {
-    el, wp, me, foe: E.elem, wt, fwt: E.wtype || null, weak, size: E.size || null, guard,
-    dealt: (el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * (wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1) * (1 + weak) * (guard ? 1 - A.sizeRes : 1),
+    el, wp, me, foe: E.elem, wt, fwt: E.wtype || null, weak, size: E.size || null, sizePct,
+    dealt: (el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * (wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1) * (1 + weak) * (1 + sizePct / 100),
     taken: (el > 0 ? 1 - A.elem : el < 0 ? (1 + Math.max(0, A.elem - (st.elemRes || 0) / 100)) * (1 + COMBAT_RULES.elemPenalty) : 1) * (wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
     myHit: wp > 0 ? A.weapHit : 0, foeHit: wp < 0 ? A.weapHit : 0,
   };
@@ -105,7 +113,7 @@ function affinityText(a) {
   const elem = a.el > 0 ? `<b class="good">상극 우세</b> (${E(a.me)}${'剋'}${E(a.foe)})` : a.el < 0 ? `<b class="warn">상극 열세</b> (${E(a.foe)}剋${E(a.me)})` : `보정 없음 (${E(a.me)}·${E(a.foe)})`;
   const wn = w => w ? WEAPON_CLASS_NAME[WEAPON_CLASS[w]] : '맨몸';
   const weap = !a.fwt ? '호각 (상대는 병기가 없음)' : a.wp > 0 ? `<b class="good">우세</b> (${wn(a.wt)} › ${wn(a.fwt)})` : a.wp < 0 ? `<b class="warn">열세</b> (${wn(a.wt)} ‹ ${wn(a.fwt)})` : `호각 (${wn(a.wt)} = ${wn(a.fwt)})`;
-  const size = a.size ? ` · 크기 ${FOE_SIZES[a.size].name}${a.guard ? ` <b class="warn">${wn(a.wt)}을 잘 막음 (−${Math.round(AFFINITY.sizeRes * 100)}%)</b>` : ''}` : '';
+  const size = a.size ? ` · 크기 ${sizeName(a.size)} — ${sizeRelText(a.wt, a.sizePct)}` : '';
   return `오행 ${elem} · 병기 ${weap}${size}${a.weak ? ` · <b class="good">약점 공략 (+${Math.round(a.weak * 100)}%)</b>` : ''}`;
 }
 
