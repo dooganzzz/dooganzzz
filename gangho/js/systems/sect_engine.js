@@ -206,7 +206,7 @@ function questBook(R, w) {
 }
 /* 가르침은 모두 [사명을 받은] 뒤부터 센다 (10월 3일 유저: 받기 전에 이미 한 것으로 한꺼번에 이루어지던 버그). 받을 때 이 셈들을 적어 두고(S.mainQBase) 그 뒤에 늘어난 만큼만 친다.
    성급 · 장착 · 품계처럼 '지금 상태'를 보는 가르침은 셀 수 없으니 그대로 본다 */
-const questCounters = () => ({ kills: S.kills || 0, codex: (S.codex || []).length, pulls: (S.shrine && S.shrine.pulls) || 0, joun: (S.cnt && S.cnt.askJoun) || 0,
+const questCounters = () => ({ kills: S.kills || 0, codex: (S.codex || []).length, pulls: (S.shrine && S.shrine.pulls) || 0, joun: (S.cnt && S.cnt.askJoun) || 0, forgeN: ((S.crafts || {}).forge || {}).n || 0, alchN: ((S.crafts || {}).alchemy || {}).n || 0,
   ...Object.fromEntries(Object.entries(S.stageWins || {}).map(([k, v]) => ['sw:' + k, v])) });
 const qSince = k => (questCounters()[k] || 0) - ((S.mainQBase || {})[k] || 0);
 const st10 = (z, n) => () => { let c = 0; for (let i = n; i <= STAGE.count; i++) c += qSince(`sw:${z}:${i}`); return c >= 1; };   // 받은 뒤 그 단계(또는 더 위 단계)의 조건을 한 번 채우면
@@ -230,7 +230,7 @@ const QUESTS = [
     talk: '숨이 차느냐? 기력이 다하면 걸음이 느려진다. 기력단을 아끼지 말고 3단계를 넘어라.', reward: { gear: ['ring', 1, 1] } },
   { t: '청풍산 약초 비탈 돌파 (4단계)', done: st10('cheongpung', 4), hint: '청풍산 4단계 「약초 비탈」을 돌파하십시오. 막히면 아래 단계에서 토벌 임무를 채우며 힘을 기르십시오.',
     talk: '약초 비탈 너머부터는 흑풍채 놈들이 어슬렁댄다. 발이 가벼워야 산다.', reward: { gear: ['boots', 1, 1] } },
-  { t: '화로에서 조합법 하나 알아내기', done: () => qSince('codex') >= 1, hint: '청풍문 › 화로에서 재료를 넣고 단조나 연단을 해 조합법을 알아내십시오.',
+  { t: '화로에서 단조 5번 · 연단 5번 해 보기', done: () => qSince('forgeN') >= 5 && qSince('alchN') >= 5, get hint() { return `청풍문 › 화로에서 재료를 넣고 단조 5번 · 연단 5번을 해 보십시오 (조합이 틀려도 셉니다). 지금 단조 ${Math.max(0, Math.min(5, qSince('forgeN')))}/5 · 연단 ${Math.max(0, Math.min(5, qSince('alchN')))}/5.`; },
     talk: '약초 비탈에서 캔 것들을 썩히지 마라. 화로에 넣고 이것저것 섞다 보면 쓸 만한 게 나온다.', reward: { silver: 80, items: { wildGinseng: 2, treeSap: 2 } } },
   { t: '청풍산 흑풍채 초소 돌파 (5단계)', done: st10('cheongpung', 5), hint: '청풍산 5단계 「흑풍채 초소」를 돌파하십시오.',
     talk: '흑풍채 초소를 깨면 청풍문의 진짜 무공을 내주마. 네 병기에 맞는 것으로.', reward: { book: 'weapon' } },

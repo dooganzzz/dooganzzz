@@ -26,7 +26,7 @@ function bindInput() {
     if (t.dataset.setting === 'bgmVol' || t.dataset.setting === 'sfxVol') { const v = +t.value; S.settings = { ...(S.settings || {}), [t.dataset.setting]: v }; t.parentElement.querySelector('.set-val').textContent = `크기 ${v}`; sndApply(); notify.save(); }
     if (t.dataset.setting === 'potionAt') { const v = +t.value; S.settings = { ...(S.settings || {}), potionAt: v / 100 }; t.parentElement.querySelector('.set-val').textContent = `활력 ${v}% 이하`; notify.save(); }
   });
-  document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual], [data-mart], [data-artslot], [data-fold]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (c.dataset.fold) return toggleFold(c.dataset.fold); if (c.dataset.artslot) { ui.modal = 'artslot:' + c.dataset.artslot; return renderModal(); } ui.modal = c.dataset.mart ? 'mart:' + c.dataset.mart : 'manual:' + c.dataset.manual; renderModal(); } });
+  document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual], [data-mart], [data-artslot]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (c.dataset.artslot) { ui.modal = 'artslot:' + c.dataset.artslot; return renderModal(); } ui.modal = c.dataset.mart ? 'mart:' + c.dataset.mart : 'manual:' + c.dataset.manual; renderModal(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ui.modal && ui.modal !== 'ending') { ui.modal = null; render(); } });
 }
 
@@ -60,7 +60,6 @@ function onClick(e) {
   if (d.watch) return openReplay(d.watch);
   if (d.rp) return replayControl(d.rp, d.x);
   if (d.starup) return askStarUp(d.starup);
-  if (d.fold) return toggleFold(d.fold);
   if (d.shopmode) { ui.shopMode = d.shopmode; return render(); }
   if (d.shopbuy) { ui.shopBuy = d.shopbuy; return render(); }
   if (d.shopgear) { ui.shopGear = d.shopgear; return render(); }

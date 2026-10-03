@@ -89,8 +89,8 @@ function viewHall() {
   const library = `
     <div class="subtabs lib-tabs" role="tablist" aria-label="장보각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
     <div class="shop lib-grid">${libItems.join('')}</div>`;
-  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳', ui.fold.hq && questAlert() ? alertDot(true) : '')}${foldBody('hq', hq.replace('<!--subq-->', missions))}</section>
-  <section class="panel fold">${foldHead('library', '장보각', '藏寶閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
+  return `<section class="panel npc">${head('정청 본부', '正廳')}${hq.replace('<!--subq-->', missions)}</section>
+  <section class="panel">${head('장보각', '藏寶閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${library}</section>`;
 }
 
 /* 청풍문 › 전방(廛房): 왕 가의 구매 / 판매 */

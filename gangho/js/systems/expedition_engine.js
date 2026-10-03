@@ -18,9 +18,9 @@ function weighted(table) {
 }
 
 /* ───────── 스테이지 ───────── */
-/* 탐험지 요수를 약한 순서로 (활력 × 공격 × 방어 보정) */
+/* 요수 세기 (활력 × 공격 × 방어 보정) */
 const foePower = e => { const E = ENEMIES[e]; return E.hp * E.atk * (1 + E.def / 50); };
-function zoneLadder(zid) { return ZONES[zid].enemies.filter(e => ENEMIES[e]).sort((a, b) => foePower(a) - foePower(b)); }
+function zoneLadder(zid) { return ZONES[zid].enemies.filter(e => ENEMIES[e]); }   // 단계 차례 = areas.js에 적힌 차례 (3 · 6단계는 일부러 조금 센 요수)
 const stageName = (zid, n) => `${ZONES[zid].name} ${(STAGE_NAMES[zid] || [])[n - 1] || `${n}단계`}`;
 const stageCleared = zid => (S.stages || {})[zid] || 0;
 /* 고를 수 있는 가장 높은 단계: 돌파한 단계의 다음 (10단계까지) */
