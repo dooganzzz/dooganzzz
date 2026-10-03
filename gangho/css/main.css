@@ -1000,12 +1000,18 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .observe .obs-toggle { display: flex; gap: 6px; align-items: center; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; font-weight: 700; text-align: left; }
 /* 호패 옆 투력 (유저 슬라이더 값, 호패 패널 안 %) */
 .hopae-panel { position: relative; }
-.hopae-panel > .obs-cp { position: absolute; left: var(--cp-x, 67%); top: var(--cp-y, 25%); transform: translate(-50%, -50%) scale(var(--cp-s, 1)); width: max-content; margin: 0; z-index: 2; }
-/* 투력 위 활력 · 내력 막대 (유저 슬라이더 값: 자리 % · 크기 배) */
-.hopae-panel > .obs-gauge { position: absolute; left: var(--g-x, 67%); top: var(--g-y, 12%); transform: translate(-50%, -50%) scale(var(--g-s, 1)); width: 210px; margin: 0; padding: 0; background: none; border: 0; z-index: 2; }
+.hopae-panel > .obs-cp { position: absolute; left: var(--cp-x, 70%); top: var(--cp-y, 40.5%); transform: translate(-50%, -50%) scale(var(--cp-s, .9)); width: max-content; margin: 0; z-index: 2; }
+/* 투력 위 활력 · 내력 막대 (유저 슬라이더 값: 자리 % · 크기 배 · 아이콘 · 글씨 · 간격 · 막대 길이/높이) */
+.hopae-panel > .obs-gauge { --gi: 26px; --gf: 13px; --gg: 4px; --gl: 150px; --gh: 20px;
+  position: absolute; left: var(--g-x, 70%); top: var(--g-y, 26.5%); transform: translate(-50%, -50%) scale(var(--g-s, .9)); width: max-content; margin: 0; padding: 0; background: none; border: 0; z-index: 2; }
 .hopae-panel > .obs-gauge .gauge-group { flex: none; }
+.hopae-panel > .obs-gauge .stat-gauge { grid-template-columns: var(--gi) auto var(--gl); column-gap: 4px; }
+.hopae-panel > .obs-gauge .ui-ico { width: var(--gi); height: var(--gi); }
+.hopae-panel > .obs-gauge .gauge-badge { font-size: var(--gf); margin-right: var(--gg); }
+.hopae-panel > .obs-gauge .gauge-bar-track { height: var(--gh); border-radius: calc(var(--gh) / 2); }
+.hopae-panel > .obs-gauge .gauge-text { line-height: var(--gh); }
 .hopae-panel > .obs-cp .cp-main { white-space: nowrap; }
-@media (max-width: 480px) { .hopae-panel > .obs-cp, .hopae-panel > .obs-gauge { position: static; transform: none; width: auto; margin-top: 10px; } }
+@media (max-width: 480px) { .hopae-panel > .obs-cp, .hopae-panel > .obs-gauge { position: static; transform: none; width: auto; margin-top: 10px; } .hopae-panel > .obs-gauge .stat-gauge { grid-template-columns: var(--gi) auto minmax(0, 1fr); } }
 /* 무장: 채비 자리는 유저가 슬라이더로 정한 값 (패널 안 %, 10월 3일) — 좁은 화면에서는 제자리(흐름)에 */
 .gear-panel { position: relative; }
 .gear-panel > .auto-equip { position: absolute; left: var(--chabi-x, 62.5%); top: var(--chabi-y, 8.5%); transform: translate(-50%, -50%); z-index: 2; }
