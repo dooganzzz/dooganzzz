@@ -130,6 +130,11 @@ const SCHOOLS = {
 };
 /* 성향 (10월 3일 유저): 익힌 비급 가운데 무공 · 심법 · 경공 · 기공마다 대표 한 권(가장 높은 등급 → 같으면 가장 높은 성급)의 파를 센다 (최대 4칸).
    같은 파 한 칸마다 그 파의 효과가 한 단계씩 — 정 = 내력 절약 +5%p · 마 = 초식 위력 +5% · 사 = 회복 효과(단약 · 숨 고르기 · 흡혈) +10% */
+/* 소속 (10월 3일 유저): 소속 문파마다 보너스. 지금은 청풍문만 — 다른 문파는 이야기가 넓어지면 더한다 (S.sect, 바꿀 수 있게 키로 둠) */
+const SECTS = {
+  cheongpung: { name: '청풍문', hanja: '淸風門', school: 'jeong', desc: '맑은 바람처럼 가볍고 곧은 정파 문파', bonus: { eva: 2, staSave: 5 } },   // 회피 +2% · 강호행 기력 절약 +5%
+};
+const SECT_DEFAULT = 'cheongpung';
 const SCHOOL_RULES = { edge: 0.15, step: { mpSave: 5, qiDmg: 0.05, healPct: 10 } };
 const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2,
   finisherExp: 1.5,       // 초식(오의 포함)으로 요수를 마무리하면 수련치 ×1.5 (10월 3일 유저)

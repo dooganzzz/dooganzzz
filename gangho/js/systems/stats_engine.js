@@ -67,6 +67,7 @@ function calcStats() {
   }
   s.atk += S.shrine.atk; s.maxMp += S.shrine.mp; s.eva += S.shrine.eva; s.crit += Math.floor(S.shrine.total / 10) * 2;
   s.maxHp += S.perm.maxHp; s.maxMp += S.perm.maxMp;
+  { const B = (SECTS[S.sect] || SECTS[SECT_DEFAULT]).bonus; for (const k in B) s[k] = (s[k] || 0) + B[k]; }   // 소속 보너스
   s.eva += s.evaFlat;
   let atkB = s.atkPct / 100, defB = 0;
   s.trainBuff = 0;

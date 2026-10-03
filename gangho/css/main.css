@@ -996,6 +996,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 @media (min-width: 1100px) { .observe-duo { grid-template-columns: minmax(380px, 440px) minmax(0, 1fr); } .observe-duo.observe-trio { grid-template-columns: minmax(330px, 370px) minmax(0, 1fr) minmax(290px, 320px); } }
 .tend-panel .school-tri { grid-template-columns: minmax(0, 1fr); }
 .tend-panel .st-board { width: min(100%, 220px); margin: 0 auto; }   /* 무공 탭 오른쪽 위 (10월 3일) */
+.statsheet .sect-bonus { justify-content: flex-end; padding-top: 0; } .statsheet .sect-bonus small { color: var(--gold); font-size: .8rem; white-space: nowrap; }   /* 소속 보너스 (소속 줄 아래) */
 .st-tip .st-fx { color: var(--gold); font-size: .85em; } .st-tip .st-fx:first-of-type { margin-top: 4px; }
 .st-pick { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 8px; align-items: center; margin-top: 8px; font-size: .88rem; }
 .st-pick > span { color: var(--dim); } .st-pick select { min-width: 0; background: rgba(12, 11, 9, .7); color: var(--text, #efe6d2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; }

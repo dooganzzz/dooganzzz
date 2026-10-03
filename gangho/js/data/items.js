@@ -273,11 +273,11 @@ const STAT_NAMES = {
   craft: '손재주', train: '정진', maxSta: '최대 기력', counter: '반격', combo: '출수',
   staSave: '기력 절약', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성', bleed: '출혈 확률', pierce: '관통력', acc: '명중',
   shock: '충격 확률', first: '선공', mpRegenPct: '내력 회복률', armorPen: '파갑', elem: '오행 위력',
-  str: '근력', con: '체력', agi: '민첩', int: '심력', bone: '근골', phys: '체질', eye: '안력', wit: '오성', qiDmg: '초식 위력', mpSave: '내력 절약',
+  str: '근력', con: '체력', agi: '민첩', int: '심력', bone: '근골', phys: '체질', eye: '안력', wit: '오성', qiDmg: '초식 위력', mpSave: '내력 절약', healPct: '회복 효과',
   critDmg: '회심 위력', block: '막기', shield: '호신강기', luck: '기연', aura: '기세',
 };
 
-const PCT_STATS = new Set(['critDmg', 'block', 'shield', 'luck', 'eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter', 'combo', 'staSave', 'breathe', 'qiPct', 'elemRes', 'bleed', 'acc', 'shock', 'mpRegenPct', 'armorPen', 'elem']);
+const PCT_STATS = new Set(['healPct', 'critDmg', 'block', 'shield', 'luck', 'eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter', 'combo', 'staSave', 'breathe', 'qiPct', 'elemRes', 'bleed', 'acc', 'shock', 'mpRegenPct', 'armorPen', 'elem']);
 
 /* 장비 기본형: slot → names[tier-1], stats[tier-1] */
 
