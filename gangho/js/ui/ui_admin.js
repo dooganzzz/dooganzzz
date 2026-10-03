@@ -84,6 +84,12 @@ const GM_CMDS = {
     if (importSave(JSON.parse(p.save))) gmTrace('gm', `DB 저장 불러오기: ${p.name} (지금 저장은 백업해 둠)`);
   },
   importobj(st) { if (importSave(st)) gmTrace('gm', `웹 유저 저장 불러오기: ${st.name} (지금 저장은 백업해 둠)`); else gmTrace('warn', '저장 형식이 맞지 않습니다'); },
+  detailOf(pid) {
+    const p = pid === 'me' ? null : (CLOUD.players || []).find(x => x.id === pid);
+    const st = pid === 'me' ? S : (p && p.save ? migrate(JSON.parse(p.save)) : null); if (!st) return null;
+    const keep = S; S = st;
+    try { return gmCharDetail(); } finally { S = keep; }
+  },
   importundo() { if (restoreSave('import')) gmTrace('gm', '불러오기 전 저장으로 되돌림'); },
   enemyset(patch) {                                        // 요수 능력치 고치기 { id: { 키: 값 | null } } — null이면 그 키를 뺀다
     for (const [id, o] of Object.entries(patch)) { const E = ENEMIES[id]; if (!E) continue; for (const [k, v] of Object.entries(o)) { if (v === null || v === '' || Number.isNaN(+v)) delete E[k]; else E[k] = +v; } }
@@ -224,6 +230,7 @@ function gmBindPanel(panel) {
     if (d.gmaipat) { GM.aiPattern = d.gmaipat; return gmRender(); }
     if (d.gmdbtab) { GM.dbTab = d.gmdbtab; return gmRender(); }
     if (d.gmimport) return gmDo('importplayer', d.gmimport);
+    if (d.gmdetail) { GM.detail = GM.detail === d.gmdetail ? null : d.gmdetail; return gmRender(); }   // 유저 캐릭터 상세 (게임에서 안 보이는 수치)
     if (t.closest('[data-gmresetpass]')) {                 // 운영자: 유저 비밀번호 초기화 (임시 비밀번호를 유저에게 따로 알려 준다)
       const f = t.closest('form'), id = (f.rid.value || '').trim().toLowerCase(), np = f.rpw.value || '';
       if (!SUPA_ST.pass) { gmTrace('warn', '운영자 암호를 먼저 넣으십시오'); return; }

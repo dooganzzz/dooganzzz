@@ -66,6 +66,35 @@ function gmCheat(what) {
   gmDo('cheat', what);
 }
 
+/* 유저 캐릭터 상세: 게임 화면에 안 보이는 전투 수치 (초식 발동 · 반격 · 회피 등). 값은 GM_CMDS.detailOf가 그 저장으로 잠깐 계산 */
+function gmCharDetail() {
+  const st = calcStats(), id = S.active.mugong, M = id && MANUALS[id], m = id && S.manuals[id];
+  const weaponOk = !!M && M.weapon === weaponType(), moves = weaponOk && m ? unlockedMoves(m.star) : 0;
+  const pick = MOVE_PICK.slice(0, moves), sum = pick.reduce((a, v) => a + v, 0) || 1, p = Math.min(100, MOVE_START + (st.combo || 0));
+  const n = schoolCount(), pct = v => `${Math.round(v * 10) / 10}%`;
+  return { name: S.name || '—', cp: calculateCombatPower(S), rows: [
+    ['초식 발동 확률', moves ? `${pct(p)} (기본 ${MOVE_START}% + 출수 ${st.combo || 0}%)` : `0% — ${M ? (weaponOk ? '열린 초식 없음' : `병기 불일치 (${WEAPON_TYPES[M.weapon] || M.weapon} 무공 · 지금 ${WEAPON_TYPES[weaponType()] || '맨손'})`) : '무공 없음'}`],
+    ['초식별 (발동했을 때)', moves ? pick.map((v, i) => `${['제1초식', '제2초식', '오의'][i]} ${Math.round(v / sum * 100)}%`).join(' · ') : '—'],
+    ['반격', `${pct(st.counter || 0)} (맞을 때마다 평타로 되받아침)`],
+    ['회피 · 명중', `회피 ${pct(st.eva || 0)} — 요수 명중 = max(40, 95 − 회피)%`],
+    ['치명 · 치명 피해', `${pct(st.crit || 0)} · +${pct(st.critDmg || 0)}`],
+    ['막기 · 호신강기', `${pct(st.block || 0)} · ${pct(st.shield || 0)}`],
+    ['흡혈 · 회복 효과', `${pct(st.lifesteal || 0)} · +${pct(st.healPct || 0)}`],
+    ['선공 판정', `속도 ${Math.round(st.spd)} + 민첩 ${attrOf('agi')} + 선공 보정 ${Math.round((st.first || 0) * 10) / 10} (이 합이 요수 속도 이상이면 먼저 침)`],
+    ['공격 · 방어', `${Math.round(st.atk)} · ${Math.round(st.def)}`],
+    ['활력 · 내력 · 기력', `${Math.round(S.hp)}/${Math.round(st.maxHp)} · ${Math.round(S.mp)}/${Math.round(st.maxMp)} · ${Math.round(S.stamina || 0)}/${Math.round(st.maxSta || 100)}`],
+    ['내력 회복 · 절약', `${st.mpRegen}/합 · ${pct((st.mpCost || 0) + (st.mpSave || 0))}`],
+    ['오행 위력 · 초식 위력', `+${pct(st.elem || 0)} · +${pct((st.qiDmg || 0) * 100)}`],
+    ['성향 칸', Object.keys(SCHOOLS).map(k => `${SCHOOLS[k].name} ${n[k] || 0}`).join(' · ')],
+    ['운용 비급', CAT_ORDER.map(c => S.active[c] ? `${CATS[c].name} 《${MANUALS[S.active[c]].name}》 ${S.manuals[S.active[c]].star}성` : `${CATS[c].name} —`).join(' · ')],
+    ['장비', SLOT_ORDER.map(sl => S.equip[sl] ? `${SLOTS[sl].name} ${S.equip[sl].name}${S.equip[sl].enh ? ' +' + S.equip[sl].enh : ''}` : null).filter(Boolean).join(' · ') || '없음'],
+    ['품계 · 은자 · 수련치', `${warriorRank().name} · ${fmt(S.silver || 0)}냥 · ${fmt(S.exp || 0)}`],
+  ] };
+}
+function gmDetailHtml(pid) {
+  const D = GM_CMDS.detailOf(pid); if (!D) return '<p class="gm-muted">이 유저의 저장이 없습니다.</p>';
+  return `<h4 class="gm-h">캐릭터 상세 — ${esc(D.name)} (투력 ${fmt(D.cp)})</h4><table class="gm-table"><tbody>${D.rows.map(([k, v]) => `<tr><th style="text-align:left;white-space:nowrap">${k}</th><td>${v}</td></tr>`).join('')}</tbody></table>`;
+}
 /* 6. 유저: 접속 중인 사람(room) · DB에 동기화된 모든 캐릭터(db). 게임 창 오버레이에서만 (별도 창은 아티팩트 기능이 없다) */
 function gmViewUsers() {
   if (GM_REMOTE || typeof CLOUD === 'undefined') return '<p class="gm-muted">claude.ai 접속자 · DB는 게임 창의 GM 오버레이에서만 보입니다.</p>' + gmSupaSection();
@@ -78,13 +107,14 @@ function gmViewUsers() {
     <td>${i + 1}</td><td>${onlineIds.has(p.id) ? '<b class="gm-on">●</b>' : '<span class="gm-off">○</span>'} ${esc(nm(p.id))}${p.id === CLOUD.uid ? ' <b class="gm-me">나</b>' : ''}</td>
     <td>${esc(p.name || '—')}</td><td class="gm-num">${p.cp ? fmt(p.cp) : '—'}</td><td>${esc(p.mugong || '—')} ${p.star || 0}성</td><td class="gm-num">${fmt(p.silver || 0)}</td><td>${ZN(p.zone)}</td>
     <td class="gm-num">${p.runs || 0}번 · 두목 ${p.bosses || 0}</td><td>${esc(p.device || '—')}</td><td>${since(p.syncedAt)}</td>
-    <td class="gm-acts">${p.save && p.id !== CLOUD.uid ? `<button class="gm-btn" data-gmimport="${esc(p.id)}" title="이 유저의 저장을 지금 게임으로 가져옵니다 (지금 저장은 백업)">저장 불러오기</button>` : ''}</td></tr>`).join('');
+    <td class="gm-acts">${p.save || p.id === CLOUD.uid ? `<button class="gm-btn ${GM.detail === (p.id === CLOUD.uid ? 'me' : p.id) ? 'on' : ''}" data-gmdetail="${p.id === CLOUD.uid ? 'me' : esc(p.id)}" title="게임에서 안 보이는 수치까지">상세</button>` : ''}${p.save && p.id !== CLOUD.uid ? `<button class="gm-btn" data-gmimport="${esc(p.id)}" title="이 유저의 저장을 지금 게임으로 가져옵니다 (지금 저장은 백업)">저장 불러오기</button>` : ''}</td></tr>`).join('');
   return `<div class="gm-kv"><div><span>접속 중</span><b>${CLOUD.peers.length}명</b></div><div><span>DB 유저</span><b>${CLOUD.admin ? CLOUD.players.length + '명' : '권한 없음'}</b></div><div><span>내 동기화</span><b>${since(CLOUD.syncedAt)}</b></div></div>
     <div class="gm-bar"><button class="gm-btn primary" data-gm="cloudsync" ${CLOUD.db ? '' : 'disabled'}>[지금 DB 동기화]</button>${typeof backupInfo === 'function' && backupInfo('import') ? '<button class="gm-btn" data-gm="importundo">[불러오기 전으로 되돌리기]</button>' : ''}<small class="gm-muted">${esc(CLOUD.note || '저장이 바뀔 때마다(1분 간격 확인) players DB에 올라갑니다.')}</small></div>
     <h4 class="gm-h">지금 접속 중</h4>
     <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>투력</th><th>탐험지</th><th>보는 화면</th><th>기기</th></tr></thead><tbody>${peers || '<tr><td colspan="7" class="gm-muted">접속자 정보가 없습니다.</td></tr>'}</tbody></table>
     <h4 class="gm-h">전체 유저 (DB)</h4>
     <table class="gm-table"><thead><tr><th>#</th><th>유저</th><th>캐릭터</th><th>투력</th><th>무공</th><th>은자</th><th>탐험지</th><th>탐험</th><th>기기</th><th>마지막 동기화</th><th></th></tr></thead><tbody>${players || `<tr><td colspan="11" class="gm-muted">${CLOUD.admin ? '아직 동기화된 유저가 없습니다.' : '주인·편집자만 전체 유저를 볼 수 있습니다.'}</td></tr>`}</tbody></table>
+    ${GM.detail ? gmDetailHtml(GM.detail) : ''}
     <p class="gm-muted">claude.ai 유저 ID는 익명 토큰이라 화면에는 이름으로 풀어 보입니다 (claude.ai는 IP를 알려 주지 않습니다). IP는 아래 웹 유저(Supabase) 기록에만 남습니다.</p>
     ${gmSupaSection()}`;
 }
