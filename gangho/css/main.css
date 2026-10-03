@@ -1111,7 +1111,7 @@ html.calm .st-glow { animation: none; }
 /* 행낭: 은자 · 칸 수 자리는 유저 슬라이더 값 (패널 안 %, 10월 3일) — 좁은 화면에서는 제자리 */
 .bag-panel { position: relative; }
 @media (min-width: 641px) {
-  .bag-panel .bag-silver { position: absolute; left: var(--silver-x, 50%); top: var(--silver-y, 12%); transform: translate(-50%, -50%); margin: 0; }
-  .bag-panel .bag-cap { position: absolute; left: var(--cap-x, 94%); top: var(--cap-y, 12%); transform: translate(-50%, -50%); white-space: nowrap; }
+  .bag-panel .bag-silver { position: absolute; left: var(--silver-x, 93.5%); top: var(--silver-y, 28.5%); transform: translate(-50%, -50%); margin: 0; font-size: var(--silver-s, 14px); }
+  .bag-panel .bag-cap { position: absolute; left: var(--cap-x, 94%); top: var(--cap-y, 13.5%); transform: translate(-50%, -50%); white-space: nowrap; font-size: var(--cap-s, 14px); }   /* 자리: 유저 슬라이더 값 */
 }
 .title-card .tc-desc { display: block; font-style: italic; color: var(--dim); font-size: .78rem; line-height: 1.4; }
