@@ -966,3 +966,22 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .mats .chips.forge-gear > .chip { height: 40px; flex-direction: row; border-left-width: 1px; background: rgba(12, 11, 9, .55); }   /* 장비 카드(.gear)의 세로 배치 · 굵은 왼쪽 테두리를 단조 칸에서는 끈다 */
 .mats .chips.forge-gear .fg-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mats .chips.forge-gear .fg-worn { flex: none; font-size: 11px; padding: 1px 6px; border-radius: 8px; border: 1px solid rgba(212, 175, 55, .4); color: #d8c48a; }
+
+/* ───────── 무장 탭 (10월 3일): 큰 카드 상자를 지우고 수묵 네모칸 아이콘 · 칸 이름 · 장비 이름만. 아이콘은 조금 크게, 장비 이름은 등급 색 ───────── */
+.equipment-view-layout .equip-slot-card, .equipment-view-layout .equip-slot-card.dslot:not(.empty), .equipment-view-layout .equip-slot-card.dslot.empty {
+  background: none; border: 0; box-shadow: none; border-radius: 0; padding: 4px 6px; min-height: 0; }
+.equipment-view-layout .equip-slot-card:hover:not(:disabled) { background: none; box-shadow: none; transform: translateY(-2px); }
+.equipment-view-layout .equip-slot-card:hover .ink-box { filter: drop-shadow(0 0 8px rgba(212, 175, 55, .45)); }
+.equipment-view-layout .equip-slot-card .ink-box { padding: 11px; width: 70px; height: 70px; box-sizing: border-box; }   /* 빈 칸도 같은 크기 */
+@media (min-width: 1024px) { .equipment-view-layout .equip-slot-card .ink-box { width: 78px; height: 78px; } }
+@media (max-width: 640px) { .equipment-view-layout .equip-slot-card .ink-box { width: 62px; height: 62px; } }
+.equipment-view-layout .equip-slot-card .item-ico.slot-ico { width: 48px; height: 48px; }
+@media (min-width: 1024px) { .equipment-view-layout .equip-slot-card .item-ico.slot-ico { width: 56px; height: 56px; } }
+@media (max-width: 640px) { .equipment-view-layout .equip-slot-card .item-ico.slot-ico { width: 42px; height: 42px; } }
+.equipment-view-layout .equip-slot-card.r0 .slot-item-name { color: var(--g0); }
+.equipment-view-layout .equip-slot-card.r1 .slot-item-name { color: var(--g1); }
+.equipment-view-layout .equip-slot-card.r2 .slot-item-name { color: var(--g2); }
+.equipment-view-layout .equip-slot-card.r3 .slot-item-name { color: var(--g3); }
+.equipment-view-layout .equip-slot-card.r4 .slot-item-name { color: var(--g4); }
+.equipment-view-layout .equip-slot-card.r5 .slot-item-name { color: var(--g5); }
+.equipment-view-layout .equip-slot-card .slot-item-name { text-shadow: 0 1px 3px #000; }
