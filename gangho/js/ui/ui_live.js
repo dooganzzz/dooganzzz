@@ -106,14 +106,14 @@ function liveGimFire(sc, G) {
     liveVfx(sc, 'crit', 26, 'small kata');
     liveGain(sc, m ? `기연 「${m[1]}」` : '기연', ASSET.ui('c_star'), 'npc', 0); d = 1;
     if (m) liveGain(sc, `▸ ${m[2].trim()}`, '', 'npc', d++ * 420);
-    if (st.ds) liveGain(sc, `은자 ${fmt(st.ds)}`, ASSET.ui('h_silver'), 'bad', d++ * 420);
+    if (st.ds) { const at = d * 420; liveGain(sc, `은자 ${fmt(st.ds)}`, ASSET.ui('h_silver'), 'bad', d++ * 420); setTimeout(() => sfx('sell'), at); }
     toast(`📜 기연${m ? ` 「${m[1]}」` : ''} — 「기연」에서 ${ENCOUNTER_TTL / 3600000}시간 안에 고르십시오`);
   }
   else liveVfx(sc, 'crit', 26, 'small kata');
   const g = st.g;
   if (g) {
     for (const [id, n] of Object.entries(g.items || {})) liveGain(sc, `${ITEMS[id] ? ITEMS[id].name : id} +${n}`, ASSET.item(id), 'good', d++ * 420);
-    if (g.silver) liveGain(sc, `은자 +${fmt(g.silver)}`, ASSET.ui('h_silver'), 'good', d++ * 420);
+    if (g.silver) { const at = d * 420; liveGain(sc, `은자 +${fmt(g.silver)}`, ASSET.ui('h_silver'), 'good', d++ * 420); setTimeout(() => sfx('sell'), at); }   // 재화 사건: 전방 판매 소리 (10월 3일 유저)
     if (g.gear) liveGain(sc, `장비 +${g.gear}`, ASSET.ui('c_trophy'), 'good', d++ * 420);
   } else if (st.k !== 'trap' && st.k !== 'event') liveGain(sc, st.cls === 'muted' ? '그냥 지나쳤습니다' : '빈손', '', 'muted', 0);
   G.release = now() + 900 + d * 420;
