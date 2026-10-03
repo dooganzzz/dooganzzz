@@ -107,6 +107,18 @@ function autoEquipBest() {
   return { from, to, names };
 }
 
+/* 행낭 장비 가운데 끼면 투력이 오르는 것 (지금 낀 것보다 좋음 · 빈 칸이면 낄 수 있음) → uid 모음 */
+function gearUpgradeUids() {
+  const base = calculateCombatPower(S), out = new Set();
+  for (const it of S.gear) for (const slot of SLOT_ORDER) {
+    if (out.has(it.uid) || it.slot !== slotAccepts(slot)) continue;
+    const old = S.equip[slot]; S.equip[slot] = it;
+    const cp = calculateCombatPower(S);
+    if (old) S.equip[slot] = old; else delete S.equip[slot];
+    if (cp > base) out.add(it.uid);
+  }
+  return out;
+}
 /* 더 좋은 장비 알림: 행낭에 이 칸에 낄 수 있는 장비가 있고, 끼면 투력이 오르는 칸 { 칸: true } (빈 칸은 낄 것만 있으면 오름) */
 function gearUpgradeSlots() {
   const base = calculateCombatPower(S), out = {};
