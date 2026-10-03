@@ -12,18 +12,18 @@ const LOG_MAX = 100;
 
 const DEFAULT_ATTR = () => Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
 
-/* opts.attr: 4대 스탯 배분 {str, con, agi, int} · opts.talent: 주력 기예 'forge'(단조) | 'alchemy'(연단) (TALENTS) */
+/* opts.attr: 단련 스탯 배분 {str, con, agi, int} · opts.apt: 자질 주사위 {bone, phys, eye, wit} · opts.talent: 주력 기예 'forge'(단조) | 'alchemy'(연단) (TALENTS) */
 function newState(name, mugongId, opts = {}) {
   const st = {
     v: 8, name, created: now(), lastTick: now(),
     hp: 0, mp: 0, stamina: 100, silver: 30, contrib: 0, exp: 0,
-    attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), talent: TALENTS[opts.talent] ? opts.talent : null,
+    attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), apt: validApt(opts.apt) ? { ...opts.apt } : rollApt(), talent: TALENTS[opts.talent] ? opts.talent : null,
     expedition: { zone: null, run: null, stage: 1, auto: true }, stages: {}, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
     inv: { saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_sm1a: 1, bk_gy1a: 1, bk_gi1a: 1 },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
-    perm: { maxHp: 0, maxMp: 0, attr: {} },
+    perm: { maxHp: 0, maxMp: 0, attr: {}, apt: {} },
     crafts: { forge: { lv: 1, xp: 0 }, alchemy: { lv: 1, xp: 0 } },
     codex: [], hints: [], flags: {},
     buffs: [], arin: {}, supplyDay: '', uid: 1, codexRewards: {},
@@ -206,6 +206,7 @@ function migrate(st) {
   }
   // 세계관 개편: 3대 스탯(기본 배분)·보조 기예 없음·요수 도감(구역 기록에서)·실패 부산물 → 검게 탄 찌꺼기
   if (!st.attr) st.attr = DEFAULT_ATTR();
+  if (!validApt(st.apt)) st.apt = { bone: 7, phys: 6, eye: 7, wit: 6 };   // 자질이 생기기 전 제자: 가운데 값(합계 26)으로 — 주사위 운에 맡기지 않는다
   if (!('talent' in st)) st.talent = null;
   if (!st.bestiary) { st.bestiary = {}; for (const z of Object.values(st.zoneLog || {})) for (const [e, n] of Object.entries(z.seen || {})) { const b = st.bestiary[e] = st.bestiary[e] || { met: 0, kills: 0 }; b.met += n; } }
   if (st.inv) for (const id of ['twistedIron', 'burntAsh', 'dregs']) if (st.inv[id]) { st.inv.slag = (st.inv.slag || 0) + st.inv[id]; delete st.inv[id]; }

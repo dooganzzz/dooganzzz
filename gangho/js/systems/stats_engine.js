@@ -6,12 +6,16 @@ const schoolOf = mid => (MANUALS[mid] && MANUALS[mid].school) || 'jeong';
 const mySchool = () => S.active.mugong ? schoolOf(S.active.mugong) : 'jeong';
 function schoolEdge(mine, theirs) { if (!theirs || !SCHOOLS[theirs]) return 0; return SCHOOLS[mine].beats === theirs ? 1 : SCHOOLS[theirs].beats === mine ? -1 : 0; }
 function calcStats() {
-  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 5, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0 };
-  // 3대 기본 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다
+  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 7.4, critRes: 0, counter: 10, mpRegen: 1, bag: 100, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0 };
+  // 단련 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다. 짝 자질의 계수(scale)는 단련 한 점당 증가량에 곱한다 (기준값 몫은 그대로라 평균 제자는 변함없음)
+  const aptPair = Object.fromEntries(Object.entries(APTS).map(([k, P]) => [P.pair, k]));
   for (const [a, D] of Object.entries(ATTRS)) {
-    const d = attrOf(a) - ATTR_BASE; for (const [k, v] of Object.entries(D.per)) s[k] += v * d;
-    for (const [k, v] of Object.entries(D.abs || {})) s[k] += v * attrOf(a);       // 민첩: 수치 그대로
+    const v0 = attrOf(a), P = APTS[aptPair[a]], ad = aptOf(aptPair[a]) - APT_MID;
+    for (const [k, v] of Object.entries(D.per)) s[k] = (s[k] || 0) + v * (v0 * (1 + ((P && P.scale[k]) || 0) * ad) - ATTR_BASE);
+    for (const [k, v] of Object.entries(D.abs || {})) s[k] += v * v0;       // 민첩: 수치 그대로
   }
+  // 자질: 가운데 값(APT_MID)에서 한 점 벗어날 때마다
+  for (const [a, P] of Object.entries(APTS)) { const d = aptOf(a) - APT_MID; for (const [k, v] of Object.entries(P.per)) s[k] = (s[k] || 0) + v * d; }
   for (const [k, v] of Object.entries(codexBonus().stats)) s[k] = (s[k] || 0) + v;   // 지역 도감 완성 보상
   for (const [k, v] of Object.entries(manualPassive().stats)) s[k] = (s[k] || 0) + v;  // 비급 독파 영구 보너스 (장착 여부 무관)
   // 옥대의 기공 위력(qiPct)은 기공 능력치에 곱하므로 먼저 모은다
@@ -50,6 +54,7 @@ function calcStats() {
   s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
   s.counter = Math.min(60, Math.round(s.counter * 10) / 10);
   s.mpRegen = Math.round(s.mpRegen * 10) / 10;
+  for (const k of ['block', 'shield', 'critRes', 'critDmg', 'aura', 'craft', 'mpSave']) s[k] = Math.max(0, Math.round((s[k] || 0) * 10) / 10);   // 심력 · 자질이 기준보다 낮아도 음수로 내려가지 않는다
   return s;
 }
 
@@ -84,6 +89,14 @@ function clampVitals() {
 }
 
 /* 기본 스탯: 배분한 값 + 지역 도감 완성 보상 + 비급 독파 보너스 + 장비 + 무신상 각성(영구) */
+/* 자질: 서장 주사위 값 + 영구 상승(S.perm.apt — 영약 · 기연 · 경지 돌파) */
+function aptOf(a) { return ((S.apt && S.apt[a]) || APT_MID) + ((S.perm && S.perm.apt && S.perm.apt[a]) || 0); }
+/* 자질 주사위: 넷 모두 APT_MIN~APT_MAX, 합계 APT_TOTAL (조건에 맞을 때까지 다시 굴린다 — 가능한 조합마다 같은 확률) */
+function rollApt() {
+  const ks = Object.keys(APTS), n = APT_MAX - APT_MIN + 1;
+  for (;;) { const r = ks.map(() => APT_MIN + Math.floor(Math.random() * n)); if (r.reduce((a, b) => a + b, 0) === APT_TOTAL) return Object.fromEntries(ks.map((k, i) => [k, r[i]])); }
+}
+const validApt = A => !!A && Object.keys(APTS).every(k => Number.isInteger(A[k]) && A[k] >= APT_MIN && A[k] <= APT_MAX) && Object.keys(APTS).reduce((a, k) => a + A[k], 0) === APT_TOTAL;
 function attrOf(a) {
   const gear = SLOT_ORDER.reduce((n, slot) => n + ((S.equip[slot] && S.equip[slot].stats[a]) || 0), 0);
   return ((S.attr && S.attr[a]) || ATTR_BASE) + (codexBonus().attr[a] || 0) + (manualPassive().attr[a] || 0) + gear + ((S.perm && S.perm.attr && S.perm.attr[a]) || 0);

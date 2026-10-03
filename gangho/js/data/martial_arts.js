@@ -80,7 +80,7 @@ const CP_SCALE = 170, CP_EXP = 0.38;
 
 /* ───────── 3대 상성 ───────── */
 /* 오행(五行): 장착 기공의 오행과 적의 오행. 극(剋)하는 쪽이 피해 +25%, 극당하는 쪽이 -25%. 상생(相生)은 보정 없음.
-   지력은 내가 극할 때의 오행술 위력을 더한다 (ATTRS.int.per.elem). */
+   오성은 내가 극할 때의 오행술 위력을 더한다 (APTS.wit.per.elem). */
 const ELEMENTS = {
   wood:  { name: '목', hanja: '木', cls: 'el-wood' },
   fire:  { name: '화', hanja: '火', cls: 'el-fire' },
@@ -145,14 +145,23 @@ const DEFEAT_CAUSE = {
   grind: '길어진 싸움에 힘이 다했습니다.',
 };
 
-/* 4대 기본 스탯 (캐릭터 생성 때 배분).
-   per: ATTR_BASE를 기준으로 한 점마다 더하거나 뺀다 (per.elem: 오행 극 보정 %p)
-   abs: 수치 그대로 곱해 더한다 — 민첩: 회피율 민첩×0.5% · 치명타율 민첩×0.4% · 탐험 기력 소모 민첩×1% 감소.
-        선공은 '속도 + 민첩'과 요수의 속도를 비교한다. 투력에는 선공(속도 + 민첩 ≥ 기준 상대 속도)으로 들어간다 */
+/* 단련 스탯 4종 (캐릭터 생성 때 배분 · 비급 독파와 성장으로 자주 오른다). 계열마다 짝이 되는 자질(APTS)이 한 점당 증가량의 계수가 된다.
+   per: ATTR_BASE를 기준으로 한 점마다 더하거나 뺀다 · abs: 수치 그대로 곱해 더한다 — 민첩: 회피율 민첩×0.5% · 탐험 기력 소모 민첩×1% 감소.
+   선공은 '속도 + 민첩 + 선공(안력)'과 요수의 속도를 비교한다. 투력에는 선공(≥ 기준 상대 속도)으로 들어간다 */
 const ATTRS = {
   str: { name: '근력', hanja: '筋力', desc: '공격력 · 적재량', per: { atk: 2, bag: 6 } },
-  con: { name: '체력', hanja: '體力', desc: '생명력 · 방어', per: { maxHp: 12, def: 0.8 } },
-  agi: { name: '민첩', hanja: '敏捷', desc: '회피 · 치명타 · 경공 효율', per: {}, abs: { eva: 0.5, crit: 0.4, staSave: 1 } },
-  int: { name: '지력', hanja: '智力', desc: '내력 · 오행술 위력', per: { maxMp: 6, elem: 2 } },
+  con: { name: '체력', hanja: '體力', desc: '최대 활력 · 방어력', per: { maxHp: 12, def: 0.8 } },
+  agi: { name: '민첩', hanja: '敏捷', desc: '속도 · 회피 · 경공 효율', per: {}, abs: { eva: 0.5, staSave: 1 } },
+  int: { name: '심력', hanja: '心力', desc: '최대 내력 · 내력 회복 · 막기 · 호신강기', per: { maxMp: 6, mpRegen: 0.1, block: 0.4, shield: 0.5 } },
 };
+/* 자질 4종 (資質, 타고난 바탕): 서장에서 주사위로 정한다 — 넷 모두 APT_MIN~APT_MAX, 합계는 늘 APT_TOTAL이라 제자끼리 공평하다.
+   영약 · 기연 · 경지 돌파 때만 조금씩 오른다 (획득처는 차차). 가운데 값(APT_MID)이 지금까지의 기준이라 평균 제자는 수치가 그대로다.
+   pair: 짝 단련 스탯 · scale: 짝 스탯 한 점당 증가량에 곱하는 몫(1 + scale × (자질 - APT_MID)) · per: 자질이 가운데 값에서 한 점 벗어날 때마다 */
+const APTS = {
+  bone: { name: '근골', hanja: '筋骨', desc: '타고난 뼈대와 힘줄 — 근력 1당 공격력 · 치명 피해 · 기세', pair: 'str', scale: { atk: 0.05 }, per: { critDmg: 1, aura: 0.5 } },
+  phys: { name: '체질', hanja: '體質', desc: '타고난 몸의 바탕 — 체력 1당 활력 · 치명 저항 · 최대 기력', pair: 'con', scale: { maxHp: 0.05 }, per: { critRes: 1, maxSta: 2 } },
+  eye:  { name: '안력', hanja: '眼力', desc: '상대의 움직임을 읽는 눈 — 선공 판정 · 치명타율 · 반격', pair: 'agi', scale: {}, per: { first: 0.6, crit: 0.5, counter: 0.6 } },
+  wit:  { name: '오성', hanja: '悟性', desc: '초식을 깨닫는 자질 — 초식 위력 · 수련치 · 내력 소모 감소 · 기예 · 오행술 위력', pair: 'int', scale: {}, per: { qiDmg: 0.012, train: 1.5, mpSave: 1.5, craft: 1, elem: 2 } },
+};
+const APT_MIN = 1, APT_MAX = 12, APT_TOTAL = 26, APT_MID = 6.5;
 const ATTR_BASE = 6, ATTR_MIN = 3, ATTR_MAX = 10, ATTR_TOTAL = 24;

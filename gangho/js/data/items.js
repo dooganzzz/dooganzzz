@@ -272,7 +272,7 @@ const STAT_NAMES = {
   craft: '기예 보정', train: '수련치 획득', maxSta: '최대 기력', counter: '반격', combo: '초식 발동률',
   staSave: '기력 소모 감소', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성', bleed: '출혈 확률', pierce: '관통력', acc: '명중',
   shock: '충격 확률', first: '선공', mpRegenPct: '내력 회복률', armorPen: '방어 무시', elem: '오행 위력',
-  str: '근력', con: '체력', agi: '민첩', int: '지력',
+  str: '근력', con: '체력', agi: '민첩', int: '심력', bone: '근골', phys: '체질', eye: '안력', wit: '오성', qiDmg: '초식 위력', mpSave: '내력 절약',
   critDmg: '치명 피해', block: '막기', shield: '호신강기', luck: '기연', aura: '기세',
 };
 

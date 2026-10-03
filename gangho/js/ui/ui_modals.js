@@ -253,6 +253,7 @@ function showIntro() {
   let chosen = 'sw1a', talent = 'forge';
   let stage = navigator.webdriver ? INTRO_STEPS : 0, fresh = 0;   // fresh: 방금 드러난 단계 (그 단계만 번지며 나타난다)
   const attr = Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
+  let apt = rollApt();   // 자질: 주사위 (합계는 늘 같다 · 다시 굴릴 수 있다)
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';
   const left = () => ATTR_TOTAL - Object.values(attr).reduce((a, b) => a + b, 0);
   const step = (n, html) => stage >= n ? `<section class="intro-step ${fresh === n ? 'reveal' : ''}" data-step="${n}">${html}</section>` : '';
@@ -269,12 +270,16 @@ function showIntro() {
       ${step(1, `<h3 class="intro-h">제자 만들기</h3>
       <label class="field-l" for="pname">제자의 이름</label>
       <input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off">`)}
-      ${step(2, `<p class="field-l">4대 기본 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
+      ${step(2, `<p class="field-l">단련 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
       <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
         <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
         <button class="btn sm ghost" data-attr="${k}" data-d="-1" ${attr[k] <= ATTR_MIN ? 'disabled' : ''} aria-label="${A.name} 내리기">−</button>
         <b class="attr-val">${attr[k]}</b>
-        <button class="btn sm ghost" data-attr="${k}" data-d="1" ${attr[k] >= ATTR_MAX || left() <= 0 ? 'disabled' : ''} aria-label="${A.name} 올리기">＋</button></div>`).join('')}</div>`)}
+        <button class="btn sm ghost" data-attr="${k}" data-d="1" ${attr[k] >= ATTR_MAX || left() <= 0 ? 'disabled' : ''} aria-label="${A.name} 올리기">＋</button></div>`).join('')}</div>
+      <p class="field-l">자질 <small class="muted">(資質) 타고난 바탕 · 주사위 ${APT_MIN}~${APT_MAX} · 합계는 누구나 ${APT_TOTAL}</small></p>
+      <div class="attrs apts">${Object.entries(APTS).map(([k, A]) => `<div class="attr-row">
+        <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc.split(' — ')[1]}</small></span><b class="attr-val">${apt[k]}</b></div>`).join('')}</div>
+      <button class="btn sm" data-reroll>주사위 다시 굴리기</button>`)}
       ${step(3, `<p class="field-l">입문 무공 <small class="muted">입문 무공이 곧 첫 병기입니다</small></p>
       <div class="starters starter-books">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}">${starterIco(id)}<b>${STARTER_LABEL[M.weapon]}</b></button>`; }).join('')}</div>`)}
       ${step(4, `<p class="field-l">기예 <small class="muted">(技藝)</small></p>
@@ -292,12 +297,13 @@ function showIntro() {
     if (s) { chosen = s.dataset.starter; draw(); return; }
     const t = e.target.closest('[data-talent]');
     if (t) { talent = t.dataset.talent; draw(); return; }
+    if (e.target.closest('[data-reroll]')) { apt = rollApt(); draw(); return; }
     const a = e.target.closest('[data-attr]');
     if (a && !a.disabled) { const k = a.dataset.attr, d = +a.dataset.d; if (attr[k] + d >= ATTR_MIN && attr[k] + d <= ATTR_MAX && (d < 0 || left() > 0)) attr[k] += d; draw(); return; }
     if (e.target.closest('#begin') && !left()) {
       const name = ($('#pname').value || '').trim().slice(0, 8) || '무명';
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
-      startNewGame(name, chosen, { attr: { ...attr }, talent });
+      startNewGame(name, chosen, { attr: { ...attr }, apt: { ...apt }, talent });
       goTab('sect', 'hall');
       render();
       if (!reduceMotion()) replay(document.querySelector('.app'), 'app-reveal');   // 메인 화면이 먹 번지듯 서서히

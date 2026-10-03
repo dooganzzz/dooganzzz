@@ -21,7 +21,7 @@ function mapScreen() {
   return `<section class="panel map-sheet">
     <div class="map-head"><h2>강호 지도 <small>江湖地圖</small></h2></div>
     <div class="map-box"><img src="${ASSET.scene('map')}" alt="청풍문과 세 탐험지 지도" draggable="false">${spots}
-      <button class="map-spot" style="clip-path:polygon(${MAP_HIT.home.poly})" data-tab="sect" data-sub="hall" aria-label="청풍문으로 돌아가기"></button><img class="map-word home" style="left:${MAP_LABELS.home.x}%;top:${MAP_LABELS.home.y}%" src="${ASSET.ui('map_home')}" alt=""></div>
+      <button class="map-spot" style="clip-path:polygon(${MAP_HIT.home.poly})" data-tab="sect" data-sub="grounds" aria-label="청풍문으로 돌아가기"></button><img class="map-word home" style="left:${MAP_LABELS.home.x}%;top:${MAP_LABELS.home.y}%" src="${ASSET.ui('map_home')}" alt=""></div>
     <p class="muted map-hint">탐험지에 손을 대면 이름이 떠오르고, 누르면 출발 준비가 나옵니다. 청풍문을 누르면 문파로 돌아갑니다.</p>
   </section>`;
 }
@@ -34,4 +34,18 @@ function mapGoModal(zid) {
     ${prepPanel()}
     <div class="btns"><button class="btn primary big" data-act="mapgo">출발</button><button class="btn ghost" data-act="mapback">다른 곳 고르기</button></div>
   </div>`;
+}
+
+/* ───────── 청풍문 › 전경: 위에서 내려다본 좌판 (배경 한 장 + 누르는 자리). 빈 터에는 나중에 건물 그림을 한 채씩 얹는다 ─────────
+   poly = 누르는 자리(%), lx · ly = 손을 대면 떠오르는 이름 자리(%) */
+const GROUNDS_SPOTS = {
+  hall: { name: '정청', hanja: '正廳', lx: 50, ly: 25, poly: '43% 2%,57% 2%,58% 14%,56% 24%,44% 24%,42% 14%', go: 'data-tab="sect" data-sub="hall"' },
+  gate: { name: '산문', hanja: '山門', lx: 50, ly: 66, poly: '44% 73%,56% 73%,56% 93%,44% 93%', go: 'data-tab="field"' },
+};
+function viewGrounds() {
+  const spots = Object.entries(GROUNDS_SPOTS).map(([k, G]) => `<button class="map-spot" style="clip-path:polygon(${G.poly})" ${G.go} aria-label="${G.name}"></button><span class="ground-word" style="left:${G.lx}%;top:${G.ly}%">${G.name}<small>${G.hanja}</small></span>`).join('');
+  return `<section class="panel map-sheet">
+    <div class="map-box grounds"><img src="${ASSET.scene('sect_grounds')}" alt="청풍문 전경" draggable="false">${spots}</div>
+    <p class="muted map-hint">정청을 누르면 정청으로, 산문을 누르면 강호 지도로 나갑니다. 빈 터에는 문파가 커지며 전각이 들어섭니다.</p>
+  </section>`;
 }

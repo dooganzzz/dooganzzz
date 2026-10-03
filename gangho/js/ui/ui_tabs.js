@@ -2,7 +2,7 @@
 
 /* 화면 상태 (저장하지 않음): 탭·접힘·화로 투입·창·행낭 필터·선택 슬롯 */
 let ui = { fold: { hq: true, missions: true, library: true },   // 아코디언은 모두 접힌 채로 시작 (true = 접힘)
-  tab: 'sect', sectSub: 'hall', pot: {}, potGear: [], craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'observe', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null, libTab: 'equipment', skillTab: 'attack' };
+  tab: 'sect', sectSub: 'grounds', pot: {}, potGear: [], craft: 'forge', codexTab: 'monster', modal: null, bagFilter: 'all', slotSel: null, statusSub: 'observe', shopMode: 'buy', chronFilter: 'all', gachaResult: null, sim: null, libTab: 'equipment', skillTab: 'attack' };
 
 /* 시스템 신호 → 화면. 한 동작에서 신호가 여러 번 와도 한 번만 다시 그린다 (그리기 전에 모아 처리) */
 let renderQueued = false;
@@ -80,8 +80,8 @@ const TABS = [
   ['settings', '설정', '設定'],
 ];
 /* 2차 탭 (청풍문 시설 · 상태) */
-const SECT_SUBS = [['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
-const STATUS_SUBS = [['observe', '관조', '觀照'], ['gear', '무장', '武裝'], ['martial', '무공', '武功']];   // 관조: 활력 · 내력 · 투력 · 수련치 · 은자 · 공헌
+const SECT_SUBS = [['grounds', '전경', '全景'], ['hall', '정청', '正廳'], ['forge', '화로', '火爐'], ['yeonmu', '연무장', '演武場'], ['shrine', '무신상', '武神像'], ['shop', '전방', '廛房']];
+const STATUS_SUBS = [['observe', '관조', '觀照'], ['martial', '무공', '武功']];   // 관조: 능력치(왼쪽) + 무장(오른쪽) — 무장 탭은 관조에 합침 (10월 3일)
 const SUBS = { sect: SECT_SUBS, status: STATUS_SUBS };
 const SUB_KEY = { sect: 'sectSub', status: 'statusSub' };
 
@@ -96,7 +96,7 @@ function screen() {
 function goTab(tab, sub) {
   ui.tab = tab;
   Bus.emit('trace', 'tab', `${tab}${sub ? ' › ' + sub : ''}`);
-  if (SUB_KEY[tab]) ui[SUB_KEY[tab]] = sub || (tab === 'sect' ? 'hall' : ui[SUB_KEY[tab]]);
+  if (SUB_KEY[tab]) ui[SUB_KEY[tab]] = sub || (tab === 'sect' ? 'grounds' : ui[SUB_KEY[tab]]);
   ui.craftResult = null; ui.gachaResult = null;
 }
 function subtabBar(tab) {
@@ -131,14 +131,13 @@ function renderHeader() {
   if (cm) { const old = cm.querySelector('.cp-delta'); if (old) old.remove(); if (dl) cm.insertAdjacentHTML('beforeend', dl); }
 }
 /* 상태 탭 맨 위: 활력 · 내력 막대와 수련치 · 은자 · 공헌 */
+/* 관조 › 메인 능력치 (#vitals, 매초 갱신): 투력 · 활력 · 내력 막대 · 4대 스탯(아이콘). 수련치는 무공 탭, 은자는 행낭, 공헌은 장경각에 */
 function vitalsHtml(st = calcStats()) {
-  return `<div class="status-indicator-row">
+  return `<div class="obs-main">
+      <div class="cp-card obs-cp"><div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수">${uiIco('h_cp', 'obs-ico')}<span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(combatPowerParts(S).total)}</b></div></div>
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
-      <div class="currency-chips user-status-bar">
-        <div class="status-chip training exp" title="수련치 ${fmt(S.exp)} (탐험에서 쌓은 수련 · 상태 › 무공에서 성급 올리기)">${uiIco('h_xp')}<span class="chip-badge badge-training badge-exp">수련치</span><span class="chip-value" id="header-exp">${fmtShort(S.exp)}</span></div>
-        <div class="status-chip silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}<span class="chip-badge badge-silver">은자</span><span class="chip-value" id="header-silver">${fmtShort(S.silver)}</span></div>
-        <div class="status-chip contrib contribution" title="문파 공헌도 ${fmt(S.contrib)}">${uiIco('h_contrib')}<span class="chip-badge badge-contrib">공헌</span><span class="chip-value" id="header-contrib">${fmtShort(S.contrib)}</span></div>
-      </div>
+      <div class="obs-attrs">${Object.entries(APTS).map(([q, P]) => { const A = ATTRS[P.pair], tile = (k, N, v, cls) => `<div class="obs-attr ${cls}" title="${N.desc}">${uiIco('st_' + k, 'obs-ico')}<span>${N.name}<small>${N.hanja}</small></span><b>${v}</b></div>`;
+            return tile(P.pair, A, attrOf(P.pair), 'drill') + tile(q, P, aptOf(q), 'apt'); }).join('')}</div>
     </div>`;
 }
 /* 수묵 아이콘 (ASSET.ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
@@ -179,7 +178,7 @@ function render() {
   renderHeader(); renderTabs();
   const main = $('#main');
   const scr = screen(), bar = SUBS[ui.tab] ? subtabBar(ui.tab) : '';
-  setHTML(main, bar + ({ observe: viewObserve, gear: viewGear, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, hall: viewHall, shop: viewShop, field: () => ui.fieldMap !== false && !activeRun() ? mapScreen() : viewField(), chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
+  setHTML(main, bar + ({ observe: viewObserve, gear: viewObserve, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, grounds: viewGrounds, hall: viewHall, shop: viewShop, field: () => ui.fieldMap !== false && !activeRun() ? mapScreen() : viewField(), chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
   renderModal();
   typewriteAll();
   wireImages();

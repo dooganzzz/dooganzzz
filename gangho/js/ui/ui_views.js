@@ -56,14 +56,6 @@ const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
 
 /* 상태 탭 맨 위: 투력. 공세 · 수세 같은 내역은 보여 주지 않는다 (유저가 직접 찾아가도록) */
-function cpCard() {
-  const p = combatPowerParts(S);
-  return `<section class="cp-card" aria-label="투력">
-    <div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수. 어디가 모자란지는 직접 겨뤄 보며 찾아가십시오."><span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(p.total)}</b>${cpDeltaHtml(calculateCombatPower(S))}</div>
-    <div class="cp-attr">${Object.entries(ATTRS).map(([k, A]) => `<span title="${A.desc}">${A.name} <b>${attrOf(k)}</b></span>`).join('')}${S.talent ? `<span title="${TALENTS[S.talent].desc}">기예 <b>${TALENTS[S.talent].name}</b></span>` : ''}</div>
-  </section>`;
-}
-
 /* 상태 › 무공 */
 function viewMartial() {
   // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
@@ -134,12 +126,34 @@ function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${
 
 
 /* 상태 › 무장: 착용 장비 슬롯 · 선택 장비 강화 · 능력치 */
-/* 상태 › 관조: 활력 · 내력 · 수련치 · 은자 · 공헌(#vitals, 매초 갱신) + 투력 카드 + 세부 능력치표 */
+/* 상태 › 관조: 왼쪽 능력치(메인 #vitals 매초 갱신 · 성향 · 세부) · 오른쪽 무장 */
 function viewObserve() {
   const st = calcStats();
-  const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k]}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-  return `<section class="vitals" id="vitals">${vitalsHtml(st)}</section>${cpCard()}
-  <section class="panel observe">${head('능력치', '能力')}<div class="statsheet">${statList}</div></section>`;
+  const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k] ?? 0}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('')
+    + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
+  return `<div class="observe-duo">
+  <section class="panel observe">${head('능력치', '能力')}
+    <h4 class="obs-h">메인 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
+    <h4 class="obs-h">성향 <small>性向</small></h4>${schoolTriangle()}
+    <h4 class="obs-h">세부 능력치</h4><div class="statsheet">${statList}</div>
+  </section>
+  ${viewGear()}
+  </div>`;
+}
+/* 성향: 익힌 비급의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 — 정 2 · 마 1 · 사 1이면 정 쪽으로 치우친 점 */
+const SCHOOL_TRI = { jeong: [50, 20], ma: [18.6, 73], sa: [83.6, 72.8] };   // 꼭짓점 (그림 school_tri 위 %)
+function schoolTriangle() {
+  const n = { jeong: 0, ma: 0, sa: 0 };
+  for (const id of Object.keys(S.manuals)) if (MANUALS[id]) n[schoolOf(id)]++;
+  const tot = n.jeong + n.ma + n.sa, w = k => tot ? n[k] / tot : 1 / 3;
+  const x = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][0], 0), y = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][1], 0);
+  const top = Object.keys(n).sort((a, b) => n[b] - n[a]), lead = tot && n[top[0]] > n[top[1]] ? top[0] : null;
+  return `<div class="school-tri">
+    <div class="st-board"><img src="${ASSET.ui('school_tri')}" alt="" aria-hidden="true">
+      ${Object.entries(SCHOOL_TRI).map(([k, [cx, cy]]) => `<span class="st-corner s-${k}" style="left:${cx}%;top:${cy}%">${SCHOOLS[k].hanja}<small>${n[k]}</small></span>`).join('')}
+      <i class="st-dot ${lead ? 's-' + lead : ''}" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%"></i></div>
+    <p class="st-lead">${lead ? `<b class="s-${lead}">${SCHOOLS[lead].name}(${SCHOOLS[lead].hanja}) 성향</b> — ${SCHOOLS[lead].words}` : tot ? '<b>치우치지 않음</b> — 정 · 마 · 사가 고르게 섞여 있습니다' : '<b>아직 없음</b> — 비급을 익히면 성향이 드러납니다'}<br><small class="muted">익힌 비급: 정 ${n.jeong} · 마 ${n.ma} · 사 ${n.sa}</small></p>
+  </div>`;
 }
 function viewGear() {
   const st = calcStats();

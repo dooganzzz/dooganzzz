@@ -839,3 +839,10 @@ button.fslot:hover { filter: brightness(1.15); }
 @keyframes potReady { 50% { box-shadow: 0 0 22px 4px rgba(255, 220, 160, .22); } }
 html.calm .pot-hot { animation: none; }
 @media (max-width: 640px) { .furnace-stage .pot-side { grid-template-columns: repeat(2, 11cqw); gap: 1.4cqw; } }
+/* 청풍문 전경: 이름은 평소 숨기고 손을 대면 붓글씨로 떠오른다 (강호 지도와 같은 결) */
+.map-box > .ground-word { position: absolute; z-index: 3; transform: translate(-50%, 0); pointer-events: none; opacity: 0; transition: opacity .2s;
+  font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-size: clamp(18px, 2.4vw, 34px); color: #15110d; white-space: nowrap;
+  text-shadow: 0 0 10px rgba(245, 236, 210, .95), 0 0 4px rgba(245, 236, 210, .9); }
+.map-box > .ground-word small { font-size: .5em; margin-left: .3em; opacity: .75; }
+.map-spot:hover + .ground-word, .map-spot:focus-visible + .ground-word { opacity: 1; }
+.map-box.grounds { width: min(100%, calc((100vh - 400px) * 16 / 9)); }   /* 청풍문 전경: 머리 · 갈래 줄 아래에 한 화면으로 */
