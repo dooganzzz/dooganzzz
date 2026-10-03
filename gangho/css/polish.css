@@ -265,6 +265,13 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .hj-seal { display: inline-block; }
 .beasts li small { white-space: nowrap; }   /* 만남 · 처치는 한 덩어리로 (좁으면 통째로 다음 줄) */
 /* 《이름》 옆에 등급 · 경지 낙관을 가로로 (10월 3일 유저) — 좁으면 낙관이 통째로 다음 줄 */
-.mm-title, .mrow-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.mm-title, .mrow-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; }   /* 이름 ↔ 낙관 0 (10월 3일 유저 슬라이더 값) */
+.sheet .mm-title .mm-tags { gap: 2px; } .mrow-top .mrow-meta { gap: 3px; }   /* 낙관 ↔ 낙관: 상세 2 · 칸 3 */
 .mm-title h2 { margin: 0; }
 .sheet .mm-title .mm-tags { margin: 0; }
+/* 모바일 배열 정리 (10월 3일 유저) */
+.sim-aff .nw { white-space: nowrap; }   /* 상성 한 마디(오행 … · 병기 …)는 통째로 줄을 내린다 */
+.sim-foe { align-items: center; }
+.mats .chips.forge-gear .fg-name { white-space: normal; overflow: visible; text-overflow: clip; }   /* 화로 강화 재료 이름을 '…'로 자르지 않고 줄을 내림 */
+.nw { white-space: nowrap; }
+.mm-title .hj-seal, .mrow-top .hj-seal { margin: 0; }   /* 간격은 위 gap 값만 (미리보기 슬라이더와 같게) */
