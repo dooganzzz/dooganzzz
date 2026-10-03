@@ -22,8 +22,8 @@ function sndInit() {
   if (SND.ctx) { if (SND.ctx.state === 'suspended' && !document.hidden) SND.ctx.resume().catch(() => {}); if (SND.deck && SND.deck.el.paused) SND.deck.el.play().catch(() => {}); return; }   // 첫 화면에서 막혔던 배경음악을 첫 손길에 이어 튼다
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
   const c = SND.ctx = new AC();
-  SND.bgmBus = c.createGain(); SND.sfxBus = c.createGain();
-  SND.bgmBus.connect(c.destination);
+  SND.bgmBus = c.createGain(); SND.sfxBus = c.createGain(); SND.hitBus = c.createGain();
+  SND.bgmBus.connect(c.destination); SND.hitBus.connect(c.destination);   // 타격음 녹음은 둥글게 깎지 않고 그대로
   // 효과음을 둥글게 (10월 3일 유저 '소리가 너무 튄다'): 높은 소리를 깎고(저역 통과) · 갑자기 큰 소리를 눌러 고르게(압축) · 방 울림을 살짝(잔향)
   const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = SFX_SHAPE.lowpass; lp.Q.value = .5;
   const cmp = c.createDynamicsCompressor(); cmp.threshold.value = -26; cmp.knee.value = 12; cmp.ratio.value = 4; cmp.attack.value = .004; cmp.release.value = .18;
@@ -34,6 +34,7 @@ function sndInit() {
   const nb = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = nb.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   SND.noise = nb;
+  SND.hit = {}; if (location.protocol !== 'file:') for (const [w, n] of Object.entries(HIT_SFX)) fetch(ASSET.audio(n)).then(r => r.arrayBuffer()).then(b => c.decodeAudioData(b)).then(buf => { SND.hit[w] = buf; }).catch(() => {});
   if (location.protocol !== 'file:') fetch(ASSET.audio('sfx')).then(r => r.arrayBuffer()).then(b => c.decodeAudioData(b)).then(buf => { SND.rec = buf; }).catch(() => {});   // 녹음 효과음 묶음 (파일로 바로 연 화면에서는 받지 못하므로 합성음만)
   sndApply(true); sndTick();
 }
@@ -43,7 +44,7 @@ if (SOUND_ON) addEventListener('load', () => { try { sndInit(); } catch (e) {} }
 document.addEventListener('visibilitychange', () => { const c = SND.ctx; if (!c) return; if (document.hidden) c.suspend(); else c.resume().catch(() => {}); });
 function sndApply(now) {
   const c = SND.ctx; if (!c) return;
-  for (const [bus, k] of [[SND.bgmBus, 'bgmVol'], [SND.sfxBus, 'sfxVol']]) {
+  for (const [bus, k] of [[SND.bgmBus, 'bgmVol'], [SND.sfxBus, 'sfxVol'], [SND.hitBus, 'sfxVol']]) {
     const v = sndVol(k);
     if (bus._v !== v) { bus._v = v; bus.gain.cancelScheduledValues(c.currentTime); bus.gain.setTargetAtTime(v, c.currentTime, now ? .01 : .15); }
   }
@@ -199,7 +200,7 @@ const REC = {
 };
 const SFX_GAP = { type: 45, step: 80, click: 40, portal: 200, equip: 150, unequip: 150, book: 150, buy: 120, sell: 150 };
 /* 지금 내는 효과음: 대사 도트음 · 누르기 소리만 (10월 3일 유저: 나머지 효과음 · 날씨 소리는 모두 뺌. 다시 켜려면 여기에 이름을 더한다) */
-const SFX_ON = new Set(['type', 'click', 'step']);   // 발소리도 켬 (10월 3일 유저)
+const SFX_ON = new Set(['type', 'click', 'step', 'hit']);   // 발소리 · 타격음도 켬 (10월 3일 유저)
 function sfx(name, o = {}) {
   if (!SFX_ON.has(name)) return;
   const c = SND.ctx; if (!c || c.state !== 'running' || !SFX[name] || !sndVol('sfxVol')) return;
@@ -207,8 +208,13 @@ function sfx(name, o = {}) {
   const t = c.currentTime + .005;
   try { if (!(REC[name] && REC[name](t, o))) SFX[name](t, o); } catch (e) {}
 }
-/* 맞힐 때: 병기마다 다른 소리 (검 · 도 = 베기, 창 = 찌르기, 권장 = 주먹, 암기 = 박힘) · 치명타는 쿵 소리를 더한다 */
-function sfxHit(w, crit) { sfx(w === 'fist' ? 'punch' : w === 'hidden' ? 'dart' : w === 'spear' ? 'pierce' : 'slash', { crit }); if (crit) sfx('crit'); }
+/* 맞힐 때: 병기마다 녹음한 타격음 (HIT_SFX) · 치명타는 조금 더 크게 */
+function sfxHit(w, crit) {
+  const c = SND.ctx, b = SND.hit && SND.hit[w]; if (!SFX_ON.has('hit') || !b || !c || c.state !== 'running' || !sndVol('sfxVol')) return;
+  const n = performance.now(); if (n - (SND.last.hit || 0) < 60) return; SND.last.hit = n;
+  const s = c.createBufferSource(), g = c.createGain(); s.buffer = b; s.playbackRate.value = 1 + (Math.random() - .5) * .06; g.gain.value = crit ? 1 : .75;
+  s.connect(g); g.connect(SND.hitBus); s.start(c.currentTime + .005);
+}
 const sfxGround = () => { const W = typeof liveWeather === 'function' ? liveWeather(now()) : {}; return W.snow > .4 ? 'snow' : W.rain > .4 ? 'rain' : 'dirt'; };
 
 /* 누를 수 있는 곳을 누르면 딱 · 지도 탐험지에 마우스를 올리면 포탈 */
