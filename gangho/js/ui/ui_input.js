@@ -103,7 +103,8 @@ function onClick(e) {
   if (d.libtab) { ui.libTab = d.libtab; return render(); }
   if (d.skilltab) { ui.skillTab = d.skilltab; return render(); }
   if (d.slot) { ui.modal = 'equip:' + d.slot; return renderModal(); }   // 장비 칸 → 그 부위 장비 목록
-  if (d.equip) return equipItem(+d.equip, d.to);
+  if (d.bagitem) { ui.modal = 'bagitem:' + d.bagitem; return renderModal(); }   // 행낭 칸 → 세부정보
+  if (d.equip) { if (ui.modal && ui.modal.startsWith('bagitem:')) ui.modal = null; return equipItem(+d.equip, d.to); }
   if (d.unequip) return unequip(d.unequip);
   if (d.discard) { const it = S.gear.find(g => g.uid === +d.discard); if (!it) return; return requestActionConfirm({ title: '장비 버리기', description: `<b>${esc(gearName(it))}</b>을(를) 버립니다. 버린 장비는 되찾을 수 없습니다.`, details: ['은자 없이 사라짐'], confirmText: '버리기', onConfirm: () => discardGear(it.uid) }); }
   if (d.filter) { ui.bagFilter = d.filter; return render(); }

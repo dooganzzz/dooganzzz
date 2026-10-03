@@ -42,8 +42,8 @@ function portrait(who, seal, name) {
 const GRADE_CLASS_MAP = { '하급': 'grade-low', '중급': 'grade-mid', '상급': 'grade-high', '진품': 'grade-rare', '명품': 'grade-epic', '극품': 'grade-legend', '삼류': 'grade-low', '이류': 'grade-mid', '일류': 'grade-high', '절정': 'grade-rare', '초절정': 'grade-epic' };
 const gradeClass = g => GRADE_CLASS_MAP[g] || 'grade-low';
 const gradeBadge = g => `<span class="item-grade-badge">${g}</span>`;
-/* 카드 머리: 이름(등급 색)과 등급 원형 뱃지를 양 끝에 */
-const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico ? inkBox(ico) : ''}<b class="item-name">${name}</b>${gradeBadge(g)}</div>`;
+/* 카드 머리: 그림과 이름 (등급은 이름 색으로만 — 하급·중급 같은 글자 뱃지는 두지 않는다) */
+const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico ? inkBox(ico) : ''}<b class="item-name">${name}</b></div>`;
 
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
 const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})">${ELEMENTS[e].hanja}</span>` : '';
@@ -174,10 +174,9 @@ function viewBag() {
   const gear = f === 'etc' ? [] : gearSort(S.gear.filter(it => f === 'all' || SHOP_GEAR_TABS[f].slots.includes(it.slot)));
   const items = f === 'all' || f === 'etc' ? itemSort(Object.keys(S.inv)) : [];
   return `<section class="panel">
-    ${head('행낭', '行囊', `<span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
+    ${head('행낭', '行囊', `<span class="bag-silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}은자 <b>${fmt(S.silver)}</b></span><span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
     <div class="chips">${tabs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-filter="${k}">${n}</button>`).join('')}</div>
-    ${gear.length ? `<div class="gears">${gear.map(it => `<div class="gear item-card r${it.rarity} ${gradeClass(RARITY[it.rarity].name)}">${itemCardHead(it.name, RARITY[it.rarity].name, gearIco(it, 'card'))}<small class="muted item-category">${SLOTS[it.slot].name}${it.wtype ? ' · ' + WEAPON_SHORT[it.wtype] : ''}</small><small>${statLine(it)}</small>${it.unique ? `<small class="uniq">✦ ${it.unique.text}</small>` : ''}${cpDiffTag(it)}<div class="btns"><button class="btn sm" data-equip="${it.uid}">착용</button><button class="btn ghost sm" data-discard="${it.uid}">버리기</button></div></div>`).join('')}</div>` : ''}
-    <div class="items">${items.map(id => { const I = ITEMS[id]; return `<div class="item"><span class="icon">${itemIco(id)}</span><div><b>${I.name}</b> <span class="num">×${count(id)}</span><small>${I.desc}</small></div>${I.use ? `<button class="btn sm" data-use="${id}">${I.kind === '비급' ? '익히기' : '사용'}</button>` : '<span></span>'}</div>`; }).join('')}</div>
+    ${gear.length || items.length ? `<div class="bag-tiles">${gear.map(it => `<button class="bag-tile ${gradeClass(RARITY[it.rarity].name)}" data-bagitem="g:${it.uid}" title="${esc(it.name)}">${inkBox(gearIco(it, 'card'))}<b class="item-name">${it.name}</b></button>`).join('')}${items.map(id => `<button class="bag-tile" data-bagitem="i:${id}" title="${esc(ITEMS[id].name)}">${inkBox(itemIco(id))}<b class="item-name">${ITEMS[id].name}</b><span class="num bag-n">×${count(id)}</span></button>`).join('')}</div>` : ''}
     ${gear.length || items.length ? '' : '<p class="muted">이 갈래에 든 것이 없습니다.</p>'}
   </section>`;
 }

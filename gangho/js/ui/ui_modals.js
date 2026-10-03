@@ -93,6 +93,25 @@ function fillPot(rid) {
   ui.craft = r.craft; ui.pot = { ...r.in }; goTab('sect', 'forge'); ui.modal = null; render();
 }
 
+/* ───────── 행낭: 칸을 누르면 그 물건의 세부정보 (장비: 부위 · 능력치 · 투력 · 착용/버리기, 소지품: 설명 · 사용) ───────── */
+function bagItemModal(key) {
+  const [kind, id] = [key.slice(0, 1), key.slice(2)];
+  if (kind === 'g') {
+    const it = S.gear.find(g => g.uid === +id); if (!it) return '';
+    return `<div class="sheet bag-sheet" role="dialog" aria-modal="true">
+      <div class="sheet-head bag-detail ${gradeClass(RARITY[it.rarity].name)}">${inkBox(gearIco(it, 'card'))}<div><small class="muted">${SLOTS[it.slot].name}${it.wtype ? ' · ' + WEAPON_SHORT[it.wtype] : ''}</small><h2 class="item-name">${esc(gearName(it))}</h2></div></div>
+      <p>${statLine(it)}</p>${it.unique ? `<p class="uniq">✦ ${it.unique.text}</p>` : ''}${cpDiffTag(it)}
+      <div class="btns"><button class="btn primary" data-equip="${it.uid}">착용</button><button class="btn ghost" data-discard="${it.uid}">버리기</button><button class="btn ghost" data-act="closemodal">닫기</button></div>
+    </div>`;
+  }
+  const I = ITEMS[id]; if (!I || !has(id)) return '';
+  return `<div class="sheet bag-sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head bag-detail">${inkBox(itemIco(id))}<div><small class="muted">${I.kind || '소지품'}</small><h2 class="item-name">${esc(I.name)} <span class="num muted">×${count(id)}</span></h2></div></div>
+    <p>${I.desc || ''}</p>
+    <div class="btns">${I.use ? `<button class="btn primary" data-use="${id}">${I.kind === '비급' ? '익히기' : '사용'}</button>` : ''}<button class="btn ghost" data-act="closemodal">닫기</button></div>
+  </div>`;
+}
+
 /* ───────── 상태 › 무장: 장비 칸을 누르면 그 부위 장비 목록 (장착·교체·해제·강화) ───────── */
 function equipModal(slot) {
   const cur = S.equip[slot], list = gearSort(S.gear.filter(g => g.slot === slotAccepts(slot)));
@@ -165,6 +184,7 @@ function renderModal() {
   if (ui.modal === 'confirm') setHTML(m, confirmModal());
   if (ui.modal.startsWith('mapgo:')) setHTML(m, mapGoModal(ui.modal.slice(6)));
   if (ui.modal.startsWith('equip:')) setHTML(m, equipModal(ui.modal.slice(6)));
+  if (ui.modal.startsWith('bagitem:')) { const h = bagItemModal(ui.modal.slice(8)); if (!h) { ui.modal = null; m.hidden = true; return; } setHTML(m, h); }
   if (ui.modal.startsWith('artslot:')) setHTML(m, artSlotModal(ui.modal.slice(8)));
   if (ui.modal.startsWith('recipe:')) setHTML(m, recipeModal(ui.modal.slice(7)));
   if (ui.modal.startsWith('settle:')) { const h = settleModal(ui.modal.slice(7).split(',').map(Number)); if (!h) { ui.modal = null; m.hidden = true; return; } setHTML(m, h); }
