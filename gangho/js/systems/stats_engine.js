@@ -43,7 +43,7 @@ function calcStats() {
     if (b.key === 'atk') atkB += b.val;
     if (b.key === 'def') defB += b.val;
     if (b.key === 'defFlat') s.def += b.val;                // 철골단
-    if (b.key === 'critGuard') s.critRes += b.val * 2;     // 청심단: 적의 치명 확률 -val%p (치명 저항 2 = 1%p)
+    if (b.key === 'critGuard') s.critRes += b.val * 2;     // 청심단: 적의 치명 확률 -val%p (회심 방비 2 = 1%p)
     if (b.key === 'qiDmg') s.qiDmg = (s.qiDmg || 0) + b.val;   // 통맥환: 초식 피해
     if (b.key === 'train') s.trainBuff += b.val;
   }

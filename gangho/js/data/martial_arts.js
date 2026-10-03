@@ -43,7 +43,7 @@ const REALMS = [
 
 /* 대성 패시브: 12성에 이르면 분류별로 영구 고유 효과가 열린다 */
 const DAESUNG_PASSIVE = {
-  mugong:     { text: '극의(極意): 초식 발동률 +15%, 치명타율 +5%', stats: { combo: 15, crit: 5 } },
+  mugong:     { text: '극의(極意): 출수 +15%, 회심 +5%', stats: { combo: 15, crit: 5 } },
   simbeop:    { text: '극의(極意): 최대 내력 +20%, 내력 회복 +3', stats: { mpPct: 20, mpRegen: 3 } },
   gyeonggong: { text: '극의(極意): 속도 +3, 회피율 +8%', stats: { spd: 3, eva: 8 } },
   gigong:     { text: '극의(極意): 최대 활력 +15%, 반격 +10%', stats: { hpPct: 15, counter: 10 } },
@@ -67,7 +67,7 @@ const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창',
 const STAR_EXP = [60, 90, 130, 180, 260, 340, 430, 540, 660, 800, 1200];
 
 /* 투력(鬪力): 능력치 합이 아니라 '기준 상대와 겨뤘을 때 쓰러지기 전까지 넣는 피해'로 잰다.
-   공세(합당 기대 피해: 명중 · 관통 · 치명 · 초식 발현 · 내력 지속 · 반격 · 오행) × 수세(버티는 합: 활력 ÷ 합당 받는 피해, 회피 · 방어 · 치명 저항 · 흡혈 · 충격) + 선공.
+   공세(합당 기대 피해: 명중 · 관통 · 치명 · 초식 발현 · 내력 지속 · 반격 · 오행) × 수세(버티는 합: 활력 ÷ 합당 받는 피해, 회피 · 방어 · 회심 방비 · 흡혈 · 충격) + 선공.
    hp는 참고값(계산에는 쓰지 않음). 기준 상대는 세 단계(청풍산 · 염화채 · 수룡방 정예 수준) — 세 값을 기하평균해 한쪽만 높은 몸은 오르지 않게 한다. scale은 보기 좋은 크기로 키우는 값 */
 const CP_REF = [
   { name: '청풍산 정예', hp: 260, atk: 30, def: 8, eva: 10, spd: 12, crit: 8, hits: 1.3 },
@@ -130,7 +130,7 @@ const SCHOOLS = {
 };
 const SCHOOL_RULES = { edge: 0.15, jeongReward: 0.1, maStance: 0.1, saHeal: 0.03 };
 const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2,
-  critBase: 1.6,          // 제자 치명 배율 기본 (+ 치명 피해 %)
+  critBase: 1.6,          // 제자 치명 배율 기본 (+ 회심 위력 %)
   blockCut: 0.4,          // 막기: 막으면 받는 피해 -40%
   realm: { step: 0.1, cap: 3 },   // 경지 압제: 제자 품계(삼류 0 · 이류 1) − 요수 경지(탐험지 단계 − 1)마다 주는 피해 +10% · 받는 피해 -10% (최대 3단계)
   aura: { base: 10, perRank: 10, foeTier: 5, foeZone: 10, foeBoss: 15, cut: 0.5, max: 15 },   // 기세: 차이의 절반(%)만큼 약한 쪽 공격력이 꺾인다 (최대 15%)
@@ -158,10 +158,10 @@ const ATTRS = {
    영약 · 기연 · 경지 돌파 때만 조금씩 오른다 (획득처는 차차). 가운데 값(APT_MID)이 지금까지의 기준이라 평균 제자는 수치가 그대로다.
    pair: 짝 단련 스탯 · scale: 짝 스탯 한 점당 증가량에 곱하는 몫(1 + scale × (자질 - APT_MID)) · per: 자질이 가운데 값에서 한 점 벗어날 때마다 */
 const APTS = {
-  bone: { name: '근골', hanja: '筋骨', desc: '타고난 뼈대와 힘줄 — 근력 1당 공격력 · 치명 피해 · 기세', pair: 'str', scale: { atk: 0.05 }, per: { critDmg: 1, aura: 0.5 } },
-  phys: { name: '체질', hanja: '體質', desc: '타고난 몸의 바탕 — 체력 1당 활력 · 치명 저항 · 최대 기력', pair: 'con', scale: { maxHp: 0.05 }, per: { critRes: 1, maxSta: 2 } },
-  eye:  { name: '안력', hanja: '眼力', desc: '상대의 움직임을 읽는 눈 — 선공 판정 · 치명타율 · 반격', pair: 'agi', scale: {}, per: { first: 0.6, crit: 0.5, counter: 0.6 } },
-  wit:  { name: '오성', hanja: '悟性', desc: '초식을 깨닫는 자질 — 초식 위력 · 수련치 · 내력 소모 감소 · 기예 · 오행술 위력', pair: 'int', scale: {}, per: { qiDmg: 0.012, train: 1.5, mpSave: 1.5, craft: 1, elem: 2 } },
+  bone: { name: '근골', hanja: '筋骨', desc: '타고난 뼈대와 힘줄 — 근력 1당 공격력 · 회심 위력 · 기세', pair: 'str', scale: { atk: 0.05 }, per: { critDmg: 1, aura: 0.5 } },
+  phys: { name: '체질', hanja: '體質', desc: '타고난 몸의 바탕 — 체력 1당 활력 · 회심 방비 · 최대 기력', pair: 'con', scale: { maxHp: 0.05 }, per: { critRes: 1, maxSta: 2 } },
+  eye:  { name: '안력', hanja: '眼力', desc: '상대의 움직임을 읽는 눈 — 선공 판정 · 회심 · 반격', pair: 'agi', scale: {}, per: { first: 0.6, crit: 0.5, counter: 0.6 } },
+  wit:  { name: '오성', hanja: '悟性', desc: '초식을 깨닫는 자질 — 초식 위력 · 수련치 · 내력 절약 · 기예 · 오행술 위력', pair: 'int', scale: {}, per: { qiDmg: 0.012, train: 1.5, mpSave: 1.5, craft: 1, elem: 2 } },
 };
 const APT_MIN = 1, APT_MAX = 12, APT_TOTAL = 26, APT_MID = 6.5;
 const ATTR_BASE = 6, ATTR_MIN = 3, ATTR_MAX = 10, ATTR_TOTAL = 24;

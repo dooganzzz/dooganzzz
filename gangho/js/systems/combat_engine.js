@@ -268,10 +268,10 @@ function playerHit(b, mult, o) {
     if (b.fx) b.fx.push({ side: 'foe', t: '빗나감', k: 'miss' });
     return false;
   }
-  const def = Math.max(0, e.def * (1 - (st.armorPen || 0) / 100) - (st.pierce || 0));   // 방어 무시(%) → 관통력
+  const def = Math.max(0, e.def * (1 - (st.armorPen || 0) / 100) - (st.pierce || 0));   // 파갑(%) → 관통력
   let dmg = dmgCalc(st.atk, def) * mult * A.dealt * (o.title && o.cls !== 'counter' ? 1 + (st.qiDmg || 0) : 1);   // 통맥환(초식)
   const crit = Math.random() * 100 < st.crit + (o.critUp || 0);
-  if (crit) dmg *= COMBAT_RULES.critBase + (st.critDmg || 0) / 100;   // 치명 피해
+  if (crit) dmg *= COMBAT_RULES.critBase + (st.critDmg || 0) / 100;   // 회심 위력
   dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step) * (1 + schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge)
     * (o.title && o.cls !== 'counter' && mySchool() === 'ma' ? 1 + SCHOOL_RULES.maStance : 1));   // 경지 압제 · 정마사 상성(요수는 없음) · 마: 초식 위력
   e.hpNow = Math.max(0, e.hpNow - dmg);

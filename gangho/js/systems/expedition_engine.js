@@ -178,7 +178,7 @@ function resolveEncounter(uid, ci) {
 /* ───────── 강호행: [강호행 시작]을 누르면 쓰러지거나 귀환할 때까지 쭉 이어진다 ─────────
    걸음은 EXPEDITION.stepMs마다 하나(전투 · 금고 · 기연 · 덫 · 장치). 활력은 걸음 사이에 차지 않는다 —
    이기면 숨을 조금 고르고(breathe), 위급하면 생혈고를 스스로 바른다. 전투에서 지면 쓰러지고 강호행은 거기서 끝난다.
-   기력은 달리는 동안 닳고(EXPEDITION.run, 경공 지형 상성 · 기력 소모 감소 반영), 다 닳으면 걸으며 차오른다 — 걷는 동안은 걸음이 느리다. 기력단을 먹으면 곧바로 다시 달린다.
+   기력은 달리는 동안 닳고(EXPEDITION.run, 경공 지형 상성 · 기력 절약 반영), 다 닳으면 걸으며 차오른다 — 걷는 동안은 걸음이 느리다. 기력단을 먹으면 곧바로 다시 달린다.
    자리를 비워도 이어지고(최대 EXPEDITION.catchUp만큼 따라잡음), 요수를 물리치거나 주운 것은 그 자리에서 바로 받는다.
    전투는 실시간 강호행 무대에서 기록 그대로 재생되고, 견문록에는 결과와 [관찰](전투 장면 · 합 로그)이 남는다 */
 const findExpedition = id => S.expeditions.find(r => r.id === id);
@@ -292,7 +292,7 @@ function endRun(rec, t, why) {
 }
 function recallRun(t = now()) { const rec = activeRun(); if (rec) endRun(rec, t, 'recall'); return rec; }
 /* 시각 t까지 밀린 걸음을 차례로 치른다 (자리를 비운 시간은 EXPEDITION.catchUp까지만 따라잡는다) */
-/* 기력: 달리는 동안 닳고(지형 · 기력 소모 감소 반영), 다 닳으면 걷기로 바뀌어 차오르고, 가득 차면 다시 달린다 */
+/* 기력: 달리는 동안 닳고(지형 · 기력 절약 반영), 다 닳으면 걷기로 바뀌어 차오르고, 가득 차면 다시 달린다 */
 function staTick(rec, t) {
   if (rec.staAt === undefined) { rec.staAt = t; rec.mode = rec.mode || 'run'; }
   let dt = t - rec.staAt; if (dt <= 0) return; rec.staAt = t;

@@ -51,7 +51,7 @@ const ITEMS = {
   golgye:     { name: '철골단', hanja: '鐵骨丹', icon: '🦴', kind: '단약', grade: '8품', price: 40, use: { buff: { key: 'defFlat', val: 15, name: '철골단' } }, desc: '뼈와 근육을 강화하여 다음 원정 동안 방어력 +15.' },
   tongmaek:   { name: '통맥환', hanja: '通脈丸', icon: '🔆', kind: '단약', grade: '8품', price: 50, use: { buff: { key: 'qiDmg', val: 0.15, name: '통맥환' } }, desc: '굳어진 경락을 뚫어 다음 원정 동안 초식(기공) 피해 +15%.' },
   haedok:     { name: '해독산', hanja: '解毒散', icon: '🧪', kind: '단약', grade: '8품', price: 30, use: { buff: { key: 'antidote', val: 30, name: '해독산' } }, desc: '독충과 사파의 독기를 정화한다. 다음 원정에서 30합 동안 중독되지 않는다.' },
-  clearPill:  { name: '청심단', hanja: '淸心丹', icon: '🤍', kind: '단약', grade: '8품', price: 45, use: { buff: { key: 'critGuard', val: 10, name: '청심단' } }, desc: '심신을 가라앉혀 다음 원정 동안 치명타를 맞을 확률 -10%.' },
+  clearPill:  { name: '청심단', hanja: '淸心丹', icon: '🤍', kind: '단약', grade: '8품', price: 45, use: { buff: { key: 'critGuard', val: 10, name: '청심단' } }, desc: '심신을 가라앉혀 다음 원정 동안 회심를 맞을 확률 -10%.' },
   // 증표
   hasanryeong: { name: '낙양성 하산령', icon: '📜', kind: '증표', price: 0, desc: '청풍문 장문인이 내린 하산 허가증. 제2장 낙양성으로 가는 길이 열린다.' },
   // 비급서: 모든 비급마다 '비급' 아이템이 있다. 행낭에서 [ 익히기 ]로 소모하면 습득한 무공 목록에 오른다.
@@ -253,7 +253,7 @@ const RARITY = [
 const SLOTS = {
   weapon: { name: '무기',   desc: '5대 병기' },
   armor:  { name: '호갑',   desc: '활력·방어력' },
-  helmet: { name: '투구',   desc: '치명 저항' },
+  helmet: { name: '투구',   desc: '회심 방비' },
   boots:  { name: '신발',   desc: '공격 속도·회피율' },
   belt:   { name: '요대',   desc: '적재량·활력 보정' },
   jade:   { name: '옥대',   desc: '기공 위력·단전(내력) 보정' },
@@ -268,12 +268,12 @@ const SLOT_ACCEPTS = { ring2: 'ring' };
 
 const STAT_NAMES = {
   atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피율',
-  crit: '치명타율', critRes: '치명 저항', mpRegen: '내력 회복', bag: '행낭 칸', mpCost: '내력 소모 감소',
-  craft: '기예 보정', train: '수련치 획득', maxSta: '최대 기력', counter: '반격', combo: '초식 발동률',
-  staSave: '기력 소모 감소', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성', bleed: '출혈 확률', pierce: '관통력', acc: '명중',
-  shock: '충격 확률', first: '선공', mpRegenPct: '내력 회복률', armorPen: '방어 무시', elem: '오행 위력',
+  crit: '회심', critRes: '회심 방비', mpRegen: '내력 회복', bag: '행낭 칸', mpCost: '내력 절약',
+  craft: '손재주', train: '수련치 획득', maxSta: '최대 기력', counter: '반격', combo: '출수',
+  staSave: '기력 절약', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성', bleed: '출혈 확률', pierce: '관통력', acc: '명중',
+  shock: '충격 확률', first: '선공', mpRegenPct: '내력 회복률', armorPen: '파갑', elem: '오행 위력',
   str: '근력', con: '체력', agi: '민첩', int: '심력', bone: '근골', phys: '체질', eye: '안력', wit: '오성', qiDmg: '초식 위력', mpSave: '내력 절약',
-  critDmg: '치명 피해', block: '막기', shield: '호신강기', luck: '기연', aura: '기세',
+  critDmg: '회심 위력', block: '막기', shield: '호신강기', luck: '기연', aura: '기세',
 };
 
 const PCT_STATS = new Set(['critDmg', 'block', 'shield', 'luck', 'eva', 'crit', 'critRes', 'mpCost', 'craft', 'train', 'counter', 'combo', 'staSave', 'breathe', 'qiPct', 'elemRes', 'bleed', 'acc', 'shock', 'mpRegenPct', 'armorPen', 'elem']);
@@ -357,7 +357,7 @@ const SHOP_GEAR = [
 
 /* 제작 고유 옵션 */
 const UNIQUES = [
-  { key: 'combo',     val: 5, text: '초식 발동률 +5%' },
+  { key: 'combo',     val: 5, text: '출수 +5%' },
   { key: 'lifesteal', val: 4, text: '적중 시 활력 흡수 4%' },
   { key: 'atkPct',    val: 8, text: '공격력 +8%' },
   { key: 'hpPct',     val: 8, text: '최대 활력 +8%' },
@@ -373,9 +373,9 @@ const CRAFTS = {
 };
 
 /* 단조 전용 중급 장비 9종 (이류급 · 등급 중급 고정). 비밀 조합식은 recipes.js
-   bleed: 적중 시 출혈 확률(%) · pierce: 관통력(적 방어 무시) · acc: 명중 보정(%p) */
+   bleed: 적중 시 출혈 확률(%) · pierce: 관통력(적 파갑) · acc: 명중 보정(%p) */
 /* 장경각 이류(二流) 장비: 문파 공헌도로 교환. 이름은 '청풍문 ~'(문파 하사품)으로 단조 장비와 구분한다. 중급(녹색)·2티어. str/con/agi/int는 4대 스탯에 더해진다
-   shock 충격(적이 한 합 움직이지 못함) · first 선공 보정 · bleed 적에게 출혈 · staSave 원정 기력 소모 감소 */
+   shock 충격(적이 한 합 움직이지 못함) · first 선공 보정 · bleed 적에게 출혈 · staSave 원정 기력 절약 */
 /* 장경각 영단: 돌파단을 문파 공헌도로 (개수 제한 없음, 유저 확정 10월 2일) */
 const LIBRARY_PILLS = { pillLow: 500, pillHigh: 1500 };
 const LIBRARY_GEAR = {

@@ -197,7 +197,7 @@ function liveShowStep(sc, sh, ts, dt) {
       return false;
     }
     else if (e.k === 'proj') liveProj(sc, sh, e.dur);
-    else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 치명타 · 빗나감
+    else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 회심 · 빗나감
       const f = e.f;
       if (f.k === 'miss') { liveNum(sc, '빗나감', sh.foeX + 9, 'miss'); }
       else { spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }

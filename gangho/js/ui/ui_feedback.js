@@ -82,7 +82,7 @@ function stanceAnim(ar, f) {
   ar.appendChild(el); setTimeout(() => el.remove(), 1500);
 }
 
-/* 적중 자국: 인장 위로 칼바람 한 줄, 치명타면 먹물이 번진다 */
+/* 적중 자국: 인장 위로 칼바람 한 줄, 회심면 먹물이 번진다 */
 function hitMark(pl, f) {
   const av = pl.querySelector('.seal-av'); if (!av) return;
   const m = document.createElement('span');

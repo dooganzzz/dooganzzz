@@ -11,7 +11,7 @@ function viewCodex() {
   return `<section class="panel codex-panel">${head('도감', '圖鑑')}${bar}${body}</section>`;
 }
 
-/* 능력치 묶음 → "근력 +1 · 공격력 +3 · 치명타율 +0.5%" */
+/* 능력치 묶음 → "근력 +1 · 공격력 +3 · 회심 +0.5%" */
 const bonusText = o => Object.entries(o || {}).filter(([, v]) => v).map(([k, v]) => `${STAT_NAMES[k] || k} +${Math.round(v * 10) / 10}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
 
 const CODEX_EMPTY = '<p class="story muted">아직 강호에서 견문을 넓히지 못했습니다.</p>';
