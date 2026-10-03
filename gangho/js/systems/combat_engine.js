@@ -169,7 +169,7 @@ const myAura = st => COMBAT_RULES.aura.base + COMBAT_RULES.aura.perRank * (S.ran
 function battleOpening(b, E) {
   const R = COMBAT_RULES.realm, d = Math.max(-R.cap, Math.min(R.cap, (S.rank || 0) - foeRealm(b.eid)));
   b.realm = d;
-  if (d) bLine(d > 0 ? `⛰ 경지 압제 — 한 수 아래의 상대입니다. (주는 피해 +${d * R.step * 100}% · 받는 피해 -${d * R.step * 100}%)` : `⛰ 경지 압제 — 상대의 경지가 높아 숨이 막힙니다. (주는 피해 ${d * R.step * 100}% · 받는 피해 +${-d * R.step * 100}%)`, d > 0 ? 'aff-up' : 'muted');
+  if (d) bLine(d > 0 ? `⛰ 경지 압제 — 한 수 아래의 상대입니다. (주는 피해 +${Math.round(d * R.step * 100)}% · 받는 피해 -${Math.round(d * R.step * 100)}%)` : `⛰ 경지 압제 — 상대의 경지가 높아 숨이 막힙니다. (주는 피해 ${Math.round(d * R.step * 100)}% · 받는 피해 +${Math.round(-d * R.step * 100)}%)`, d > 0 ? 'aff-up' : 'muted');
   b.shield = Math.round(b.st.maxHp * (b.st.shield || 0) / 100);
   if (b.shield) bLine(`🛡 호신강기가 몸을 감쌉니다. (${fmt(b.shield)})`, 'log-stance-desc qi');
   const A = COMBAT_RULES.aura, me = myAura(b.st), foe = foeAura(b.eid), cut = Math.min(A.max, Math.abs(me - foe) * A.cut);
