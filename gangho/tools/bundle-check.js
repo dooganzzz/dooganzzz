@@ -8,6 +8,7 @@ const { playwright } = require('../tests/lib');
   const g = await ctx.newPage(); g.on('pageerror', e => errs.push(e.message));
   await g.goto(`file://${d}/gangho.html`); await g.click('#begin');
   const r = await g.evaluate(() => { setDestination('cheongpung'); return { tabs: document.querySelectorAll('.tabs .tab').length }; });
+  await g.evaluate(() => { document.getElementById('gmToggle').hidden = false; });   // GM 단추는 일반 제자에게 숨김 (#gm · Ctrl+Shift+G)
   const [a] = await Promise.all([ctx.waitForEvent('page'), g.click('#gmToggle')]);
   await a.waitForFunction(() => S && /연결됨/.test(document.querySelector('#gmConn').textContent), null, { timeout: 5000 });
   await a.click('.gm-tab[data-gmtab="cheat"]'); await a.click('[data-gm="silver"]');
