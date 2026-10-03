@@ -48,6 +48,7 @@ function liveShowPlan(sh, w) {
   };
   // 초식 일격: 제자는 제자리에서 칼을 휘두르고 (연속 때리기 무공은 아래에서 달려가 붙음)(돌진하는 평타 동작 없이), 칼끝에서 나간 검기가 요수에 닿을 때 맞는다
   const skillAtk = (t0, ev, sk) => {
+    q.push({ at: t0, k: 'kiai' });   // 기를 모아 들어가기 직전 기합 (10월 3일 유저)
     ev.art = !!(sk.mid && stanceFxSrc(sk.mid, sk.n || sk.tier));   // 초식 그림이 있으면 맞을 때 평타 타격 그림은 띄우지 않는다 (겹침 방지)
     if (!ranged && sk.mid && ASSET.hit(sk.mid) && stanceCutN(sk.n || sk.tier) === 1) {   // (제1초식만 — 제2초식은 손에서 뻗어 날아가는 기운)   // 연속 때리기(MANUAL_HIT): 달려가 붙어서 때리고, 맞는 자리에 초식 그림이 터진 뒤 돌아온다
       const N = ASSET.hitN(sk.mid);
@@ -184,6 +185,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'hx') hero.style.left = e.x + '%';
     else if (e.k === 'fx') foe.style.left = (sh.foeX + e.x * LIVE_POS.k) + '%';
     else if (e.k === 'fa') foe.classList.toggle('striking', e.f >= 0), e.f >= 0 && (foe.querySelector('.sp-fatk').style.backgroundPositionX = e.f * 50 + '%');
+    else if (e.k === 'kiai') sfx('kiai');
     else if (e.k === 'skill') liveSkill(sc, e.sk);
     else if (e.k === 'ougi') {
       sh.hold = true; const t1 = performance.now(); sfx('ougi');
