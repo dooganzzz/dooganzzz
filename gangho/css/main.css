@@ -152,7 +152,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .crafts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .forge { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; }
 .pot { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--radius); background: radial-gradient(ellipse at 50% 110%, rgba(210, 90, 68, .18), transparent 60%), var(--sunk); border: 1px solid var(--line); }
-.pot-slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .slot { aspect-ratio: 1; max-width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px dashed var(--line-2); border-radius: 50%; background: var(--panel); font-size: 1.3rem; padding: 0; min-width: 0; }
 .slot.full { border-style: solid; border-color: var(--gold); cursor: pointer; }
 .slot small { font-size: .56rem; color: var(--silver); max-width: 90%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -268,7 +267,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .acc-row .dslot b { font-size: .72rem; }
   .doll-wrap { min-height: 160px; }
   .dslot { min-height: 56px; }
-  .pot-slots { gap: 6px; }
 }
 /* ───── 먹빛 글래스 (Ink Glass) ───── */
 .panel, .side { background: rgba(18, 22, 29, .85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, .15); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
@@ -295,12 +293,6 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .mslot.empty { cursor: default; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); background: rgba(10, 12, 16, .6); border: 1px dashed rgba(255, 255, 255, .1); }
 .mslot-cat { font-size: 1.1rem; }
 .mslot .btn { margin-top: auto; }
-.mcard { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 14px; border-radius: 6px; border: 1px solid rgba(212, 175, 55, .12); background: rgba(28, 34, 44, .55); cursor: pointer; text-align: left; transition: box-shadow .18s, transform .18s, border-color .18s; }
-.mcard small { color: var(--dim); }
-.mcard b { font-family: var(--serif); font-size: 1rem; }
-.mcard .art-star { font-size: 1.3rem; }
-.mcard.worn { border-color: #d4af37; }
-.grade-tag { font-family: var(--sans); font-size: .8rem; color: var(--silver); font-weight: 500; }
 @media (max-width: 760px) {
   .mslots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -315,11 +307,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .realm-2 { color: #f0cf82; border-color: #d4af37; background: rgba(212, 175, 55, .12); box-shadow: 0 0 12px rgba(212, 175, 55, .45); }
 .sheet-head .realm { margin-top: 6px; }
 /* 정청 접기/펼치기 */
-.fold-head { cursor: pointer; user-select: none; }
 .fold-arrow { font-size: .8rem; color: var(--gold); margin-left: 6px; }
-.fold-body { display: grid; grid-template-rows: 1fr; max-height: 3000px; overflow: hidden; transition: max-height .35s ease, opacity .25s ease, margin .25s ease; opacity: 1; }
-.fold-body.collapsed { max-height: 0; opacity: 0; margin-top: -16px; }
-.fold-inner { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
 /* ═════════ 품질 개선: 먹빛 산수 배경 · 위계 · 지도 · 전투 연출 ═════════ */
 /* 배경: 먹으로 번진 먼 산 능선 (고정) */
 body {
@@ -501,15 +489,12 @@ body {
 .attr-val { grid-area: val; text-align: center; font-size: 1.2rem; font-variant-numeric: tabular-nums; color: var(--gold-2); }
 .talents .starter { flex-direction: column; align-items: flex-start; }
 .talents .starter small { font-weight: 500; }
-.cp-attr { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: .82rem; color: var(--silver); }
-.cp-attr b { color: var(--ink); }
 
 .aff-tag { display: inline-flex; align-items: baseline; gap: 2px; margin-left: 5px; padding: 0 5px; border: 1px solid currentColor; border-radius: 3px; font: 700 .72rem/1.5 var(--sans); vertical-align: middle; color: var(--silver); }
 .aff-tag small { font-family: var(--serif); font-size: .9em; opacity: .8; }
 .aff-tag.el-wood { color: #7cc36b; } .aff-tag.el-fire { color: #e2714f; } .aff-tag.el-earth { color: #caa15a; }
 .aff-tag.el-metal { color: #c9cfd8; } .aff-tag.el-water { color: #6ea4ee; }
 .aff-tag.tr { color: var(--jade); } .aff-tag.wp { color: var(--r3); }
-.aff-line { color: var(--silver); font-size: .9rem; }
 .tr-line { font-size: .82rem; }
 .good { color: var(--r1); }
 .blog .aff, .chron-detail .aff { color: var(--silver); font-size: .9em; }
@@ -569,28 +554,16 @@ body {
 
 /* 상단 재화·스탯 인디케이터: 전투 · 경험 · 은자 · 공헌을 한 줄에 가로 정렬 (한글 뱃지) */
 
-.status-chip { position: relative; display: inline-flex; flex-direction: row; align-items: center; gap: 6px; flex: none; height: 28px; padding: 0 10px 0 4px; border-radius: 14px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, .03); white-space: nowrap; line-height: 1; }
-.chip-badge { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 7px; border-radius: 10px; font-size: .7rem; font-weight: 800; letter-spacing: .02em; line-height: 1; }
-
-
-
-
 @media (max-width: 640px) {
   .status { flex-basis: 100%; }   /* 폰: 로고 아래 한 줄을 통째로 써서 네 항목이 한 줄에 들어가게 */
-
-  .status-chip { flex: 1 1 auto; min-width: 0; justify-content: center; gap: 4px; padding: 0 6px 0 3px; }
-  .chip-badge { padding: 0 5px; font-size: .66rem; }
 
 }
 
 /* ───────── 원스크린 컴팩트 규격: 헤더 인디케이터 · 전투력 카드 · 무공/무장 카드 · 익힌 무공 ───────── */
-.status-chip { height: 24px; gap: 4px; padding: 0 8px 0 3px; }
-.chip-badge { height: 20px; min-width: 22px; padding: 0 5px; font-size: 10px; border-radius: 10px; }
 
 .cp-card { padding: 8px 16px; gap: 6px 16px; }
 .cp-main { gap: 10px; }
 .cp-value { font-size: 1.5rem; }
-.cp-attr { font-size: 11px; gap: 2px 10px; margin-top: 2px; }
 .martial-slots, .martial-learned { padding: 12px 14px; gap: 8px; }
 
 .mslots { gap: 8px; }
@@ -602,10 +575,6 @@ body {
 .mslot .btn, .mslot .starup { padding: 3px 6px; font-size: 10px; min-height: 0; line-height: 1.3; }
 .mslot .btn + .btn { margin-top: 4px; }
 .mslot .realm { font-size: 10px; padding: 0 6px; }
-.mcard { padding: 6px 10px; gap: 2px; }
-.mcard b { font-size: 13px; }
-.mcard small { font-size: 11px; }
-.mcard .art-star { font-size: 13px; }
 .dslot { min-height: 52px; padding: 5px 4px; }
 @media (max-width: 640px) {
 
@@ -644,19 +613,12 @@ body {
 .main-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 16px; padding: 12px 24px; background-color: #12100e; border-bottom: 1px solid #2d261e; min-height: 72px; }
 .main-header .header-left { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 8px; flex: 1 1 auto; min-width: 0; }
 
-
-
-
-
-
 .gauge-group { display: flex; align-items: center; gap: 10px; }
 .stat-gauge { display: flex; align-items: center; gap: 6px; }
 .gauge-badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap; line-height: 1.2; }
 .gauge-bar-track { position: relative; width: 150px; height: 18px; border-radius: 9px; background: var(--sunk); border: 1px solid var(--line); overflow: hidden; }
 .gauge-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 9px; transition: width .3s; }
 .gauge-text { position: relative; display: block; text-align: center; font-size: 11px; line-height: 16px; font-weight: 700; color: #f3f4f6; text-shadow: 0 1px 2px #000; font-variant-numeric: tabular-nums; }
-
-
 
 .header-banner { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none; }
 .brand-symbol, .brand .brand-symbol { width: 36px; height: 36px; border: 1px solid #b91c1c; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 12px; border-radius: 4px; transform: none; }
@@ -670,7 +632,6 @@ body {
   .gauge-group { width: 100%; }
   .gauge-group .stat-gauge { flex: 1 1 0; min-width: 0; }
   .gauge-bar-track { flex: 1; width: auto; }
-
 
 }
 
@@ -686,8 +647,6 @@ body {
 .item-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; width: 100%; }
 .item-card-header .item-name, .item-name.grade-low { color: var(--grade-color); font-size: 15px; font-weight: 700; line-height: 1.3; word-break: keep-all; font-family: var(--serif); }
 .item-name { color: var(--grade-color); }
-.item-grade-badge { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 26px; min-width: 26px; border-radius: 50%; border: 1px solid var(--grade-color, #9ca3af); background-color: var(--grade-bg, rgba(156, 163, 175, .12)); color: var(--grade-color, #9ca3af); font-size: 10px; line-height: 1.1; font-weight: 600; vertical-align: middle; flex: none; }
-.ware .item-grade-badge { --grade-color: #9ca3af; --grade-bg: rgba(156, 163, 175, .12); width: 22px; height: 22px; min-width: 22px; font-size: 9px; }
 .item-card-body { display: flex; flex-direction: column; gap: 2px; }
 .item-category { font-size: 12px; color: var(--dim); }
 .item-effect { font-size: 11px; color: var(--silver); line-height: 1.45; }
@@ -767,8 +726,6 @@ body {
 }
 
 /* ───────── 등급 뱃지: 가로형 알약(Pill) 한 줄 ───────── */
-.item-grade-badge { display: inline-flex; align-items: center; justify-content: center; flex-direction: row; white-space: nowrap; height: 20px; min-width: 32px; width: auto; padding: 0 6px; border-radius: 10px; font-size: 11px; font-weight: 600; line-height: 1; border: 1px solid var(--grade-color, #9ca3af); background-color: var(--grade-bg, rgba(156, 163, 175, .12)); color: var(--grade-color, #9ca3af); flex-shrink: 0; }
-.ware .item-grade-badge { width: auto; height: 18px; min-width: 30px; font-size: 10px; }
 .item-card-header { align-items: center; margin-bottom: 8px; }
 .lib-grid.shop { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }   /* 이름 + 가로 등급 뱃지가 한 줄에 들어가게 */
 
@@ -856,10 +813,7 @@ body {
 @keyframes qiBoxFlare { 0% { box-shadow: inset 0 0 10px rgba(0, 0, 0, .7), 0 0 26px 6px rgba(255, 226, 150, .75); border-color: rgba(255, 236, 180, .95); } 12%, 100% { box-shadow: inset 0 0 10px rgba(0, 0, 0, .7), 0 0 8px rgba(197, 160, 89, .12); border-color: rgba(212, 175, 55, .45); } }
 html.calm .qi-ring, html.calm .qi-comet, html.calm .martial-arts-core-layout .slot-pos .mslot-box { animation: none; }
 .skill-card-compact.mslot { width: 168px; }
-.mslot-head { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; margin-bottom: 4px; }
 .mslot-head-txt { min-width: 0; flex: 1; }
-.mslot-head .mslot-cover { flex: none; width: 34px; height: 44px; font-size: 26px; }
-.mslot-head .mslot-cover img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6)); }
 /* 무사 품계 게이지: 좌선 둥근 테두리 = 24칸 청동 고리(확정본 그림). 켜진 칸(--rk)만큼 같은 그림의 '불 켜진 판'이 드러나 파랗게 넘실댄다.
    칸 경계는 부드럽게 (불꽃이 칸에 얽매이지 않게), 다 차면(.full) 고리 전체가 타오른다 */
 .meditation-center-frame { --rk: 0%; overflow: visible; }
@@ -876,9 +830,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .meditation-caption .rk-grade { color: var(--mc-grade, #c5a059); }
 .meditation-caption .zhou.so { color: var(--mc-so, #8fc6ff); }
 .meditation-caption .zhou.dae { color: var(--mc-dae, #ffd77a); text-shadow: 0 0 8px rgba(255, 200, 90, .7); font-size: 1.08em; }
-.meditation-caption .rank-name { display: block; font-size: 11px; letter-spacing: .2em; padding-left: .2em; text-align: center; color: #8fc6ff; opacity: .85; }   /* 글자 사이 띄움(.2em)이 끝에만 붙어 왼쪽으로 쏠리지 않게 앞에도 같은 만큼 */
 .meditation-caption .rank-pill { display: block; margin-top: 2px; font-size: 10px; color: #e9b36a; text-shadow: 0 0 4px #000; }
-.meditation-caption .rank-name.up { color: #bfe3ff; text-shadow: 0 0 8px rgba(90, 170, 255, .8); }
 .mslots.martial-arts-core-layout { overflow-x: clip; }   /* 좌선 불꽃 고리가 폰에서 옆으로 넘쳐 가로 스크롤이 생기지 않게 */
 /* 상태 › 무공 장착 칸 (가벼운 판): 배경 · 테두리 없이 표지 + 갈래 이름 + 성급 */
 .skill-card-compact.mslot.slot-lite { display: flex; flex-direction: row; align-items: center; gap: 8px; width: auto; min-width: 0; padding: 4px 6px; background: none; border: 0; box-shadow: none; cursor: pointer; }
@@ -928,10 +880,6 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 @media (max-width: 640px) { .slot-lite .mslot-box { width: 52px; height: 52px; } .mslots.martial-arts-core-layout > .slot-pos { transform: rotate(var(--tilt, 0deg)); } }
 
 /* 파 표식 (正 · 魔 · 邪) — 정: 양피지 금빛 · 마: 연보라 · 사: 연빨강 */
-.school-tag { display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; margin: 0 4px; border-radius: 3px; font: 700 .78em/1 var(--serif, serif); vertical-align: middle; border: 1px solid currentColor; }
-.school-tag.s-jeong { color: #e3cf96; background: rgba(227, 207, 150, .12); }
-.school-tag.s-ma { color: #c9b0ee; background: rgba(201, 176, 238, .14); }
-.school-tag.s-sa { color: #f0a3a3; background: rgba(240, 163, 163, .14); }
 
 /* ───────── 무공 탭 2단 (10월 3일): 왼쪽 운기조식 · 오른쪽 습득 비급 ─────────
    운기조식 원(고리 · 가운데 인물 · 네 비급 칸 · 불꽃 구름)은 zoom으로 통째 80% (2단이면 왼쪽, 좁으면 가운데) — 칸 크기 · 자리 · 배경이 같은 비율로 줄어 서로 틀어지지 않는다.
@@ -1028,8 +976,6 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .observe .stat-gauge { display: grid; grid-template-columns: auto 3.5em 1fr; align-items: center; gap: 8px; }
 .observe .gauge-bar-track { width: 100%; height: 20px; }
 .gauge-bar-fill { background: linear-gradient(90deg, #6b6b6b, #a3a3a3); }
-.hp-gauge .gauge-bar-fill { background: linear-gradient(90deg, #7f1d1d, #dc2626 70%, #f87171); }
-.mp-gauge .gauge-bar-fill { background: linear-gradient(90deg, #1e3a8a, #2563eb 70%, #60a5fa); }
 .gauge-bar-track .gauge-text { position: relative; z-index: 1; display: block; text-align: center; line-height: 18px; text-shadow: 0 1px 2px #000; }
 .obs-col { margin: 0; font-size: .82rem; color: var(--gold); letter-spacing: .06em; text-align: center; } .obs-col small { color: var(--dim); font-weight: 400; }
 .obs-attrs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
@@ -1133,7 +1079,7 @@ html.calm .st-glow { animation: none; }
 .title-card .tc-desc { display: block; font-style: italic; color: var(--dim); font-size: .78rem; line-height: 1.4; }
 
 /* 붓글씨 폰트(Gangho Brush)를 받기 전에는 그 글씨를 숨긴다 — 기본 글씨로 먼저 보였다 바뀌는 깜빡임 없애기 (ui_live.js가 html.brush-ok를 단다) */
-html:not(.brush-ok) :is(.ground-tag > span, .live-where, .lh-nm, .rku .title b, .enh-tag, .og-ban, .co-art, .co-move, .co-poem, .name-box #pname, .name-ink, .title-card .tc-name, .main-header .brand-title, .hopae .hp-col) { visibility: hidden; }
+html:not(.brush-ok) :is(.ground-tag > span, .live-where, .lh-nm, .rku .title b, .og-ban, .co-art, .co-move, .co-poem, .name-box #pname, .name-ink, .title-card .tc-name, .main-header .brand-title, .hopae .hp-col) { visibility: hidden; }
 
 /* 폰 무공 판 (10월 3일 유저): 정사각 판 — 큰 기운 고리 안에 네 칸, 가운데 좌선. 자리 · 크기는 유저 슬라이더 값(--p12x … --mbox · --medw) */
 @media (max-width: 640px) {

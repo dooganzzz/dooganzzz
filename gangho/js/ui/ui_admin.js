@@ -274,7 +274,7 @@ function gmBindGameTrace() {
   // 게임 화면의 클릭(버튼·탭)을 추적한다. GM 콘솔 안의 클릭은 제외
   document.addEventListener('click', e => {
     if (e.target.closest('#gmPanel, #gmToggle')) return;
-    const t = e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-fold]'); if (!t) return;
+    const t = e.target.closest('button, [data-tab], [data-manual], [data-mart]'); if (!t) return;
     const attrs = Object.entries(t.dataset).map(([k, v]) => `${k}=${v}`).join(' ');
     gmTrace('click', `${t.textContent.replace(/\s+/g, ' ').trim().slice(0, 30) || t.tagName}${attrs ? ` [${attrs}]` : ''}${t.disabled ? ' (비활성)' : ''}`);
   }, true);

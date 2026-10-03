@@ -32,7 +32,7 @@ function bindInput() {
 
 function onClick(e) {
   if (typing.size) skipTyping(e.timeStamp);       // 아무 곳이나 누르면 타자 연출을 건너뛴다
-  const t = e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-artslot], [data-fold]');
+  const t = e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-artslot]');
   if (!t || t.disabled) return;
   if (t.dataset.act === 'reset') return askReset();
   if (t.dataset.act === 'doreset') return doReset();

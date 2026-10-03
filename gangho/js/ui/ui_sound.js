@@ -237,7 +237,7 @@ const sfxGround = () => { const W = typeof liveWeather === 'function' ? liveWeat
 
 /* 누를 수 있는 곳을 누르면 딱 · 지도 탐험지 · 청풍문 이름표에 마우스를 올리면 톡 */
 addEventListener('pointerdown', e => {
-  const b = e.target.closest && e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-artslot], [data-fold], a[href]');
+  const b = e.target.closest && e.target.closest('button, [data-tab], [data-manual], [data-mart], [data-artslot], a[href]');
   if (b && !b.disabled && b.getAttribute('aria-disabled') !== 'true') sfx('click');
 }, true);
 document.addEventListener('mouseover', e => {

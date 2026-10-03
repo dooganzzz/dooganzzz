@@ -177,7 +177,6 @@
 .furnace-stage .stage-ui { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 16px 18px; }
 .furnace-stage .stage-ui { margin-top: auto; }
 /* 재료 칸: 모서리에 마름모 장식이 달린 네모 칸 */
-.furnace-stage .pot-slots { width: min(380px, 100%); grid-template-columns: repeat(5, 1fr); gap: 10px; }
 .furnace-stage .slot { position: relative; border-radius: 6px; border: 1.5px solid rgba(232, 222, 198, .5); background: rgba(22, 18, 14, .62); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .35), 0 2px 6px rgba(0, 0, 0, .5); backdrop-filter: blur(1px); }
 .furnace-stage .slot::before, .furnace-stage .slot::after { content: ''; position: absolute; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; transform: rotate(45deg); background: #1a1511; border: 1.5px solid rgba(232, 222, 198, .6); }
 .furnace-stage .slot::before { top: -5px; } .furnace-stage .slot::after { bottom: -5px; }
@@ -193,7 +192,6 @@
 @media (max-width: 640px) {
   .pot.furnace-stage { min-height: 380px; aspect-ratio: auto; }
   .pot.furnace-stage.study { min-height: 0; aspect-ratio: 1280 / 716; }
-  .furnace-stage .pot-slots { gap: 7px; }
   .btn.plaque { min-width: 130px; padding: 9px 16px; }
 }
 
@@ -736,45 +734,6 @@ html.calm .rku * { animation-duration: .01s !important; animation-delay: 0s !imp
 html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage .ring { display: none; }
 
 /* ── 단조 강화 연출: 모루 · 망치 세 번 · 불똥 → 성공(금빛 고리) / 그대로(연기) / 파괴(파편). 시간은 --el(지난 시간)만큼 당겨 이어 재생 ── */
-.enh-stage { position: relative; height: 150px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; --el: 0ms;
-  background: radial-gradient(ellipse 45% 55% at 50% 92%, rgba(255, 130, 50, .22), transparent 70%), linear-gradient(#111317, #1b1712); }
-.enh-anvil { position: absolute; left: 50%; bottom: 12px; width: 132px; height: 32px; transform: translateX(-50%);
-  background: linear-gradient(#4a4d55, #24262b 60%, #18191c); clip-path: polygon(0 0, 100% 0, 90% 42%, 70% 48%, 70% 100%, 30% 100%, 30% 48%, 10% 42%); }
-.enh-piece, .enh-shard { position: absolute; left: 50%; bottom: 42px; width: 64px; height: 64px; margin-left: -32px; }
-.enh-piece .enh-ico, .enh-shard .enh-ico { width: 64px; height: 64px; }
-.enh-piece img, .enh-shard img { width: 100%; height: 100%; object-fit: contain; }
-.enh-hammer { position: absolute; left: calc(50% - 16px); bottom: 104px; width: 110px; height: 44px; transform-origin: 100% 50%; transform: rotate(60deg); opacity: 0; }
-.enh-tag { position: absolute; left: 0; right: 0; top: 10px; text-align: center; font: 400 28px/1 'Gangho Brush', var(--serif); letter-spacing: .06em; opacity: 0; }
-.enh-burst { position: absolute; left: 50%; bottom: 104px; width: 0; height: 0; }
-.enh-spark { position: absolute; left: -2px; top: -2px; width: 4px; height: 4px; border-radius: 50%; background: #ffd28a; box-shadow: 0 0 6px 2px rgba(255, 150, 40, .8); opacity: 0; }
-.enh-spark.gold { width: 5px; height: 5px; background: #fff3c4; box-shadow: 0 0 8px 3px rgba(240, 200, 90, .85); }
-.enh-ring, .enh-flash, .enh-smoke { position: absolute; opacity: 0; pointer-events: none; }
-.enh-ring { left: 50%; bottom: 74px; width: 80px; height: 80px; margin: 0 0 -40px -40px; border-radius: 50%; border: 3px solid var(--gold-2); box-shadow: 0 0 18px var(--gold), inset 0 0 14px var(--gold); }
-.enh-flash { inset: 0; background: radial-gradient(circle at 50% 70%, rgba(255, 90, 60, .75), rgba(120, 0, 0, .3) 60%, transparent); }
-.enh-smoke { left: 50%; bottom: 70px; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; background: radial-gradient(circle, rgba(170, 170, 175, .55), transparent 70%); }
-.enh-stage[class*="fx-"] .enh-hammer { animation: enhSwing 1300ms ease-in both calc(var(--el)); }
-.enh-stage[class*="fx-"] .enh-piece { animation: enhJolt 1300ms linear both calc(var(--el)); }
-.enh-stage[class*="fx-"] .enh-spark { animation: enhSpark 480ms cubic-bezier(.2, .7, .4, 1) forwards calc(var(--el) + var(--d)); }
-.enh-burst { --d: 0ms; }
-.enh-stage[class*="fx-"] .enh-tag { animation: enhTag 600ms ease-out both calc(var(--el) + 1300ms); }
-.fx-ok .enh-tag { color: var(--gold-2); text-shadow: 0 0 10px rgba(240, 200, 90, .9), 0 1px 2px #000; }
-.enh-stage.fx-same .enh-tag { color: var(--silver); font-size: 20px; top: 16px; text-shadow: 0 1px 2px #000; }
-.fx-boom .enh-tag { color: #ff8a6e; text-shadow: 0 0 10px rgba(255, 70, 40, .9), 0 1px 2px #000; }
-.fx-ok .enh-ring { animation: enhRing 750ms ease-out forwards calc(var(--el) + 1300ms); }
-.enh-stage.fx-ok .enh-spark.gold { animation-duration: 800ms; }
-.enh-stage.fx-ok .enh-piece { animation: enhJolt 1300ms linear both calc(var(--el)), enhGild 1400ms ease-out forwards calc(var(--el) + 1300ms); }
-.fx-same .enh-smoke { animation: enhSmoke 1100ms ease-out forwards calc(var(--el) + 1300ms); }
-.fx-same .enh-smoke.s2 { margin-left: -38px; animation-delay: calc(var(--el) + 1420ms); }
-.fx-same .enh-smoke.s3 { margin-left: -2px; animation-delay: calc(var(--el) + 1520ms); }
-.enh-stage.fx-boom .enh-piece { animation: enhJolt 1300ms linear both calc(var(--el)), enhShake 330ms linear both calc(var(--el) + 1300ms); }
-.enh-shard { opacity: 0; }
-.fx-boom .enh-shard { animation: enhShard 800ms cubic-bezier(.2, .6, .5, 1) forwards calc(var(--el) + 1620ms); }
-.enh-shard.qa { clip-path: polygon(0 0, 55% 0, 45% 50%, 0 45%); --sx: -60px; --sy: -40px; --sr: -50deg; }
-.enh-shard.qb { clip-path: polygon(55% 0, 100% 0, 100% 55%, 45% 50%); --sx: 62px; --sy: -46px; --sr: 60deg; }
-.enh-shard.qc { clip-path: polygon(0 45%, 45% 50%, 52% 100%, 0 100%); --sx: -56px; --sy: 30px; --sr: -80deg; }
-.enh-shard.qd { clip-path: polygon(45% 50%, 100% 55%, 100% 100%, 52% 100%); --sx: 58px; --sy: 26px; --sr: 70deg; }
-.fx-boom .enh-flash { animation: enhFlash 450ms ease-out forwards calc(var(--el) + 1620ms); }
-.result.enh-late { animation: enhLate 300ms ease-out both calc(var(--el) + 1300ms); }
 @keyframes enhSwing { 0% { opacity: 0; transform: rotate(55deg); } 6% { opacity: 1; transform: rotate(40deg); } 18% { transform: rotate(0deg); } 28% { transform: rotate(42deg); } 46% { transform: rotate(0deg); } 56% { transform: rotate(44deg); } 78% { transform: rotate(-1deg); } 88% { opacity: 1; transform: rotate(0deg); } 100% { opacity: 0; transform: rotate(50deg); } }
 @keyframes enhJolt { 0%, 17%, 22%, 45%, 50%, 77%, 83%, 100% { transform: none; } 18%, 46%, 78% { transform: translateY(3px) scale(1.06, .92); }
   0% { filter: none; } 60% { filter: brightness(1.15) drop-shadow(0 0 4px rgba(255, 140, 50, .6)); } 100% { filter: brightness(1.3) sepia(.3) drop-shadow(0 0 8px rgba(255, 130, 40, .8)); } }
@@ -789,7 +748,6 @@ html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage 
 @keyframes enhLate { 0% { opacity: 0; transform: translateY(-4px); } 100% { opacity: 1; transform: none; } }
 /* 화로: 왼쪽 무대(+칸 · 정보) · 오른쪽 재료 */
 .forge-left { display: grid; gap: 12px; min-width: 0; align-content: start; }
-.pot-slots .slot.gear small { max-width: 100%; }
 .chip.gear small { color: var(--dim); }
 
 /* 연혼: 팔괘 자리에 놓인 조각 (10월 3일) — 조각 그림만, 작은 거울 크기에 맞춰 명경을 가리지 않게 */

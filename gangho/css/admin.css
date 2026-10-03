@@ -32,7 +32,7 @@
 .gm-table { width: 100%; border-collapse: collapse; }
 .gm-table th { text-align: left; color: #7f9c88; font-weight: 400; border-bottom: 1px solid rgba(120, 220, 160, .25); padding: 4px 6px; position: sticky; top: -12px; background: #0a0f0c; }
 .gm-table td { padding: 4px 6px; border-bottom: 1px solid rgba(120, 220, 160, .08); vertical-align: middle; }
-.gm-table code, .gm-chip code { color: #9fd8ff; }
+.gm-table code { color: #9fd8ff; }
 .gm-num { text-align: right; font-variant-numeric: tabular-nums; }
 .gm-acts { white-space: nowrap; text-align: right; }
 .gm-acts .gm-btn + .gm-btn { margin-left: 4px; }
