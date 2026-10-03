@@ -105,6 +105,7 @@ function typewriteAll() {
     const live = [...typing].find(j => j.key === key);
     if (live) { live.el = el; live.bind(); continue; }   // 다시 그려져도 이어 친다
     if (typedOnce.has(key)) continue;
+    if (!el.getClientRects().length) continue;   // 접힌 칸 안(안 보임)은 펼칠 때 친다
     typedOnce.add(key);
     if (reduce || !el.textContent.trim()) continue;
     const job = { el, full, key, i: 0, t0: performance.now(), nodes: [], texts: [] };
@@ -118,13 +119,13 @@ function typewriteAll() {
     job.show = () => { let left = job.i; job.nodes.forEach((n, k) => { const t = job.texts[k]; n.data = t.slice(0, Math.max(0, left)); left -= t.length; }); };
     job.done = () => { clearTimeout(job.wait); clearInterval(job.t); typing.delete(job); job.el.innerHTML = full; job.el.classList.remove('typing'); };
     job.bind();
-    const flat = job.texts.join(''), par = el.parentElement, delay = queueEnd.get(par) || 0;
+    const flat = job.texts.join(''), par = el.parentElement, delay = queueEnd.get(par) || 0, talk = el.dataset.tw === 'talk';
     queueEnd.set(par, delay + flat.length * TYPE_MS + 120);
     job.wait = setTimeout(() => {
       job.t = setInterval(() => {
         if (!job.el.isConnected) { clearInterval(job.t); typing.delete(job); return; }
         job.i += 1; job.show();
-        if (job.i % 2 && (flat[job.i - 1] || '').trim()) sfx('type');           // 대사 도트음 (두 글자마다)
+        if (talk && job.i % 2 && (flat[job.i - 1] || '').trim()) sfx('type');   // 대사 도트음 (두 글자마다) — 말을 건 대화 창에서만 (10월 3일 유저: 인사말에는 소리 없이)
         if (job.i >= flat.length) job.done();
       }, TYPE_MS);
     }, delay);
