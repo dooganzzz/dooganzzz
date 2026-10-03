@@ -192,7 +192,9 @@ function liveLoop(ts) {
   if (q && imgsReady([SPRITE_SRC.foe(q.eid), SPRITE_SRC.foe(q.eid, 1)])) { liveAnim.queued = null; liveAnim.show = liveShowStart(sc, { ...q }); }
 }
 /* 강호행 제목 옆 지역 이름: 붓글씨 폰트(Gangho Brush, 537글자 — 10월 3일 이름 글자 60자 · 별호 글자 더함)로 쓴다 — 머리 배너 '강호견문록'도 이 폰트. 폰트에 없는 글자는 기본 글씨로 */
-if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush', `url(${ASSET.font('gangho_brush_537')})`).load().then(f => document.fonts.add(f)).catch(() => {});
+// 붓글씨 폰트를 받기 전에는 그 글씨를 숨겨 둔다 (기본 글씨로 먼저 보였다가 바뀌지 않게, 10월 3일 유저). 받으면(또는 3초가 지나면) html.brush-ok
+{ const ok = () => document.documentElement.classList.add('brush-ok'); setTimeout(ok, 3000);
+  if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush', `url(${ASSET.font('gangho_brush_537')})`).load().then(f => { document.fonts.add(f); ok(); }).catch(ok); else ok(); }
 // 품계 한자(一 · 二 · 三 · 流 · 武 · 士)만 담은 붓글씨 (Ma Shan Zheng, OFL — 6자 부분 글꼴). 'Gangho Brush'에 없는 글자만 이 글꼴로
 if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush', `url(${ASSET.font('rank_hanja')})`, { unicodeRange: 'U+4E00, U+4E09, U+4E8C, U+58EB, U+6B66, U+6D41' }).load().then(f => document.fonts.add(f)).catch(() => {});
 function liveWhere(zid, n) {

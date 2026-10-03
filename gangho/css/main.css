@@ -1137,3 +1137,6 @@ html.calm .st-glow { animation: none; }
   .bag-panel .bag-cap { position: absolute; left: var(--cap-x, 94%); top: var(--cap-y, 13.5%); transform: translate(-50%, -50%); white-space: nowrap; font-size: var(--cap-s, 18px); }   /* 자리: 유저 슬라이더 값 */
 }
 .title-card .tc-desc { display: block; font-style: italic; color: var(--dim); font-size: .78rem; line-height: 1.4; }
+
+/* 붓글씨 폰트(Gangho Brush)를 받기 전에는 그 글씨를 숨긴다 — 기본 글씨로 먼저 보였다 바뀌는 깜빡임 없애기 (ui_live.js가 html.brush-ok를 단다) */
+html:not(.brush-ok) :is(.ground-tag > span, .live-where, .lh-nm, .rku .title b, .enh-tag, .og-ban, .co-art, .co-move, .co-poem, .name-box #pname, .name-ink, .title-card .tc-name, .main-header .brand-title, .hopae .hp-col) { visibility: hidden; }
