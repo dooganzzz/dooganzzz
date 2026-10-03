@@ -41,7 +41,7 @@ module.exports = async (b) => {
     ok('1 11→12성에는 대성 돌파단', realm.at11 === 11 && realm.block11 === '대성 돌파단 필요' && realm.at12 === 12 && realm.max === '대성', JSON.stringify([realm.at11, realm.block11, realm.at12]));
     ok('1 대성 극의 패시브', realm.passiveHp > 0, realm.passiveText);
     await p.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'martial'; render(); });
-    ok('1 무공 탭: 장착 칸 성급 · 습득 비급 목록에 경계 표시', (await p.$$('.mslot .art-star')).length === 4 && (await p.$$('.mrow .realm')).length >= 1);
+    ok('1 무공 탭: 장착 칸 성급 · 습득 비급 목록에 경계 낙관', (await p.$$('.mslot .art-star')).length === 4 && (await p.$$('.mrow img.hj-seal[src*="realm"]')).length >= 1);
 
     // 2. 전투는 즉시 계산되고 타이머가 없다
     const one = await p.evaluate(() => { S.hp = 99999; const b0 = fightSync('rabbit'); return { over: b0.over, win: b0.win, rt: RT.battle === null, cmds: document.querySelectorAll('[data-bact], [data-bitem], [data-act="closebattle"]').length }; });
@@ -57,7 +57,10 @@ module.exports = async (b) => {
       }
       return seen;
     });
-    const allowed = await p.evaluate(() => Object.fromEntries(Object.entries(DROPS).map(([e, t]) => [e, t.map(([id]) => id)])));   // 드랍 표(drops.js)만
+    const allowed = await p.evaluate(() => Object.fromEntries(Object.entries(DROPS).map(([e, t]) => { const ids = t.map(([id]) => id), Z = ZONES[zoneOfEnemy(e)];
+      if (ENEMIES[e].boss && Z) ids.push(...(DROPS[Z.enemies[Z.enemies.length - 1]] || []).map(([id]) => id));   // 두목을 다시 잡으면 9단계 요수와 같은 드랍
+      ids.push(...Object.keys(ITEMS).filter(k => /^naedan\d/.test(k)));   // 사람형이 아니면 내단도 떨군다
+      return [e, ids]; })));   // 드랍 표(drops.js) + 내단 + 두목 반복 처치
     for (const [eid, got] of Object.entries(drops)) ok(`3 ${eid} 드랍은 고유 테이블만`, got.every(k => allowed[eid].includes(k)) && got.length > 0, got.join(','));
     ok('3 살쾡이는 토끼 재료를 떨구지 않음', !drops.wildcat.some(k => /rabbit/.test(k)));
 
