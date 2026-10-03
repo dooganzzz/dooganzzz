@@ -15,6 +15,10 @@ function npcTalk(who, fn) {
 function bindInput() {
   document.addEventListener('click', onClick);
   document.addEventListener('change', onChange);
+  // 청풍문 전경: 건물에 손을 대면 그 이름표(구름)도 함께 밝아진다
+  const spotLit = (e, on) => { const b = e.target.closest && e.target.closest('.ground-bld'); if (!b) return; const t = document.querySelector(`.ground-tag[data-spot="${b.dataset.spot}"]`); if (t) t.classList.toggle('lit', on); };
+  document.addEventListener('mouseover', e => spotLit(e, true));
+  document.addEventListener('mouseout', e => spotLit(e, false));
   document.addEventListener('input', e => {                          // 슬라이더: 대량 구매 개수 · 설정 값
     const t = e.target;
     if (t.dataset.buyqty) { ui.buyQty = +t.value; const w = t.closest('.buy-qty'); w.querySelector('.qty-n').textContent = `${t.value}개`; w.querySelector('.qty-sum').textContent = fmt(t.value * t.dataset.buyqty); }

@@ -855,3 +855,9 @@ html.calm .pot-hot { animation: none; }
 /* 단조 · 연단 · 연혼을 넘겨도 무대(재료 칸)가 같은 자리에 오게 설명 줄 높이를 고정 (10월 3일) */
 .furnace .furnace-desc { line-height: 1.6; min-height: 3.2em; margin-bottom: 8px; }
 @media (max-width: 640px) { .furnace .furnace-desc { min-height: 4.8em; } }
+/* 청풍문 전경 위 건물: 누르면 그 시설로. 손을 대면 건물과 그 이름표가 함께 밝아진다 (ui_input이 data-spot으로 짝을 켬) */
+.map-box > .ground-bld { position: absolute; z-index: 2; transform: translate(-50%, -50%); padding: 0; border: 0; background: none; cursor: pointer; }
+.ground-bld > img { width: 100%; display: block; filter: drop-shadow(3px 5px 4px rgba(40, 28, 15, .35)); transition: filter .15s; }
+.ground-bld:hover > img, .ground-bld:focus-visible > img { filter: drop-shadow(3px 5px 4px rgba(40, 28, 15, .35)) drop-shadow(0 0 10px rgba(255, 214, 130, .7)) brightness(1.06); }
+.map-box.grounds .ground-tag.lit { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.12) saturate(1.15); z-index: 4; }
+.map-box.grounds .ground-tag.lit > img { filter: drop-shadow(0 0 6px rgba(255, 214, 130, .95)) drop-shadow(0 0 16px rgba(255, 190, 90, .6)) drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }

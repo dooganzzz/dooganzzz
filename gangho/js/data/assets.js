@@ -16,6 +16,7 @@ const ASSET_KIND = {
   ground:   { dir: 'travel/ground_', ext: 'webp' },
   skymask:  { dir: 'travel/sky_', ext: 'webp' },     // 먼 겹의 하늘 가리개: 하늘은 불투명, 산 · 나무 · 연기는 투명 (달이 지형 뒤로 숨게)  // 강호행 앞 겹: 산길 그림의 땅만 (윗선은 둔덕 모양, 위는 투명)
   prop:     { dir: 'props/', ext: 'webp' },
+  building: { dir: 'buildings/', ext: 'webp' },        // 청풍문 전경 위 건물 (forge · shrine · shop · yeonmu, 정청 · 산문은 배경에)
   fx:       { dir: 'fx/', ext: 'webp' },
   zone:     { dir: 'zones/', ext: 'jpg' },
   beast:    { dir: 'beasts/', ext: 'webp' },

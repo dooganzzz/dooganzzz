@@ -38,16 +38,17 @@ function mapGoModal(zid) {
 /* ───────── 청풍문 › 전경: 위에서 내려다본 좌판. 갈래 메뉴 없이 그림 위 이름표(구름 바탕)를 눌러서만 옮겨 다닌다 (10월 3일 유저) ─────────
    x · y = 이름표 가운데 자리(%) — 임시 자리, 유저가 연출 미리보기 슬라이더로 정한다. 청풍문 탭을 다시 누르면 전경으로 돌아온다 */
 const GROUNDS_SPOTS = {
-  hall:   { name: '정청', hanja: '正廳', x: 50, y: 26, go: 'data-tab="sect" data-sub="hall"' },
-  forge:  { name: '화로', hanja: '火爐', x: 28, y: 24, go: 'data-tab="sect" data-sub="forge"' },
-  yeonmu: { name: '연무장', hanja: '演武場', x: 27, y: 62, go: 'data-tab="sect" data-sub="yeonmu"' },
-  shrine: { name: '무신상', hanja: '武神像', x: 72, y: 24, go: 'data-tab="sect" data-sub="shrine"' },
-  shop:   { name: '전방', hanja: '廛房', x: 72, y: 42, go: 'data-tab="sect" data-sub="shop"' },
+  hall:   { name: '정청', hanja: '正廳', x: 50, y: 27, go: 'data-tab="sect" data-sub="hall"' },
+  forge:  { name: '화로', hanja: '火爐', x: 73, y: 8, go: 'data-tab="sect" data-sub="forge"', bld: { x: 73, y: 21, w: 14 } },
+  shrine: { name: '무신상', hanja: '武神像', x: 27.5, y: 8, go: 'data-tab="sect" data-sub="shrine"', bld: { x: 27.5, y: 21, w: 13.5 } },
+  shop:   { name: '전방', hanja: '廛房', x: 36.5, y: 27, go: 'data-tab="sect" data-sub="shop"', bld: { x: 36.5, y: 39, w: 14 } },
+  yeonmu: { name: '연무장', hanja: '演武場', x: 70, y: 54, go: 'data-tab="sect" data-sub="yeonmu"', bld: { x: 70, y: 67, w: 19.5 } },
   gate:   { name: '산문', hanja: '山門', x: 50, y: 80, go: 'data-tab="field"' },
-};
+};   // bld = 건물 그림 자리 · 크기(전경 폭 대비 %, 유저 슬라이더 값 10월 3일) · 이름표 x · y는 임시
 function viewGrounds() {
-  const tags = Object.entries(GROUNDS_SPOTS).map(([k, G]) => `<button class="ground-tag" style="left:${G.x}%;top:${G.y}%" ${G.go} aria-label="${G.name}"><img src="${ASSET.ui('ground_tag')}" alt="" aria-hidden="true"><span>${G.name}<small>${G.hanja}</small></span>${k === 'hall' ? alertDot(questAlert()) : ''}</button>`).join('');
+  const blds = Object.entries(GROUNDS_SPOTS).filter(([, G]) => G.bld).map(([k, G]) => `<button class="ground-bld" data-spot="${k}" style="left:${G.bld.x}%;top:${G.bld.y}%;width:${G.bld.w}%" ${G.go} aria-label="${G.name}"><img src="${ASSET.building(k)}" alt="" draggable="false"></button>`).join('');
+  const tags = Object.entries(GROUNDS_SPOTS).map(([k, G]) => `<button class="ground-tag" data-spot="${k}" style="left:${G.x}%;top:${G.y}%" ${G.go} aria-label="${G.name}"><img src="${ASSET.ui('ground_tag')}" alt="" aria-hidden="true"><span>${G.name}<small>${G.hanja}</small></span>${k === 'hall' ? alertDot(questAlert()) : ''}</button>`).join('');
   return `<section class="panel map-sheet">
-    <div class="map-box grounds"><img src="${ASSET.scene('sect_grounds')}" alt="청풍문 전경" draggable="false">${tags}</div>
+    <div class="map-box grounds"><img src="${ASSET.scene('sect_grounds')}" alt="청풍문 전경" draggable="false">${blds}${tags}</div>
   </section>`;
 }
