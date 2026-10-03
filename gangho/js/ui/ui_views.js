@@ -90,8 +90,8 @@ function viewMartial() {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
     return `<div class="mrow ${worn ? 'worn is-equipped' : ''}">
       <button class="mrow-cover" data-mart="${id}" aria-label="《${M.name}》 자세히">${manualIco(id)}</button>
-      <div class="mrow-main"><b class="mrow-name" data-mart="${id}" role="button" tabindex="0">《${M.name}》</b>
-        <div class="mrow-meta">${gradeTag(M.grade)}${realmTag(m.star)}${worn ? '<span class="card-status-tag active">장착 중</span>' : ''}</div>
+      <div class="mrow-main"><div class="mrow-top"><b class="mrow-name" data-mart="${id}" role="button" tabindex="0">《${M.name}》</b>
+        <span class="mrow-meta">${gradeTag(M.grade)}${realmTag(m.star)}${worn ? '<span class="card-status-tag active">장착 중</span>' : ''}</span></div>
         ${pips(m.star)}<small class="mrow-eff">${bonusText(manualBonus(id, m.star)) || esc(M.desc || '')}</small></div>
       <div class="mrow-btns">${starBtn(id)}${worn ? `<button class="btn ghost sm btn-unequip" data-unequipm="${M.cat}">장착 해제</button>` : `<button class="btn sm" data-equipm="${id}">장착</button>`}</div>
     </div>`;

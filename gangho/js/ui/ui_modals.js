@@ -35,7 +35,7 @@ function manualPreviewModal(id) {
   const statTxt = st => Object.entries(manualBonus(id, st)).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
   const moves = M.stances ? `<h4 class="sec-h">${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name }, i) => `<li><b>${name}</b><small>${['제1초식 · 습득', '제2초식 · 소성', '오의 · 대성'][i]}</small></li>`).join('')}</ol>` : '';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》</h2><p class="mm-tags">${gradeTag(M.grade)}</p></div></div>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><div class="mm-title"><h2>《${M.name}》</h2><p class="mm-tags">${gradeTag(M.grade)}</p></div></div></div>
     ${manualPoemHtml(id)}
     ${M.weapon ? `<p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : ''}
     ${manualAttrHtml(id)}
@@ -61,7 +61,7 @@ function martialModal(id) {
       <div><button class="btn primary" data-starup="${id}" ${why ? 'disabled' : ''}>▲ 성급 올리기${why ? ` <small>(${why})</small>` : ` <small>수련치 ${fmt(cost)}${pill ? ` + ${ITEMS[pill].name}` : ''}</small>`}</button></div>`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》</h2><p class="mm-tags">${gradeTag(M.grade)} ${realmTag(m.star)}</p></div><div class="art-star">${m.star}<small>/12성</small></div></div>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><div class="mm-title"><h2>《${M.name}》</h2><p class="mm-tags">${gradeTag(M.grade)} ${realmTag(m.star)}</p></div></div><div class="art-star">${m.star}<small>/12성</small></div></div>
     ${manualPoemHtml(id)}
     ${manualAttrHtml(id)}
     ${moves}
