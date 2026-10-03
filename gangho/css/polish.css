@@ -289,3 +289,5 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .bag-tile .ink-box > .alert-dot.slot-up { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .35), 0 0 4px rgba(224, 65, 42, .7); background: #e0412a; }   /* 행낭 칸: 지금 낀 것보다 좋은 장비 */
 .bag-tile > .hj-seal { flex: none; margin-left: auto; }   /* 행낭 칸 오른쪽 끝: 장비 등급 낙관 */
 .hj-seal.sm { height: 20px; margin: 0 2px; vertical-align: -5px; }   /* 글줄 속 작은 낙관 (출정 준비 속성 줄) */
+.mrow-cover { position: relative; }   /* 습득 비급 표지 위 '더 좋은 비급' 표시 자리 */
+.mrow-cover > .alert-dot.slot-up, .slot-lite .mslot-box > .alert-dot.slot-up { position: absolute; top: 3px; right: 3px; }

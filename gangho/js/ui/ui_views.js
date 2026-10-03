@@ -45,6 +45,8 @@ const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico
 
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
 /* 한자 낙관(인장) 그림: 한자 글자 대신 (tall = 세로 낙관 — 경지 · 비급 등급) */
+/* '더 좋은 것 있음' 표시 (무장 칸 · 행낭 칸 · 무공 칸 · 습득 비급) — 그림을 바꿀 때는 여기 한 곳만 */
+const upMark = (label = '더 좋은 것이 있습니다') => `<i class="alert-dot slot-up" aria-label="${label}" title="${label}"></i>`;
 const sealImg = (id, alt, tall, cls = '') => `<img class="hj-seal${tall ? ' tall' : ''}${cls ? ' ' + cls : ''}" src="${ASSET.seal(id)}" alt="${alt}" title="${alt}">`;
 const rarityTag = r => sealImg(RARITY[r].cls, `${RARITY[r].name}(${RARITY[r].hanja})`);   // 장비 등급 낙관 (下 · 中 · 上 · 眞 · 名 · 極)
 const elemTag = e => e ? sealImg(e, `오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`) : '';
@@ -64,12 +66,13 @@ function viewMartial() {
   // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
   const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };
   // 장착 칸: 네모 칸 안의 표지 · 갈래 이름 · 비급 이름 · 성급 (속성은 상세 창에서만). 누르면 그 비급 상세, 빈 칸은 그 갈래 창
+  const mu = manualUpgrades(), mk = cat => mu.cats.has(cat) ? upMark('익힌 비급 가운데 더 좋은 것이 있습니다') : '';
   const card = cat => {
     const id = S.active[cat], C = CATS[cat];
-    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><span class="mslot-box">${inkFrame()}<span class="slot-plus" aria-hidden="true">+</span></span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div></div></div></div>`;
+    if (!id) return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite empty" data-artslot="${cat}" role="button" tabindex="0" aria-haspopup="dialog"><span class="mslot-box">${inkFrame()}<span class="slot-plus" aria-hidden="true">+</span>${mk(cat)}</span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div></div></div></div>`;
     const m = S.manuals[id];
     return `<div class="slot-pos ${POS[cat]}"><div class="mslot skill-card-compact slot-lite" data-mart="${id}" role="button" tabindex="0" aria-haspopup="dialog" title="《${MANUALS[id].name}》 — 눌러서 상세">
-      <span class="mslot-box">${inkFrame()}${manualIco(id, 'mslot-cover')}</span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><b class="mslot-name">《${MANUALS[id].name}》</b><span class="art-star skill-level">${m.star}<small>성</small></span></div>
+      <span class="mslot-box">${inkFrame()}${manualIco(id, 'mslot-cover')}${mk(cat)}</span><div class="mslot-head-txt"><div class="mslot-cat slot-type-label">${label(C.name, C.hanja)}</div><b class="mslot-name">《${MANUALS[id].name}》</b><span class="art-star skill-level">${m.star}<small>성</small></span></div>
     </div></div>`;
   };
   // 습득 비급 한 줄 (A안): 표지 · 이름 · 등급 · 경지 · 장착 중 · 성급 구슬 12개(돌파단 자리 표시) · 효과 한 줄 · 단추
@@ -86,10 +89,11 @@ function viewMartial() {
   const SKILL_TABS = [['attack', 'mugong', '무공'], ['heart', 'simbeop', '심법'], ['agility', 'gyeonggong', '경공'], ['aura', 'gigong', '기공']];
   const tab = SKILL_TABS.find(t => t[0] === ui.skillTab) || SKILL_TABS[0];
   const shown = learned.filter(id => MANUALS[id].cat === tab[1]);
+  const upIds = manualUpgrades().ids;
   const cards = shown.map(id => {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
     return `<div class="mrow ${worn ? 'worn is-equipped' : ''}">
-      <button class="mrow-cover" data-mart="${id}" aria-label="《${M.name}》 자세히">${manualIco(id)}</button>
+      <button class="mrow-cover" data-mart="${id}" aria-label="《${M.name}》 자세히">${manualIco(id)}${upIds.has(id) ? upMark('지금 운용하는 것보다 좋습니다') : ''}</button>
       <div class="mrow-main"><div class="mrow-top"><b class="mrow-name" data-mart="${id}" role="button" tabindex="0">《${M.name}》</b>
         <span class="mrow-meta">${gradeTag(M.grade)}${realmTag(m.star)}${worn ? '<span class="card-status-tag active">장착 중</span>' : ''}</span></div>
         ${pips(m.star)}<small class="mrow-eff">${bonusText(manualBonus(id, m.star)) || esc(M.desc || '')}</small></div>
@@ -185,7 +189,7 @@ function viewGear() {
   const slot = (s, cls = '') => {
     const it = S.equip[s];
     // 부위 이름은 네모칸 안쪽 6시 자리에, 장비 이름은 칸 아래에 등급 색으로 (10월 3일 유저: 빈 칸은 글씨 없이 깔끔하게)
-    return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${inkBox(slotIcon(s) + `<small class="slot-label">${SLOTS[s].name}</small>` + (up[s] ? '<i class="alert-dot slot-up" aria-label="더 좋은 장비 있음" title="행낭에 더 좋은 장비가 있습니다"></i>' : ''))}${it ? `<span class="slot-item-name">${gearName(it)}</span>` : ''}</button>`;
+    return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${inkBox(slotIcon(s) + `<small class="slot-label">${SLOTS[s].name}</small>` + (up[s] ? upMark('행낭에 더 좋은 장비가 있습니다') : ''))}${it ? `<span class="slot-item-name">${gearName(it)}</span>` : ''}</button>`;
   };
   return `<section class="panel gear-panel">
     ${head('무장', '武裝')}
@@ -219,7 +223,7 @@ function viewBag() {
   return `<section class="panel bag-panel">
     ${head('행낭', '行囊', `<span class="bag-silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}은자 <b>${fmt(S.silver)}</b></span><span class="num muted bag-cap">${bagUsed()} / ${bagCap()}칸</span>`)}
     <div class="chips">${tabs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-filter="${k}">${n}</button>`).join('')}</div>
-    ${gear.length || items.length ? `<div class="bag-tiles" style="--tile-min:${bagTileMin(gear, items)}px">${(up => gear.map(it => `<button class="bag-tile ${gradeClass(RARITY[it.rarity].name)}" data-bagitem="g:${it.uid}" title="${esc(it.name)}">${inkBox(gearIco(it, 'card') + (up.has(it.uid) ? '<i class="alert-dot slot-up" aria-label="지금 낀 것보다 좋음" title="지금 낀 것보다 좋습니다"></i>' : ''))}<b class="item-name">${it.name}</b>${rarityTag(it.rarity)}</button>`).join(''))(gearUpgradeUids())}${items.map(id => `<button class="bag-tile" data-bagitem="i:${id}" title="${esc(ITEMS[id].name)}">${inkBox(itemIco(id))}<b class="item-name">${bagName(id)}</b><span class="num bag-n">×${count(id)}</span></button>`).join('')}</div>` : ''}
+    ${gear.length || items.length ? `<div class="bag-tiles" style="--tile-min:${bagTileMin(gear, items)}px">${(up => gear.map(it => `<button class="bag-tile ${gradeClass(RARITY[it.rarity].name)}" data-bagitem="g:${it.uid}" title="${esc(it.name)}">${inkBox(gearIco(it, 'card') + (up.has(it.uid) ? upMark('지금 낀 것보다 좋습니다') : ''))}<b class="item-name">${it.name}</b>${rarityTag(it.rarity)}</button>`).join(''))(gearUpgradeUids())}${items.map(id => `<button class="bag-tile" data-bagitem="i:${id}" title="${esc(ITEMS[id].name)}">${inkBox(itemIco(id))}<b class="item-name">${bagName(id)}</b><span class="num bag-n">×${count(id)}</span></button>`).join('')}</div>` : ''}
     ${gear.length || items.length ? '' : '<p class="muted">이 갈래에 든 것이 없습니다.</p>'}
   </section>`;
 }

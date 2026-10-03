@@ -181,6 +181,18 @@ function learnManual(bookId) {
   notify.refresh();
 }
 
+/* 더 좋은 비급 알림: 익힌 비급 가운데 지금 운용하는 것 대신 쓰면 투력이 오르는 것 (빈 자리면 쓸 수 있는 것) → { ids, cats } */
+function manualUpgrades() {
+  const base = calculateCombatPower(S), ids = new Set(), cats = new Set();
+  for (const id of Object.keys(S.manuals)) {
+    const M = MANUALS[id]; if (!M || S.active[M.cat] === id || manualRankLocked(id)) continue;
+    const old = S.active[M.cat]; S.active[M.cat] = id;
+    const cp = calculateCombatPower(S); S.active[M.cat] = old;
+    if (cp > base) { ids.add(id); cats.add(M.cat); }
+  }
+  return { ids, cats };
+}
+
 function equipManual(id) {
   if (!S.manuals[id]) return;
   const cat = MANUALS[id].cat, prev = S.active[cat];
