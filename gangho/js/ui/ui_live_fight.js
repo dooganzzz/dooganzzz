@@ -141,12 +141,22 @@ function liveVfx(sc, name, left, cls) {
   const v = document.createElement('img'); v.className = `live-vfx ${cls || ''}`; v.dataset.live = 1; v.src = ASSET.vfx(name); v.alt = ''; v.style.left = left + '%';
   sc.appendChild(v); setTimeout(() => v.remove(), 650);
 }
+/* 요수 피해 숫자 자리: 유저가 중형(0.97배) 기준으로 정한 자리를 요수 크기에 맞춰 옮긴다 — 위아래는 요수 머리에서의 거리(위쪽 이름표 아래로: 보통 22% · 회심 17% 이상), 좌우는 요수 폭에서의 비율, 글자는 크기의 제곱근만큼 */
+const DMG_REF = { size: .97, y: 48, x: -.5, h: 34, cy: 39, cx: -12, ch: 50 };
+function liveDmgPos(sc, size) {
+  const ar = (sc.clientWidth || 2) / (sc.clientHeight || 1), geo = z => { const w = LIVE_POS.foeW * z; return { w, top: 92.6 - w * ar }; };
+  const R = DMG_REF, ref = geo(R.size), cur = geo(size), k = Math.sqrt(size / R.size), set = (n, v) => sc.style.setProperty(n, v);
+  set('--fdmg-y', Math.max(22, cur.top + R.y - ref.top).toFixed(1) + '%'); set('--fdmgc-y', Math.max(17, cur.top + R.cy - ref.top).toFixed(1) + '%');
+  set('--fdmg-x', (cur.w * (9 + R.x) / ref.w - 9).toFixed(1) + '%'); set('--fdmgc-x', (cur.w * (9 + R.cx) / ref.w - 9).toFixed(1) + '%');
+  set('--fdmg-h', Math.round(R.h * k) + 'px'); set('--fdmgc-h', Math.round(R.ch * k) + 'px');
+}
 function liveShowStart(sc, sh) {
   const foe = sc.querySelector('.live-foe'); if (!foe) return null;
   const n = FOE_SHEET[sh.eid] || 6, size = foeSize(sh.eid);   // 소형 · 중형 · 대형 (ui_sprite.js FOE_SCALE)
   foe.className = 'sp-fighter sp-foe flip fsheet live-foe';
   foe.style.width = (LIVE_POS.foeW * size).toFixed(1) + '%'; foe.style.left = '104%';
   sh.foeX = 100 - LIVE_POS.foeR - LIVE_POS.foeW * size;  sh.size = size;   // 맞붙는 자리 (왼쪽 끝 %)
+  liveDmgPos(sc, size);
   const spr = foe.querySelector('.sp-fspr'), atk = foe.querySelector('.sp-fatk');
   spr.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid)}')`; spr.style.backgroundSize = `${n * 100}% 100%`;
   atk.style.backgroundImage = `url('${SPRITE_SRC.foe(sh.eid, 1)}')`; atk.style.backgroundSize = '300% 100%';
