@@ -269,8 +269,7 @@ function showIntro() {
       <h1>강호견문록</h1>
       <div class="prologue ${stage === 0 && fresh === 0 ? 'reveal-lines' : ''}">${PROLOGUE.map((p, i) => `<p class="story" style="--i:${i}">${p}</p>`).join('')}</div>
       ${step(1, `<h3 class="intro-h">호패 만들기</h3>
-      <label class="field-l" for="pname">성명</label>
-      <div class="name-row"><input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off"><button class="btn sm" data-namecheck>확인</button>${sealed ? `<img class="nakgwan intro-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관">` : ''}</div>`)}
+      <div class="name-row ${sealed ? 'sealed' : ''}"><div class="name-box"><input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off" aria-label="성명" ${sealed ? 'readonly title="눌러서 고치기"' : ''}><span class="name-ink" aria-hidden="true">${esc(name)}</span>${sealed ? `<img class="nakgwan name-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관">` : ''}</div>${sealed ? '' : '<button class="btn sm" data-namecheck>확인</button>'}</div>`)}
       ${step(2, `<p class="field-l">단련 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
       <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
         <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
@@ -290,6 +289,7 @@ function showIntro() {
       ${stage < INTRO_STEPS ? `<button class="intro-next" data-intro-next>▼ 눌러서 계속</button>` : ''}
     </div>`;
     fresh = -1;
+    { const ink = m.querySelector('.name-ink'), sl = m.querySelector('.name-seal'); if (ink && sl) sl.style.left = Math.max(0, ink.offsetWidth - 12) + 'px'; }   // 낙관: 성명 마지막 글자 오른쪽 위에 걸치게
     const nx = m.querySelector('[data-step="' + stage + '"]'); if (nx && stage > 0) nx.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   };
   draw();
@@ -298,7 +298,8 @@ function showIntro() {
     if (s) { chosen = s.dataset.starter; draw(); return; }
     const t = e.target.closest('[data-talent]');
     if (t) { talent = t.dataset.talent; draw(); return; }
-    if (e.target.closest('[data-namecheck]')) { sealed = stampNow = true; if (stage < 2) { stage = 2; fresh = 2; } draw(); stampNow = false; return; }   // 낙관을 찍고 다음 단계로
+    if (e.target.id === 'pname' && sealed) { sealed = false; draw(); const el = $('#pname'); if (el) el.focus(); return; }   // 찍은 이름을 누르면 다시 고친다
+    if (e.target.closest('[data-namecheck]')) { const el = $('#pname'); if (el) el.value = el.value.trim().slice(0, 8) || '무명'; sealed = stampNow = true; if (stage < 2) { stage = 2; fresh = 2; } draw(); stampNow = false; return; }   // 낙관을 찍고 다음 단계로
     if (e.target.closest('[data-reroll]')) { apt = rollApt(); draw(); return; }
     const a = e.target.closest('[data-attr]');
     if (a && !a.disabled) { const k = a.dataset.attr, d = +a.dataset.d; if (attr[k] + d >= ATTR_MIN && attr[k] + d <= ATTR_MAX && (d < 0 || left() > 0)) attr[k] += d; draw(); return; }

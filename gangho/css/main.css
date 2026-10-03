@@ -1035,27 +1035,29 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .obs-attr.apt b { color: var(--gold); }
 .kw-place { color: var(--gold); font-weight: 700; }
 
-/* 서장 · 호패 만들기: 성명 옆 [확인] → 강호견문록 낙관이 찍힌다 */
-.name-row { display: flex; align-items: center; gap: 8px; }
-.name-row input { flex: 1; min-width: 0; }
-.nakgwan { display: block; height: auto; }   /* 강호견문록 낙관 (힉스 그림, 배너의 「江湖」 모양) */
-.intro-seal { width: 44px; flex: none; transform: rotate(-4deg); }
-.intro-seal.stamp { animation: sealStamp .55s cubic-bezier(.2, .9, .3, 1.2) both; }
-@keyframes sealStamp { 0% { opacity: 0; transform: scale(2.2) rotate(-12deg); } 60% { opacity: 1; transform: scale(.92) rotate(-3deg); } 100% { transform: scale(1) rotate(-4deg); } }
+/* 서장 · 호패 만들기: [확인] → 칸 테두리가 사라지며 이름이 붓글씨로 남고, 낙관이 마지막 글자 오른쪽 위에 걸쳐 찍힌다 */
+.name-row { display: flex; align-items: center; gap: 10px; min-height: 64px; }
+.name-box { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; }
+.name-box #pname { width: 100%; font: 22px 'Gangho Brush', var(--serif), serif; letter-spacing: .06em; transition: border-color .35s, background-color .35s, padding .35s, font-size .35s; }
+.name-row.sealed .name-box #pname { border-color: transparent; background: transparent; box-shadow: none; outline: none; padding-left: 2px; font-size: 30px; cursor: text; }
+.name-ink { position: absolute; left: 2px; top: 50%; transform: translateY(-50%); font: 30px 'Gangho Brush', var(--serif), serif; letter-spacing: .06em; visibility: hidden; white-space: pre; pointer-events: none; }
+.name-seal { position: absolute; top: -6px; width: 30px; transform: rotate(-6deg); pointer-events: none; }
+.name-seal.stamp { animation: sealStamp .55s cubic-bezier(.2, .9, .3, 1.2) .2s both; }
+@keyframes sealStamp { 0% { opacity: 0; transform: scale(2.2) rotate(-14deg); } 60% { opacity: 1; transform: scale(.92) rotate(-4deg); } 100% { opacity: 1; transform: scale(1) rotate(-6deg); } }
 
 /* 관조 › 호패: 패에 성명 · 별호 · 경지를 세로로 새기고 아래에 낙관 */
 .observe-left { display: grid; gap: 16px; align-content: start; min-width: 0; }
 .hopae-wrap { display: flex; gap: 18px; align-items: center; }
 .hopae { position: relative; width: 150px; flex: none; }
 .hopae-board { display: block; width: 100%; height: auto; }
-/* 패의 빈 면(그림 가로 0~64% · 세로 30~72%) 한가운데에 성명을 크게 세로로, 오른쪽에 별호 · 왼쪽에 경지를 작게 (오른쪽부터 읽는다) */
-.hp-col { position: absolute; top: 31%; transform: translateX(-50%); writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; line-height: 1;
+/* 패의 빈 면(그림 가로 0~64% · 세로 30~72%): 왼쪽 별호(맨 위에서) · 가운데 성명(조금 아래에서) · 오른쪽 경지(더 아래에서), 낙관은 경지 바로 아래 글자에 살짝 겹치게 (10월 3일 유저) */
+.hp-col { position: absolute; transform: translateX(-50%); writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; line-height: 1;
   font-family: 'Gangho Brush', var(--serif), serif; font-weight: 400; color: #2a1608; text-shadow: 0 0 2px rgba(255, 236, 200, .45); }
-.hp-name { left: 32%; font-size: 26px; letter-spacing: .12em; }
+.hp-alias { left: 15%; top: 29%; font-size: 13px; letter-spacing: .1em; opacity: .85; }
+.hp-name { left: 31%; top: 33%; font-size: 26px; letter-spacing: .12em; }
 .hp-name.n4, .hp-name.n5 { font-size: 21px; letter-spacing: .1em; } .hp-name.n6, .hp-name.n7, .hp-name.n8 { font-size: 17px; letter-spacing: .08em; }
-.hp-alias { left: 50%; top: 34%; font-size: 13px; letter-spacing: .1em; opacity: .85; }
-.hp-rank { left: 14%; top: 34%; font-size: 13px; letter-spacing: .1em; opacity: .85; }
-.hopae-seal { position: absolute; left: 32%; top: 70%; width: 30px; transform: translate(-50%, -50%) rotate(-4deg); opacity: .95; }
+.hp-rank { left: 47%; top: 38%; font-size: 13px; letter-spacing: .1em; opacity: .9; }
+.hopae-seal { position: absolute; left: 50%; top: 100%; width: 26px; margin-top: -7px; transform: translateX(-50%) rotate(-4deg); writing-mode: horizontal-tb; }
 .hopae-info { flex: 1; min-width: 0; margin: 0; display: grid; gap: 8px; }
 .hopae-info > div { display: flex; gap: 10px; align-items: baseline; }
 .hopae-info dt { width: 76px; white-space: nowrap; color: var(--dim); font-size: .85rem; } .hopae-info dd { margin: 0; font-weight: 700; }
