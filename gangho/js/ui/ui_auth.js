@@ -45,7 +45,7 @@ function drawAuth() {
       ${A.err ? `<p class="auth-err" role="alert">${esc(A.err)}</p>` : ''}
       <button class="btn primary big" type="submit" ${A.busy ? 'disabled' : ''}>${A.busy ? '잠시만…' : join ? '가입하고 시작' : '입문'}</button>
     </form>
-    <p class="muted auth-note">${join ? '캐릭터는 이 아이디에 저장되어 어느 기기에서든 이어서 할 수 있습니다. 암호는 암호화해서만 보관합니다.' : '처음이면 [가입하기]로 아이디를 만드십시오.'}</p>
+    <p class="muted auth-note">${join ? '캐릭터는 이 아이디에 저장되어 어느 기기에서든 이어서 할 수 있습니다. 암호는 암호화해서만 보관합니다.' : '처음이면 [가입하기]로 아이디를 만드세요.'}</p>
     ${A.offline ? '<button type="button" class="btn ghost sm" data-authguest>이 기기에서만 하기 (입문 없이)</button>' : ''}
   </div>`;
   m.onclick = e => {
