@@ -58,6 +58,20 @@ function addHint(r) {
    하루 첫 그릇은 공짜, 그 뒤로는 한 그릇에 은자 10냥 */
 const ARIN_CARE = 10;
 const arinFree = () => S.arinFreeDay !== today();
+/* 아린의 기분: 다쳤으면 걱정 · 어제 들르지 않았으면 토라짐 · 새벽(0~5시)엔 졸림 · 그 밖엔 하루 동안 같은 기분(그날 처음 들를 때 고름).
+   비급만 많이 익히고 오래 안 왔으면 서운함이 잘 나온다 */
+function arinMood() {
+  const A = S.arin = S.arin || {}, st = calcStats(), d = today();
+  const yest = new Date(Date.parse(d) - 864e5).toISOString().slice(0, 10);
+  let m;
+  if (S.hp < st.maxHp * 0.5) m = 'worry';
+  else if (A.lastDay && A.lastDay < yest && A.lastDay !== d) m = 'sulk';
+  else if (new Date(now()).getHours() < 5) m = 'sleepy';
+  else if (A.moodDay === d && A.mood && !['worry', 'sulk', 'sleepy'].includes(A.mood)) m = A.mood;
+  else { const pool = ['glad', 'calm', 'proud', 'bored', 'scared', 'miss', 'lonely']; m = pool[Math.floor(Math.random() * pool.length)]; }
+  A.mood = m; A.moodDay = d; A.lastDay = d;
+  return m;
+}
 function arinCare() {
   const free = arinFree();
   if (!free && S.silver < ARIN_CARE) { log(`아린: "사형, 쌀값은 받아야죠… 은자 ${ARIN_CARE}냥이에요. 헤헤."`, 'npc'); return false; }

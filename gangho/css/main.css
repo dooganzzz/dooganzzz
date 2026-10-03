@@ -1076,3 +1076,4 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .title-card .tc-bonus { display: flex; gap: 6px; font-size: 12.5px; } .title-card .tc-bonus span { color: var(--dim); flex: none; width: 2.5em; }
 .title-card .tc-worn { color: var(--gold); font-size: 12px; font-weight: 700; }
 .title-card .btn { justify-self: start; }
+.npc-mood { font-size: .55em; padding: 1px 8px; margin-left: 6px; border-radius: 999px; border: 1px solid rgba(212, 175, 55, .4); color: var(--gold); vertical-align: middle; }

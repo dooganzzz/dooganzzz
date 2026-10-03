@@ -69,7 +69,7 @@ function viewHall() {
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
       <div class="npc-acts"><button class="btn talk-btn" data-act="jounguide">문파 안내</button><button class="btn talk-btn ${supplied ? '' : 'ready'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 배고프죠? 죽 끓여 놨어요!"</p></div>
-      <div class="npc-acts"><button class="btn talk-btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'ready' : ''}" data-act="talk" title="죽 한 그릇 · 활력·내력 모두 회복">말 걸기 <small>(${arinFree() ? '오늘 첫 죽 무료' : `죽 은자 ${ARIN_CARE}냥`})</small></button></div></div>`;
+      <div class="npc-acts"><button class="btn talk-btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'ready' : ''}" data-act="talk" title="아린과 이야기하고 죽을 얻어먹을 수 있습니다 (활력·내력 모두 회복)">담소 나누기</button></div></div>`;
   // 보조 퀘스트: 장문인에게 받은 토벌 임무 하나만
   const cq = subqCur(), cR = cq && subqReward(cq.zid, cq.n), cp = cq ? cq.prog || 0 : 0, cok = subqReady();
   const missions = `
