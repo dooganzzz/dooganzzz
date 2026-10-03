@@ -846,7 +846,10 @@ html.calm .pot-hot { animation: none; }
 .ground-tag > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .25em; padding-bottom: 2%;
   font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-size: clamp(15px, 1.9vw, 26px); color: #15110d; white-space: nowrap; }
 .ground-tag small { font-family: var(--serif), serif; font-size: .45em; opacity: .75; }
-.ground-tag:hover, .ground-tag:focus-visible { transform: translate(-50%, -50%) scale(1.08); filter: brightness(1.08); }
+.ground-tag:hover, .ground-tag:focus-visible { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.12) saturate(1.15); z-index: 4; outline: none; }
+/* 손을 대면 구름이 금빛으로 번지며 강조 (10월 3일 유저 — 붓글씨 대신 구름 이름표 강조) */
+.ground-tag:hover > img, .ground-tag:focus-visible > img { filter: drop-shadow(0 0 6px rgba(255, 214, 130, .95)) drop-shadow(0 0 16px rgba(255, 190, 90, .6)) drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
+.ground-tag:hover > span, .ground-tag:focus-visible > span { color: #000; text-shadow: 0 0 6px rgba(255, 240, 200, .9); }
 .ground-tag > .alert-dot { position: absolute; top: 8%; right: 10%; }
 .map-box.grounds { width: min(100%, calc((100vh - 400px) * 16 / 9)); }   /* 청풍문 전경: 머리 · 갈래 줄 아래에 한 화면으로 */
 /* 단조 · 연단 · 연혼을 넘겨도 무대(재료 칸)가 같은 자리에 오게 설명 줄 높이를 고정 (10월 3일) */
