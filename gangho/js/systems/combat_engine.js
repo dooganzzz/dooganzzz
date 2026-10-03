@@ -375,15 +375,18 @@ function winBattle(b) {
   if (b.sim) return;                                        // 심상수련장: 보상 없음
   S.bestiary[b.eid].kills++;
   const R = EXPEDITION.rewardMult;                           // 원정 보상 배율 (1/10)
-  if (E.xp) { const fin = b.finisher ? COMBAT_RULES.finisherExp : 1; b.exp = Math.round(expGain(E.xp, b.st) * EXPEDITION.expMult * fin); S.exp += b.exp; if (b.exp) bLine(`수련치 +${fmt(b.exp)}${fin > 1 ? ` <small>(초식으로 마무리 +${Math.round((fin - 1) * 100)}%)</small>` : ''}`, 'loot'); }
-  b.silver = Math.round(rint(...E.silver) * R); S.silver += b.silver;
+  // 두목은 처음 한 번만 두목 보상. 다시 잡으면 그 탐험지 9단계 일반 요수와 같은 수련치 · 은자 · 드랍 (10월 3일 유저)
+  const again = E.boss && S.flags[E.boss], Zb = again && Object.values(ZONES).find(z => z.boss === b.eid);
+  const rid = Zb ? Zb.enemies[Zb.enemies.length - 1] : b.eid, RE = ENEMIES[rid] || E, rBoss = !!E.boss && !again;
+  if (E.xp) { const fin = b.finisher ? COMBAT_RULES.finisherExp : 1; b.exp = Math.round(expGain(RE.xp, b.st) * EXPEDITION.expMult * fin); S.exp += b.exp; if (b.exp) bLine(`수련치 +${fmt(b.exp)}${fin > 1 ? ` <small>(초식으로 마무리 +${Math.round((fin - 1) * 100)}%)</small>` : ''}`, 'loot'); }
+  b.silver = Math.round(rint(...RE.silver) * R); S.silver += b.silver;
   if (b.silver) bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다
   const luck = 1 + (b.st.luck || 0) / 100;                    // 기연: 드랍 확률 배율
-  if (!HUMANOID.has(b.eid)) { let q = foeRealm(b.eid) + ((E.tier || 0) >= 4 ? 1 : 0) + (E.boss ? 1 : 0); if (Math.random() * 100 < (b.st.luck || 0)) q++; const nd = NAEDAN[Math.min(NAEDAN.length - 1, q)]; if (give(nd, 1, true)) bLine(`${ITEMS[nd].icon} ${hlItem(ITEMS[nd].name)} 획득`, 'loot'); }   // 내단
-  for (const [id, p] of DROPS[b.eid] || []) if (Math.random() < (E.boss ? p : p * EXPEDITION.dropMult) * luck) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
-  if (E.gear && Math.random() < E.gear[1] * EXPEDITION.gearMult * luck) {
-    const it = dropGear(E.gear[0], rollDropRarity(!!E.boss));
+  if (!HUMANOID.has(b.eid)) { let q = foeRealm(b.eid) + ((E.tier || 0) >= 4 ? 1 : 0) + (rBoss ? 1 : 0); if (Math.random() * 100 < (b.st.luck || 0)) q++; const nd = NAEDAN[Math.min(NAEDAN.length - 1, q)]; if (give(nd, 1, true)) bLine(`${ITEMS[nd].icon} ${hlItem(ITEMS[nd].name)} 획득`, 'loot'); }   // 내단
+  for (const [id, p] of DROPS[rid] || []) if (Math.random() < (rBoss ? p : p * EXPEDITION.dropMult) * luck) { if (give(id, 1, true)) bLine(`${ITEMS[id].icon} ${hlItem(ITEMS[id].name)} 획득`, 'loot'); }
+  if (RE.gear && Math.random() < RE.gear[1] * EXPEDITION.gearMult * luck) {
+    const it = dropGear(RE.gear[0], rollDropRarity(rBoss));
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
   if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); for (const g of applyFx(b.bonus.fx || {})) bLine(`↳ ${hlItem(g)}`, 'loot'); }
