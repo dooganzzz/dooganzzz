@@ -65,7 +65,6 @@ function codexRecipes(craft) {
 /* 별호: 입수 난이도(최하 · 하 · 중 · 상 · 최상)별로 전시. 얻은 별호는 [호패에 새기기], 아직이면 조건과 진행. 중 이상은 이름만 (2장 이후) */
 function codexTitles() {
   const own = S.titles || {};
-  const n = Object.keys(own).filter(id => TITLES[id]).length, open = Object.keys(TITLES).filter(titleOpen).length;
   const card = id => {
     const T = TITLES[id], has = !!own[id], worn = S.title === id;
     if (T.sealed) return `<div class="title-card sealed ${T.school ? 's-' + T.school : ''}"><b class="tc-name">${T.name}<small>${T.hanja}</small></b>${T.school ? schoolBadge(T.school) : ''}<small class="muted">2장 이후에 열립니다</small></div>`;
@@ -77,7 +76,7 @@ function codexTitles() {
       ${has ? (worn ? '<span class="tc-worn">호패에 새김</span>' : `<button class="btn sm" data-titleuse="${id}">호패에 새기기</button>`) : '<span class="muted tc-lock">아직</span>'}
     </div>`;
   };
-  return `<p class="muted">얻은 별호 <b>${n}</b> / ${open} · 습득 보너스는 얻는 순간 영구히, 착용 보너스는 호패에 새긴 별호 하나만. 1장에서는 최하 · 하 별호만 얻을 수 있습니다.</p>`
-    + TITLE_TIERS.map((R, t) => { const ids = Object.keys(TITLES).filter(id => TITLES[id].tier === t); return ids.length ? `<h4 class="title-tier ${R.cls}">${R.name} <small>${R.hanja}</small></h4><div class="title-grid">${ids.map(card).join('')}</div>` : ''; }).join('');
+  // 얻은 별호만 보인다 (못 얻은 것 · 봉인된 것은 숨김, 10월 3일 유저)
+  return TITLE_TIERS.map((R, t) => { const ids = Object.keys(TITLES).filter(id => TITLES[id].tier === t && own[id]); return ids.length ? `<h4 class="title-tier ${R.cls}">${R.name} <small>${R.hanja}</small></h4><div class="title-grid">${ids.map(card).join('')}</div>` : ''; }).join('');
 }
 const schoolBadge = k => `<span class="school-tag s-${k}">${SCHOOLS[k].hanja}</span>`;
