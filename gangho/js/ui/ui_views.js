@@ -180,12 +180,12 @@ function schoolPickRows() {
   }).join('');
 }
 function viewGear() {
-  const st = calcStats();
+  const st = calcStats(), up = gearUpgradeSlots();
   // 장착 칸 카드: 부위 아이콘 · 칸 이름 · 장착한 장비(없으면 비어있음) · 행낭에 이 칸에 맞는 장비 수
   const slot = (s, cls = '') => {
     const it = S.equip[s];
     // 부위 이름은 네모칸 안쪽 6시 자리에, 장비 이름은 칸 아래에 등급 색으로 (10월 3일 유저: 빈 칸은 글씨 없이 깔끔하게)
-    return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${inkBox(slotIcon(s) + `<small class="slot-label">${SLOTS[s].name}</small>`)}${it ? `<span class="slot-item-name">${gearName(it)}</span>` : ''}</button>`;
+    return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${inkBox(slotIcon(s) + `<small class="slot-label">${SLOTS[s].name}</small>` + (up[s] ? '<i class="alert-dot slot-up" aria-label="더 좋은 장비 있음" title="행낭에 더 좋은 장비가 있습니다"></i>' : ''))}${it ? `<span class="slot-item-name">${gearName(it)}</span>` : ''}</button>`;
   };
   return `<section class="panel gear-panel">
     ${head('무장', '武裝')}

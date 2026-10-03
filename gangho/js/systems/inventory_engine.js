@@ -107,6 +107,19 @@ function autoEquipBest() {
   return { from, to, names };
 }
 
+/* 더 좋은 장비 알림: 행낭에 이 칸에 낄 수 있는 장비가 있고, 끼면 투력이 오르는 칸 { 칸: true } (빈 칸은 낄 것만 있으면 오름) */
+function gearUpgradeSlots() {
+  const base = calculateCombatPower(S), out = {};
+  for (const slot of SLOT_ORDER) for (const it of S.gear) {
+    if (out[slot] || it.slot !== slotAccepts(slot)) continue;
+    const old = S.equip[slot]; S.equip[slot] = it;
+    const cp = calculateCombatPower(S);
+    if (old) S.equip[slot] = old; else delete S.equip[slot];
+    if (cp > base) out[slot] = true;
+  }
+  return out;
+}
+
 function unequip(slot) {
   const it = S.equip[slot]; if (!it) return;
   if (bagUsed() >= bagCap()) { notify.toast('행낭이 가득 찼습니다.'); return; }
