@@ -145,7 +145,7 @@ function viewObserve() {
 function hopaeCard(edit) {
   const R = WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.ranks.length - 1)];
   return `<div class="hopae-wrap"><div class="hopae"><img class="hopae-board" src="${ASSET.ui('hopae_big')}" alt="">
-      ${S.alias ? `<span class="hp-col hp-alias">${esc(S.alias)}</span>` : ''}<b class="hp-col hp-name n${Math.min(8, [...S.name].length)}">${esc(S.name)}</b><span class="hp-col hp-rank">${R.name}<img class="nakgwan hopae-seal" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관"></span></div>
+      ${S.alias ? `<span class="hp-col hp-alias">${esc(S.alias)}</span>` : ''}<b class="hp-col hp-name n${Math.min(8, [...S.name].length)}">${esc(S.name)}<img class="nakgwan hopae-seal" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관"></b><span class="hp-col hp-rank">${R.name}</span></div>
     <dl class="hopae-info"><div><dt>성명</dt><dd>${esc(S.name)}</dd></div><div><dt>별호</dt><dd>${S.alias ? esc(S.alias) : '<span class="muted">없음</span>'}</dd></div><div><dt>무공 경지</dt><dd>${R.name} <small class="muted">${R.hanja}</small></dd></div>
       ${edit ? `<div class="alias-row"><input id="aliasInput" maxlength="8" placeholder="별호 (8자까지)" value="${esc(S.alias || '')}" autocomplete="off"><button class="btn sm" data-act="setalias">새기기</button></div>` : ''}</dl></div>`;
 }
