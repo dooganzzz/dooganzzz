@@ -11,6 +11,7 @@ module.exports = async (b) => {
     await p.click('#begin');
 
     // 3. 타자기: 첫 조우 대사는 한 글자씩, 누르면 즉시 전부
+    await p.click('.ground-tag[data-sub="hall"]');   // 새 제자는 청풍문 › 전경에서 시작 → 정청 이름표로 들어간다
     const tw0 = await p.evaluate(() => { const el = document.querySelector('[data-tw="npc"]'); return el && { typing: el.classList.contains('typing'), len: el.textContent.length, full: el.textContent }; });
     ok('3 인물 첫 대사가 타자기로 시작', tw0 && tw0.typing, JSON.stringify(tw0));
     await p.waitForTimeout(150);
@@ -76,8 +77,8 @@ module.exports = async (b) => {
 
     // 움직임 줄이기 설정 존중
     const rm = await b.newPage({ viewport: { width: w, height: h }, reducedMotion: 'reduce' });
-    await rm.goto(GAME_URL); await rm.click('#begin');
-    ok('움직임 줄이기: 타자기 생략', await rm.evaluate(() => document.querySelectorAll('.typing').length === 0 && document.querySelector('[data-tw]').textContent.length > 10));
+    await rm.goto(GAME_URL); await rm.click('#begin'); await rm.evaluate(() => { S.settings = S.settings || {}; S.settings.calm = true; }); await rm.click('.ground-tag[data-sub="hall"]');   // 기기 설정이 아니라 게임 설정 '차분히'를 따른다
+    ok('차분히 설정: 타자기 생략', await rm.evaluate(() => document.querySelectorAll('.typing').length === 0 && document.querySelector('[data-tw]').textContent.length > 10));
     await rm.close();
 
     ok('오류/가로스크롤 없음', errs.length === 0 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(' | '));
