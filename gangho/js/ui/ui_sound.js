@@ -115,7 +115,7 @@ function sNoise(t0, dur, vol, type, f0, f1, q = 1, att = .004) {
   s.connect(fl); fl.connect(g); g.connect(SND.sfxBus); s.start(t0, Math.random() * 1.5); s.stop(t0 + dur + .02);
 }
 const coin = (t, f) => { sOsc('sine', f, f, t, .25, .07); sOsc('sine', f * 2.7, f * 2.7, t, .12, .03); };
-const bell = (t, f, v = .08, d = 1.4) => { [1, 2.76, 5.4].forEach((r, i) => sOsc('sine', f * r, f * r, t, d / (1 + i), v / (1 + i * 1.5))); };
+const bell = (t, f, v = .08, d = 1.4) => { [1, 2].forEach((r, i) => sOsc('sine', f * r, f * r, t, d / (1 + i * 1.5), v / (1 + i * 2.5))); };   // 종: 귀를 찌르던 맨 위 배음(5.4배)을 빼고 둥글게 (10월 3일)
 const SFX = {
   type: t => sOsc('sine', 420, 420, t, .05, .03),                                    // 대사 도트음: 높낮이 없이 낮고 둥근 '톡' (10월 3일 유저: 오래 들어도 거슬리지 않게)
   click: t => { sOsc('sine', 1400, 800, t, .05, .1); sNoise(t, .025, .04, 'bandpass', 3000, 3000, 2); },                    // 나무 딱
@@ -152,7 +152,7 @@ const SFX = {
   equip: t => { sOsc('sine', 2400, 2300, t, .25, .05); sNoise(t, .05, .15, 'bandpass', 3500, 2000, 1); sOsc('sine', 180, 90, t + .02, .08, .15); },   // 철컥
   unequip: t => { sNoise(t, .18, .08, 'bandpass', 1500, 600, .9, .02); sOsc('sine', 1600, 1400, t + .08, .15, .025); },
   book: t => { sNoise(t, .25, .08, 'bandpass', 2000, 3200, .6, .03); sOsc('sine', 220, 180, t + .05, .1, .06); },             // 비급을 꽂고 빼기
-  learn: t => { sNoise(t, .3, .07, 'bandpass', 2000, 3200, .6, .03); bell(t + .25, 784, .05, 1.4); },
+  learn: t => { sNoise(t, .3, .05, 'bandpass', 1400, 2200, .6, .03); sOsc('sine', 330, 330, t + .2, .35, .035); },   // 비급 익히기: 종소리(삐~) 빼고 낮고 짧은 '통' (10월 3일 유저)
   buy: t => { coin(t, 2100); coin(t + .07, 2500); },                                                                           // 엽전 짤랑
   sell: t => { for (let i = 0; i < 5; i++) coin(t + i * .05, 1800 + Math.random() * 900); },                                   // 엽전 쏟아짐
   pray: t => bell(t, 330, .1, 2.6),
@@ -183,9 +183,9 @@ const REC = {
   alchemy: (t, o) => rec('pot', t, .5) && (SFX.alchemy(t + .15, o), true),
   enhance: (t, o) => rec('metal', t, .7) && (o.kind === 'ok' ? (sOsc('sine', 523, 523, t + .3, .5, .05), sOsc('sine', 784, 784, t + .42, .7, .05)) : sOsc('sine', 220, 140, t + .3, .6, .08), true),
   equip: t => rec('equip', t, .7), unequip: t => rec('unequip', t, .7),
-  book: t => rec('book', t, .7), learn: t => rec('bookOpen', t, .7) && (bell(t + .3, 784, .05, 1.4), true),
+  book: t => rec('book', t, .7), learn: t => rec('bookOpen', t, .6) && (sOsc('sine', 330, 330, t + .3, .35, .035), true),
   scroll: t => rec('bookFlip', t, .45),
-  merge: t => rec('bookFlip', t, .6) && rec('bookClose', t + .35, .6) && (bell(t + .7, 660, .06, 1.4), true),
+  merge: t => rec('bookFlip', t, .6) && rec('bookClose', t + .35, .6) && (sOsc('sine', 294, 294, t + .7, .4, .04), true),
   buy: t => rec('coins', t, .7), sell: t => rec('coins2', t, .75),
   mirror_crack: t => rec('glassCrack', t, .6), mirror_break: t => rec('glassBreak', t, .7),
   pray: t => rec('bellHit', t, .55),
