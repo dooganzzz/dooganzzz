@@ -1063,10 +1063,10 @@ html.calm .st-glow { animation: none; }
 .bag-silver { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; color: var(--fg); } .bag-silver .ui-ico { width: 22px; height: 22px; }
 
 /* 행낭: 그림 · 이름만 보이는 작은 칸, 누르면 세부정보 창 */
-.bag-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.bag-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--tile-min, 150px)), 1fr)); gap: 6px; }   /* --tile-min: 가장 긴 이름에 맞춘 칸 폭 */
 .bag-tile { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 4px 8px 4px 4px; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .035); color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .bag-tile:hover, .bag-tile:focus-visible { background: rgba(212, 175, 55, .1); }
-.bag-tile .item-name { flex: 1; min-width: 0; font-size: .86rem; line-height: 1.25; word-break: keep-all; overflow-wrap: normal; }   /* 단어 가운데서 끊지 않는다 — 길면 fitNames가 글씨를 줄임 */
+.bag-tile .item-name { flex: 1; min-width: 0; font-size: .86rem; line-height: 1.25; word-break: keep-all; overflow-wrap: normal; }   /* 단어 가운데서 끊지 않는다 — 칸 폭이 가장 긴 이름에 맞춰 넓어짐 */
 .bag-tile .bag-n { font-size: .78rem; color: var(--silver); }
 .bag-detail { display: flex; align-items: center; justify-content: flex-start; gap: 12px; text-align: left; }
 .bag-sheet .uniq { color: var(--gold); }

@@ -844,13 +844,13 @@ html.calm .pot-hot { animation: none; }
 .map-box.grounds { container-type: inline-size; }
 .map-box > .ground-tag { position: absolute; z-index: 3; transform: translate(-50%, -50%); width: 12%;   /* 유저 값: 구름 12% · 글씨 22px(전경 폭 866px 기준 = 2.54cqw) · 굵기 0.1px · 간격 1px · 글자 위치 (3.5%, 0%) */ padding: 0; border: 0; background: none; cursor: pointer;
   display: grid; place-items: center; transition: transform .15s, filter .15s; }
-.ground-tag > img { width: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
-.ground-tag > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .045em; padding-bottom: 2%; transform: translateX(3.5%); -webkit-text-stroke: .0045em currentColor;
+.ground-tag > img { width: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); opacity: .75; }   /* 유저 값: 구름 진하기 .75 · 글씨 .9 · 테두리 0.05px · 한자 .75 */
+.ground-tag > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .045em; padding-bottom: 2%; transform: translateX(3.5%); -webkit-text-stroke: .0023em currentColor; opacity: .9;
   font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-size: 2.54cqw; color: #15110d; white-space: nowrap; }
 .ground-tag small { font-family: var(--serif), serif; font-size: .45em; opacity: .75; }
 .ground-tag:hover, .ground-tag:focus-visible { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.12) saturate(1.15); z-index: 4; outline: none; }
 /* 손을 대면 구름이 금빛으로 번지며 강조 (10월 3일 유저 — 붓글씨 대신 구름 이름표 강조) */
-.ground-tag:hover > img, .ground-tag:focus-visible > img { filter: drop-shadow(0 0 6px rgba(255, 214, 130, .95)) drop-shadow(0 0 16px rgba(255, 190, 90, .6)) drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
+.ground-tag:hover > img, .ground-tag:focus-visible > img { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 214, 130, .95)) drop-shadow(0 0 16px rgba(255, 190, 90, .6)) drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
 .ground-tag:hover > span, .ground-tag:focus-visible > span { color: #000; text-shadow: 0 0 6px rgba(255, 240, 200, .9); }
 .ground-tag > .alert-dot { position: absolute; top: 8%; right: 10%; }
 .map-box.grounds { width: min(100%, calc((100vh - 400px) * 16 / 9)); }   /* 청풍문 전경: 머리 · 갈래 줄 아래에 한 화면으로 */
@@ -862,4 +862,4 @@ html.calm .pot-hot { animation: none; }
 .ground-bld > img { width: 100%; display: block; filter: drop-shadow(3px 5px 4px rgba(40, 28, 15, .35)); transition: filter .15s; }
 .ground-bld:hover > img, .ground-bld:focus-visible > img { filter: drop-shadow(3px 5px 4px rgba(40, 28, 15, .35)) drop-shadow(0 0 10px rgba(255, 214, 130, .7)) brightness(1.06); }
 .map-box.grounds .ground-tag.lit { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.12) saturate(1.15); z-index: 4; }
-.map-box.grounds .ground-tag.lit > img { filter: drop-shadow(0 0 6px rgba(255, 214, 130, .95)) drop-shadow(0 0 16px rgba(255, 190, 90, .6)) drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
+.map-box.grounds .ground-tag.lit > img { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 214, 130, .95)) drop-shadow(0 0 16px rgba(255, 190, 90, .6)) drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }

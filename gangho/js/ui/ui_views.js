@@ -203,6 +203,8 @@ function viewGear() {
 /* 행낭: 보관 장비 · 소지품 */
 /* 행낭 칸 이름: 비급서는 '《○○》 비급'에서 '비급'을 뺀다 (칸이 좁아 10월 3일 유저) */
 const bagName = id => ITEMS[id].kind === '비급' ? ITEMS[id].name.replace(/\s*비급$/, '') : ITEMS[id].name;
+/* 행낭 칸 폭 자동 맞춤: 가장 긴 이름이 한 줄에 들도록 칸 최소 폭을 정한다 (글씨는 줄이지 않음, 10월 3일 유저) */
+const bagTileMin = (gear, items) => Math.max(150, 112 + 14.5 * Math.max(0, ...gear.map(it => [...it.name].length), ...items.map(id => [...bagName(id)].length)));   // 그림 칸 · 개수 112px + 글자당 14.5px
 function viewBag() {
   // 분류: 전체 · 무기 · 방어구 · 장신구(장비 부위는 전방 장비 탭과 같음) · 비급 · 기타(장비 · 비급 밖의 모든 소지품)
   const tabs = [['all', '전체'], ['weapon', '무기'], ['armor', '방어구'], ['acc', '장신구'], ['book', '비급'], ['etc', '기타']], f = tabs.some(t => t[0] === ui.bagFilter) ? ui.bagFilter : 'all';
@@ -212,7 +214,7 @@ function viewBag() {
   return `<section class="panel bag-panel">
     ${head('행낭', '行囊', `<span class="bag-silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}은자 <b>${fmt(S.silver)}</b></span><span class="num muted bag-cap">${bagUsed()} / ${bagCap()}칸</span>`)}
     <div class="chips">${tabs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-filter="${k}">${n}</button>`).join('')}</div>
-    ${gear.length || items.length ? `<div class="bag-tiles">${gear.map(it => `<button class="bag-tile ${gradeClass(RARITY[it.rarity].name)}" data-bagitem="g:${it.uid}" title="${esc(it.name)}">${inkBox(gearIco(it, 'card'))}<b class="item-name">${it.name}</b></button>`).join('')}${items.map(id => `<button class="bag-tile" data-bagitem="i:${id}" title="${esc(ITEMS[id].name)}">${inkBox(itemIco(id))}<b class="item-name">${bagName(id)}</b><span class="num bag-n">×${count(id)}</span></button>`).join('')}</div>` : ''}
+    ${gear.length || items.length ? `<div class="bag-tiles" style="--tile-min:${bagTileMin(gear, items)}px">${gear.map(it => `<button class="bag-tile ${gradeClass(RARITY[it.rarity].name)}" data-bagitem="g:${it.uid}" title="${esc(it.name)}">${inkBox(gearIco(it, 'card'))}<b class="item-name">${it.name}</b></button>`).join('')}${items.map(id => `<button class="bag-tile" data-bagitem="i:${id}" title="${esc(ITEMS[id].name)}">${inkBox(itemIco(id))}<b class="item-name">${bagName(id)}</b><span class="num bag-n">×${count(id)}</span></button>`).join('')}</div>` : ''}
     ${gear.length || items.length ? '' : '<p class="muted">이 갈래에 든 것이 없습니다.</p>'}
   </section>`;
 }
