@@ -59,12 +59,19 @@ function aiAct(note) {
   if (S.expedition.zone) aiDrive(t, note);
 }
 
+/* 탐험지 상성 (10월 3일 유저: 'AI도 스테이지 상성을 신경 써서'): 기공 오행이 그 탐험지 요수 · 두목을 몇이나 극하는지(극당하면 −) + 약점, 경공 지형이 맞으면 +3 */
+function aiZoneFit(id) {
+  const M = MANUALS[id], Z = ZONES[S.expedition.zone]; if (!M || !Z) return 0;
+  if (M.cat === 'gigong' && M.elem) return [...Z.enemies, Z.boss].reduce((a, e) => a + elemRel(M.elem, ENEMIES[e].elem) + (ENEMIES[e].weak && ENEMIES[e].weak.elem === M.elem ? 1 : 0), 0);
+  if (M.cat === 'gyeonggong' && M.terrain) return (Z.terrain || []).includes(M.terrain) ? 3 : 0;
+  return 0;
+}
 function aiPickManuals(note) {
   const w = weaponType();
   for (const c of CAT_ORDER) {
     const own = Object.keys(S.manuals).filter(id => MANUALS[id].cat === c && (c !== 'mugong' || !MANUALS[id].weapon || MANUALS[id].weapon === w));
     if (!own.length) continue;
-    const score = id => GRADES[MANUALS[id].grade].mult * 100 + S.manuals[id].star;
+    const score = id => GRADES[MANUALS[id].grade].mult * 100 + S.manuals[id].star + aiZoneFit(id) * 15;   // 기공 · 경공은 지금 탐험지와의 상성도 본다
     const best = own.sort((a, b) => score(b) - score(a))[0];
     if (S.active[c] !== best && (!S.active[c] || score(best) > score(S.active[c]) + 50)) { equipManual(best); note(`${CATS[c].name} 교체: ${MANUALS[best].name}`); }
   }

@@ -93,14 +93,14 @@ function sizeRelText(wt, pct) {
 }
 function weaponRel(a, b) { if (!a || !b) return 0; return (WEAPON_ADV[WEAPON_CLASS[a]] || {})[WEAPON_CLASS[b]] || 0; }
 /* 나와 적 사이의 상성. dealt: 내가 주는 피해 배율 · taken: 내가 받는 피해 배율 · myHit/foeHit: 명중 보정(%p) */
-function affinity(eid, st = calcStats()) {
+function affinity(eid, st = calcStats(), opt = {}) {
   const E = ENEMIES[eid], me = myElem(), wt = weaponType(), A = AFFINITY, C = AFFINITY_CAP;
   const el = elemRel(me, E.elem), wp = weaponRel(wt, E.wtype), clamp = (v, [lo, hi]) => Math.max(lo, Math.min(hi, v));
   /* 두목 (10월 3일 유저): 격이 달라 상성(오행 · 병기 · 크기 · 정마사)이 A.bossGain(절반)만 통한다 — 이득 · 손해 모두. 고유 약점 · 경지 압제는 그대로 */
   const g = E.boss ? A.bossGain : 1, half = x => 1 + (x - 1) * g;
   const up = A.elem + (st.elem || 0) / 100;                   // 오성: 내가 극할 때 오행술 위력
   const weak = E.weak && me === E.weak.elem ? E.weak.mult : 0;  // 요수 고유 약점 (오행 고리 밖 · 두목도 줄지 않음)
-  const sizePct = sizeDmg(wt, E.size);                          // 크기 상성: 이 병기로 이 크기를 칠 때 주는 피해 %
+  const sizePct = opt.duel && !DUEL_RULES.size ? 0 : sizeDmg(wt, E.size);   // 크기 상성: 이 병기로 이 크기를 칠 때 주는 피해 % (비무에서는 없음)
   const sa = schoolEdge(mySchool('mugong'), E.school), sd = schoolEdge(mySchool('simbeop'), E.school);   // 정마사: 공격은 무공 칸 · 방어는 심법 칸
   const wpD = wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1;
   const ws = clamp(wpD * (1 + sizePct / 100), [1 - C.weapSize, 1 + C.weapSize]);   // 병기 계열 × 크기 ±30%
@@ -143,7 +143,7 @@ function sense(eid) { const ratio = senseRatio(eid); return SENSE_TEXT.find(([t]
 function fight(eid, opts = {}) {
   const E = ENEMIES[eid], st = calcStats();
   const b = { eid, name: E.name, boss: !!E.boss, e: { ...E, hpNow: E.hp }, over: false, win: false, round: 0, st, lines: [], fx: [], bonus: opts.bonus || null,
-    start: { me: { hp: S.hp, mp: S.mp, maxHp: st.maxHp, maxMp: st.maxMp }, foe: { hp: E.hp, maxHp: E.hp } }, rounds: [], exp: 0, silver: 0, sim: !!opts.sim, pots: opts.sim ? { hp: count('saenghyeol'), mp: count('potionMp') } : null, aff: affinity(eid, st), dot: { me: [], foe: [] } };
+    start: { me: { hp: S.hp, mp: S.mp, maxHp: st.maxHp, maxMp: st.maxMp }, foe: { hp: E.hp, maxHp: E.hp } }, rounds: [], exp: 0, silver: 0, sim: !!opts.sim, pots: opts.sim ? { hp: count('saenghyeol'), mp: count('potionMp') } : null, aff: affinity(eid, st, { duel: !!opts.duel }), dot: { me: [], foe: [] } };
   RT.battle = b;
   if (!b.sim) { const bs = S.bestiary = S.bestiary || {}, first = !bs[eid]; (bs[eid] = bs[eid] || { met: 0, kills: 0 }).met++; if (first) checkAreaEncyclopediaCompletion(zoneOfEnemy(eid)); }   // 요수 도감 (처음 만나면 지역 도감 완성 확인)
   notify.trace('battle', `조우: ${eid} (${E.name}) · 활력 ${Math.round(S.hp)}`);

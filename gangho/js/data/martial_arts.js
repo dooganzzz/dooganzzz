@@ -100,14 +100,17 @@ const TERRAINS = {
   plain: { name: '일반', hanja: '平' },
 };
 
-/* 병기 상성: 병기 계열끼리의 가위바위보. 1 = 우세, -1 = 열세, 0 = 호각. 짐승처럼 병기가 없는 적과는 호각. */
-const WEAPON_CLASS = { fist: 'fist', sword: 'blade', blade: 'blade', spear: 'spear', hidden: 'hidden' };
-const WEAPON_CLASS_NAME = { fist: '권장', blade: '검/도', spear: '창', hidden: '암기' };
-const WEAPON_ADV = {   // 네 계열이 한 바퀴: 권장 › 검/도 › 창 › 암기 › 권장 (10월 3일 보완 대책 — 모든 계열이 하나를 이기고 하나에게 짐)
-  fist:   { blade: 1,  hidden: -1, spear: 0 },
-  blade:  { spear: 1,  fist: -1,   hidden: 0 },
-  spear:  { hidden: 1, blade: -1,  fist: 0 },
-  hidden: { fist: 1,   spear: -1,  blade: 0 },
+/* 병기 상성 (10월 3일 유저: 검 · 도를 다른 계열로 나눔): 다섯 병기가 각각 둘을 이기고 둘에게 진다 (호각 없음, 같은 병기끼리만 호각).
+   권장 › 검 · 도 (붙어서 칼을 쓰지 못하게) · 검 › 창 · 암기 (흘려 막고 파고듦) · 도 › 검 · 창 (힘으로 쳐 냄 · 자루를 끊음)
+   창 › 권장 · 암기 (거리) · 암기 › 권장 · 도 (멀리서 · 느린 칼을 노림). 1 = 우세, -1 = 열세, 0 = 호각 */
+const WEAPON_CLASS = { fist: 'fist', sword: 'sword', blade: 'blade', spear: 'spear', hidden: 'hidden' };
+const WEAPON_CLASS_NAME = { fist: '권장', sword: '검', blade: '도', spear: '창', hidden: '암기' };
+const WEAPON_ADV = {
+  fist:   { sword: 1,  blade: 1,  spear: -1, hidden: -1 },
+  sword:  { spear: 1,  hidden: 1, fist: -1,  blade: -1 },
+  blade:  { sword: 1,  spear: 1,  fist: -1,  hidden: -1 },
+  spear:  { fist: 1,   hidden: 1, sword: -1, blade: -1 },
+  hidden: { fist: 1,   blade: 1,  sword: -1, spear: -1 },
 };
 
 /* 크기 상성 (10월 3일 유저): 그 병기로 그 크기의 요수를 때릴 때 주는 피해 % — 칸 순서는 SIZE_GRADES (소형 작음 · 보통 · 큼 · 중형 … · 대형 …)
@@ -125,6 +128,8 @@ const SIZE_DMG = {
    terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 · bossGain: 두목은 격이 달라 상성(오행 · 병기 · 크기 · 정마사)이 이 비율만 통함 — 이득 · 손해 모두, 주는 · 받는 피해 모두. 고유 약점 · 경지 압제는 그대로 */
 const AFFINITY = { elem: 0.2, weapAtk: 0.12, weapHit: 8, weapDown: 0.12, terrainMatch: 0.8, terrainMiss: 1, bossGain: 0.5 };   // terrainMiss 1.2 → 1 (보완 대책: 경공 지형이 안 맞아도 벌점 없음)
 /* 상성 상한 (보완 대책 10월 3일): weapSize 병기 계열 × 크기 ±30% · dealt 주는 피해 전체(오행 · 병기 · 크기 · 약점 · 정마사) · taken 받는 피해 전체. 경지 압제는 밖에서 따로 */
+/* 비무(사람 대 사람, 10월 3일 유저): 사람끼리는 크기 상성을 빼고 겨룬다 — 지금은 비무가 없어 affinity(eid, st, { duel: true })로만 쓴다 */
+const DUEL_RULES = { size: false };
 const AFFINITY_CAP = { weapSize: 0.3, dealt: [0.6, 1.8], taken: [0.7, 1.5] };   // 10월 3일 상성 전체 조정: 오행 25→20 · 병기 15→12 · 명중 10→8 (모든 상성이 곱해져도 1.55배 ~ 0.6배 안)
 /* 전투 보정: minDmg 적 공격의 최소 피해(공격력 대비, 방어로도 못 막는 몫) · elemPenalty 오행 역상성일 때 받는 피해 추가
    powerBase 초식 피해 배율의 기준(장보각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
