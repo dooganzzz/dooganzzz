@@ -221,6 +221,7 @@ small { font-size: .82rem; }
 /* 받을 보상 알림 점 */
 .tab, .subtab { position: relative; }
 .alert-dot { display: inline-block; width: 6px; height: 6px; margin-left: 3px; border-radius: 50%; background: #e0412a; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .35), 0 0 4px rgba(224, 65, 42, .7); vertical-align: top; animation: alertPulse 1.6s ease-in-out infinite; }
+.talk-btn { position: relative; } .talk-btn > .alert-dot { position: absolute; top: -3px; right: -3px; margin: 0; }
 .tab .alert-dot, .subtab .alert-dot { position: absolute; top: 4px; right: 10%; margin: 0; }
 @keyframes alertPulse { 50% { transform: scale(1.25); } }
 /* 설정 탭 · 대량 구매 슬라이더 */

@@ -58,7 +58,7 @@ function viewHall() {
   const ownsBook = id => !!S.manuals[id] || has('bk_' + id);
   const badges = SHOP_GEAR.filter(g => g.cost);
   const hq = `
-    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint">${tutorReady() ? '보상 받기 <small>가르침을 이룸</small>' : '가르침 청하기'}</button></div>
+    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint">${tutorReady() ? '보상 받기 <small>가르침을 이룸</small>' : '가르침 청하기'}${alertDot(masterAlert())}</button></div>
     <div class="quest main-quest ${tutorReady() ? 'ready' : ''}">
       ${!q ? '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'
         : !questAccepted() ? `<small class="muted">사명(師命) · 장문인의 가르침 ${qi + 1}/${QUESTS.length}</small><b>아직 사명을 받지 않았습니다</b><p class="story">장문인에게 [가르침 청하기] → [사명을 받는다].</p>`
@@ -89,7 +89,7 @@ function viewHall() {
   const library = `
     <div class="subtabs lib-tabs" role="tablist" aria-label="장보각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
     <div class="shop lib-grid">${libItems.join('')}</div>`;
-  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳', tutorReady() || subqReadyCount() ? `<span class="num gold">${[tutorReady() ? '가르침 보상' : '', subqReadyCount() ? `토벌 보상 ${subqReadyCount()}건` : ''].filter(Boolean).join(' · ')} ${alertDot(true)}</span>` : '')}${foldBody('hq', hq.replace('<!--subq-->', missions))}</section>
+  return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳', masterAlert() || subqReadyCount() ? `<span class="num gold">${[tutorReady() ? '가르침 보상' : masterAlert() ? '장문인의 사명' : '', subqReadyCount() ? `토벌 보상 ${subqReadyCount()}건` : ''].filter(Boolean).join(' · ')} ${alertDot(true)}</span>` : '')}${foldBody('hq', hq.replace('<!--subq-->', missions))}</section>
   <section class="panel fold">${foldHead('library', '장보각', '藏寶閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 

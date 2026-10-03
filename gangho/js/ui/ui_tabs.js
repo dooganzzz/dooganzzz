@@ -147,7 +147,9 @@ function gauge(cls, cur, max, name) {
 }
 
 /* 받을 보상 알림: 장문인 가르침을 이루었거나 토벌 임무를 채웠으면 청풍문 탭 · 정청에, 끝난 강호행의 보상이 남았으면 강호행 탭에 빨간 점 */
-const questAlert = () => !!S && (tutorReady() || subqReadyCount() > 0);
+/* 장문인 빨간 점: 받을 사명이 있는데 아직 안 받았거나(처음 시작할 때 어디로 갈지 알게, 10월 3일 유저) 보상을 받을 때 */
+const masterAlert = () => !!S && (tutorReady() || (!!QUESTS[questIndex()] && !questAccepted()));
+const questAlert = () => !!S && (masterAlert() || subqReadyCount() > 0);
 const alertDot = on => on ? '<i class="alert-dot" aria-label="받을 보상 있음"></i>' : '';
 function renderTabs() {
   const qa = questAlert();
