@@ -19,7 +19,7 @@ function sndVol(k) {
 function sndInit() {
   if (!SOUND_ON) return;
   SND.userAt = performance.now();
-  if (SND.ctx) { if (SND.ctx.state === 'suspended' && !document.hidden) SND.ctx.resume().catch(() => {}); return; }
+  if (SND.ctx) { if (SND.ctx.state === 'suspended' && !document.hidden) SND.ctx.resume().catch(() => {}); if (SND.deck && SND.deck.el.paused) SND.deck.el.play().catch(() => {}); return; }   // 첫 화면에서 막혔던 배경음악을 첫 손길에 이어 튼다
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
   const c = SND.ctx = new AC();
   SND.bgmBus = c.createGain(); SND.sfxBus = c.createGain();
@@ -38,6 +38,8 @@ function sndInit() {
   sndApply(true); sndTick();
 }
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, sndInit, true));
+// 첫 화면에서 바로 틀어 본다 (10월 3일 유저). 브라우저가 손길 전 소리를 막으면 조용히 기다렸다가 첫 손길에 시작한다
+if (SOUND_ON) addEventListener('load', () => { try { sndInit(); } catch (e) {} });
 document.addEventListener('visibilitychange', () => { const c = SND.ctx; if (!c) return; if (document.hidden) c.suspend(); else c.resume().catch(() => {}); });
 function sndApply(now) {
   const c = SND.ctx; if (!c) return;

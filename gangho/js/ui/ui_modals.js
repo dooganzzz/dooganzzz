@@ -253,7 +253,7 @@ const PROLOGUE = [
   '그런데 오늘 아침, 봇짐 하나 멘 풋내기가 산문을 두드렸다. 무신상 앞에 무릎을 꿇은 그 아이의 눈빛만은 이상하리만치 맑았다.',
   '아무도 기억하지 않는 문파의 마지막 제자. 그 아이가 이제 강호를 걷는다.',
 ];
-/* 서장은 한 단계씩 먹이 번지듯 드러난다: 서문 → (누르면) 제자 이름 → 4대 스탯 → 입문 무공 → 기예와 시작 단추.
+/* 서장은 한 단계씩 먹이 번지듯 드러난다: 서문 → [호패 만들기] 성명 → [확인] 능력치 → [이대로 정한다] 입문 무공 → 고르면 기예와 시작 단추.
    자동 검사(웹드라이버)에서는 한 번에 모두 펼친다 */
 const INTRO_STEPS = 4;
 const STARTER_LABEL = { fist: '권장법', sword: '검법', blade: '도법', spear: '창법', hidden: '암기술' };
@@ -285,7 +285,7 @@ function showIntro() {
       ${step(4, `<p class="field-l">기예 <small class="muted">(技藝)</small></p>
       <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><span class="talent-ico" style="background-image:url('${TALENT_ICO[k]}')"></span><b>${T.name} <small>${T.hanja}</small></b><em class="talent-sub">${T.sub}</em></button>`).join('')}</div>
       <button class="btn primary big" id="begin">강호 출도</button>`)}
-      ${stage < INTRO_STEPS ? `<button class="intro-next" data-intro-next>▼ 눌러서 계속</button>` : ''}
+      ${stage === 0 ? `<button class="intro-next" data-intro-next>▼ 호패 만들기</button>` : stage === 2 ? `<button class="intro-next" data-intro-next>▼ 이대로 정한다</button>` : ''}
     </div>`;
     fresh = -1;
     { const ink = m.querySelector('.name-ink'), sl = m.querySelector('.name-seal'); if (ink && sl) sl.style.left = Math.max(0, ink.offsetWidth - 12) + 'px'; }   // 낙관: 성명 마지막 글자 오른쪽 위에 걸치게
@@ -294,7 +294,7 @@ function showIntro() {
   draw();
   m.onclick = e => {
     const s = e.target.closest('[data-starter]');
-    if (s) { chosen = s.dataset.starter; draw(); return; }
+    if (s) { chosen = s.dataset.starter; if (stage === 3) { stage = 4; fresh = 4; } draw(); return; }   // 입문 무공을 고르면 기예가 드러난다
     const t = e.target.closest('[data-talent]');
     if (t) { talent = t.dataset.talent; draw(); return; }
     if (e.target.id === 'pname' && sealed) { sealed = false; draw(); const el = $('#pname'); if (el) el.focus(); return; }   // 찍은 이름을 누르면 다시 고친다
@@ -302,6 +302,7 @@ function showIntro() {
     if (e.target.closest('[data-reroll]')) { attr = rollAttr(); apt = rollApt(); draw(); return; }
     if (e.target.closest('#begin')) {
       if ([...($('#pname').value || '').trim()].length > 5) return toast('성명은 최대 5자까지만 가능합니다.');
+      if (!sealed && !navigator.webdriver) return toast('성명을 쓰고 [확인]을 눌러 호패에 새겨 주십시오.');   // 자동 검사는 서장을 한 번에 펼친다
       const name = ($('#pname').value || '').trim() || '무명';
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
       startNewGame(name, chosen, { attr: { ...attr }, apt: { ...apt }, talent });
@@ -310,7 +311,7 @@ function showIntro() {
       if (!reduceMotion()) replay(document.querySelector('.app'), 'app-reveal');   // 메인 화면이 먹 번지듯 서서히
       return;
     }
-    // 입력칸·단추가 아닌 곳을 누르면 다음 단계가 드러난다
-    if (stage < INTRO_STEPS && (e.target.closest('[data-intro-next]') || !e.target.closest('input, button, label'))) { stage++; fresh = stage; draw(); }
+    // 다음 단계는 절차대로만 드러난다 (10월 3일 유저: 바깥을 잘못 눌러 넘어가지 않게) — 서문 [호패 만들기] → 성명 [확인] → 능력치 [이대로 정한다] → 입문 무공 고르기 → 기예 · [강호 출도]
+    if ((stage === 0 || stage === 2) && e.target.closest('[data-intro-next]')) { stage++; fresh = stage; draw(); }
   };
 }
