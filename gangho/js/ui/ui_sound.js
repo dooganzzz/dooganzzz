@@ -203,7 +203,7 @@ const REC = {
 const SFX_GAP = { type: 45, step: 80, click: 40, portal: 200, equip: 150, unequip: 150, book: 150, buy: 120, sell: 150 };
 /* 지금 내는 효과음: 대사 도트음 · 누르기 소리만 (10월 3일 유저: 나머지 효과음 · 날씨 소리는 모두 뺌. 다시 켜려면 여기에 이름을 더한다) */
 /* 소리마다 따로 맞춘 크기 (1 = 처음 값. 연출 미리보기 '소리 크기' 슬라이더로 유저가 정한다) · 녹음을 낮춰 다르게 쓰는 것(팔 때 엽전 = 살 때보다 낮게) */
-const SND_MIX = { teahouse: 1, type: 2.5, click: 2.2, step: 1.5, buy: 1, sell: 1, portal: 3, hit_fist: 1.85, hit_sword: 1.55, hit_blade: 1.4, hit_spear: 1.5, hit_hidden: 2.25 };   // 10월 3일 유저 값
+const SND_MIX = { teahouse: 1.25, type: 2.55, click: 2.2, step: 1.5, buy: 1.55, sell: 1.55, portal: 3, hit_fist: 1.85, hit_sword: 2.1, hit_blade: 1.45, hit_spear: 1.65, hit_hidden: 2.75 };   // 10월 3일 유저 값
 const SFX_RATE = { sell: .82 };
 function mixNode(name, bus) {
   let g = SND.mix[name]; if (!g) { g = SND.mix[name] = SND.ctx.createGain(); g.connect(bus); }
