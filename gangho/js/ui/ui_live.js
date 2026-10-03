@@ -210,7 +210,7 @@ function livePageTurn(dir) {
   const sc = $('#liveScene'); if (!sc || reduceMotion()) return;
   sc.querySelectorAll('.live-page').forEach(e => e.remove());
   const pg = document.createElement('div'), face = document.createElement('div'), back = document.createElement('i');
-  pg.className = `live-page ${dir < 0 ? 'rev' : ''}`; pg.setAttribute('aria-hidden', 'true'); face.className = 'lp-face'; back.className = 'lp-back';
+  pg.className = `live-page ${dir < 0 ? 'rev' : ''}`; pg.setAttribute('aria-hidden', 'true'); face.className = 'lp-face'; back.className = 'lp-back'; back.style.backgroundImage = `url('${ASSET.ui('page_back')}')`;   // 말려 넘어가는 한지 (힉스 확정본)
   for (const el of sc.querySelectorAll(':scope > .live-world, :scope > .live-mist')) { const c = el.cloneNode(true); c.querySelectorAll('[data-anim]').forEach(x => x.removeAttribute('data-anim')); face.appendChild(c); }
   pg.dataset.live = '1'; pg.append(face, back); sc.appendChild(pg); sfx('page');   // data-live: 다시 그려도 그대로 (넘김은 rAF로 — 떼었다 붙여도 처음부터 다시 돌지 않게)
   const t0 = performance.now(), D = 1100, ease = x => x < .5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;

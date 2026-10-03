@@ -292,5 +292,10 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .ink-box > img.up-mark, .bag-tile .ink-box > img.up-mark, .mrow-cover > img.up-mark, .slot-lite .mslot-box > img.up-mark { position: absolute; top: 1px; right: 1px; width: 22px; height: 22px; margin: 0; padding: 0; z-index: 3; pointer-events: none; filter: drop-shadow(0 0 3px rgba(0, 0, 0, .7)); }
 /* 피해 숫자 글자 그림: 자리 · 크기는 유저 슬라이더 값 (--dmg-y 높이 % · --dmg-x 옆으로 % · --dmg-h 글자 높이 · --dmgc-h 회심 글자 높이) */
 .live-num.dg { top: var(--dmg-y, 30%); margin-left: var(--dmg-x, 0%); display: flex; align-items: flex-end; height: var(--dmg-h, 30px); text-shadow: none; }
-.live-num.dg.crit { height: var(--dmgc-h, 42px); }
+.live-num.dg.crit { height: var(--dmgc-h, 42px); top: var(--dmgc-y, 22%); margin-left: var(--dmgc-x, 0%); }   /* 회심은 따로 자리 (유저 슬라이더) */
 .live-num.dg img { height: 100%; width: auto; margin-right: -.08em; }
+/* 도감 › 비급: 이름 옆 등급 · 경지 낙관 (10월 3일 유저 — 병기 태그 · 초식 이름 줄은 지움) */
+.beasts .cx-seals { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; }
+.beasts .cx-seals .hj-seal.tall { width: 22px; height: 39px; }
+.beasts .cx-seals small { margin-left: 4px; }
+.beasts li > small.passive { flex-basis: 100%; margin-left: 0; white-space: normal; }   /* 각인 줄은 다음 줄에 통째로 (모바일 잘림 방지) */
