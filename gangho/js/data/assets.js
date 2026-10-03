@@ -57,5 +57,7 @@ const MANUAL_HIT = { fs1b: 3, fs1a: 1 };   // 무공 → 맞붙어 치는 횟수
 /* 검은 바탕에 빛과 기운으로 그린 무공(유저 확정 화풍): 칼 그림용 파란 테두리 빛 없이 그대로 스며들게 (CSS .stance-cut.glow) */
 const MANUAL_GLOW = ['fs1b'];
 /* 확장자가 기본과 다른 파일 (종류:이름) */
+/* 피해 숫자 글자 시트 (ui/dmg_sheet · ui/dmgc_sheet): 0~9 · 빼기(m) 순서로 가로로 붙인 힉스 확정본. h = 높이, w = 글자마다 폭 (px) — 아티팩트 파일 수 한도(512) 때문에 26장을 2장으로 묶음 (10월 3일) */
+const DMG_GLYPHS = { order: '0123456789-', dmg: { h: 72, w: [53, 29, 62, 53, 57, 55, 52, 53, 52, 47, 42] }, dmgc: { h: 92, w: [73, 49, 82, 73, 77, 75, 72, 73, 72, 67, 62] } };
 const ASSET_EXT = { 'scene:banner': 'jpg', 'scene:forge_scene': 'jpg', 'font:rank_hanja': 'woff2' };
 /* PNG는 모두 무손실 WebP로 바꿨다 (픽셀 동일, 약 37% 작음). 이미 손실 압축된 WebP · JPG는 다시 압축하지 않는다 */

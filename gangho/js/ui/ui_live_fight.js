@@ -121,8 +121,10 @@ function liveSkill(sc, sk) {
   if (sk.tier === 2 && v) liveShake(sc);   // 그림 없는 초식 · 오의는 평타처럼
 }
 function liveShake(sc) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); clearTimeout(sc._shakeT); sc._shakeT = setTimeout(() => sc.classList.remove('shake'), 650); }
-/* 피해 숫자 글자 그림 (힉스 확정본 · ui/dmg_0~9, 회심 ui/dmgc_0~9) */
-const dmgDigits = (t, crit) => [...String(t)].map(d => `<img src="${ASSET.ui((crit ? 'dmgc_' : 'dmg_') + (d === '-' ? 'm' : d))}" alt="">`).join('');   // '-' = 빼기 글자 (dmg_m)
+/* 피해 숫자 글자 그림 (힉스 확정본 · 시트 ui/dmg_sheet, 회심 ui/dmgc_sheet — 글자 폭은 data/assets.js DMG_GLYPHS) */
+const dmgDigits = (t, crit) => { const k = crit ? 'dmgc' : 'dmg', G = DMG_GLYPHS[k], tot = G.w.reduce((a, v) => a + v, 0), src = ASSET.ui(k + '_sheet');
+  return [...String(t)].map(d => { const i = DMG_GLYPHS.order.indexOf(d); if (i < 0) return ''; const w = G.w[i], x = G.w.slice(0, i).reduce((a, v) => a + v, 0);
+    return `<i class="dg-g" style="aspect-ratio:${w}/${G.h};background-image:url('${src}');background-size:${(tot / w * 100).toFixed(2)}% 100%;background-position-x:${(x / (tot - w) * 100).toFixed(3)}%"></i>`; }).join(''); };
 function liveNum(sc, t, left, cls) {
   const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.dataset.live = 1; n.style.left = (left - 4 + Math.random() * 8) + '%';
   if (/^-?\d+$/.test(String(t))) { n.classList.add('dg'); n.setAttribute('aria-label', t); n.innerHTML = dmgDigits(t, /\bcrit\b/.test(cls || '')); } else n.textContent = t;   // 피해 숫자는 먹 붓글씨 글자 그림 (회심은 금빛)

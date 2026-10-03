@@ -276,7 +276,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .live-num.dg.crit { height: 50px; top: 39%; margin-left: -12%; }
 .live-num.dg:not(.me) { top: var(--fdmg-y, 48%); margin-left: var(--fdmg-x, -.5%); height: var(--fdmg-h, 34px); }
 .live-num.dg.crit:not(.me) { top: var(--fdmgc-y, 39%); margin-left: var(--fdmgc-x, -12%); height: var(--fdmgc-h, 50px); }
-.live-num.dg img { height: 100%; width: auto; margin-right: -.08em; }
+.live-num.dg .dg-g { display: block; height: 100%; background-repeat: no-repeat; margin-right: -.08em; }   /* 글자 한 칸 (시트에서 잘라 보임) */
 /* 도감 › 비급: 이름 옆 등급 · 경지 낙관 (10월 3일 유저 — 병기 태그 · 초식 이름 줄은 지움) */
 .beasts .cx-seals { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; }
 .beasts .cx-seals .hj-seal.tall { width: 22px; height: 39px; }
