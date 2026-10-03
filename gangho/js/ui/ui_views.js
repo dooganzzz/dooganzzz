@@ -47,7 +47,6 @@ const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
 const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})">${ELEMENTS[e].hanja}</span>` : '';
 const terrainTag = t => t ? `<span class="aff-tag tr" title="지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})">${TERRAINS[t].hanja}</span>` : '';
-const manualAffTag = id => elemTag(MANUALS[id].elem) + terrainTag(MANUALS[id].terrain);
 /* 파 표식 (正 · 魔 · 邪): 정마사 상성과 파의 고유 효과 */
 const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return `<span class="school-tag s-${k}" title="${P.name}(${P.hanja}) — ${P.desc} 성향 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다">${P.hanja}</span>`; };
 const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_CLASS[w]]}</span>` : '';
@@ -88,7 +87,7 @@ function viewMartial() {
     const M = MANUALS[id], m = S.manuals[id], worn = S.active[M.cat] === id;
     return `<div class="mrow ${worn ? 'worn is-equipped' : ''}">
       <button class="mrow-cover" data-mart="${id}" aria-label="《${M.name}》 자세히">${manualIco(id)}</button>
-      <div class="mrow-main"><b class="mrow-name" data-mart="${id}" role="button" tabindex="0">《${M.name}》${manualAffTag(id)}</b>
+      <div class="mrow-main"><b class="mrow-name" data-mart="${id}" role="button" tabindex="0">《${M.name}》</b>
         <div class="mrow-meta">${gradeBadge(M.grade)}${realmTag(m.star)}${worn ? '<span class="card-status-tag active">장착 중</span>' : ''}</div>
         ${pips(m.star)}<small class="mrow-eff">${bonusText(manualBonus(id, m.star)) || esc(M.desc || '')}</small></div>
       <div class="mrow-btns">${starBtn(id)}${worn ? `<button class="btn ghost sm btn-unequip" data-unequipm="${M.cat}">장착 해제</button>` : `<button class="btn sm" data-equipm="${id}">장착</button>`}</div>

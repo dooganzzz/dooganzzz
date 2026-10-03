@@ -45,7 +45,7 @@ function codexMartial() {
     `<button class="subtab ${k === cat ? 'on' : ''}" role="tab" aria-selected="${k === cat}" data-codexcat="${k}">${label(CATS[k].name, CATS[k].hanja)}</button>`).join('')}</div>`;
   const got = Object.keys(MANUALS).filter(id => MANUALS[id].cat === cat && S.manuals[id]);
   const rows = got.map(id => { const M = MANUALS[id], m = S.manuals[id];
-    return `<li>${manualIco(id, 'mini')}<button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.passiveBonus ? `<small class="passive">각인 ${bonusText(M.passiveBonus)}</small>` : ''}${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
+    return `<li>${manualIco(id, 'mini')}<button class="linkish" data-mart="${id}"><b>《${M.name}》</b></button>${M.weapon ? weaponTag(M.weapon) : ''}<small class="muted">${M.grade} · ${m.star}성</small>${M.passiveBonus ? `<small class="passive">각인 ${bonusText(M.passiveBonus)}</small>` : ''}${M.stances && M.weapon ? `<em class="trait">${M.stances.map(x => x.name).join(' · ')}</em>` : ''}</li>`; }).join('');
   return `${intro}${cbar}<div class="codex"><article class="codex-col"><ul class="beasts">${rows}</ul></article></div>`;
 }
 

@@ -244,3 +244,10 @@ small { font-size: .82rem; }
   font-family: var(--serif, serif); font-size: 14px; line-height: 1.75; color: inherit; display: grid; gap: 1px; }
 .manual-poem b { font-size: 13px; color: var(--gold, #c9a24a); letter-spacing: .06em; margin-bottom: 2px; }
 .ui-ico.vit-ico { display: inline-block; width: 18px; height: 18px; margin: -3px 4px 0 0; vertical-align: middle; background: center / contain no-repeat; }
+
+/* 비급 상세 [속성] · [부가 효과]: 이름 : 설명 줄 (유저 정리안) */
+.sheet .sec-h { margin: 14px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line, rgba(212, 175, 55, .25)); color: var(--gold, #d4af37); font-size: .92rem; letter-spacing: .04em; }
+.attr-rows { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 12px; margin: 0; font-size: .9rem; line-height: 1.5; }
+.attr-rows dt { font-weight: 700; color: var(--text, #efe6d2); white-space: nowrap; } .attr-rows dd { margin: 0; min-width: 0; }
+.attr-rows.fx dt { color: var(--dim, #9a8f7a); } .attr-rows.fx dt.on { color: var(--gold, #d4af37); }
+@media (max-width: 480px) { .attr-rows { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .attr-rows dd { margin-bottom: 6px; } }

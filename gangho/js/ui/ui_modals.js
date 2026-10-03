@@ -9,23 +9,36 @@ function manualModal(cat) {
   return martialModal(S.active[cat]);
 }
 
+/* 비급 상세의 [속성] · [부가 효과] (유저 정리안: 이름 옆 파 · 오행 한자 대신 아래 칸에 이름 : 설명) */
+const fmtBonus = b => Object.entries(b).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
+function manualAttrHtml(id) {
+  const M = MANUALS[id], P = SCHOOLS[schoolOf(id)], rows = [];
+  if (P) rows.push([`${P.name}(${P.hanja})`, `${P.words}. 성향(계열마다 가장 높은 비급) 한 칸마다 ${P.bonus}.${M.cat === 'mugong' ? ` ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음).` : ''}`]);
+  if (M.elem) rows.push([`오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})`, `${ELEMENTS[ELEM_BEATS[M.elem]].name}(${ELEMENTS[ELEM_BEATS[M.elem]].hanja}) 속성 적에게 피해 +25%, ${(e => `${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`)(Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem))} 속성 적에게는 -25%`]);
+  if (M.terrain) rows.push([`지형 ${TERRAINS[M.terrain].name}(${TERRAINS[M.terrain].hanja})`, `${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%`]);
+  return rows.length ? `<h4 class="sec-h">속성</h4><dl class="attr-rows">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` : '';
+}
+function manualFxHtml(id, star) {
+  const M = MANUALS[id], cat = M.cat, rows = [], got = n => star != null && star >= n;
+  rows.push(['습득 시', `${bonusText(M.passiveBonus) || '없음'} <small class="muted">(익히면 장착하지 않아도 늘 적용)</small>`, star != null]);
+  rows.push(['장착 시', `${fmtBonus(manualBonus(id, star || 1))} <small class="muted">(${star || 1}성 기준 · 성급마다 조금씩 오름)</small>`, star != null]);
+  rows.push(['소성(6성) 시', `장착 능력치 30% 상승${got(6) ? ' <small class="gold">(적용 중)</small>' : ` — ${fmtBonus(manualBonus(id, 6))}`}${M.weapon && M.stances ? ' · 제2초식 열림' : ''}`, got(6)]);
+  rows.push(['대성(12성) 시', `${DAESUNG_PASSIVE[cat].text}${M.weapon && M.stances ? ' · 오의 열림' : ''}${got(MAX_STAR) ? ' <small class="gold">(적용 중)</small>' : ''}`, got(MAX_STAR)]);
+  return `<h4 class="sec-h">부가 효과</h4><dl class="attr-rows fx">${rows.map(([k, v, on]) => `<dt class="${on ? 'on' : ''}">${k}</dt><dd class="${on ? '' : 'muted'}">${v}</dd>`).join('')}</dl>`;
+}
 /* 아직 익히지 않은 비급의 상세 (장보각 카드 등): 시문 · 초식 · 상성 · 성급별 장착 능력치 · 독파 각인 · 공헌 */
 function manualPreviewModal(id) {
   const M = MANUALS[id], cat = M.cat, lib = LIBRARY_BOOKS.includes(id) && M.cost, own = !!(S.manuals[id] || has('bk_' + id));
   const statTxt = st => Object.entries(manualBonus(id, st)).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
   const moves = M.stances ? `<h4>${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name, desc }) => `<li><b>${name}</b> <small class="muted">${esc(desc || '')}</small></li>`).join('')}</ol>` : '';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 ${schoolTag(id)} <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2></div></div>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2></div></div>
     <p class="story">${M.desc}</p>
     ${manualPoemHtml(id)}
     ${M.weapon ? `<p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : ''}
-    ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})</p>` : ''}
-    ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}
+    ${manualAttrHtml(id)}
+    ${manualFxHtml(id, null)}
     ${moves}
-    <h4>장착 능력치</h4>
-    <div class="kv"><span>1성</span><b>${statTxt(1)}</b></div><div class="kv"><span>6성 소성</span><b>${statTxt(6)}</b></div><div class="kv"><span>12성 대성</span><b>${statTxt(MAX_STAR)}</b></div>
-    <p class="muted">대성 시 개방 — ${DAESUNG_PASSIVE[cat].text}</p>
-    <p class="passive">독파 각인: ${bonusText(M.passiveBonus)}</p>
     <div class="btns">${lib ? `<button class="btn primary" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}로 바꾸기`}</button>` : ''}<button class="btn ghost" data-act="closemodal">닫기</button></div>
   </div>`;
 }
@@ -46,16 +59,12 @@ function martialModal(id) {
       <div><button class="btn primary" data-starup="${id}" ${why ? 'disabled' : ''}>▲ 성급 올리기${why ? ` <small>(${why})</small>` : ` <small>수련치 ${fmt(cost)}${pill ? ` + ${ITEMS[pill].name}` : ''}</small>`}</button></div>`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 ${schoolTag(id)} <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
     <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 수련치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
     <p class="story">${M.desc}</p>
     ${manualPoemHtml(id)}
-    ${cat === 'mugong' ? (P => `<p class="aff-line">${schoolTag(id)} ${P.name}(${P.hanja}) — ${P.words}. 성향(계열마다 가장 높은 비급) 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음)</p>`)(SCHOOLS[schoolOf(id)]) : ''}
-    ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja}) — ${ELEMENTS[ELEM_BEATS[M.elem]].hanja} 속성 적에게 피해 +25%, ${ELEMENTS[Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem)].hanja} 속성 적에게는 -25%</p>` : ''}
-    ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}
-    <h4>보너스 효과 (장착 시)</h4>${bonus}
-    <p class="${m.star >= MAX_STAR ? 'gold' : 'muted'}">${m.star >= MAX_STAR ? '🌟 ' : '대성 시 개방 — '}${DAESUNG_PASSIVE[cat].text}</p>
-    ${m.star < 6 ? '<p class="muted">소성(6성)에 이르면 장착 능력치가 30% 오릅니다.</p>' : ''}
+    ${manualAttrHtml(id)}
+    ${manualFxHtml(id, m.star)}
     ${moves}${gateInfo}
     <div class="btns">${worn && Object.keys(S.manuals).some(k => k !== id && MANUALS[k].cat === cat) ? `<button class="btn ghost" data-artslot="${cat}">[ 다른 비급으로 바꾸기 ]</button>` : ''}${worn ? `<button class="btn danger" data-unequipm="${cat}">[ 장착 해제 ]</button>` : `<button class="btn primary" data-equipm="${id}">[ 장착하기 ]</button>`}<button class="btn ghost" data-act="closemodal">닫기</button></div>
   </div>`;
@@ -137,7 +146,7 @@ function artSlotModal(cat) {
   const cur = S.active[cat], C = CATS[cat];
   const list = Object.keys(S.manuals).filter(id => MANUALS[id].cat === cat && id !== cur);
   const card = (id, btns) => { const M = MANUALS[id], m = S.manuals[id];
-    return `<div class="mcard-row ${cur === id ? 'worn' : ''}"><div><b>《${M.name}》</b>${schoolTag(id)}${manualAffTag(id)}${M.weapon ? weaponTag(M.weapon) : ''} ${realmTag(m.star)} <span class="num muted">${m.star}성 · ${M.grade}</span>
+    return `<div class="mcard-row ${cur === id ? 'worn' : ''}"><div><b>《${M.name}》</b>${schoolTag(id)}${M.weapon ? weaponTag(M.weapon) : ''} ${realmTag(m.star)} <span class="num muted">${m.star}성 · ${M.grade}</span>
       ${M.weapon && M.weapon !== weaponType() ? `<small class="warn">지금 병기로는 초식이 나가지 않습니다 (${WEAPON_TYPES[M.weapon]})</small>` : ''}</div><div class="btns">${btns}</div></div>`; };
   const curHtml = cur ? card(cur, `<button class="btn ghost sm" data-mart="${cur}">상세·성급</button><button class="btn ghost sm" data-unequipm="${cat}">해제</button>`) : '<p class="muted">비어 있습니다.</p>';
   const rows = list.map(id => card(id, `<button class="btn ghost sm" data-mart="${id}">상세·성급</button><button class="btn primary sm" data-equipm="${id}">${cur ? '교체' : '장착'}</button>`)).join('');
