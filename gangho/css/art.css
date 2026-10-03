@@ -841,11 +841,11 @@ html.calm .pot-hot { animation: none; }
 @media (max-width: 640px) { .furnace-stage .pot-side { grid-template-columns: repeat(2, 11cqw); gap: 1.4cqw; } }
 /* 청풍문 전경: 이름은 평소 숨기고 손을 대면 붓글씨로 떠오른다 (강호 지도와 같은 결) */
 .map-box.grounds { container-type: inline-size; }
-.map-box > .ground-tag { position: absolute; z-index: 3; transform: translate(-50%, -50%); width: 12%;   /* 유저 값: 구름 12% · 글씨 21px(전경 폭 866px 기준 = 2.425cqw) */ padding: 0; border: 0; background: none; cursor: pointer;
+.map-box > .ground-tag { position: absolute; z-index: 3; transform: translate(-50%, -50%); width: 12%;   /* 유저 값: 구름 12% · 글씨 22px(전경 폭 866px 기준 = 2.54cqw) · 굵기 0.1px · 간격 1px · 글자 위치 (3.5%, 0%) */ padding: 0; border: 0; background: none; cursor: pointer;
   display: grid; place-items: center; transition: transform .15s, filter .15s; }
 .ground-tag > img { width: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
-.ground-tag > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .25em; padding-bottom: 2%;
-  font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-size: 2.425cqw; color: #15110d; white-space: nowrap; }
+.ground-tag > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .045em; padding-bottom: 2%; transform: translateX(3.5%); -webkit-text-stroke: .0045em currentColor;
+  font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-size: 2.54cqw; color: #15110d; white-space: nowrap; }
 .ground-tag small { font-family: var(--serif), serif; font-size: .45em; opacity: .75; }
 .ground-tag:hover, .ground-tag:focus-visible { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.12) saturate(1.15); z-index: 4; outline: none; }
 /* 손을 대면 구름이 금빛으로 번지며 강조 (10월 3일 유저 — 붓글씨 대신 구름 이름표 강조) */
