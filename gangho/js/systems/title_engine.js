@@ -15,6 +15,7 @@ function titleProgress(id) {
     : C.k === 'schoolWorn' ? (CAT_ORDER.every(c => S.active[c] && schoolOf(S.active[c]) === C.s) ? 1 : 0)
     : C.k === 'shrine' ? (S.shrine || {}).pulls || 0
     : C.k === 'star' ? Math.max(0, ...Object.values(S.manuals || {}).map(m => m.star || 0))
+    : C.k === 'starN' ? Object.values(S.manuals || {}).filter(m => (m.star || 0) >= C.star).length
     : C.k === 'attr' ? (S.attr || {})[C.a] || 0
     : C.k === 'silver' ? S.silver || 0 : 0;
   return { cur: Math.min(cur, n), need: n };

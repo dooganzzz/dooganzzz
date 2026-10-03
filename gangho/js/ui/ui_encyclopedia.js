@@ -71,7 +71,7 @@ function codexTitles() {
     const p = titleProgress(id);
     return `<div class="title-card ${has ? 'own' : ''} ${worn ? 'worn' : ''} ${T.school ? 's-' + T.school : ''}">
       <b class="tc-name">${T.name}<small>${T.hanja}</small></b>${T.school ? schoolBadge(T.school) : ''}
-      <small class="tc-cond">${T.text}${has ? '' : ` <span class="num">(${fmt(p.cur)} / ${fmt(p.need)})</span>`}</small>
+      ${T.desc ? `<small class="tc-desc">${T.desc}</small>` : ''}<small class="tc-cond">${T.text}${has ? '' : ` <span class="num">(${fmt(p.cur)} / ${fmt(p.need)})</span>`}</small>
       <div class="tc-bonus"><span>착용</span>${bonusText(T.wear)}</div><div class="tc-bonus"><span>습득</span>${bonusText(T.gain)}</div>
       ${has ? (worn ? '<span class="tc-worn">호패에 새김</span>' : `<button class="btn sm" data-titleuse="${id}">호패에 새기기</button>`) : '<span class="muted tc-lock">아직</span>'}
     </div>`;

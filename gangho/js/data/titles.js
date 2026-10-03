@@ -3,7 +3,7 @@
    wear: 호패에 새겨 쓰고 있을 때만 주는 능력치 · gain: 한 번 얻으면 영구히 주는 능력치 (습득 보너스)
    school: 그 별호의 결 (정 · 마 · 사, 없으면 어느 쪽도 아님)
    cond: 얻는 조건 — k: start(처음부터) · runs(강호행 마친 횟수) · kills(요수 처치 합계) · killOf(그 요수 처치) · manuals(익힌 비급 수, g면 그 등급만)
-         school(그 파 비급 수) · craft(기예 횟수) · schoolWorn(그 파 비급으로 장착 네 칸을 모두 채움) · shrine(무신상 공양 횟수) · star(가장 높은 무공 성급) · attr(단련 스탯) · silver(지닌 은자) */
+         school(그 파 비급 수) · craft(기예 횟수) · schoolWorn(그 파 비급으로 장착 네 칸을 모두 채움) · shrine(무신상 공양 횟수) · star(가장 높은 무공 성급) · starN(star성 이상 무공 수) · attr(단련 스탯) · silver(지닌 은자) */
 const TITLE_TIERS = [
   { name: '최하', hanja: '最下', cls: 't0' },
   { name: '하', hanja: '下', cls: 't1' },
@@ -26,16 +26,16 @@ const TITLES = {
   madoip:    { name: '마도입문', hanja: '魔道入門', tier: 0, school: 'ma', cond: { k: 'schoolWorn', s: 'ma', n: 1 }, text: '마공 비급으로 네 칸을 모두 채운다', wear: { atk: 4 }, gain: { critDmg: 2 } },
   sadoip:    { name: '사도입문', hanja: '邪道入門', tier: 0, school: 'sa', cond: { k: 'schoolWorn', s: 'sa', n: 1 }, text: '사도 비급으로 네 칸을 모두 채운다', wear: { crit: 1.5 }, gain: { crit: 0.5 } },
   // ── 하 (下) ──
-  baekin:    { name: '백인참', hanja: '百人斬', tier: 1, cond: { k: 'kills', n: 100 }, text: '요수 100마리를 쓰러뜨린다', wear: { atk: 8 }, gain: { atk: 3 } },
+  baekin:    { name: '천인참', hanja: '千人斬', tier: 1, cond: { k: 'kills', n: 1000 }, text: '요수 1,000마리를 쓰러뜨린다', desc: '강호에서 마주한 요수를 일천 마리 베어 넘긴 자.', wear: { atk: 8 }, gain: { atk: 3 } },
   pyeongjeong: { name: '청풍산 평정객', hanja: '淸風山平定客', tier: 1, cond: { k: 'killOf', e: 'redTiger', n: 1 }, text: '청풍산 두목 적염 호랑이를 쓰러뜨린다', wear: { maxHp: 40, def: 3 }, gain: { maxHp: 15 } },
-  cheolgol:  { name: '철골', hanja: '鐵骨', tier: 1, cond: { k: 'attr', a: 'con', n: 10 }, text: '체력을 10까지 기른다', wear: { def: 5, critRes: 3 }, gain: { def: 2 } },
-  kwaesu:    { name: '쾌수', hanja: '快手', tier: 1, cond: { k: 'attr', a: 'agi', n: 10 }, text: '민첩을 10까지 기른다', wear: { spd: 3, eva: 2 }, gain: { eva: 1 } },
-  seochi:    { name: '서치', hanja: '書癡', tier: 1, cond: { k: 'manuals', n: 8 }, text: '비급 8권을 익힌다', wear: { train: 6, mpSave: 3 }, gain: { train: 2 } },
-  soseong:   { name: '소성무인', hanja: '小成武人', tier: 1, cond: { k: 'star', n: 6 }, text: '무공 하나를 6성(소성)까지 올린다', wear: { counter: 3, crit: 1 }, gain: { counter: 1 } },
+  cheolgol:  { name: '철골', hanja: '鐵骨', tier: 1, cond: { k: 'attr', a: 'con', n: 20 }, text: '체력을 20까지 기른다', desc: '신체를 강철처럼 단련하여 남다른 기혈과 맷집을 지닌 자.', wear: { def: 5, critRes: 3 }, gain: { def: 2 } },
+  kwaesu:    { name: '쾌수', hanja: '快手', tier: 1, cond: { k: 'attr', a: 'agi', n: 20 }, text: '민첩을 20까지 기른다', desc: '바람보다 빠르게 손을 뻗어 적의 허점을 찌르는 자.', wear: { spd: 3, eva: 2 }, gain: { eva: 1 } },
+  seochi:    { name: '서치', hanja: '書癡', tier: 1, cond: { k: 'manuals', n: 20 }, text: '비급 20권을 익힌다', desc: '무학의 이치에 심취하여 스무 권의 비급을 독파한 자.', wear: { train: 6, mpSave: 3 }, gain: { train: 2 } },
+  soseong:   { name: '소성무인', hanja: '小成武人', tier: 1, cond: { k: 'starN', star: 6, n: 4 }, text: '무공 넷을 6성(소성) 이상으로 올린다', desc: '네 가지 무공을 소성(6성 이상)의 경지에 도달시킨 자.', wear: { counter: 3, crit: 1 }, gain: { counter: 1 } },
   jeonju:    { name: '포전객', hanja: '抱錢客', tier: 1, cond: { k: 'silver', n: 1000 }, text: '은자 1,000냥을 지닌다', wear: { luck: 4 }, gain: { luck: 1 } },
-  hyeopgaek: { name: '청풍협객', hanja: '淸風俠客', tier: 1, school: 'jeong', cond: { k: 'school', s: 'jeong', n: 4 }, text: '정파 비급 4권을 익힌다', wear: { def: 4, block: 2, shield: 2 }, gain: { shield: 1 } },
-  main:      { name: '마인', hanja: '魔人', tier: 1, school: 'ma', cond: { k: 'school', s: 'ma', n: 3 }, text: '마공 비급 3권을 익힌다', wear: { atk: 10, critDmg: 5 }, gain: { critDmg: 3 } },
-  hyeolgwi:  { name: '혈귀', hanja: '血鬼', tier: 1, school: 'sa', cond: { k: 'school', s: 'sa', n: 3 }, text: '사도 비급 3권을 익힌다', wear: { crit: 3, critDmg: 3 }, gain: { crit: 1 } },
+  hyeopgaek: { name: '청풍협객', hanja: '淸風俠客', tier: 1, school: 'jeong', cond: { k: 'school', s: 'jeong', n: 14 }, text: '정파 비급 14권을 익힌다', desc: '청풍문의 기개를 잇고 정순한 정파의 도를 체득한 자.', wear: { def: 4, block: 2, shield: 2 }, gain: { shield: 1 } },
+  main:      { name: '마인', hanja: '魔人', tier: 1, school: 'ma', cond: { k: 'school', s: 'ma', n: 10 }, text: '마공 비급 10권을 익힌다', desc: '금기의 마공에 깊이 발을 들여 마기를 다루는 자.', wear: { atk: 10, critDmg: 5 }, gain: { critDmg: 3 } },
+  hyeolgwi:  { name: '혈귀', hanja: '血鬼', tier: 1, school: 'sa', cond: { k: 'school', s: 'sa', n: 7 }, text: '사도 비급 7권을 익힌다', desc: '피비린내 나는 살수의 길, 사도의 비전 무공을 섭렵한 자.', wear: { crit: 3, critDmg: 3 }, gain: { crit: 1 } },
   // ── 중 (中) · 상 (上) · 최상 (最上): 이름만 (2장 이후) ──
   ilgeom:    { name: '일검표객', hanja: '一劍飄客', tier: 2, sealed: true },
   cheolhyeol: { name: '철혈수라', hanja: '鐵血修羅', tier: 2, school: 'sa', sealed: true },

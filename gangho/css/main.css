@@ -1114,3 +1114,4 @@ html.calm .st-glow { animation: none; }
   .bag-panel .bag-silver { position: absolute; left: var(--silver-x, 50%); top: var(--silver-y, 12%); transform: translate(-50%, -50%); margin: 0; }
   .bag-panel .bag-cap { position: absolute; left: var(--cap-x, 94%); top: var(--cap-y, 12%); transform: translate(-50%, -50%); white-space: nowrap; }
 }
+.title-card .tc-desc { display: block; font-style: italic; color: var(--dim); font-size: .78rem; line-height: 1.4; }
