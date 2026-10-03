@@ -56,7 +56,7 @@ const MAX_STAR = 12;
 const MANUAL_POWER = { K: 1.8, star: 0.5, soseong: 1.08, grade: { '삼류': 1, '이류': 2.4, '일류': 5, '절정': 9, '초절정': 16 }, passive: 0.5 };
 /* 무사 품계: 네 갈래(심법 · 무공 · 기공 · 경공) 삼류 비급을 모두 12성(대성)하고 파관단(破關丹)을 pill.n알 삼키면 이류무사로 돌파 — 공격 · 방어 · 활력 · 내력 · 속도 +20%
    (돌파는 삼류의 좁은 경맥으로 이류의 기를 돌리는 일이라 운공 내내 내력이 샌다. 파관단이 그 관문을 깨뜨린다) */
-const WARRIOR_RANK = { promoteGrade: '삼류', lamps: 24, pill: { id: 'sokgidan', n: 3 },   // 게이지 24칸: 성급 2마다 불 하나
+const WARRIOR_RANK = { lamps: 24, pill: { id: 'sokgidan', n: 3 },   // 게이지 24칸: 성급 2마다 불 하나
   ranks: [{ name: '삼류무사', hanja: '三流武士', mult: 1 }, { name: '이류무사', hanja: '二流武士', mult: 1.2 }] };
 
 

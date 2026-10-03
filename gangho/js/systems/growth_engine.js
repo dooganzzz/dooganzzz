@@ -18,10 +18,9 @@ function starUpBlock(id) {
   return '';
 }
 
-/* 품계 게이지: 갈래마다 익힌 삼류 비급 가운데 가장 높은 성급(최대 12) — 네 갈래 합 / 48. 다 차면 이류무사 */
+/* 품계 게이지: 네 자리에 장착한 무공의 성급(최대 12, 빈 자리는 0) — 합 / 48. 장착 무공이 모두 12성이면 다 차고 이류무사 (10월 3일 유저) */
 function rankProgress() {
-  const g = WARRIOR_RANK.promoteGrade;
-  const per = CAT_ORDER.map(c => Math.max(0, ...Object.keys(S.manuals).filter(id => MANUALS[id] && MANUALS[id].cat === c && MANUALS[id].grade === g).map(id => Math.min(MAX_STAR, S.manuals[id].star))));
+  const per = CAT_ORDER.map(c => { const id = S.active && S.active[c], m = id && S.manuals[id]; return m ? Math.min(MAX_STAR, m.star) : 0; });
   const sum = per.reduce((a, v) => a + v, 0), max = CAT_ORDER.length * MAX_STAR;
   return { per, sum, frac: sum / max, lit: Math.floor(sum / (max / WARRIOR_RANK.lamps)) };   // lit = 켜진 불 수 (24칸)
 }
@@ -30,10 +29,10 @@ const warriorRank = () => WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.
 function checkRankUp(loud) {
   if ((S.rank || 0) >= 1 || rankProgress().frac < 1) return false;
   const P = WARRIOR_RANK.pill, have = count(P.id);
-  if (have < P.n) { if (loud) notify.toast(`네 갈래 삼류 무공을 모두 대성했습니다. 이류무사로 돌파하려면 ${ITEMS[P.id].name} ${P.n}알이 필요합니다 (가진 것 ${have}알).`); return false; }
+  if (have < P.n) { if (loud) notify.toast(`장착한 네 무공을 모두 대성했습니다. 이류무사로 돌파하려면 ${ITEMS[P.id].name} ${P.n}알이 필요합니다 (가진 것 ${have}알).`); return false; }
   take(P.id, P.n);
   S.rank = 1; const R = warriorRank();
-  log(`🔷 ${ITEMS[P.id].name} ${P.n}알로 끊어지려는 기를 이어 가며 운공을 마쳤습니다 — 네 갈래 삼류 무공을 모두 대성하여 ${R.name}(${R.hanja})로 돌파했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
+  log(`🔷 ${ITEMS[P.id].name} ${P.n}알로 끊어지려는 기를 이어 가며 운공을 마쳤습니다 — 장착한 네 무공을 모두 대성하여 ${R.name}(${R.hanja})로 돌파했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
   notify.banner(`${R.hanja} · ${R.name}`, `전체 능력치 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
   notify.view({ modal: 'rankup' });   // 승급 연출 창
   return true;

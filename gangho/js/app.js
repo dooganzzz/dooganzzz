@@ -347,7 +347,7 @@ function boot() {
 function startGame(st) {
   S = st;
   if (!S) { showIntro(); authFooter(); return; }
-  checkRankUp();   // 예전 저장: 이미 네 갈래 삼류를 대성했으면 곧바로 이류무사
+  checkRankUp();   // 예전 저장: 장착한 네 무공을 이미 대성했으면 곧바로 이류무사
   if (S.migratedRefund) { log(`📜 화로가 단조·단약으로 바뀌며 쓰임을 잃은 옛 재료와 음식을 전방에 넘기고 ${hlSilver(S.migratedRefund)}을 받았습니다.`, 'gold'); delete S.migratedRefund; }
   if (S.migratedExp !== undefined) {
     log(`📜 청풍문의 수련 방식이 바뀌었습니다. 연무장이 문을 닫고, 제자는 강호로 나가 경험을 쌓습니다. 그동안의 수련은 수련치 ${fmt(S.migratedExp)}(으)로 돌려받았습니다. 강호행에서 탐험지를 정하십시오.`, 'gold');
