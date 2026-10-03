@@ -122,10 +122,10 @@ function liveSkill(sc, sk) {
 }
 function liveShake(sc) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); clearTimeout(sc._shakeT); sc._shakeT = setTimeout(() => sc.classList.remove('shake'), 650); }
 /* 피해 숫자 글자 그림 (힉스 확정본 · ui/dmg_0~9, 회심 ui/dmgc_0~9) */
-const dmgDigits = (t, crit) => [...String(t)].map(d => `<img src="${ASSET.ui((crit ? 'dmgc_' : 'dmg_') + d)}" alt="">`).join('');
+const dmgDigits = (t, crit) => [...String(t)].map(d => `<img src="${ASSET.ui((crit ? 'dmgc_' : 'dmg_') + (d === '-' ? 'm' : d))}" alt="">`).join('');   // '-' = 빼기 글자 (dmg_m)
 function liveNum(sc, t, left, cls) {
   const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.dataset.live = 1; n.style.left = (left - 4 + Math.random() * 8) + '%';
-  if (/^\d+$/.test(String(t))) { n.classList.add('dg'); n.setAttribute('aria-label', t); n.innerHTML = dmgDigits(t, /\bcrit\b/.test(cls || '')); } else n.textContent = t;   // 피해 숫자는 먹 붓글씨 글자 그림 (회심은 금빛)
+  if (/^-?\d+$/.test(String(t))) { n.classList.add('dg'); n.setAttribute('aria-label', t); n.innerHTML = dmgDigits(t, /\bcrit\b/.test(cls || '')); } else n.textContent = t;   // 피해 숫자는 먹 붓글씨 글자 그림 (회심은 금빛)
   sc.appendChild(n); setTimeout(() => n.remove(), 1000);
 }
 /* 날아가는 비표: 제자 손에서 요수 몸통까지 살짝 휘어 날아간다 */
@@ -210,13 +210,13 @@ function liveShowStep(sc, sh, ts, dt) {
       const f = e.f;
       if (e.tag) liveNum(sc, e.tag, sh.foeX - 2, 'tag');   // 반격 · 연격
       if (f.k === 'miss') { liveNum(sc, '빗나감', sh.foeX + 9, 'miss'); sfx('miss'); }
-      else { if (!e.noSnd) sfxHit(hero.dataset.w || weaponType(), f.k === 'crit'); spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
+      else { if (!e.noSnd) sfxHit(hero.dataset.w || weaponType(), f.k === 'crit'); spFlash(foe); liveNum(sc, f.t, sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
     }
     else if (e.k === 'hurtR') {                       // 요수의 공격: 기록된 피해 · 회피
       const f = e.f;
       if (sh.heavy) liveShake(sc);                    // 덩치 큰 요수 · 두목의 반격은 땅이 울린다
       if (f.k === 'dodge') { hero.dataset.f = 8; liveNum(sc, '회피', 22, 'miss'); sfx('miss'); }
-      else { hero.dataset.f = 7; spFlash(hero); sfx('hurt'); liveVfx(sc, 'hit', 22, 'small'); liveNum(sc, f.t.replace('-', ''), 22, 'me'); liveHp(sc, 'me', e.hp); }
+      else { hero.dataset.f = 7; spFlash(hero); sfx('hurt'); liveVfx(sc, 'hit', 22, 'small'); liveNum(sc, f.t, 22, 'me'); liveHp(sc, 'me', e.hp); }
     }
     else if (e.k === 'heal') { sfx('salve'); liveNum(sc, `🩸${e.f.t}`, 22, 'heal'); liveHp(sc, 'me', e.hp); }
     else if (e.k === 'sync') { liveHp(sc, 'me', e.me); liveHp(sc, 'foe', e.foe); if (e.mp != null) liveMp(sc, e.mp); }
