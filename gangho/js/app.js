@@ -20,7 +20,7 @@ function newState(name, mugongId, opts = {}) {
     attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), apt: validApt(opts.apt) ? { ...opts.apt } : rollApt(), talent: TALENTS[opts.talent] ? opts.talent : null,
     expedition: { zone: null, run: null, stage: 1, auto: true }, stages: {}, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
-    inv: { saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_sm1a: 1, bk_gy1a: 1, bk_gi1a: 1 },
+    inv: { hopae: 1, saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_sm1a: 1, bk_gy1a: 1, bk_gi1a: 1 },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
     perm: { maxHp: 0, maxMp: 0, attr: {}, apt: {} },
@@ -206,6 +206,8 @@ function migrate(st) {
   }
   // 세계관 개편: 3대 스탯(기본 배분)·보조 기예 없음·요수 도감(구역 기록에서)·실패 부산물 → 검게 탄 찌꺼기
   if (!st.attr) st.attr = DEFAULT_ATTR();
+  if (!st.inv.hopae) st.inv.hopae = 1;   // 호패 (10월 3일): 예전 제자에게도 하나
+  if (typeof st.alias !== 'string') st.alias = '';   // 별호 (관조 › 호패에서 새김)
   if (!validApt(st.apt)) st.apt = { bone: 7, phys: 6, eye: 7, wit: 6 };   // 자질이 생기기 전 제자: 가운데 값(합계 26)으로 — 주사위 운에 맡기지 않는다
   if (!('talent' in st)) st.talent = null;
   if (!st.bestiary) { st.bestiary = {}; for (const z of Object.values(st.zoneLog || {})) for (const [e, n] of Object.entries(z.seen || {})) { const b = st.bestiary[e] = st.bestiary[e] || { met: 0, kills: 0 }; b.met += n; } }

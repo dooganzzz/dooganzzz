@@ -131,14 +131,24 @@ function viewObserve() {
   const st = calcStats();
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k] ?? 0}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('')
     + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
-  return `<div class="observe-duo">
+  return `<div class="observe-duo"><div class="observe-left">
+  <section class="panel hopae-panel">${head('호패', '號牌')}${hopaeCard(true)}</section>
   <section class="panel observe">${head('능력치', '能力')}
     <h4 class="obs-h">근본 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
     <h4 class="obs-h">성향 <small>性向</small></h4>${schoolTriangle()}
     <h4 class="obs-h">세부 능력치</h4><div class="statsheet">${statList}</div>
-  </section>
+  </section></div>
   ${viewGear()}
   </div>`;
+}
+/* 호패: 성명 · 별호 · 무공 경지를 패에 세로로 새기고 강호견문록 낙관을 찍는다. edit면 별호 새기기 칸을 곁에 둔다 (관조) */
+function hopaeCard(edit) {
+  const R = WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.ranks.length - 1)];
+  return `<div class="hopae-wrap"><div class="hopae"><img class="hopae-board" src="${ASSET.ui('hopae_big')}" alt="">
+      <div class="hopae-text"><b class="hp-name">${esc(S.name)}</b>${S.alias ? `<span class="hp-alias">${esc(S.alias)}</span>` : ''}<span class="hp-rank">${R.name}</span></div>
+      <img class="hopae-seal" src="${ASSET.ui('seal_gangho')}" alt="강호견문록 낙관"></div>
+    <dl class="hopae-info"><div><dt>성명</dt><dd>${esc(S.name)}</dd></div><div><dt>별호</dt><dd>${S.alias ? esc(S.alias) : '<span class="muted">없음</span>'}</dd></div><div><dt>무공 경지</dt><dd>${R.name} <small class="muted">${R.hanja}</small></dd></div>
+      ${edit ? `<div class="alias-row"><input id="aliasInput" maxlength="8" placeholder="별호 (8자까지)" value="${esc(S.alias || '')}" autocomplete="off"><button class="btn sm" data-act="setalias">새기기</button></div>` : ''}</dl></div>`;
 }
 /* 성향: 익힌 비급의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 — 정 2 · 마 1 · 사 1이면 정 쪽으로 치우친 점 */
 const SCHOOL_TRI = { jeong: [50, 20], ma: [18.6, 73], sa: [83.6, 72.8] };   // 꼭짓점 (그림 school_tri 위 %)

@@ -105,6 +105,7 @@ function bagItemModal(key) {
     </div>`;
   }
   const I = ITEMS[id]; if (!I || !has(id)) return '';
+  if (id === 'hopae') return `<div class="sheet bag-sheet" role="dialog" aria-modal="true"><div class="sheet-head"><div><small class="muted">신분</small><h2>호패 <small class="muted">號牌</small></h2></div></div>${hopaeCard(false)}<p class="muted">별호는 상태 › 관조의 호패에서 새깁니다.</p><div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
   return `<div class="sheet bag-sheet" role="dialog" aria-modal="true">
     <div class="sheet-head bag-detail">${inkBox(itemIco(id))}<div><small class="muted">${I.kind || '소지품'}</small><h2 class="item-name">${esc(I.name)} <span class="num muted">×${count(id)}</span></h2></div></div>
     <p>${I.desc || ''}</p>
@@ -250,7 +251,7 @@ const PROLOGUE = [
 const INTRO_STEPS = 4;
 const STARTER_LABEL = { fist: '권장법', sword: '검법', blade: '도법', spear: '창법', hidden: '암기술' };
 function showIntro() {
-  let chosen = 'sw1a', talent = 'forge';
+  let chosen = 'sw1a', talent = 'forge', sealed = false, stampNow = false;   // sealed: 성명 [확인] → 강호견문록 낙관
   let stage = navigator.webdriver ? INTRO_STEPS : 0, fresh = 0;   // fresh: 방금 드러난 단계 (그 단계만 번지며 나타난다)
   const attr = Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
   let apt = rollApt();   // 자질: 주사위 (합계는 늘 같다 · 다시 굴릴 수 있다)
@@ -267,9 +268,9 @@ function showIntro() {
       <p class="eyebrow">江湖見聞錄 · 序章</p>
       <h1>강호견문록</h1>
       <div class="prologue ${stage === 0 && fresh === 0 ? 'reveal-lines' : ''}">${PROLOGUE.map((p, i) => `<p class="story" style="--i:${i}">${p}</p>`).join('')}</div>
-      ${step(1, `<h3 class="intro-h">제자 만들기</h3>
-      <label class="field-l" for="pname">제자의 이름</label>
-      <input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off">`)}
+      ${step(1, `<h3 class="intro-h">호패 만들기</h3>
+      <label class="field-l" for="pname">성명</label>
+      <div class="name-row"><input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off"><button class="btn sm" data-namecheck>확인</button>${sealed ? `<img class="intro-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('seal_gangho')}" alt="강호견문록 낙관">` : ''}</div>`)}
       ${step(2, `<p class="field-l">단련 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
       <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
         <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
@@ -284,8 +285,8 @@ function showIntro() {
       <div class="starters starter-books">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}">${starterIco(id)}<b>${STARTER_LABEL[M.weapon]}</b></button>`; }).join('')}</div>`)}
       ${step(4, `<p class="field-l">기예 <small class="muted">(技藝)</small></p>
       <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><span class="talent-ico" style="background-image:url('${TALENT_ICO[k]}')"></span><b>${T.name} <small>${T.hanja}</small></b><em class="talent-sub">${T.sub}</em></button>`).join('')}</div>
-      <p class="muted">${left() ? `남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.` : '병기 상성: 권장 › 검/도 › 창·암기 › 권장 …'}</p>
-      <button class="btn primary big" id="begin" ${left() ? 'disabled' : ''}>제자에게 말을 건다</button>`)}
+      ${left() ? `<p class="muted">남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.</p>` : ''}
+      <button class="btn primary big" id="begin" ${left() ? 'disabled' : ''}>강호 출도</button>`)}
       ${stage < INTRO_STEPS ? `<button class="intro-next" data-intro-next>▼ 눌러서 계속</button>` : ''}
     </div>`;
     fresh = -1;
@@ -297,6 +298,7 @@ function showIntro() {
     if (s) { chosen = s.dataset.starter; draw(); return; }
     const t = e.target.closest('[data-talent]');
     if (t) { talent = t.dataset.talent; draw(); return; }
+    if (e.target.closest('[data-namecheck]')) { sealed = stampNow = true; if (stage < 2) { stage = 2; fresh = 2; } draw(); stampNow = false; return; }   // 낙관을 찍고 다음 단계로
     if (e.target.closest('[data-reroll]')) { apt = rollApt(); draw(); return; }
     const a = e.target.closest('[data-attr]');
     if (a && !a.disabled) { const k = a.dataset.attr, d = +a.dataset.d; if (attr[k] + d >= ATTR_MIN && attr[k] + d <= ATTR_MAX && (d < 0 || left() > 0)) attr[k] += d; draw(); return; }

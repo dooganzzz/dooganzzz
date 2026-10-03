@@ -1034,3 +1034,26 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .bag-tile .item-name { color: var(--grade-color, var(--ink)); font-family: var(--serif); font-weight: 700; }
 .obs-attr.apt b { color: var(--gold); }
 .kw-place { color: var(--gold); font-weight: 700; }
+
+/* 서장 · 호패 만들기: 성명 옆 [확인] → 강호견문록 낙관이 찍힌다 */
+.name-row { display: flex; align-items: center; gap: 8px; }
+.name-row input { flex: 1; min-width: 0; }
+.intro-seal { width: 52px; height: 52px; flex: none; transform: rotate(-4deg); }
+.intro-seal.stamp { animation: sealStamp .55s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes sealStamp { 0% { opacity: 0; transform: scale(2.2) rotate(-12deg); } 60% { opacity: 1; transform: scale(.92) rotate(-3deg); } 100% { transform: scale(1) rotate(-4deg); } }
+
+/* 관조 › 호패: 패에 성명 · 별호 · 경지를 세로로 새기고 아래에 낙관 */
+.observe-left { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.hopae-wrap { display: flex; gap: 18px; align-items: center; }
+.hopae { position: relative; width: 150px; flex: none; }
+.hopae-board { display: block; width: 100%; height: auto; }
+.hopae-text { position: absolute; left: 12%; right: 26%; top: 22%; bottom: 28%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px;
+  writing-mode: vertical-rl; text-orientation: upright; font-family: 'Gangho Brush', var(--serif), serif; color: #2a1608; text-shadow: 0 0 2px rgba(255, 236, 200, .5); }
+.hopae-text .hp-name { font-size: 26px; font-weight: 400; letter-spacing: .05em; }
+.hopae-text .hp-alias { font-size: 14px; opacity: .85; }
+.hopae-text .hp-rank { font-size: 13px; opacity: .8; }
+.hopae-seal { position: absolute; left: 24%; bottom: 13%; width: 30%; transform: rotate(-5deg); opacity: .92; mix-blend-mode: multiply; }
+.hopae-info { flex: 1; min-width: 0; margin: 0; display: grid; gap: 8px; }
+.hopae-info > div { display: flex; gap: 10px; align-items: baseline; }
+.hopae-info dt { width: 76px; white-space: nowrap; color: var(--dim); font-size: .85rem; } .hopae-info dd { margin: 0; font-weight: 700; }
+.alias-row { display: flex; gap: 6px; } .alias-row input { flex: 1; min-width: 0; }

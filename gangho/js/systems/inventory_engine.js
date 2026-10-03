@@ -264,3 +264,11 @@ function sellGear(uid) {
 
 function giveSilver(n) { S.silver += n; log(`${hlSilver(n)} 획득`, 'loot'); }
 
+
+/* 호패의 별호 새기기 (8자까지, 빈칸이면 지움). 바뀌었으면 true */
+function setAlias(raw) {
+  const v = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 8);
+  if (v === (S.alias || '')) return false;
+  S.alias = v; log(v ? `호패에 별호 「${v}」를 새겼습니다.` : '호패의 별호를 지웠습니다.', 'gold');
+  return true;
+}

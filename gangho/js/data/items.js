@@ -46,6 +46,7 @@ const ITEMS = {
   pillHigh:  { name: '대성 돌파단', icon: '🟣', kind: '영단', price: 500, desc: '11성 비급을 12성 대성(大成)으로 올릴 때 수련치와 함께 복용한다. (상태 › 무공)' },
   // 8품(八品) 단약: 회복은 즉시, 증강은 다음 원정 동안 (탐험 중 위급하면 생혈고·소환단은 제자가 알아서 먹는다)
   potionMp:   { name: '소환단', hanja: '小還丹', icon: '💧', kind: '단약', grade: '8품', price: 20, use: { mp: 0.4 }, desc: '급격히 손상된 내력을 즉시 40% 회복시키는 기본 영약.' },
+  hopae:      { name: '호패', hanja: '號牌', icon: '', kind: '신분', price: 0, desc: '성명 · 별호 · 무공 경지가 새겨진 패. 강호견문록 낙관이 찍혀 있다. 별호는 관조에서 새긴다.' },
   saenghyeol: { name: '생혈고', hanja: '生血膏', icon: '🩸', kind: '단약', grade: '8품', price: 5, use: { hp: 0.5 }, desc: '깊은 상처를 아물게 하여 활력을 즉시 50% 회복시키는 고약. 탐험 중 활력이 바닥나면 제자가 알아서 바른다.' },
   gigeokdan:  { name: '기력단', hanja: '氣力丹', icon: '💨', kind: '단약', grade: '8품', price: 50, use: { sta: 1 }, desc: '숨이 턱까지 찬 몸에 기운을 불어넣는 환약. 먹으면 기력이 가득 차고 곧바로 다시 달린다.' },
   golgye:     { name: '철골단', hanja: '鐵骨丹', icon: '🦴', kind: '단약', grade: '8품', price: 40, use: { buff: { key: 'defFlat', val: 15, name: '철골단' } }, desc: '뼈와 근육을 강화하여 다음 강호행 동안 방어력 +15.' },

@@ -145,6 +145,7 @@ function onClick(e) {
       if (count(pick) < STUDY.need) return toast(`${ITEMS[pick].name} ${STUDY.need}장이 필요합니다 (지금 ${count(pick)}장).`);
       doBind(pick);
     },
+    setalias: () => { const el = $('#aliasInput'); if (setAlias(el ? el.value : '')) { notify.save(); render(); } },
     runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 이미 받았습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); goTab('sect'); render(); /* 귀환하면 청풍문으로 */ } }),
     autoequip: () => { const r = autoEquipBest(); toast(r.names.length ? `투력 ${fmt(r.from)} → ${fmt(r.to)} (+${fmt(r.to - r.from)}) · ${r.names.length}점 바꿈` : '지금 장비가 가장 강합니다.'); },
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },
