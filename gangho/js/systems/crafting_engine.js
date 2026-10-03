@@ -30,6 +30,10 @@ function doCraft(craft, pot) {
   if (craft === 'forge' ? S.hp <= cost : S.mp < cost) { notify.toast(craft === 'forge' ? '체력이 모자라 망치를 들 수 없습니다.' : '내력이 모자라 단로에 주입할 수 없습니다.'); return; }
   if (craft === 'forge') S.hp -= cost; else S.mp -= cost;
   for (const [id, n] of Object.entries(pot)) take(id, n);
+  // 손재주: 재료 한 개마다 손재주 %만큼 아껴 돌려받는다 (10월 3일 유저 — 성공률 대신)
+  let saved = 0;
+  for (const [id, n] of Object.entries(pot)) for (let i = 0; i < n; i++) if (Math.random() * 100 < (st.craft || 0)) { give(id, 1, true); saved++; }
+  if (saved) log(`손재주로 재료 ${saved}개를 아꼈습니다.`, 'good');
   const recipe = RECIPE_BY_KEY[craft + ':' + potKey(pot)];
   const ok = !!recipe;   // 조합이 맞으면 반드시 이룬다 — 어려운 것은 조합식을 알아내는 일 (10월 3일 유저)
   lvl.xp += ok ? 10 : 6;

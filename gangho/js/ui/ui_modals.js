@@ -105,7 +105,7 @@ function bagItemModal(key) {
     </div>`;
   }
   const I = ITEMS[id]; if (!I || !has(id)) return '';
-  if (id === 'hopae') return `<div class="sheet bag-sheet" role="dialog" aria-modal="true"><div class="sheet-head"><div><small class="muted">신분</small><h2>호패 <small class="muted">號牌</small></h2></div></div>${hopaeCard(false)}<p class="muted">별호는 상태 › 관조의 호패에서 새깁니다.</p><div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
+  if (id === 'hopae') return `<div class="sheet bag-sheet" role="dialog" aria-modal="true"><div class="sheet-head"><div><small class="muted">신분</small><h2>호패 <small class="muted">號牌</small></h2></div></div>${hopaeCard()}${titlePicker()}<div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
   return `<div class="sheet bag-sheet" role="dialog" aria-modal="true">
     <div class="sheet-head bag-detail">${inkBox(itemIco(id))}<div><small class="muted">${I.kind || '소지품'}</small><h2 class="item-name">${esc(I.name)} <span class="num muted">×${count(id)}</span></h2></div></div>
     <p>${I.desc || ''}</p>

@@ -1026,13 +1026,21 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .obs-attr b { margin-left: auto; font-size: 1.15rem; }
 .school-tri { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 12px; align-items: center; }
 .st-board { position: relative; aspect-ratio: 1; }
+/* 성향 구슬: 많이 익힌 쪽(--w 0~1)일수록 빛이 짙고 크게 숨 쉬며, 덜 익힌 쪽은 먹빛으로 흐려진다 */
+.st-glow { position: absolute; width: 26%; aspect-ratio: 1; transform: translate(-50%, -50%) scale(calc(.75 + var(--w) * .45)); border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+  background: radial-gradient(circle, var(--sc) 0, transparent 68%); opacity: calc(.08 + var(--w) * .85); animation: stBreath 3.2s ease-in-out infinite; }
+.st-glow::after { content: ''; position: absolute; inset: 12%; border-radius: 50%; background: rgba(10, 8, 6, .85); opacity: calc((1 - var(--w)) * .85); }
+.st-glow.s-jeong { --sc: rgba(94, 234, 212, .95); } .st-glow.s-ma { --sc: rgba(168, 85, 247, .95); } .st-glow.s-sa { --sc: rgba(239, 68, 68, .95); }
+@keyframes stBreath { 50% { filter: brightness(1.35); } }
+html.calm .st-glow { animation: none; }
+.school-tri { position: relative; }
+.st-tip { position: absolute; z-index: 5; left: 50%; top: 100%; transform: translate(-50%, 6px); margin: 0; padding: 8px 12px; list-style: none; min-width: 180px; display: grid; gap: 4px;
+  background: rgba(14, 12, 9, .96); border: 1px solid rgba(212, 175, 55, .45); border-radius: 6px; font-size: .85rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.school-tri:hover .st-tip, .school-tri:focus-visible .st-tip { opacity: 1; }
+.st-tip .s-jeong { color: #5eead4; } .st-tip .s-ma { color: #c084fc; } .st-tip .s-sa { color: #f87171; }
 .st-board > img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.st-corner { position: absolute; transform: translate(-50%, -50%); font-family: var(--serif); font-size: 1rem; font-weight: 700; color: #fff4d6; text-shadow: 0 0 4px #000, 0 0 2px #000; pointer-events: none; display: flex; align-items: baseline; gap: 3px; line-height: 1; white-space: nowrap; }
-.st-corner small { font-size: .7rem; color: #e8dcbf; }
-.st-corner.s-jeong { margin-top: -15%; } .st-corner.s-ma { margin-top: 16%; margin-left: -4%; } .st-corner.s-sa { margin-top: 16%; margin-left: 4%; }
 .st-dot { position: absolute; width: 16px; height: 16px; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle, #fff 0 30%, rgba(255, 240, 200, .6) 60%, transparent 72%); box-shadow: 0 0 10px 3px rgba(255, 230, 170, .7); transition: left .4s, top .4s; }
 .st-dot.s-ma { box-shadow: 0 0 10px 3px rgba(168, 85, 247, .8); } .st-dot.s-sa { box-shadow: 0 0 10px 3px rgba(239, 68, 68, .8); } .st-dot.s-jeong { box-shadow: 0 0 10px 3px rgba(94, 234, 212, .8); }
-.st-lead { margin: 0; line-height: 1.6; } .st-lead .s-jeong { color: #5eead4; } .st-lead .s-ma { color: #c084fc; } .st-lead .s-sa { color: #f87171; }
 @media (max-width: 480px) { .school-tri { grid-template-columns: minmax(0, 1fr); } .st-board { max-width: 240px; margin: 0 auto; } }
 .bag-silver { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; color: var(--fg); } .bag-silver .ui-ico { width: 22px; height: 22px; }
 
@@ -1070,9 +1078,6 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .hp-name { left: 32%; top: 51%; transform: translate(-50%, -50%); font-size: 24px; letter-spacing: .1em; }   /* 성명만 가운데 정렬: 글자 수와 상관없이 패의 빈 면 가운데에 */
 .hp-rank { left: 49%; top: 53%; font-size: 14px; letter-spacing: .1em; opacity: .9; }   /* 별호 · 성명 · 경지 · 낙관 자리는 유저가 미리보기 슬라이더로 맞춘 값 (10월 3일) */
 .hopae-seal { position: absolute; right: -14px; top: -22px; width: 22px; max-width: none; transform: rotate(-5deg); writing-mode: horizontal-tb; opacity: .95; }   /* 낙관: 성명 오른쪽 위에 이름과 살짝 걸치게 (10월 3일 유저) */
-.hopae-info { flex: 1; min-width: 0; margin: 0; display: grid; gap: 8px; }
-.hopae-info > div { display: flex; gap: 10px; align-items: baseline; }
-.hopae-info dt { width: 76px; white-space: nowrap; color: var(--dim); font-size: .85rem; } .hopae-info dd { margin: 0; font-weight: 700; }
 .alias-row { display: flex; gap: 6px; } .alias-row input { flex: 1; min-width: 0; }
 #status:empty { display: none; }
 
@@ -1090,3 +1095,16 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .title-card .tc-worn { color: var(--gold); font-size: 12px; font-weight: 700; }
 .title-card .btn { justify-self: start; }
 .npc-mood { font-size: .55em; padding: 1px 8px; margin-left: 6px; border-radius: 999px; border: 1px solid rgba(212, 175, 55, .4); color: var(--gold); vertical-align: middle; }
+/* 무공 탭 네 칸: 칸 크기 · 글씨 크기는 유저 슬라이더 값 (10월 3일) — PC만, 폰은 위 미디어 규칙 */
+@media (min-width: 641px) {
+  .martial-arts-core-layout { --ms-box: 58px; --ms-font: 14px; }
+  .martial-arts-core-layout .slot-lite .mslot-box { width: var(--ms-box); height: var(--ms-box); }
+  .martial-arts-core-layout .slot-lite .mslot-box .mslot-cover { width: calc(var(--ms-box) * .69); height: calc(var(--ms-box) * .9); }
+  .martial-arts-core-layout .mslot.slot-lite .slot-type-label { font-size: var(--ms-font); }
+  .martial-arts-core-layout .mslot.slot-lite .mslot-name { font-size: calc(var(--ms-font) * .86); max-width: calc(var(--ms-font) * 9); }
+  .martial-arts-core-layout .slot-lite.empty small { font-size: calc(var(--ms-font) * .8); }
+}
+/* 관조 호패: 패만 — 누르면 별호 새기기 창 */
+.hopae-btn { display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; }
+.hopae-btn:hover .hopae-board, .hopae-btn:focus-visible .hopae-board { filter: brightness(1.08) drop-shadow(0 0 10px rgba(212, 175, 55, .35)); }
+.bag-sheet .alias-row { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }

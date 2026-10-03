@@ -130,7 +130,7 @@ function viewObserve() {
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k] ?? 0}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('')
     + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
   return `<div class="observe-duo"><div class="observe-left">
-  <section class="panel hopae-panel">${head('호패', '號牌')}${hopaeCard(true)}<div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
+  <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-bagitem="i:hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
   <section class="panel observe">${head('능력치', '能力')}
     <h4 class="obs-h">근본 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
     <button class="obs-h obs-toggle" data-act="obsdetail" aria-expanded="${!!ui.obsDetail}">세부 능력치 <span class="fold-arrow">${ui.obsDetail ? '▲' : '▼'}</span></button>${ui.obsDetail ? `<div class="statsheet">${statList}</div>` : ''}
@@ -139,27 +139,29 @@ function viewObserve() {
   </div>`;
 }
 /* 호패: 성명 · 별호 · 무공 경지를 패에 세로로 새기고 강호견문록 낙관을 찍는다. edit면 별호 새기기 칸을 곁에 둔다 (관조) */
-function hopaeCard(edit) {
+function hopaeCard() {
   const R = WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.ranks.length - 1)];
-  return `<div class="hopae-wrap"><div class="hopae"><img class="hopae-board" src="${ASSET.ui('hopae_big')}" alt="">
-      ${S.alias ? `<span class="hp-col hp-alias">${esc(S.alias)}</span>` : ''}<b class="hp-col hp-name n${Math.min(8, [...S.name].length)}">${esc(S.name)}<img class="nakgwan hopae-seal" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관"></b><span class="hp-col hp-rank">${R.name}</span></div>
-    <dl class="hopae-info"><div><dt>성명</dt><dd>${esc(S.name)}</dd></div><div><dt>별호</dt><dd>${S.alias ? esc(S.alias) : '<span class="muted">없음</span>'}</dd></div><div><dt>무공 경지</dt><dd>${R.name} <small class="muted">${R.hanja}</small></dd></div>
-      ${edit ? `<div class="alias-row"><select id="titleSel" aria-label="별호 고르기">${Object.keys(S.titles || {}).filter(id => TITLES[id]).map(id => `<option value="${id}" ${S.title === id ? 'selected' : ''}>${TITLES[id].name} (${TITLE_TIERS[TITLES[id].tier].name})</option>`).join('')}</select><button class="btn sm" data-act="setalias">새기기</button></div>
-      <small class="muted">별호는 도감 › 별호에서 얻는 조건과 보너스를 볼 수 있습니다.</small>` : ''}</dl></div>`;
+  return `<div class="hopae-wrap"><div class="hopae"><img class="hopae-board" src="${ASSET.ui('hopae_big')}" alt="호패">
+      ${S.alias ? `<span class="hp-col hp-alias">${esc(S.alias)}</span>` : ''}<b class="hp-col hp-name n${Math.min(8, [...S.name].length)}">${esc(S.name)}<img class="nakgwan hopae-seal" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관"></b><span class="hp-col hp-rank">${R.name}</span></div></div>`;
 }
+/* 별호 새기기 칸 (호패를 누르면 뜨는 창에서만) */
+const titlePicker = () => `<div class="alias-row"><select id="titleSel" aria-label="별호 고르기">${Object.keys(S.titles || {}).filter(id => TITLES[id]).map(id => `<option value="${id}" ${S.title === id ? 'selected' : ''}>${TITLES[id].name} (${TITLE_TIERS[TITLES[id].tier].name})</option>`).join('')}</select><button class="btn sm" data-act="setalias">새기기</button></div>`;
 /* 성향: 익힌 비급의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 — 정 2 · 마 1 · 사 1이면 정 쪽으로 치우친 점 */
 const SCHOOL_TRI = { jeong: [50, 20], ma: [18.6, 73], sa: [83.6, 72.8] };   // 꼭짓점 (그림 school_tri 위 %)
 function schoolTriangle() {
   const n = { jeong: 0, ma: 0, sa: 0 };
   for (const id of Object.keys(S.manuals)) if (MANUALS[id]) n[schoolOf(id)]++;
-  const tot = n.jeong + n.ma + n.sa, w = k => tot ? n[k] / tot : 1 / 3;
+  const tot = n.jeong + n.ma + n.sa, w = k => tot ? n[k] / tot : 1 / 3, mx = Math.max(1, n.jeong, n.ma, n.sa);
   const x = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][0], 0), y = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][1], 0);
   const top = Object.keys(n).sort((a, b) => n[b] - n[a]), lead = tot && n[top[0]] > n[top[1]] ? top[0] : null;
-  return `<div class="school-tri">
+  // 글 · 숫자 없이: 많이 익힌 쪽 구슬일수록 빛이 짙어지고(--w) 덜 익힌 쪽은 흐려진다. 손을 대면 장착한 비급과 그 파를 보인다
+  const worn = CAT_ORDER.map(c => S.active[c]).filter(id => id && MANUALS[id]);
+  const tip = worn.length ? worn.map(id => `<li><b class="s-${schoolOf(id)}">${SCHOOLS[schoolOf(id)].name}</b> 《${esc(MANUALS[id].name)}》</li>`).join('') : '<li class="muted">장착한 비급 없음</li>';
+  return `<div class="school-tri" tabindex="0" aria-label="성향 — 장착한 비급 보기">
     <div class="st-board"><img src="${ASSET.ui('school_tri')}" alt="" aria-hidden="true">
-      ${Object.entries(SCHOOL_TRI).map(([k, [cx, cy]]) => `<span class="st-corner s-${k}" style="left:${cx}%;top:${cy}%">${SCHOOLS[k].hanja}<small>${n[k]}</small></span>`).join('')}
+      ${Object.entries(SCHOOL_TRI).map(([k, [cx, cy]]) => `<i class="st-glow s-${k}" style="left:${cx}%;top:${cy}%;--w:${(tot ? n[k] / mx : 0).toFixed(2)}"></i>`).join('')}
       <i class="st-dot ${lead ? 's-' + lead : ''}" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%"></i></div>
-    <p class="st-lead">${lead ? `<b class="s-${lead}">${SCHOOLS[lead].name}(${SCHOOLS[lead].hanja}) 성향</b> — ${SCHOOLS[lead].words}` : tot ? '<b>치우치지 않음</b> — 정 · 마 · 사가 고르게 섞여 있습니다' : '<b>아직 없음</b> — 비급을 익히면 성향이 드러납니다'}<br><small class="muted">익힌 비급: 정 ${n.jeong} · 마 ${n.ma} · 사 ${n.sa}</small></p>
+    <ul class="st-tip" role="tooltip">${tip}</ul>
   </div>`;
 }
 function viewGear() {
