@@ -60,8 +60,8 @@ setInterval(() => (window.requestIdleCallback || setTimeout)(prewarmSprites), 20
 /* 요수 숨쉬기 칸 수 (흑비단독사는 똬리를 늘였다 줄이는 8칸, 나머지는 6칸) */
 const FOE_SHEET = { viper: 8 };
 /* 무대 위 요수 크기 (무대 폭 18%의 몇 배): 요수 크기 속성(FOE_SIZES)대로 소형 · 중형 · 대형이 한눈에 구분되게. 두목은 조금 더 크게 */
-const FOE_SCALE = { s: .75, m: .95, l: 1.18 }, FOE_SUB_STEP = .08;   // 같은 크기 안에서 작음 −8% · 큼 +8%
-function foeSize(eid) { const E = ENEMIES[eid] || {}, z = E.size || 'm2'; return (FOE_SCALE[z[0]] || .95) * (1 + (+z[1] - 2) * FOE_SUB_STEP) * (E.boss ? 1.06 : 1); }
+const FOE_SCALE = { s: .78, m: .97, l: 1.39 }, FOE_SUB_STEP = .21, FOE_BOSS = 1.21;   // 같은 크기 안에서 작음 −21% · 큼 +21% · 두목 ×1.21 (10월 3일 유저 슬라이더 값)
+function foeSize(eid) { const E = ENEMIES[eid] || {}, z = E.size || 'm2'; return (FOE_SCALE[z[0]] || .95) * (1 + (+z[1] - 2) * FOE_SUB_STEP) * (E.boss ? FOE_BOSS : 1); }
 function spriteOn(zid, eid) { return SPRITE_STAGES.has(zid) && !!ENEMIES[eid]; }
 function spriteStage(zid, eid) {
   const n = FOE_SHEET[eid] || 6, w = weaponType();
