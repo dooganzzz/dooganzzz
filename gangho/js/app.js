@@ -144,7 +144,7 @@ function startNewGame(name, mugongId, opts = {}) {
   log(`${name}, 청풍문의 제자가 되었습니다. ${hlItem(`《${MANUALS[mugongId].name}》 비급`)}과 ${hlItem('토납법·초상비·철포삼 비급')}을 행낭에 받았습니다.`, 'gold');
   log('노벽송: "비급은 읽기만 해선 소용없다. 익히고, 몸에 걸고, 강호에 나가 부딪혀라."', 'npc');
   log(`조운: "${WEAPON_TYPES[wt]}${jo(WEAPON_TYPES[wt], '이가')} 필요하겠지. 이거라도 쥐고 다녀라." — ${S.equip.weapon.name} 착용`, 'npc');
-  log('아린: "새 사형이다! 비급부터 익혀요. 상태 탭의 무공에 있어요!"', 'npc');
+  log('아린: "새 사형이다! 비급부터 익혀요. 「상태 › 무공」에 있어요!"', 'npc');
 }
 
 /* 사라진 아이템의 옛 가격 (저장 이전 때 은자로 돌려준다) */
@@ -281,7 +281,7 @@ function tick() {
   if (!S) return;
   const t = now(); lastFrame = t;
   const r = advanceRun(t);
-  if (r && !r.live) notify.toast(r.end === 'dead' ? `💀 제자가 ${ZONES[r.zone].name}에서 쓰러져 강호행이 끝났습니다 — 강호행 탭에서 보상을 받으십시오` : `🏯 강호행을 마쳤습니다`);
+  if (r && !r.live) notify.toast(r.end === 'dead' ? `💀 제자가 ${ZONES[r.zone].name}에서 쓰러져 강호행이 끝났습니다 — 「강호행」에서 보상을 받으십시오` : `🏯 강호행을 마쳤습니다`);
   if (!(S.rank >= 1) && count(WARRIOR_RANK.pill.id) >= WARRIOR_RANK.pill.n) checkRankUp();   // 속기단을 얻으면 곧바로 돌파
   Bus.emit('tick');
 }
@@ -357,7 +357,7 @@ function startGame(st) {
   const run = activeRun(), n0 = run ? run.steps.length : 0, r = advanceRun();
   const verChanged = S.gameVer && S.gameVer !== GAME_VER && GAME_VER !== 'dev';
   if (verChanged && activeRun()) { endRun(activeRun(), now(), 'recall'); log('📜 새 버전이 배포되어 진행 중이던 강호행을 마쳤습니다. 얻은 것은 이미 받았습니다.', 'gold'); notify.toast('📜 새 버전 배포로 강호행을 마쳤습니다'); }
-  else if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 강호행 탭에서 견문과 보상을 확인하십시오`);
+  else if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 「강호행」에서 견문과 보상을 확인하십시오`);
   if (verChanged) { ui.tab = 'sect'; ui.sectSub = 'hall'; ui.modal = null; ui.fieldMap = false; window.scrollTo(0, 0); }   // 새 버전: 모두 처음 자리(청풍문 › 정청, 맨 위)에서 다시 시작 (유저 확정)
   S.gameVer = GAME_VER;
   authFooter();

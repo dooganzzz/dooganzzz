@@ -60,7 +60,7 @@ const WARRIOR_RANK = { promoteGrade: '삼류', lamps: 24, pill: { id: 'sokgidan'
   ranks: [{ name: '삼류무사', hanja: '三流武士', mult: 1 }, { name: '이류무사', hanja: '二流武士', mult: 1.2 }] };
 
 
-const STARTERS = ['fs1a', 'sw1a', 'bd1a', 'sp1a', 'hd1a'];   // 병기별 첫 삼류 (입문) — 모두 정파 (표지 통일, 10월 3일 유저)
+const STARTERS = ['fs1a', 'sw1a', 'bd1a', 'sp1b', 'hd1a'];   // 병기별 첫 삼류 (입문) — 모두 정파 (표지 통일, 10월 3일 유저: 창법은 사파 삭풍창법 대신 철선창법)
 const WEAPON_SHORT = { fist: '권장', sword: '검', blade: '도', spear: '창', hidden: '암기' };
 /* 성급을 올리는 데 드는 수련치: STAR_EXP[s - 1] = s성 → s+1성 (삼류 기준, 등급 계수를 곱한다).
    5→6성(소성), 11→12성(대성)은 GATES의 돌파단도 함께 든다. 수련치는 탐험에서 적을 쓰러뜨려 얻는다. */

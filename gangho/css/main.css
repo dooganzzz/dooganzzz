@@ -1033,3 +1033,4 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .bag-sheet .uniq { color: var(--gold); }
 .bag-tile .item-name { color: var(--grade-color, var(--ink)); font-family: var(--serif); font-weight: 700; }
 .obs-attr.apt b { color: var(--gold); }
+.kw-place { color: var(--gold); font-weight: 700; }

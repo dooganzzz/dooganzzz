@@ -128,7 +128,7 @@ function prepPanel() {
     ${row(CAT_ORDER.every(c => S.active[c]), '무공', arts, go('status', 'martial', '무공'))}
     ${row(!!S.equip.weapon && wOk, '병기', S.equip.weapon ? `${gearName(S.equip.weapon)}${wOk ? '' : ` <span class="warn">— 《${M.name}》은 ${WEAPON_TYPES[M.weapon]} 무공이라 초식이 나가지 않음</span>`}` : '맨손', go('status', 'gear', '무장'))}
     ${row(worn >= 5, '장비', `${worn} / ${SLOT_ORDER.length}칸 착용 · 투력 ${fmt(calculateCombatPower(S))}`, go('bag', null, '행낭'))}
-    ${row(has('saenghyeol', 5), '생혈고', `${count('saenghyeol')}개 (활력 ${potionAtNow()}% 아래에서 자동 사용 · 설정 탭에서 바꿈 · 떨어지면 쓰러지기 쉽다 · 전방 개당 5냥) · 소환단 ${count('potionMp')}개`, go('sect', 'shop', '전방'))}
+    ${row(has('saenghyeol', 5), '생혈고', `${count('saenghyeol')}개 (활력 ${potionAtNow()}% 아래에서 자동 사용 · 「설정」에서 바꿈 · 떨어지면 쓰러지기 쉽다 · 전방 개당 5냥) · 소환단 ${count('potionMp')}개`, go('sect', 'shop', '전방'))}
     ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1, Z = X.zone && ZONES[X.zone];
       const win = e ? ELEM_BEATS[e] : null, lose = e ? Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === e) : null;
       const tv = !t ? '<span class="warn">지형 없음 — 경공 무공을 익히고 장착하십시오</span>'

@@ -150,7 +150,7 @@ function learnManual(bookId) {
   take(bookId, 1);
   S.manuals[mid] = { star: 1 };
   const pb = Object.entries(M.passiveBonus || {}).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
-  log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 상태 탭의 무공에서 장착할 수 있습니다.${pb ? ` 몸에 영구히 각인: ${pb}` : ''}`, 'gold');
+  log(`📘 《${M.name}》 비급을 끝까지 읽고 익혔습니다. 「상태 › 무공」에서 장착할 수 있습니다.${pb ? ` 몸에 영구히 각인: ${pb}` : ''}`, 'gold');
   clampVitals();
   notify.toast(`${M.name} 습득`);
   notify.refresh();

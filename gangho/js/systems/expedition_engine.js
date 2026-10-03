@@ -130,7 +130,7 @@ function stepEncounter(rec, zid, used) {
   const wait = encountersWaiting();
   if (wait.length > ENCOUNTER_KEEP) S.encounters.splice(S.encounters.indexOf(wait[0]), 1);   // 너무 쌓이면 가장 오래된 것은 지나간다
   log(`📜 기연 「${ev.title}」 — ${ev.text}`, 'npc');
-  return { t: `📜 기연 「${ev.title}」 — 기연 탭에 쌓였습니다`, cls: 'npc' };
+  return { t: `📜 기연 「${ev.title}」 — 「기연」에 쌓였습니다`, cls: 'npc' };
 }
 /* 약장수 등짐: 종류를 확률로 고르고(kinds), 그 안에서 1가지 — 비급 · 장비는 비쌀수록 드물게, 익혔거나 가진 비급은 빼고 */
 function peddlerRoll() {
@@ -331,7 +331,7 @@ function setDestination(zid) {
   if (!ZONES[zid] || !zoneUnlocked(zid)) return false;
   const X = S.expedition; if (X.zone === zid) return false;
   X.zone = zid; X.stage = stageMax(zid);
-  log(`🧭 탐험지를 ${josa(ZONES[zid].name, '으로')} 정했습니다.${activeRun() ? ' 지금 강호행을 마치면 다음부터 그곳으로 갑니다.' : ' 강호행 탭에서 [강호행 시작]을 누르면 길을 떠납니다.'}`, 'place');
+  log(`🧭 탐험지를 ${josa(ZONES[zid].name, '으로')} 정했습니다.${activeRun() ? ' 지금 강호행을 마치면 다음부터 그곳으로 갑니다.' : ' 「강호행」에서 [강호행 시작]을 누르면 길을 떠납니다.'}`, 'place');
   notify.refresh();
   return true;
 }

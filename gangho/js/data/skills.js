@@ -101,7 +101,7 @@ const MANUALS = {
   bd5c: { name: '천벌무극참황식', hanja: '天罰無極斬皇式', desc: '하늘의 벌을 빼앗아 쥐다. 칼의 살기가 음양의 길을 막으니 한칼로 하늘을 열어 온 세상을 짓누르다. (초식 피해 배율 240% · 초식이 적중할 때마다 적의 기세(공격력)를 깎는다)', cat: 'mugong', grade: '초절정', school: 'ma', weapon: 'blade', cost: 2400, passiveBonus: { str: 6, atk: 9 }, extra: { atk: 15 }, power: 2.4, weaken: 4,
     stances: [{ name: '탈천벌(奪天罰)', desc: '하늘의 벌을 빼앗아 쥐다' }, { name: '살기색음양(煞氣塞陰陽)', desc: '칼의 살기가 음양의 길을 막으니' }, { name: '일도개천압만방(一刀開天壓萬邦)', desc: '한칼로 하늘을 열어 온 세상을 짓누르다' }] },
   // ── 삼류 창법 ──
-  sp1a: { name: '삭풍창법', hanja: '朔風槍法', desc: '곧게 찌르다. 살과 피를 뚫으니 은빛 뱀이 혓바닥을 뿜어내다.', cat: 'mugong', grade: '삼류', school: 'jeong', weapon: 'spear', passiveBonus: { con: 1, pierce: 2 },
+  sp1a: { name: '삭풍창법', hanja: '朔風槍法', desc: '곧게 찌르다. 살과 피를 뚫으니 은빛 뱀이 혓바닥을 뿜어내다.', cat: 'mugong', grade: '삼류', school: 'sa', weapon: 'spear', passiveBonus: { con: 1, pierce: 2 },
     stances: [{ name: '직자(直刺)', desc: '곧게 찌르다' }, { name: '천혈육(穿血肉)', desc: '살과 피를 뚫으니' }, { name: '은사토신출(銀蛇吐信出)', desc: '은빛 뱀이 혓바닥을 뿜어내다' }] },
   sp1b: { name: '철선창법', hanja: '鐵線槍法', desc: '별을 찍다. 군사를 쳐내고 나무를 부수고 갑옷을 꿰뚫다.', cat: 'mugong', grade: '삼류', weapon: 'spear', passiveBonus: { con: 1, pierce: 2 }, extra: { def: 2 },
     stances: [{ name: '점성(點星)', desc: '별을 찍다' }, { name: '소천군(掃千軍)', desc: '군사를 쳐내고' }, { name: '천목투중갑(穿木透重甲)', desc: '나무를 부수고 갑옷을 꿰뚫다' }] },

@@ -83,7 +83,7 @@ function jounGuide() {
   const emptySlot = CAT_ORDER.some(c => !S.active[c]) && Object.keys(S.manuals).length;
   const ready = subqReadyCount();
   const tips = [
-    [books, `비급이 ${books}권 있구나. 상태 탭의 무공에서 [ 익히기 ] 해라. 읽기만 해선 소용없다.`],
+    [books, `비급이 ${books}권 있구나. 「상태 › 무공」에서 [ 익히기 ] 해라. 읽기만 해선 소용없다.`],
     [emptySlot, '익힌 무공은 상태 › 무공에서 장착해야 몸에 붙는다. 빈 자리가 있다.'],
     [!(S.expedition && S.expedition.zone), '아직 탐험지를 안 정했구나. 강호행에서 갈 곳을 정하고 [강호행 시작]을 눌러라. 쓰러질 때까지 알아서 나아간다.'],
     [Object.keys(S.manuals).some(id => !starUpBlock(id)), '수련치가 쌓였다. 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 소용없다.'],
@@ -116,7 +116,7 @@ function buyManual(id) {
   if (!LIBRARY_BOOKS.includes(id) || S.manuals[id] || has('bk_' + id) || !M.cost || S.contrib < M.cost) return;
   if (!give('bk_' + id, 1, true)) return;
   S.contrib -= M.cost;
-  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 상태 탭의 무공에서 [ 익히기 ] 하십시오.`, 'gold');
+  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 「상태 › 무공」에서 [ 익히기 ] 하십시오.`, 'gold');
   notify.refresh();
 }
 
@@ -177,9 +177,9 @@ function questBook(R, w) {
 const st10 = (z, n) => () => stageCleared(z) >= n;
 const allStar = n => () => CAT_ORDER.every(c => S.active[c] && S.manuals[S.active[c]] && S.manuals[S.active[c]].star >= n);   // 네 갈래 장착 무공이 모두 n성
 const QUESTS = [
-  { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '상태 탭의 무공에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.',
+  { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '「상태 › 무공」에서 비급 네 권을 [ 익히기 ] 한 뒤 각각 장착하십시오.',
     talk: '비급은 읽기만 해선 소용없다. 행낭의 비급 네 권을 익히고, 상태 › 무공에서 네 자리에 모두 걸어라.', reward: { silver: 30, items: { saenghyeol: 5 } } },
-  { t: '청풍산 초입 돌파', done: st10('cheongpung', 1), hint: '강호행 탭에서 청풍산을 정하고 [강호행 시작]. 1단계에서 5번 이기면 돌파합니다.',
+  { t: '청풍산 초입 돌파', done: st10('cheongpung', 1), hint: '「강호행」에서 청풍산을 정하고 [강호행 시작]. 1단계에서 5번 이기면 돌파합니다.',
     talk: '몸에 걸었으면 강호에 나가 부딪혀야지. 청풍산 초입부터 하나씩 꺾어 올라가거라. 생혈고를 넉넉히 챙기고.', reward: { gear: ['helmet', 1, 1] } },
   { t: '수련치로 무공 성급 올리기', done: () => Object.values(S.manuals).some(m => m.star >= 2), hint: '탐험에서 모은 수련치로 상태 › 무공에서 [ 성급 올리기 ]를 누르십시오.',
     talk: '싸우고 돌아오면 수련치가 쌓인다. 그걸로 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.', reward: { silver: 50, items: { saenghyeol: 5 } } },

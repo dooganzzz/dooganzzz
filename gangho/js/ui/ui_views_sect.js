@@ -62,7 +62,7 @@ function viewHall() {
     <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint">${tutorReady() ? '보상 받기 <small>가르침을 이룸</small>' : '말 걸기'}</button><button class="btn talk-btn" data-act="subqask">토벌 임무 받기 <small>(오늘 ${subqLeft()}/${SUBQ.daily})</small></button></div>
     <div class="quest main-quest ${tutorReady() ? 'ready' : ''}">
       ${!q ? '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'
-        : `<small class="muted">메인 퀘스트 · 장문인의 가르침 ${qi + 1}/${QUESTS.length}</small><b>${q.t}${tutorReady() ? ' <span class="good">— 이룸!</span>' : ''}</b><p class="story">${tutorReady() ? '장문인에게 [ 보상 받기 ]를 누르십시오.' : q.hint}</p>${q.reward ? `<p class="quest-reward">보상: <b>${questRewardText(q)}</b></p>` : ''}`}
+        : `<small class="muted">사명(師命) · 장문인의 가르침 ${qi + 1}/${QUESTS.length}</small><b>${q.t}${tutorReady() ? ' <span class="good">— 이룸!</span>' : ''}</b><p class="story">${tutorReady() ? '장문인에게 [ 보상 받기 ]를 누르십시오.' : q.hint}</p>${q.reward ? `<p class="quest-reward">보상: <b>${questRewardText(q)}</b></p>` : ''}`}
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
     <!--subq-->
@@ -73,7 +73,7 @@ function viewHall() {
   // 보조 퀘스트: 장문인에게 받은 토벌 임무 하나만
   const cq = subqCur(), cR = cq && subqReward(cq.zid, cq.n), cp = cq ? cq.prog || 0 : 0, cok = subqReady();
   const missions = `
-    <div class="subq-box"><p class="subq-title"><small class="muted">보조 퀘스트 · 반복</small> <b>토벌 임무</b> <small class="muted">장문인에게 탐험지 · 단계를 골라 받습니다. 보상을 받으면 다시 받을 수 있고, 하루 ${SUBQ.daily}번까지 (오늘 ${subqLeft()}번 남음).</small></p>
+    <div class="subq-box"><p class="subq-title"><small class="muted">의뢰(依賴) · 반복</small> <b>토벌 임무</b> <small class="muted">장문인에게 탐험지 · 단계를 골라 받습니다. 보상을 받으면 다시 받을 수 있고, 하루 ${SUBQ.daily}번까지 (오늘 ${subqLeft()}번 남음).</small></p>
     <ul class="missions">${cq ? `<li class="${cok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(cq.zid, cq.n)} <small class="muted">${cq.n >= STAGE.count ? '두목' : `${cq.n}단계`}</small></div><div class="mprog"><span style="width:${cp / SUBQ.kills * 100}%"></span></div><span class="num">${cp}/${SUBQ.kills}</span><span class="reward">공헌 ${cR.contrib} · 은자 ${cR.silver} · 수련치 ${cR.exp} · 생혈고 ${cR.pot}</span><button class="btn sm ${cok ? 'primary' : ''}" data-subq="1" ${cok ? '' : 'disabled'}>${cp >= SUBQ.kills && !subqLeft() ? '내일' : '보상'}</button></li>`
       : `<li class="muted">${subqLeft() ? '맡은 토벌이 없습니다. 장문인에게 [토벌 임무 받기].' : `오늘 토벌은 ${SUBQ.daily}번 다 했습니다. 내일 다시 받으십시오.`}</li>`}</ul></div>`;
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환

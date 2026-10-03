@@ -133,7 +133,7 @@ function viewObserve() {
     + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
   return `<div class="observe-duo">
   <section class="panel observe">${head('능력치', '能力')}
-    <h4 class="obs-h">메인 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
+    <h4 class="obs-h">근본 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
     <h4 class="obs-h">성향 <small>性向</small></h4>${schoolTriangle()}
     <h4 class="obs-h">세부 능력치</h4><div class="statsheet">${statList}</div>
   </section>
