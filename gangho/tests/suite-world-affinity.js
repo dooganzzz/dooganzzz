@@ -51,7 +51,7 @@ module.exports = async (b) => {
       const A = affinity('treant'), B = affinity('eliteAxe'), C = affinity('boar');
       r.up = Math.round((1 + AFFINITY.elem + calcStats().elem / 100) * 1000) / 1000;   // 지력·비급 각인의 오행 위력 포함
       r.rabbit = [A.el, Math.round(A.dealt / (1 + A.sizePct / 100) * 1000) / 1000, A.taken, A.wp]; r.full = A.dealt; r.bandit = [B.el, B.foe]; r.boar = C.el;   // 크기 상성(창 → 대형)은 빼고 오행만
-      S.apt = S.apt || {}; const kw = S.apt.wit; S.apt.wit = APT_MAX; r.int = affinity('treant').dealt / (1 + affinity('treant').sizePct / 100); S.apt.wit = kw;   // 오행 위력은 오성(悟性)
+      S.apt = S.apt || {}; const kw = S.apt.wit; S.apt.wit = APT_MIN; r.int0 = affinity('treant').dealt; S.apt.wit = APT_MAX; r.int = affinity('treant').dealt; S.apt.wit = kw;   // 같은 병기 · 같은 요수로 오성만 바꿔 비교   // 오행 위력은 오성(悟性)
       // 같은 난수로 한 대: 상극 우세 vs 상성 없음
       const R = Math.random; Math.random = () => 0.5;
       const mk = eid => ({ eid, e: { ...ENEMIES[eid], hpNow: 1e9 }, lines: [], fx: [], st: calcStats(), over: false, aff: affinity(eid) });
@@ -64,7 +64,7 @@ module.exports = async (b) => {
     ok('2 극하면 1, 극당하면 -1, 상생·무속성 0', el.rel === '1,-1,0,0', el.rel);
     ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×(1.20 + 오행 위력) · 받는 피해 ×0.80', el.me === 'metal' && el.rabbit[0] === 1 && Math.abs(el.rabbit[1] - el.up) < 0.002 && Math.abs(el.rabbit[2] - 0.8) < 1e-9 && el.rabbit[3] === 0, JSON.stringify(el));
     ok('2 金 기공 vs 火 요수: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
-    ok('2 오성이 높으면 극할 때 위력 추가', el.int > el.up, String(el.int));
+    ok('2 오성이 높으면 극할 때 위력 추가', el.int > el.int0, el.int0 + ' → ' + el.int);
     ok('2 실제 타격에 반영 (같은 난수 기준 주는 피해 배율만큼)', Math.abs(el.ratio - el.full) < 0.05, `${el.ratio} / ${el.full}`);
 
     // 3. 병기 상성

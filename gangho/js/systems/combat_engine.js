@@ -12,12 +12,12 @@ function cpVersus(st, R, art) {
   const hit = Math.min(1, (Math.max(55, 95 - R.eva) + (st.acc || 0)) / 100);
   const def = Math.max(0, R.def * (1 - (st.armorPen || 0) / 100) - (st.pierce || 0));
   const critF = 1 + Math.min(100, st.crit || 0) / 100 * (COMBAT_RULES.critBase - 1 + (st.critDmg || 0) / 100);
-  const elemF = 1 + (art.elem ? 0.2 * (st.elem || 0) / 100 : 0);           // 기공이 있으면 다섯 중 하나는 내가 극한다
+  const elemF = 1 + (art.elem ? (AFFINITY.elem + (st.elem || 0) / 100) / 5 : 0);   // 기공이 있으면 다섯 중 하나는 내가 극한다 (기본 상극 몫 + 오성)
   const basic = dmgBase(st.atk, def) * hit * critF * elemF;
   // 받는 피해: 회피 · 방어(최소 피해) · 치명(저항) · 연격, 충격으로 적이 쉬는 몫
   const foeHit = Math.max(40, 95 - (st.eva || 0)) / 100;
   const foeDmg = Math.max(dmgBase(R.atk, st.def), R.atk * COMBAT_RULES.minDmg);
-  const foeCrit = 1 + Math.max(0, R.crit - (st.critRes || 0) / 2) / 100 * 0.5;
+  const foeCrit = 1 + Math.max(0, R.crit - (st.critRes || 0) / 2) / 100 * (COMBAT_RULES.foeCritMult - 1);
   const stun = Math.min(0.5, (st.shock || 0) / 100 * hit);
   let taken = foeDmg * foeHit * foeCrit * (1 + (R.hits - 1) * 0.6) * (1 - stun) * (1 - Math.min(100, st.block || 0) / 100 * COMBAT_RULES.blockCut);   // 막기
   // 초식: 발동 확률 × 셋 중 하나를 고르는 비율 · 내력이 버티는 만큼만
@@ -63,7 +63,7 @@ function calculateCombatPower(player = S) { return combatPowerParts(player).tota
 /* 요수 투력: 제자 투력과 같은 잣대 — 요수를 제자 자리에 세우고 같은 기준 상대(CP_REF)들과 겨뤄 기하평균 (무대 정보 창에 제자 투력과 나란히) */
 function foeCombatPower(eid) {
   const E = ENEMIES[eid]; if (!E) return 0;
-  const st = { atk: E.atk * (1 + ((E.hits || 1) - 1) * 0.6), def: E.def || 0, maxHp: E.hp, eva: E.eva || 0, crit: E.crit || 0, spd: E.spd || 0, foe: true };   // 연격은 공격력에 녹인다
+  const st = { atk: E.atk * (1 + ((E.hits || 1) - 1) * 0.6), def: E.def || 0, maxHp: E.hp, eva: E.eva || 0, crit: E.crit || COMBAT_RULES.foeCrit, critDmg: (COMBAT_RULES.foeCritMult - COMBAT_RULES.critBase) * 100, spd: E.spd || 0, foe: true };   // 연격은 공격력에 녹인다 · 치명은 실제 전투와 같게
   const vs = CP_REF.map(R => cpVersus(st, R, { elem: false, moves: 0 }));
   return cpFromValues(vs);
 }
@@ -129,9 +129,11 @@ function affinityText(a) {
 
 /* 기척 비율: 내가 버티는 합 수 ÷ 적을 쓰러뜨리는 데 드는 합 수 (속도 보정). 높을수록 내가 유리 */
 function senseRatio(eid) {
-  const E = ENEMIES[eid], st = calcStats(), a = affinity(eid, st);
-  const myTurns = E.hp / (dmgBase(st.atk, E.def) * 1.3 * a.dealt);
-  const foeTurns = st.maxHp / Math.max(1, dmgBase(E.atk, st.def) * a.taken * (1 - st.eva / 100) * (1 + ((E.hits || 1) - 1) * 0.6));
+  const E = ENEMIES[eid], st = calcStats(), a = affinity(eid, st), R = COMBAT_RULES.realm;
+  const d = Math.max(-R.cap, Math.min(R.cap, (S.rank || 0) - foeRealm(eid)));   // 경지 압제 (실제 전투와 같게)
+  const myHit = Math.min(1, (Math.max(55, 95 - (E.eva || 0)) + a.myHit + (st.acc || 0)) / 100), foeHit = Math.min(1, (Math.max(40, 95 - st.eva) + a.foeHit + (E.acc || 0)) / 100);
+  const myTurns = E.hp / (dmgBase(st.atk, E.def) * 1.3 * a.dealt * myHit * (1 + d * R.step));
+  const foeTurns = st.maxHp / Math.max(1, Math.max(dmgBase(E.atk, st.def), E.atk * COMBAT_RULES.minDmg) * a.taken * foeHit * (1 - d * R.step) * (1 + ((E.hits || 1) - 1) * 0.6));
   return (foeTurns / myTurns) * (st.spd / E.spd);
 }
 function sense(eid) { const ratio = senseRatio(eid); return SENSE_TEXT.find(([t]) => ratio >= t); }
@@ -363,8 +365,8 @@ function enemyTurn(b) {
     // 2) 피격
     // 방어가 높아도 공격력의 20%는 그대로 들어온다 (안전지대 방지)
     let dmg = Math.max(1, Math.round(Math.max(dmgCalc(e.atk, Math.max(0, st.def - (e.pierce || 0))), e.atk * COMBAT_RULES.minDmg) * A.taken * (h > 0 ? 0.6 : 1)));
-    const crit = Math.random() * 100 < Math.max(0, (e.crit || 8) - st.critRes / 2);
-    if (crit) dmg = Math.round(dmg * 1.5);
+    const crit = Math.random() * 100 < Math.max(0, (e.crit || COMBAT_RULES.foeCrit) - st.critRes / 2);
+    if (crit) dmg = Math.round(dmg * COMBAT_RULES.foeCritMult);
     dmg = Math.max(1, Math.round(dmg * (1 - (b.realm || 0) * COMBAT_RULES.realm.step)));   // 경지 압제 (정마사는 A.taken에 들어 있음)
     if (st.block && Math.random() * 100 < st.block) {                                       // 막기: 일부만 받는다
       dmg = Math.max(1, Math.round(dmg * (1 - COMBAT_RULES.blockCut)));
