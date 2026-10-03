@@ -124,18 +124,18 @@ const MOVE_PICK = [60, 30, 10];   // 제1초식 · 제2초식 · 오의 (%)
    요수는 이 셋 밖의 독립 무리라 상성이 없다 (적에게 school이 있을 때만 걸린다). 파의 효과는 성향(대표 비급 네 칸)으로 붙는다 (대가 없음).
    비급 표지 색: 정 = 지금 표지 (삼류 양피지 → 초절정 빨강) · 마 = 연보라부터 · 사 = 연빨강부터 (표지 그림은 시안 중) */
 const SCHOOLS = {
-  jeong: { name: '정', hanja: '正', words: '정의 · 수호 · 집단 · 협의 · 인내', beats: 'ma', desc: '바른 길을 걷는 협객의 무공. 문파와 함께 커 간다.', bonus: '내력 절약', step: 'mpSave' },
+  jeong: { name: '정', hanja: '正', words: '정의 · 수호 · 집단 · 협의 · 인내', beats: 'ma', desc: '바른 길을 걷는 협객의 무공. 문파와 함께 커 간다.', bonus: '최대 활력', step: 'schoolHp' },
   ma:    { name: '마', hanja: '魔', words: '순수 · 힘 · 독단 · 광기 · 패도', beats: 'sa', desc: '홀로 극에 이르려는 순수한 힘의 무공.', bonus: '초식 위력', step: 'qiDmg' },
   sa:    { name: '사', hanja: '邪', words: '피 · 육체 · 파괴 · 금기 · 갈증', beats: 'jeong', desc: '피와 육체를 탐하는 금기의 무공.', bonus: '회복 효과', step: 'healPct' },
 };
 /* 성향 (10월 3일 유저): 익힌 비급 가운데 무공 · 심법 · 경공 · 기공마다 대표 한 권(가장 높은 등급 → 같으면 가장 높은 성급)의 파를 센다 (최대 4칸).
-   같은 파 한 칸마다 그 파의 효과가 한 단계씩 — 정 = 내력 절약 +5%p · 마 = 초식 위력 +5% · 사 = 회복 효과(단약 · 숨 고르기 · 흡혈) +10% */
+   같은 파 한 칸마다 그 파의 효과가 한 단계씩 — 정 = 최대 활력 +5% (10월 3일 유저: 내력 절약에서 바꿈) · 마 = 초식 위력 +5% · 사 = 회복 효과(단약 · 숨 고르기 · 흡혈) +10% */
 /* 소속 (10월 3일 유저): 소속 문파마다 보너스. 지금은 청풍문만 — 다른 문파는 이야기가 넓어지면 더한다 (S.sect, 바꿀 수 있게 키로 둠) */
 const SECTS = {
   cheongpung: { name: '청풍문', hanja: '淸風門', school: 'jeong', desc: '맑은 바람처럼 가볍고 곧은 정파 문파', bonus: { attr: { str: 1, agi: 1 } } },   // 근력 +1 · 민첩 +1 (10월 3일 유저)
 };
 const SECT_DEFAULT = 'cheongpung';
-const SCHOOL_RULES = { edge: 0.15, step: { mpSave: 5, qiDmg: 0.05, healPct: 10 } };
+const SCHOOL_RULES = { edge: 0.15, step: { schoolHp: 5, qiDmg: 0.05, healPct: 10 } };
 const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2,
   finisherExp: 1.5,       // 초식(오의 포함)으로 요수를 마무리하면 수련치 ×1.5 (10월 3일 유저)
   critBase: 1.6,          // 제자 치명 배율 기본 (+ 회심 위력 %)

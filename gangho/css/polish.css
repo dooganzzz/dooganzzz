@@ -285,9 +285,12 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 }
 .item-ico.dlg-ico { display: inline-block; width: 30px; height: 30px; vertical-align: middle; margin-right: 4px; }   /* 구매 · 판매 창 이름 앞 아이템 그림 (이모지 대신) */
 .item-ico.dlg-ico img { width: 100%; height: 100%; object-fit: contain; }
-.alert-dot.slot-up { position: absolute; top: 4px; right: 4px; margin: 0; width: 9px; height: 9px; z-index: 3; }   /* 무장 칸: 행낭에 더 좋은(낄 수 있는) 장비가 있음 */
-.bag-tile .ink-box > .alert-dot.slot-up { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .35), 0 0 4px rgba(224, 65, 42, .7); background: #e0412a; }   /* 행낭 칸: 지금 낀 것보다 좋은 장비 */
 .bag-tile > .hj-seal { flex: none; margin-left: auto; }   /* 행낭 칸 오른쪽 끝: 장비 등급 낙관 */
 .hj-seal.sm { height: 20px; margin: 0 2px; vertical-align: -5px; }   /* 글줄 속 작은 낙관 (출정 준비 속성 줄) */
 .mrow-cover { position: relative; }   /* 습득 비급 표지 위 '더 좋은 비급' 표시 자리 */
-.mrow-cover > .alert-dot.slot-up, .slot-lite .mslot-box > .alert-dot.slot-up { position: absolute; top: 3px; right: 3px; }
+/* '더 좋은 것 있음' 화살표 (upMark): 무장 칸 · 행낭 칸 · 무공 칸 · 습득 비급 표지의 오른쪽 위 */
+.ink-box > img.up-mark, .bag-tile .ink-box > img.up-mark, .mrow-cover > img.up-mark, .slot-lite .mslot-box > img.up-mark { position: absolute; top: 1px; right: 1px; width: 22px; height: 22px; margin: 0; padding: 0; z-index: 3; pointer-events: none; filter: drop-shadow(0 0 3px rgba(0, 0, 0, .7)); }
+/* 피해 숫자 글자 그림: 자리 · 크기는 유저 슬라이더 값 (--dmg-y 높이 % · --dmg-x 옆으로 % · --dmg-h 글자 높이 · --dmgc-h 회심 글자 높이) */
+.live-num.dg { top: var(--dmg-y, 30%); margin-left: var(--dmg-x, 0%); display: flex; align-items: flex-end; height: var(--dmg-h, 30px); text-shadow: none; }
+.live-num.dg.crit { height: var(--dmgc-h, 42px); }
+.live-num.dg img { height: 100%; width: auto; margin-right: -.08em; }

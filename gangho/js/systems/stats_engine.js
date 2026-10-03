@@ -86,6 +86,7 @@ function calcStats() {
   s.counter = Math.min(10, Math.round(s.counter * 10) / 10);   // 반격: 기본 5% · 최대 10% (10월 3일 유저 — 연속 공격이 너무 잦아서)
   s.mpRegen = Math.round(s.mpRegen * 10) / 10;
   { const n = schoolCount(); for (const k of Object.keys(n)) { const f = SCHOOLS[k].step; s[f] = (s[f] || 0) + n[k] * SCHOOL_RULES.step[f]; } }   // 성향: 같은 파 한 칸마다 그 파 효과 한 단계
+  if (s.schoolHp) s.maxHp = Math.round(s.maxHp * (1 + s.schoolHp / 100));   // 정: 최대 활력 +5% (한 칸마다)
   for (const k of ['block', 'shield', 'critRes', 'critDmg', 'aura', 'craft', 'mpSave']) s[k] = Math.max(0, Math.round((s[k] || 0) * 10) / 10);   // 심력 · 자질이 기준보다 낮아도 음수로 내려가지 않는다
   return s;
 }

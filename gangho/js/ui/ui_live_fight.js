@@ -121,8 +121,11 @@ function liveSkill(sc, sk) {
   if (sk.tier === 2 && v) liveShake(sc);   // 그림 없는 초식 · 오의는 평타처럼
 }
 function liveShake(sc) { sc.classList.remove('shake'); void sc.offsetWidth; sc.classList.add('shake'); clearTimeout(sc._shakeT); sc._shakeT = setTimeout(() => sc.classList.remove('shake'), 650); }
+/* 피해 숫자 글자 그림 (힉스 확정본 · ui/dmg_0~9, 회심 ui/dmgc_0~9) */
+const dmgDigits = (t, crit) => [...String(t)].map(d => `<img src="${ASSET.ui((crit ? 'dmgc_' : 'dmg_') + d)}" alt="">`).join('');
 function liveNum(sc, t, left, cls) {
-  const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.dataset.live = 1; n.textContent = t; n.style.left = (left - 4 + Math.random() * 8) + '%';
+  const n = document.createElement('div'); n.className = `sp-num live-num ${cls || ''}`; n.dataset.live = 1; n.style.left = (left - 4 + Math.random() * 8) + '%';
+  if (/^\d+$/.test(String(t))) { n.classList.add('dg'); n.setAttribute('aria-label', t); n.innerHTML = dmgDigits(t, /\bcrit\b/.test(cls || '')); } else n.textContent = t;   // 피해 숫자는 먹 붓글씨 글자 그림 (회심은 금빛)
   sc.appendChild(n); setTimeout(() => n.remove(), 1000);
 }
 /* 날아가는 비표: 제자 손에서 요수 몸통까지 살짝 휘어 날아간다 */

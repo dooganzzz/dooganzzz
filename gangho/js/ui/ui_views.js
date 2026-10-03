@@ -46,7 +46,7 @@ const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
 /* 한자 낙관(인장) 그림: 한자 글자 대신 (tall = 세로 낙관 — 경지 · 비급 등급) */
 /* '더 좋은 것 있음' 표시 (무장 칸 · 행낭 칸 · 무공 칸 · 습득 비급) — 그림을 바꿀 때는 여기 한 곳만 */
-const upMark = (label = '더 좋은 것이 있습니다') => `<i class="alert-dot slot-up" aria-label="${label}" title="${label}"></i>`;
+const upMark = (label = '더 좋은 것이 있습니다') => `<img class="up-mark" src="${ASSET.ui('up_arrow')}" alt="${label}" title="${label}">`;   // 힉스 확정본 (겹 꺾쇠 화살표)
 const sealImg = (id, alt, tall, cls = '') => `<img class="hj-seal${tall ? ' tall' : ''}${cls ? ' ' + cls : ''}" src="${ASSET.seal(id)}" alt="${alt}" title="${alt}">`;
 const rarityTag = r => sealImg(RARITY[r].cls, `${RARITY[r].name}(${RARITY[r].hanja})`);   // 장비 등급 낙관 (下 · 中 · 上 · 眞 · 名 · 極)
 const elemTag = e => e ? sealImg(e, `오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`) : '';

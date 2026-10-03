@@ -146,7 +146,7 @@ function viewField() {
   const X = S.expedition, st = calcStats(), cur = X.zone && ZONES[X.zone];
   const run = activeRun();
   return `${livePanel()}<section class="panel">
-    ${head('강호행', '江湖行', `<span class="pill">${cur ? `⛰️ ${cur.name}` : '탐험지 미정'}</span>`)}
+    ${head('강호행', '江湖行')}
     ${run ? '' : `<div class="exp-status">
       <div class="exp-next"><small>산문에서 대기 중</small><b data-runclock>${runClockText()}</b></div>
       <div class="exp-sta"><small class="muted">떠나기 전에 아래 준비를 갖춰 두십시오.</small></div>
