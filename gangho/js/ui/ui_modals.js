@@ -14,9 +14,9 @@ const fmtBonus = b => Object.entries(b).map(([k, v]) => `${STAT_NAMES[k]} +${PCT
 function manualAttrHtml(id) {
   const M = MANUALS[id], P = SCHOOLS[schoolOf(id)], rows = [];
   const sec = (h, R) => R.length ? `<h4 class="sec-h">${h}</h4><dl class="attr-rows">${R.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` : '';
-  const camp = P ? [[`${P.name}(${P.hanja})`, `${P.words}.${M.cat === 'mugong' ? ` ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음).` : ''}`]] : [];
-  if (M.elem) rows.push([`${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})`, `${ELEMENTS[ELEM_BEATS[M.elem]].name}(${ELEMENTS[ELEM_BEATS[M.elem]].hanja}) 속성 적에게 피해 +25%, ${(e => `${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`)(Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem))} 속성 적에게는 -25%`]);
-  if (M.terrain) rows.push([`${TERRAINS[M.terrain].name}(${TERRAINS[M.terrain].hanja})`, `${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%`]);
+  const camp = P ? [[`${sealImg(schoolOf(id), `${P.name}(${P.hanja})`)}<b>${P.name}</b>`, `${P.words}.${M.cat === 'mugong' ? ` ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음).` : ''}`]] : [];
+  if (M.elem) rows.push([`${sealImg(M.elem, `${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})`)}<b>${ELEMENTS[M.elem].name}</b>`, `${ELEMENTS[ELEM_BEATS[M.elem]].name}(${ELEMENTS[ELEM_BEATS[M.elem]].hanja}) 속성 적에게 피해 +25%, ${(e => `${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`)(Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem))} 속성 적에게는 -25%`]);
+  if (M.terrain) rows.push([`${sealImg('t_' + M.terrain, `${TERRAINS[M.terrain].name}(${TERRAINS[M.terrain].hanja})`)}<b>${TERRAINS[M.terrain].name}</b>`, `${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%`]);
   return sec('진영', camp) + sec('속성', rows);
 }
 function manualFxHtml(id, star) {
@@ -109,7 +109,7 @@ function bagItemModal(key) {
   if (kind === 'g') {
     const it = S.gear.find(g => g.uid === +id); if (!it) return '';
     return `<div class="sheet bag-sheet" role="dialog" aria-modal="true">
-      <div class="sheet-head bag-detail ${gradeClass(RARITY[it.rarity].name)}">${inkBox(gearIco(it, 'card'))}<div><small class="muted">${SLOTS[it.slot].name}${it.wtype ? ' · ' + WEAPON_SHORT[it.wtype] : ''}</small><h2 class="item-name">${esc(gearName(it))}</h2></div></div>
+      <div class="sheet-head bag-detail ${gradeClass(RARITY[it.rarity].name)}">${inkBox(gearIco(it, 'card'))}<div><small class="muted">${SLOTS[it.slot].name}${it.wtype ? ' · ' + WEAPON_SHORT[it.wtype] : ''}</small><h2 class="item-name">${esc(gearName(it))}</h2><p class="mm-tags">${sealImg(RARITY[it.rarity].cls, `${RARITY[it.rarity].name}(${RARITY[it.rarity].hanja})`)}</p></div></div>
       <p>${statLine(it)}</p>${it.unique ? `<p class="uniq">✦ ${it.unique.text}</p>` : ''}${cpDiffTag(it)}
       <div class="btns"><button class="btn primary" data-equip="${it.uid}">착용</button><button class="btn ghost" data-discard="${it.uid}">버리기</button><button class="btn ghost" data-act="closemodal">닫기</button></div>
     </div>`;

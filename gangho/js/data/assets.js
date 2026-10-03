@@ -25,6 +25,7 @@ const ASSET_KIND = {
   font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_537 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
   common:   { dir: 'common/', ext: 'webp' },         // 공용: scroll_초식(두루마리 종이) · _hz(기운 12컷) · scroll_ax(도는 축 16컷) · scroll_face(제자 얼굴) · strike_hit · strike_crit(평타 타격 · 치명)
   portrait: { dir: 'portraits/', ext: 'webp' },
+  seal:     { dir: 'seal/', ext: 'webp' },             // 한자 낙관(인장): 오행 wood… · 진영 jeong · ma · sa · 지형 t_풀… · 경지 realm0~2 · 비급 등급 g3~gs · 장비 등급 r0~r5 (GPT Image 2.5 확정본, 10월 3일)
   audio:    { dir: 'audio/', ext: 'mp3' },          // 소리: teahouse(배경음악 옥루관 금소합주) · gangho_road(강호행 배경음악) · sfx(녹음 효과음 묶음 — SFX_SPRITE)
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene · yeonhon_hall · rankup_2(이류무사 승급)
 };

@@ -254,6 +254,9 @@ small { font-size: .82rem; }
 
 /* 비급 상세 머리: 《이름》 아래 등급(三流) · 경지(入門) */
 .sheet .mm-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 4px 0 0; }
-.grade-hj { display: inline-flex; gap: 3px; align-items: baseline; padding: 2px 9px; border: 1px solid var(--line, rgba(212, 175, 55, .35)); border-radius: 999px; font-size: .78rem; font-weight: 700; color: var(--text, #efe6d2); }
-.grade-hj small { font-weight: 400; opacity: .8; }
 .sheet .moves li small { white-space: nowrap; }
+/* 한자 낙관(인장) 그림 (sealImg) — 세로 28×50 · 가로 높이 26 (10월 3일 유저 슬라이더 값) */
+.seal { height: 26px; width: auto; vertical-align: middle; margin: 0 2px; }
+.seal.tall { width: 28px; height: 50px; object-fit: fill; }
+.mrow-meta .seal.tall, .mcard-row .seal.tall { width: 22px; height: 39px; }
+.attr-rows dt { display: flex; align-items: center; gap: 6px; }

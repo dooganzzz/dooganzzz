@@ -45,19 +45,21 @@ const gradeBadge = g => `<span class="item-grade-badge">${g}</span>`;
 const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico ? inkBox(ico) : ''}<b class="item-name">${name}</b></div>`;
 
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
-const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})">${ELEMENTS[e].hanja}</span>` : '';
-const terrainTag = t => t ? `<span class="aff-tag tr" title="지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})">${TERRAINS[t].hanja}</span>` : '';
+/* 한자 낙관(인장) 그림: 한자 글자 대신 (tall = 세로 낙관 — 경지 · 비급 등급) */
+const sealImg = (id, alt, tall) => `<img class="seal${tall ? ' tall' : ''}" src="${ASSET.seal(id)}" alt="${alt}" title="${alt}">`;
+const elemTag = e => e ? sealImg(e, `오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`) : '';
+const terrainTag = t => t ? sealImg('t_' + t, `지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})`) : '';
 /* 파 표식 (正 · 魔 · 邪): 정마사 상성과 파의 고유 효과 */
-const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return `<span class="school-tag s-${k}" title="${P.name}(${P.hanja}) — ${P.desc} 성향 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다">${P.hanja}</span>`; };
+const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return sealImg(k, `${P.name}(${P.hanja}) — ${P.desc} 성향 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다`); };
 const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_CLASS[w]]}</span>` : '';
 
-const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
+const realmTag = star => { const r = realmOf(star); return sealImg(r.seal, `${r.name}(${r.hanja})`, true); };
 
 /* 상태 탭 맨 위: 투력. 공세 · 수세 같은 내역은 보여 주지 않는다 (유저가 직접 찾아가도록) */
 /* 관조 › 무공 */
 /* 좌선 아래 글씨: 품계는 '삼류(三流)'만, 게이지가 절반이면 소주천 · 다 차면 대주천 (10월 3일 유저) */
 const rankGradeLabel = R => `<span class="rk-grade">${R.grade}(${GRADES[R.grade].hanja})</span>`;
-const gradeTag = g => `<span class="grade-hj ${GRADES[g].cls}">${g}<small>${GRADES[g].hanja}</small></span>`;   // 비급 등급 (삼류 三流 …)
+const gradeTag = g => sealImg(GRADES[g].cls, `${g}(${GRADES[g].hanja})`, true);   // 비급 등급 (삼류 三流 …)
 function viewMartial() {
   // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
   const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };

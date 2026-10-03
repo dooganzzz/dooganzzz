@@ -36,9 +36,9 @@ const GATE_NAME = { 5: '소성 관문(小成)', 11: '대성 관문(大成)' };
 
 /* 경계 이름: 1~5성 입문, 6~11성 소성, 12성 대성 */
 const REALMS = [
-  { min: 1,  name: '입문', hanja: '入門', cls: 'realm-0' },
-  { min: 6,  name: '소성', hanja: '小成', cls: 'realm-1' },
-  { min: 12, name: '대성', hanja: '大成', cls: 'realm-2' },
+  { min: 1,  name: '입문', hanja: '入門', cls: 'realm-0', seal: 'realm0' },
+  { min: 6,  name: '소성', hanja: '小成', cls: 'realm-1', seal: 'realm1' },
+  { min: 12, name: '대성', hanja: '大成', cls: 'realm-2', seal: 'realm2' },
 ];
 
 /* 대성 패시브: 12성에 이르면 분류별로 영구 고유 효과가 열린다 */

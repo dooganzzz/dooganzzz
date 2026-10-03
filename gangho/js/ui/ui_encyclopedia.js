@@ -79,4 +79,4 @@ function codexTitles() {
   // 얻은 별호만 보인다 (못 얻은 것 · 봉인된 것은 숨김, 10월 3일 유저)
   return TITLE_TIERS.map((R, t) => { const ids = Object.keys(TITLES).filter(id => TITLES[id].tier === t && own[id]); return ids.length ? `<h4 class="title-tier ${R.cls}">${R.name} <small>${R.hanja}</small></h4><div class="title-grid">${ids.map(card).join('')}</div>` : ''; }).join('');
 }
-const schoolBadge = k => `<span class="school-tag s-${k}">${SCHOOLS[k].hanja}</span>`;
+const schoolBadge = k => sealImg(k, `${SCHOOLS[k].name}(${SCHOOLS[k].hanja})`);
