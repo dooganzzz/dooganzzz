@@ -50,7 +50,7 @@ const elemTag = e => e ? `<span class="aff-tag ${ELEMENTS[e].cls}" title="오행
 const terrainTag = t => t ? `<span class="aff-tag tr" title="지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})">${TERRAINS[t].hanja}</span>` : '';
 const manualAffTag = id => elemTag(MANUALS[id].elem) + terrainTag(MANUALS[id].terrain);
 /* 파 표식 (正 · 魔 · 邪): 정마사 상성과 파의 고유 효과 */
-const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return `<span class="school-tag s-${k}" title="${P.name}(${P.hanja}) — ${P.desc} ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다">${P.hanja}</span>`; };
+const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return `<span class="school-tag s-${k}" title="${P.name}(${P.hanja}) — ${P.desc} 성향 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다">${P.hanja}</span>`; };
 const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_CLASS[w]]}</span>` : '';
 
 const realmTag = star => { const r = realmOf(star); return `<span class="realm ${r.cls}">${r.name} <small>${r.hanja}</small></span>`; };
@@ -101,7 +101,7 @@ function viewMartial() {
     <div class="mslots martial-arts-core-layout">${slots}</div>
   </section>
   <div class="martial-right">
-  <section class="panel tend-panel">${head('성향', '性向')}${schoolTriangle()}</section>
+  <section class="panel tend-panel">${head('성향', '性向')}${schoolTriangle()}${schoolPickRows()}</section>
   <section class="panel martial-learned acquired-skills-section">
     <div class="section-header-row">
       <div class="section-title-wrap"><h3 class="section-title">${label('습득 비급', '習得秘笈')}</h3><span class="total-count-badge" id="total-acquired-count">${learned.length}종</span></div>
@@ -150,24 +150,30 @@ function hopaeCard() {
 }
 /* 별호 새기기 칸 (호패를 누르면 뜨는 창에서만) */
 const titlePicker = () => `<div class="alias-row"><select id="titleSel" aria-label="별호 고르기">${Object.keys(S.titles || {}).filter(id => TITLES[id]).map(id => `<option value="${id}" ${S.title === id ? 'selected' : ''}>${TITLES[id].name} (${TITLE_TIERS[TITLES[id].tier].name})</option>`).join('')}</select><button class="btn sm" data-act="setalias">새기기</button></div>`;
-/* 성향: 장착한 비급(최대 네 칸)의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 — 정 2 · 마 1 · 사 1이면 정 쪽으로 치우친 점 */
+/* 성향: 대표 비급 네 칸(systems schoolReps — 계열마다 가장 높은 등급 · 성급)의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 */
 const SCHOOL_TRI = { jeong: [50, 20], ma: [18.6, 73], sa: [83.6, 72.8] };   // 꼭짓점 (그림 school_tri 위 %)
-const SCHOOL_GLOW_FULL = 4;   // 장착 네 칸이 모두 한 파면 그 구슬이 가장 짙게 빛난다 (10월 3일 유저: 장착 기준 · 최대 4)
+const SCHOOL_GLOW_FULL = 4;   // 대표 네 칸이 모두 한 파면 그 구슬이 가장 짙게 빛난다
+const schoolFxText = n => Object.keys(n).filter(k => n[k]).map(k => { const f = SCHOOLS[k].step, v = n[k] * SCHOOL_RULES.step[f]; return `${SCHOOLS[k].name} ${n[k]}칸 — ${SCHOOLS[k].bonus} +${f === 'qiDmg' ? Math.round(v * 100) + '%' : v + (f === 'mpSave' ? '%p' : '%')}`; });
 function schoolTriangle() {
-  const n = { jeong: 0, ma: 0, sa: 0 };
-  const worn = CAT_ORDER.map(c => S.active[c]).filter(id => id && MANUALS[id]);
-  for (const id of worn) n[schoolOf(id)]++;
+  const n = schoolCount(), reps = schoolReps();
   const tot = n.jeong + n.ma + n.sa, w = k => tot ? n[k] / tot : 1 / 3;
   const x = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][0], 0), y = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][1], 0);
   const top = Object.keys(n).sort((a, b) => n[b] - n[a]), lead = tot && n[top[0]] > n[top[1]] ? top[0] : null;
-  // 글 · 숫자 없이: 그 파 비급을 많이 장착할수록 구슬 빛이 짙어진다(--w, 네 칸 모두면 가장 짙음). 손을 대면 장착한 비급과 그 파를 보인다
-  const tip = worn.length ? worn.map(id => `<li><b class="s-${schoolOf(id)}">${SCHOOLS[schoolOf(id)].name}</b> 《${esc(MANUALS[id].name)}》</li>`).join('') : '<li class="muted">장착한 비급 없음</li>';
-  return `<div class="school-tri" tabindex="0" aria-label="성향 — 장착한 비급 보기">
+  // 글 · 숫자 없이: 그 파 대표 비급이 많을수록 구슬 빛이 짙어진다(--w). 손을 대면 대표 비급과 지금 받는 효과를 보인다
+  const tip = reps.length ? reps.map(id => `<li><b class="s-${schoolOf(id)}">${SCHOOLS[schoolOf(id)].name}</b> 《${esc(MANUALS[id].name)}》</li>`).join('') + schoolFxText(n).map(t => `<li class="st-fx">${t}</li>`).join('') : '<li class="muted">익힌 비급 없음</li>';
+  return `<div class="school-tri" tabindex="0" aria-label="성향 — 대표 비급 보기">
     <div class="st-board"><img src="${ASSET.ui('school_tri')}" alt="" aria-hidden="true">
       ${Object.entries(SCHOOL_TRI).map(([k, [cx, cy]]) => `<i class="st-glow s-${k}" style="left:${cx}%;top:${cy}%;--w:${Math.min(1, n[k] / SCHOOL_GLOW_FULL).toFixed(2)}"></i>`).join('')}
       <i class="st-dot ${lead ? 's-' + lead : ''}" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%"></i></div>
     <ul class="st-tip" role="tooltip">${tip}</ul>
   </div>`;
+}
+/* 성향 대표 비급 고르기: 등급 · 성급까지 같은 후보가 여럿인 계열만 고르는 칸이 뜬다 (고르면 하루 동안 못 바꿈, 10월 3일 유저) */
+function schoolPickRows() {
+  return CAT_ORDER.filter(c => schoolCands(c).length > 1).map(c => {
+    const wait = schoolPickWait(c), cur = schoolRep(c);
+    return `<label class="st-pick"><span>${CATS[c].name}</span><select data-schoolpick="${c}" ${wait ? 'disabled' : ''} aria-label="${CATS[c].name} 대표 비급">${schoolCands(c).map(id => `<option value="${id}" ${id === cur ? 'selected' : ''}>${SCHOOLS[schoolOf(id)].hanja} 《${esc(MANUALS[id].name)}》</option>`).join('')}</select>${wait ? `<small>${Math.ceil(wait / 3600000)}시간 뒤 바꿀 수 있음</small>` : ''}</label>`;
+  }).join('');
 }
 function viewGear() {
   const st = calcStats();

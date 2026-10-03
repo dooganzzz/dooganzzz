@@ -50,7 +50,7 @@ function martialModal(id) {
     <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 수련치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
     <p class="story">${M.desc}</p>
     ${manualPoemHtml(id)}
-    ${cat === 'mugong' ? (P => `<p class="aff-line">${schoolTag(id)} ${P.name}(${P.hanja}) — ${P.words}. 장착하면 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음)</p>`)(SCHOOLS[schoolOf(id)]) : ''}
+    ${cat === 'mugong' ? (P => `<p class="aff-line">${schoolTag(id)} ${P.name}(${P.hanja}) — ${P.words}. 성향(계열마다 가장 높은 비급) 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음)</p>`)(SCHOOLS[schoolOf(id)]) : ''}
     ${M.elem ? `<p class="aff-line">${elemTag(M.elem)} 오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja}) — ${ELEMENTS[ELEM_BEATS[M.elem]].hanja} 속성 적에게 피해 +25%, ${ELEMENTS[Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem)].hanja} 속성 적에게는 -25%</p>` : ''}
     ${M.terrain ? `<p class="aff-line">${terrainTag(M.terrain)} ${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%</p>` : ''}
     <h4>보너스 효과 (장착 시)</h4>${bonus}

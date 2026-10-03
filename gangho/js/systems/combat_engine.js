@@ -195,13 +195,13 @@ function autoPotion(b) {
   // 한 전투에 생혈고는 EXPEDITION.potionPerFight개까지 (이길 수 없는 상대에게 가진 것을 다 쏟아붓지 않는다)
   if (S.hp < b.st.maxHp * ((S.settings && S.settings.potionAt != null) ? S.settings.potionAt : EXPEDITION.potionAt) && (b.potHp || 0) < EXPEDITION.potionPerFight && use('saenghyeol', 'hp')) {
     b.potHp = (b.potHp || 0) + 1;
-    const v = Math.round(b.st.maxHp * ITEMS.saenghyeol.use.hp * (1 + (talentOf().pill || 0)));   // 기예 단약: 단약 효과 +15%
+    const v = Math.round(b.st.maxHp * ITEMS.saenghyeol.use.hp * (1 + (talentOf().pill || 0)) * (1 + (b.st.healPct || 0) / 100));   // 사 성향: 회복 효과   // 기예 단약: 단약 효과 +15%
     S.hp = Math.min(b.st.maxHp, S.hp + v);
     bLine(`🩸 숨을 고르며 상처에 생혈고를 발랐습니다. <span class="heal">활력 +${fmt(v)}</span>`, 'good');
     b.fx.push({ side: 'me', t: `+${fmt(v)}`, k: 'heal' });
   }
   if (S.active.mugong && S.mp < b.st.maxMp * 0.2 && use('potionMp', 'mp')) {
-    const v = Math.round(b.st.maxMp * ITEMS.potionMp.use.mp * (1 + (talentOf().pill || 0)));
+    const v = Math.round(b.st.maxMp * ITEMS.potionMp.use.mp * (1 + (talentOf().pill || 0)) * (1 + (b.st.healPct || 0) / 100));
     S.mp = Math.min(b.st.maxMp, S.mp + v);
     bLine(`💧 소환단을 삼켜 흐트러진 내력을 추슬렀습니다. <span class="heal">내력 +${fmt(v)}</span>`, 'good');
   }
@@ -272,14 +272,13 @@ function playerHit(b, mult, o) {
   let dmg = dmgCalc(st.atk, def) * mult * A.dealt * (o.title && o.cls !== 'counter' ? 1 + (st.qiDmg || 0) : 1);   // 통맥환(초식)
   const crit = Math.random() * 100 < st.crit + (o.critUp || 0);
   if (crit) dmg *= COMBAT_RULES.critBase + (st.critDmg || 0) / 100;   // 회심 위력
-  dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step) * (1 + schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge)
-    * (o.title && o.cls !== 'counter' && mySchool() === 'ma' ? 1 + SCHOOL_RULES.maStance : 1));   // 경지 압제 · 정마사 상성(요수는 없음) · 마: 초식 위력
+  dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step) * (1 + schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge));   // 경지 압제 · 정마사 상성(요수는 없음)
   e.hpNow = Math.max(0, e.hpNow - dmg);
   if (e.hpNow <= 0) b.finisher = !!(o.title && o.cls !== 'counter');   // 초식(오의 포함)으로 마무리했는가 — 수련치 보너스
   if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= e.hp * 0.2 });
   const [, txt, cls] = reaction(dmg, e.hp);
   bLine(`${crit ? '<b class="crit">회심의 일격!</b> 급소를 정확히 꿰뚫었다! ' : ''}${josa(e.name, '이가')} ${txt} <span class="dmg">(-${fmt(dmg)})</span>`, `log-stance-result ${cls}${crit ? ' crit' : ''}`);
-  if (st.lifesteal) S.hp = Math.min(st.maxHp, S.hp + Math.round(dmg * st.lifesteal / 100));
+  if (st.lifesteal) S.hp = Math.min(st.maxHp, S.hp + Math.round(dmg * st.lifesteal / 100 * (1 + (st.healPct || 0) / 100)));   // 사 성향: 회복 효과
   if (st.bleed && b.dot && e.hpNow > 0) addDot(b, 'foe', 'bleed', [st.bleed / 100, 0.04, 3]);   // 혈문도·유엽표: 출혈
   if (o.stanceBleed && b.dot && e.hpNow > 0) addDot(b, 'foe', 'bleed', [1, 0.04, o.stanceBleed]);   // 추영표: 초식 적중 시 출혈
   if (o.weaken && e.hpNow > 0) {                                                                      // 벽력도: 기세(공격력) 깎기
@@ -388,7 +387,6 @@ function winBattle(b) {
     if (giveGear(it, true)) bLine(`🗡️ [${RARITY[it.rarity].name}] ${hlItem(it.name)} 획득`, 'loot');
   }
   if (b.bonus) { bLine(`📜 ${b.bonus.text}`, 'gold'); for (const g of applyFx(b.bonus.fx || {})) bLine(`↳ ${hlItem(g)}`, 'loot'); }
-  if (mySchool() === 'sa') { const st = calcStats(), h = Math.round(st.maxHp * SCHOOL_RULES.saHeal); if (S.hp > 0 && S.hp < st.maxHp) { S.hp = Math.min(st.maxHp, S.hp + h); bLine(`🩸 사(邪)의 갈증 — 쓰러진 적의 기운을 들이켜 활력 +${fmt(h)}`, 'loot'); } }
   S.kills++;
   if (E.boss && !S.flags[E.boss]) {
     S.flags[E.boss] = true;

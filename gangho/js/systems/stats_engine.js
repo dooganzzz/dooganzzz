@@ -9,9 +9,34 @@ function starterGift(cat) {
   return ids.length ? 'bk_' + ids[Math.floor(Math.random() * ids.length)] : null;
 }
 const mySchool = () => S.active.mugong ? schoolOf(S.active.mugong) : 'jeong';
+/* 성향: 익힌 비급 가운데 계열(무공 · 심법 · 경공 · 기공)마다 대표 한 권 — 가장 높은 등급, 같으면 가장 높은 성급 (10월 3일 유저: 장착을 바꿔 끼워도 흔들리지 않게).
+   등급 · 성급까지 같은 후보가 여럿이면 유저가 고르고(S.schoolPick[계열] = { id, at }), 고른 뒤 SCHOOL_PICK_LOCK 동안은 다시 못 바꾼다. 고르지 않았으면 먼저 익힌 것 */
+const SCHOOL_PICK_LOCK = 24 * 3600 * 1000;
+const repScore = id => GRADES[MANUALS[id].grade].mult * 1000 + ((S.manuals[id] && S.manuals[id].star) || 0);
+function schoolCands(cat) {
+  const ids = Object.keys(S.manuals || {}).filter(id => MANUALS[id] && MANUALS[id].cat === cat);
+  const top = Math.max(-1, ...ids.map(repScore));
+  return ids.filter(id => repScore(id) === top);
+}
+function schoolRep(cat) {
+  const c = schoolCands(cat), p = S.schoolPick && S.schoolPick[cat];
+  return p && c.includes(p.id) ? p.id : c[0];
+}
+const schoolReps = () => CAT_ORDER.map(schoolRep).filter(Boolean);
+/* 고른 지 하루가 안 지났으면 남은 시간(ms), 바꿀 수 있으면 0. 고른 비급이 더는 후보가 아니면(더 높은 비급이 생김) 바로 바꿀 수 있다 */
+function schoolPickWait(cat) {
+  const p = S.schoolPick && S.schoolPick[cat];
+  return p && schoolCands(cat).includes(p.id) ? Math.max(0, p.at + SCHOOL_PICK_LOCK - now()) : 0;
+}
+function setSchoolPick(cat, id) {
+  if (!schoolCands(cat).includes(id) || schoolRep(cat) === id || schoolPickWait(cat) > 0) return false;
+  S.schoolPick = { ...(S.schoolPick || {}), [cat]: { id, at: now() } };
+  return true;
+}
+const schoolCount = () => schoolReps().reduce((n, id) => (n[schoolOf(id)]++, n), { jeong: 0, ma: 0, sa: 0 });
 function schoolEdge(mine, theirs) { if (!theirs || !SCHOOLS[theirs]) return 0; return SCHOOLS[mine].beats === theirs ? 1 : SCHOOLS[theirs].beats === mine ? -1 : 0; }
 function calcStats() {
-  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 7.4, critRes: 0, counter: 10, mpRegen: 1, bag: 150, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0 };
+  const s = { atk: 10, def: 3, maxHp: 100, maxMp: 40, spd: 10, eva: 3, crit: 7.4, critRes: 0, counter: 10, mpRegen: 1, bag: 150, mpCost: 0, craft: 0, train: 0, maxSta: 100, combo: 0, lifesteal: 0, atkPct: 0, hpPct: 0, mpPct: 0, mpSave: 0, evaFlat: 0, elem: 0, staSave: 0, breathe: 0, qiPct: 0, elemRes: 0, bleed: 0, pierce: 0, acc: 0, qiDmg: 0, healPct: 0 };
   // 단련 스탯: 기준값(ATTR_BASE)에서 한 점마다 더하거나 뺀다. 짝 자질의 계수(scale)는 단련 한 점당 증가량에 곱한다 (기준값 몫은 그대로라 평균 제자는 변함없음)
   const aptPair = Object.fromEntries(Object.entries(APTS).map(([k, P]) => [P.pair, k]));
   for (const [a, D] of Object.entries(ATTRS)) {
@@ -60,6 +85,7 @@ function calcStats() {
   s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
   s.counter = Math.min(60, Math.round(s.counter * 10) / 10);
   s.mpRegen = Math.round(s.mpRegen * 10) / 10;
+  { const n = schoolCount(); for (const k of Object.keys(n)) { const f = SCHOOLS[k].step; s[f] = (s[f] || 0) + n[k] * SCHOOL_RULES.step[f]; } }   // 성향: 같은 파 한 칸마다 그 파 효과 한 단계
   for (const k of ['block', 'shield', 'critRes', 'critDmg', 'aura', 'craft', 'mpSave']) s[k] = Math.max(0, Math.round((s[k] || 0) * 10) / 10);   // 심력 · 자질이 기준보다 낮아도 음수로 내려가지 않는다
   return s;
 }

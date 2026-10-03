@@ -229,4 +229,5 @@ function askContrib(name, cost, fn, note = '') {
 function onChange(e) {
   const t = e.target;
   if (t.dataset.setactive) setActive(t.dataset.setactive, t.value);
+  if (t.dataset.schoolpick) { if (setSchoolPick(t.dataset.schoolpick, t.value)) { toast('성향 대표 비급을 정했습니다. 하루 동안은 바꿀 수 없습니다.'); notify.save(); } render(); }
 }

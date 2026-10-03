@@ -131,30 +131,13 @@ function shrineArt(awake = false) {
   return artPic(awake ? ART_SRC.shrineAwake() : ART_SRC.shrine(), svg, 'shrine-art' + (awake ? ' awake' : ''));
 }
 
-/* ───────── 장비 칸 아이콘 (24×24 선화). 무기는 병기 종류를 따른다 ───────── */
-const SLOT_ICON = {
-  helmet: 'M5 15a7 7 0 0 1 14 0v3H5zM12 5v3M9 18v2M15 18v2',
-  armor: 'M7 4l5 2 5-2 3 4-2 3v9H6v-9L4 8zM12 6v14',
-  jade: 'M4 10h16v4H4zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
-  boots: 'M8 3v11l-4 3v3h13l3-3-5-2V3z',
-  belt: 'M3 10h18v4H3zM10 9h4v6h-4z',
-  ring: 'M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM10 9l2-5 2 5',
-  badge: 'M7 3h10v18l-5-3-5 3zM10 8h4M10 11h4',
-  ring2: 'M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM10 9l2-5 2 5',
-  'w-blade': 'M5 19c8-3 12-9 14-16-4 5-9 9-13 11zM4 20l3-3',
-  'w-sword': 'M19 3L7 15M5 13l6 6M4 20l3-3',
-  'w-spear': 'M4 20L18 6M18 6l2-4-4 2zM14 7l3 3',
-  'w-hidden': 'M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z',
-  'w-fist': 'M6 11V7a2 2 0 0 1 4 0v4M10 10V6a2 2 0 0 1 4 0v4M14 10V7a2 2 0 0 1 4 0v6c0 4-3 7-7 7s-5-3-5-6v-3',
-};
+/* ───────── 장비 칸 ───────── */
 /* 수묵 붓선 네모칸 테두리(확정본 slot_frame): 비급 · 장비 · 아이템 그림 칸에 공통으로 두른다. 가운데는 비어 뒤가 비친다 */
 const inkFrame = () => `<img class="ink-frame" src="${ASSET.ui('slot_frame')}" alt="" aria-hidden="true">`;
 const inkBox = (inner, cls = '') => `<span class="ink-box ${cls}">${inkFrame()}${inner}</span>`;
+/* 장착 칸 그림: 장비가 있으면 장비 그림, 비었으면 금빛 + 만 (10월 3일 유저: 칸 안 부위 아이콘 없앰) */
 function slotIcon(slot) {
-  if (S.equip[slot]) return gearIco(S.equip[slot], 'slot-ico');
-  const w = slot === 'weapon' && S.equip.weapon ? 'w-' + (S.equip.weapon.wtype || 'sword') : null;
-  const d = SLOT_ICON[w] || SLOT_ICON[slot] || SLOT_ICON['w-sword'];
-  return `<svg class="slot-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  return S.equip[slot] ? gearIco(S.equip[slot], 'slot-ico') : '<span class="slot-plus" aria-hidden="true">+</span>';
 }
 
 /* ───────── 아이템 그림 (ASSET.item): 수묵담채 · 투명 배경. 파일이 없으면 이모지로 ─────────

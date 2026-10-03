@@ -996,6 +996,11 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 @media (min-width: 1100px) { .observe-duo { grid-template-columns: minmax(380px, 440px) minmax(0, 1fr); } .observe-duo.observe-trio { grid-template-columns: minmax(330px, 370px) minmax(0, 1fr) minmax(290px, 320px); } }
 .tend-panel .school-tri { grid-template-columns: minmax(0, 1fr); }
 .tend-panel .st-board { width: min(100%, 220px); margin: 0 auto; }   /* 무공 탭 오른쪽 위 (10월 3일) */
+.st-tip .st-fx { color: var(--gold); font-size: .85em; } .st-tip .st-fx:first-of-type { margin-top: 4px; }
+.st-pick { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 8px; align-items: center; margin-top: 8px; font-size: .88rem; }
+.st-pick > span { color: var(--dim); } .st-pick select { min-width: 0; background: rgba(12, 11, 9, .7); color: var(--text, #efe6d2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; }
+.tend-panel { position: relative; overflow: visible; z-index: 3; }
+.tend-panel .st-tip { top: 50%; transform: translate(-50%, -50%); }   /* 손을 대면 삼각형 위에 겹쳐 뜬다 (아래 칸에 가리지 않게) */ .st-pick small { grid-column: 2; color: var(--dim); }
 .gear-panel .bag-top { grid-template-columns: minmax(0, 1fr); }   /* 성향이 제 칸으로 나가 무장은 한 칸 */
 .observe .obs-attr { gap: 6px; padding: 6px 8px; } .observe .obs-attr span { white-space: nowrap; }
 .observe .obs-h { margin: 14px 0 6px; font-size: .9rem; color: var(--gold, #d4af37); letter-spacing: .04em; }
