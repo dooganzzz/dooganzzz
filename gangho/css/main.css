@@ -968,6 +968,13 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .armory .equip-slot-card:hover .ink-box { filter: drop-shadow(0 0 8px rgba(212, 175, 55, .45)); }
 .armory .equip-slot-card .ink-box > .slot-label { position: absolute; left: 0; right: 0; bottom: 5px; z-index: 1; margin: 0; text-align: center; font-size: .68rem; line-height: 1; color: var(--dim); text-shadow: 0 1px 2px #000, 0 0 4px #000; pointer-events: none; }   /* 부위 이름: 칸 안쪽 6시 */
 .armory .equip-slot-card:not(.empty) .ink-box > .slot-label { color: #e9dcc0; }
+.slot-item-name { font-size: 12px; font-weight: 700; font-family: var(--serif); text-align: center; word-break: keep-all; line-height: 1.3; }   /* 장비 이름: 등급 색 */
+.armory .equip-slot-card.r0 .slot-item-name { color: var(--g0); }
+.armory .equip-slot-card.r1 .slot-item-name { color: var(--g1); }
+.armory .equip-slot-card.r2 .slot-item-name { color: var(--g2); }
+.armory .equip-slot-card.r3 .slot-item-name { color: var(--g3); }
+.armory .equip-slot-card.r4 .slot-item-name { color: var(--g4); }
+.armory .equip-slot-card.r5 .slot-item-name { color: var(--g5); }
 .armory .equip-slot-card .ink-box { padding: 6px 11px 18px; width: 70px; height: 70px; box-sizing: border-box; }   /* 빈 칸도 같은 크기 */
 @media (min-width: 1024px) { .armory .equip-slot-card .ink-box { width: 78px; height: 78px; } }
 @media (max-width: 640px) { .armory .equip-slot-card .ink-box { width: 62px; height: 62px; } }
