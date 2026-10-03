@@ -12,27 +12,27 @@ module.exports = async (b) => {
 
     // 1. 1차 탭 (청풍문 개편 뒤: 청풍문 · 상태 · 행낭 · 강호행 · 도감)
     const tabs = await p.$$eval('#tabs .tab', els => els.map(e => [e.dataset.tab, e.querySelector('.ko').textContent, e.querySelector('.hj').textContent]));
-    ok('1 상태 탭은 청풍문 바로 오른쪽', tabs[0][0] === 'sect' && tabs[1][0] === 'status' && tabs[1][2] === '狀態', tabs.map(t => t[1]).join(','));
+    ok('1 관조 탭은 청풍문 바로 오른쪽', tabs[0][0] === 'sect' && tabs[1][0] === 'status' && tabs[1][2] === '觀照', tabs.map(t => t[1]).join(','));
     ok('1 무공·무장 독립 탭 없음', !tabs.some(t => ['martial', 'gear'].includes(t[0]) || ['무공', '무장'].includes(t[1])));
     const bar = await p.evaluate(() => { const t = document.querySelector('#tabs'); const r = [...t.querySelectorAll('.tab')].map(e => e.getBoundingClientRect()); return { over: t.scrollWidth - t.clientWidth, inView: r.every(x => x.left >= 0 && x.right <= innerWidth + 0.5) }; });
     ok('1 탭 바 가로 스크롤 없음 · 모두 화면 안', bar.over <= 0 && bar.inView, JSON.stringify(bar));
 
     // 3. 안내 지문
     const arin = await p.evaluate(() => S.log.map(l => l.text).find(t => t.startsWith('아린:')));
-    ok('3 아린: 상태 탭의 무공 안내', /비급부터 익혀요\. 상태 탭의 무공에 있어요/.test(arin), arin);
+    ok('3 아린: 관조 › 무공 안내', /비급부터 익혀요\. 「관조 › 무공」에 있어요/.test(arin), arin);
     ok('3 옛 안내(무장 탭 행낭·무공 탭) 없음', await p.evaluate(() => !document.body.textContent.match(/무장 탭|무공 탭/)));
 
     // 2. 하위 탭
     await p.click('[data-tab="status"]');
-    const s0 = await p.evaluate(() => ({ on: document.querySelector('.subtab.on .ko').textContent, vit: !!document.querySelector('#main #vitals .gauge-group'), cp: !!document.querySelector('#main #vitals + .cp-card'), chips: document.querySelectorAll('#vitals .status-chip').length }));
-    ok('2 처음엔 상태: 활력 · 내력 막대 + 수련치 · 은자 · 공헌 + 투력 카드', s0.on === '상태' && s0.vit && s0.cp && s0.chips === 3, JSON.stringify(s0));
+    const s0 = await p.evaluate(() => { const t = document.querySelector('#main').textContent; return { on: document.querySelector('.subtab.on .ko').textContent, vit: /활력/.test(t) && /내력/.test(t), cp: /투력/.test(t), hopae: /호패/.test(t) }; });
+    ok('2 처음엔 상태: 호패(활력 · 내력 · 투력)', s0.on === '상태' && s0.vit && s0.cp && s0.hopae, JSON.stringify(s0));
     await p.evaluate(() => { goTab('status', 'gear'); render(); });
     const s1 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, sel: document.querySelector('.subtab.on').getAttribute('aria-selected'), doll: !!document.querySelector('.paperdoll'), slots: document.querySelectorAll('.dslot').length, mslots: document.querySelectorAll('.mslot').length, bagList: !!document.querySelector('.items, [data-filter]') }));
-    ok('2 하위 탭 [ 관조 ] / [ 무장 ] / [ 무공 ]', s1.subs === '관조,무장,무공', s1.subs);
-    ok('2 무장: 착용 장비 슬롯 (행낭 목록은 따로)', s1.on === '무장' && s1.sel === 'true' && s1.doll && s1.slots >= 9 && s1.mslots === 0 && !s1.bagList, JSON.stringify(s1));
+    ok('2 하위 탭 [ 상태 ] / [ 무공 ] (무장은 상태 안에)', s1.subs === '상태,무공', s1.subs);
+    ok('2 무장: 착용 장비 슬롯 (행낭 목록은 따로)', s1.on === '상태' && s1.sel === 'true' && s1.doll && s1.slots >= 9 && s1.mslots === 0 && !s1.bagList, JSON.stringify(s1));
     await p.click('[data-sub="martial"]');
     const s2 = await p.evaluate(() => ({ on: document.querySelector('.subtab.on .ko').textContent, tab: document.querySelector('.tab.on .ko').textContent, mslots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), books: document.querySelectorAll('.chips [data-use^="bk_"]').length, doll: !!document.querySelector('.paperdoll') }));
-    ok('2 무공: 4대 무공 슬롯 + 보유 비급', s2.on === '무공' && s2.tab === '관조' && s2.mslots === '심법,무공,기공,경공' && s2.books === 4 && !s2.doll, JSON.stringify(s2));
+    ok('2 무공: 4대 무공 슬롯 (비급은 행낭에서 익힘)', s2.on === '무공' && s2.tab === '관조' && s2.mslots === '심법,무공,기공,경공' && !s2.doll, JSON.stringify(s2));
     for (const k of await p.evaluate(() => Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급'))) { await p.evaluate(k => { learnManual(k); render(); }, k); }   // 익히기 단추는 무공 탭에서 뺌 (행낭에서 익힘)
     const s3 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, card: document.querySelectorAll('.mrow').length, on: document.querySelector('.subtab.on .ko').textContent }));
     ok('2 무공에서 바로 익히기 → 익힌 무공 목록, 하위 탭 유지', s3.learned === 4 && s3.card >= 1 && s3.on === '무공', JSON.stringify(s3));
