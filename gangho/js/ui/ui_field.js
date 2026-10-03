@@ -34,7 +34,7 @@ function stageStrip() {
   const foes = stageFoes(zid, cur).map(e => seen[e] ? ENEMIES[e].name : '？').join(' · ');
   return `<div class="stage-strip">${cells}</div>
     <p class="stage-info"><b>${stageName(zid, cur)}</b> <span class="muted">${cur >= STAGE.count ? '두목' : '요수'}: ${foes}</span>${!run && cur <= done ? ' <span class="good">돌파함</span>' : ''}
-      ${cur < STAGE.count ? `<button class="chip sm ${run && run.ready ? 'on' : 'dim'}" data-stagebreak aria-disabled="${!(run && run.ready)}">돌파하기</button>` : ''}</p>`;
+      ${cur < STAGE.count ? `<button class="chip sm ${run && run.ready ? 'on' : 'dim'}" data-stagebreak aria-disabled="${!(run && run.ready)}">돌파하기${alertDot(run && run.ready)}</button>` : ''}</p>`;
 }
 const runClockText = () => { const r = activeRun(); return r ? hhmmss(now() - r.at) : '—'; };
 function liveStepRow(r, i, t) {
