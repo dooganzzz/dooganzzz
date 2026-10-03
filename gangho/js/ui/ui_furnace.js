@@ -54,27 +54,6 @@ function studyBindFx(stage, scrap, id) {
   return new Promise(done => setTimeout(() => { sfx.forEach(clearTimeout); fx.remove(); stage.classList.remove('binding'); done(); }, 3900));
 }
 /* 단조의 장비 재료: 같은 장비 강화. 본템을 고르면 행낭의 같은 이름 · 같은 등급 · 강화 안 된 장비를 재료로 쓴다 */
-/* 강화 연출 (모루 무대): 망치 세 번 → 불똥 → 결과(성공 금빛 고리 · 그대로 연기 · 파괴 파편). 화면이 다시 그려져도 처음부터 되풀이되지 않게
-   지난 시간만큼 애니메이션을 당겨(--el) 이어서 재생한다. 5초가 지나면 연출 없이 멈춘 모루만 */
-const ENH_FX_MS = 5000, ENH_HIT = [234, 598, 1014];
-const enhSparks = (n, dist, cls = '') => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2 + (i % 2) * .3, d = dist * (.6 + (i % 3) * .2); return `<i class="enh-spark ${cls}" style="--dx:${Math.round(Math.cos(a) * d)}px;--dy:${Math.round(Math.sin(a) * d * .7 - 8)}px"></i>`; }).join('');
-function enhStage(main, res) {
-  const t = res && res.at ? Date.now() - res.at : Infinity, live = t < ENH_FX_MS;
-  if (!live && !main) return '';
-  const ico = live ? res.ico : gearIco(main, 'enh-ico');
-  if (!live) return `<div class="enh-stage"><div class="enh-anvil"></div><div class="enh-piece">${ico}</div></div>`;
-  const k = res.kind, shards = k === 'boom' ? ['a', 'b', 'c', 'd'].map(q => `<div class="enh-shard q${q}">${ico}</div>`).join('') : '';
-  const tag = k === 'ok' ? `+${res.enh}` : k === 'boom' ? '破' : '변화 없음';
-  return `<div class="enh-stage fx-${k}" style="--el:${-t}ms" aria-hidden="true">
-    <div class="enh-anvil"></div><div class="enh-piece">${ico}</div>${shards}
-    ${ENH_HIT.map((d, i) => `<div class="enh-burst" style="--d:${d}ms">${enhSparks(8 + i * 2, 34 + i * 8)}</div>`).join('')}
-    ${k === 'ok' ? `<div class="enh-ring"></div><div class="enh-burst" style="--d:1300ms">${enhSparks(14, 70, 'gold')}</div>` : ''}
-    ${k === 'same' ? '<i class="enh-smoke s1"></i><i class="enh-smoke s2"></i><i class="enh-smoke s3"></i>' : ''}
-    ${k === 'boom' ? '<div class="enh-flash"></div>' : ''}
-    <svg class="enh-hammer" viewBox="0 0 110 44"><rect x="30" y="18" width="80" height="8" rx="3" fill="#6b4a2b"/><rect x="0" y="3" width="36" height="38" rx="3" fill="#3b3e45"/><rect x="2" y="5" width="32" height="7" rx="2" fill="#7c828c"/><rect x="0" y="34" width="36" height="7" rx="2" fill="#24262b"/></svg>
-    <b class="enh-tag">${tag}</b>
-  </div>`;
-}
 /* 단조의 장비 재료: 같은 장비 둘을 솥 칸에 올려 두드린다 (먼저 올린 것이 본템, 둘째가 재료). ui.potGear = [본템 uid, 재료 uid] */
 const forgeGearList = () => gearSort([...Object.values(S.equip).filter(Boolean), ...S.gear].filter(it => !it.shop && !ui.potGear.includes(it.uid)));
 function forgeGearInfo() {
@@ -93,8 +72,7 @@ function forgeGearInfo() {
     </div>`;
   }
   return `<div class="forge-gear">
-    ${enhStage(main, res)}
-    ${res ? `<div class="result enh-late ${res.kind === 'ok' ? 'ok' : 'fail'}" style="--el:${res.at ? Math.max(-ENH_FX_MS, res.at - Date.now()) : -ENH_FX_MS}ms"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? `${uiIco('c_forgefail', 'vit-ico')} 강화 실패 — 장비가 부서졌습니다` : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
+    ${res ? `<div class="result ${res.kind === 'ok' ? 'ok' : 'fail'}"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? `${uiIco('c_forgefail', 'vit-ico')} 강화 실패 — 장비가 부서졌습니다` : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
     ${panel}
   </div>`;
 }
