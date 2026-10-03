@@ -93,6 +93,11 @@ function clampVitals() {
 /* 자질: 서장 주사위 값 + 영구 상승(S.perm.apt — 영약 · 기연 · 경지 돌파) */
 function aptOf(a) { return ((S.apt && S.apt[a]) || APT_MID) + ((S.perm && S.perm.apt && S.perm.apt[a]) || 0); }
 /* 자질 주사위: 넷 모두 APT_MIN~APT_MAX, 합계 APT_TOTAL (조건에 맞을 때까지 다시 굴린다 — 가능한 조합마다 같은 확률) */
+/* 후천(後天) 단련 4종도 서장에서 주사위로 — 한 스탯 ATTR_MIN~ATTR_MAX, 합계는 늘 ATTR_TOTAL (10월 3일) */
+function rollAttr() {
+  const ks = Object.keys(ATTRS), n = ATTR_MAX - ATTR_MIN + 1;
+  for (;;) { const r = ks.map(() => ATTR_MIN + Math.floor(Math.random() * n)); if (r.reduce((a, b) => a + b, 0) === ATTR_TOTAL) return Object.fromEntries(ks.map((k, i) => [k, r[i]])); }
+}
 function rollApt() {
   const ks = Object.keys(APTS), n = APT_MAX - APT_MIN + 1;
   for (;;) { const r = ks.map(() => APT_MIN + Math.floor(Math.random() * n)); if (r.reduce((a, b) => a + b, 0) === APT_TOTAL) return Object.fromEntries(ks.map((k, i) => [k, r[i]])); }

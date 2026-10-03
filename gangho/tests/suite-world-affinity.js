@@ -12,21 +12,17 @@ module.exports = async (b) => {
     // 1. 프롤로그 · 제자 만들기
     const i0 = await p.evaluate(() => ({ pro: [...document.querySelectorAll('.prologue p')].map(e => e.textContent).join(' '), rows: document.querySelectorAll('.attr-row').length, plus: [...document.querySelectorAll('[data-attr][data-d="1"]')].every(e => e.disabled), begin: !document.querySelector('#begin').disabled, talents: document.querySelectorAll('[data-talent]').length, starters: document.querySelectorAll('[data-starter]').length }));
     ok('1 프롤로그: 몰락한 청풍문의 마지막 제자 (무신상 빙의 설정은 지움)', /무신상/.test(i0.pro) && /청풍문/.test(i0.pro) && /제자/.test(i0.pro), i0.pro.slice(0, 60));
-    ok('1 4대 스탯(근력·체력·민첩·지력) · 입문 무공 5종 · 기예 2종(단조·연단)', i0.rows === 4 && i0.starters === 5 && i0.talents === 2, JSON.stringify(i0));
-    ok('1 처음엔 남은 점수 0 → ＋ 막힘, 바로 시작 가능', i0.plus && i0.begin);
-    await p.click('[data-attr="int"][data-d="-1"]');
-    const i1 = await p.evaluate(() => ({ left: document.querySelector('#attrLeft').textContent, begin: document.querySelector('#begin').disabled, plus: !document.querySelector('[data-attr="str"][data-d="1"]').disabled }));
-    ok('1 한 점 빼면 남은 점수 1 · 시작 막힘 · ＋ 열림', i1.left === '1' && i1.begin && i1.plus, JSON.stringify(i1));
-    await p.click('[data-attr="str"][data-d="1"]');
-    for (let i = 0; i < 4; i++) await p.click('[data-attr="con"][data-d="-1"]').catch(() => {});
-    ok('1 한 스탯은 3 아래로 못 내림', await p.evaluate(() => document.querySelector('[data-attrrow="con"] .attr-val').textContent === '3' && document.querySelector('[data-attr="con"][data-d="-1"]').disabled));
-    for (let i = 0; i < 3; i++) await p.click('[data-attr="str"][data-d="1"]');
-    ok('1 스탯은 관여 능력치만 (세부 수치 숨김)', await p.evaluate(() => !document.querySelector('.attr-eff') && /공격력/.test(document.querySelector('[data-attrrow="str"]').textContent)));
-    await p.click('[data-starter="sp1a"]'); await p.click('[data-talent="alchemy"]');
+    ok('1 선천 4 + 후천 4 · 입문 무공 5종 · 기예 2종(단조·연단)', i0.rows === 8 && i0.starters === 5 && i0.talents === 2, JSON.stringify(i0));
+    ok('1 후천도 주사위 (＋ · − 단추 없음) · 바로 시작 가능', !(await p.$('[data-attr]')) && i0.begin);
+    const shown = () => p.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-attrrow]')].map(r => [r.dataset.attrrow, +r.querySelector('.attr-val').textContent])));
+    const a0 = await shown();
+    ok('1 후천 합계 24 · 한 스탯 3~10', Object.values(a0).reduce((x, y) => x + y, 0) === 24 && Object.values(a0).every(v => v >= 3 && v <= 10), JSON.stringify(a0));
+    ok('1 설명 글 없음 (합계 · 남은 점수 · 타고난 바탕)', await p.evaluate(() => !/남은 점수|타고난 바탕|합계/.test(document.querySelector('[data-step="2"]').textContent)));
+    await p.click('[data-starter="sp1b"]'); await p.click('[data-talent="alchemy"]');
     await p.fill('#pname', '석상제자');
     await p.click('#begin');
     const s0 = await p.evaluate(() => { const st = calcStats(); return { attr: S.attr, talent: S.talent, alch: S.crafts.alchemy.lv, forge: S.crafts.forge.lv, name: S.name, weapon: S.equip.weapon.wtype, atk: st.atk, hp: st.maxHp, mp: st.maxMp, log: S.log.some(l => /무신상/.test(l.text)) }; });
-    ok('1 배분 반영: 근력 10 · 체력 3 · 민첩 6 · 지력 5', s0.attr.str === 10 && s0.attr.con === 3 && s0.attr.agi === 6 && s0.attr.int === 5, JSON.stringify(s0.attr));
+    ok('1 화면의 후천 값이 그대로 반영', JSON.stringify(s0.attr) === JSON.stringify(a0), JSON.stringify(s0.attr));
     ok('1 주력 기예 연단 → 두 기예 모두 9품(1단계)부터', s0.talent === 'alchemy' && s0.alch === 1 && s0.forge === 1, JSON.stringify(s0));
     ok('1 입문 무공 = 첫 병기 (창) · 첫 기록은 석상 시점', s0.weapon === 'spear' && s0.name === '석상제자' && s0.log, JSON.stringify(s0));
     const st = await p.evaluate(() => {

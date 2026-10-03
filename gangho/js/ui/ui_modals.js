@@ -258,10 +258,8 @@ const STARTER_LABEL = { fist: '권장법', sword: '검법', blade: '도법', spe
 function showIntro() {
   let chosen = 'sw1a', talent = 'forge', sealed = false, stampNow = false;   // sealed: 성명 [확인] → 강호견문록 낙관
   let stage = navigator.webdriver ? INTRO_STEPS : 0, fresh = 0;   // fresh: 방금 드러난 단계 (그 단계만 번지며 나타난다)
-  const attr = Object.fromEntries(Object.keys(ATTRS).map(k => [k, ATTR_BASE]));
-  let apt = rollApt();   // 자질: 주사위 (합계는 늘 같다 · 다시 굴릴 수 있다)
+  let attr = rollAttr(), apt = rollApt();   // 후천 · 선천 모두 주사위 (합계는 늘 같다 · 다시 굴릴 수 있다)
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';
-  const left = () => ATTR_TOTAL - Object.values(attr).reduce((a, b) => a + b, 0);
   const step = (n, html) => stage >= n ? `<section class="intro-step ${fresh === n ? 'reveal' : ''}" data-step="${n}">${html}</section>` : '';
   // 입문 무공은 그 비급의 표지 그대로 (삼류: 회색 · 낡은 책)
   const starterIco = id => manualIco(id, 'starter-ico');
@@ -275,22 +273,16 @@ function showIntro() {
       <div class="prologue ${stage === 0 && fresh === 0 ? 'reveal-lines' : ''}">${PROLOGUE.map((p, i) => `<p class="story" style="--i:${i}">${p}</p>`).join('')}</div>
       ${step(1, `<h3 class="intro-h">호패 만들기</h3>
       <div class="name-row ${sealed ? 'sealed' : ''}"><div class="name-box"><input id="pname" maxlength="20" placeholder="성명" value="${esc(name)}" autocomplete="off" aria-label="성명" ${sealed ? 'readonly title="눌러서 고치기"' : ''}><span class="name-ink" aria-hidden="true">${esc(name)}</span>${sealed ? `<img class="nakgwan name-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관">` : ''}</div>${sealed ? '' : '<button class="btn sm" data-namecheck>확인</button>'}</div>`)}
-      ${step(2, `<p class="field-l">단련 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
-      <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
-        <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
-        <button class="btn sm ghost" data-attr="${k}" data-d="-1" ${attr[k] <= ATTR_MIN ? 'disabled' : ''} aria-label="${A.name} 내리기">−</button>
-        <b class="attr-val">${attr[k]}</b>
-        <button class="btn sm ghost" data-attr="${k}" data-d="1" ${attr[k] >= ATTR_MAX || left() <= 0 ? 'disabled' : ''} aria-label="${A.name} 올리기">＋</button></div>`).join('')}</div>
-      <p class="field-l">자질 <small class="muted">(資質) 타고난 바탕 · 주사위 ${APT_MIN}~${APT_MAX} · 합계는 누구나 ${APT_TOTAL}</small></p>
-      <div class="attrs apts">${Object.entries(APTS).map(([k, A]) => `<div class="attr-row">
-        <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc.split(' — ')[1]}</small></span><b class="attr-val">${apt[k]}</b></div>`).join('')}</div>
+      ${step(2, `<p class="field-l">선천 <small class="muted">先天</small></p>
+      <div class="attrs apts">${Object.entries(APTS).map(([k, A]) => `<div class="attr-row"><span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span><b class="attr-val">${apt[k]}</b></div>`).join('')}</div>
+      <p class="field-l">후천 <small class="muted">後天</small></p>
+      <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}"><span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span><b class="attr-val">${attr[k]}</b></div>`).join('')}</div>
       <button class="btn sm" data-reroll>주사위 다시 굴리기</button>`)}
       ${step(3, `<p class="field-l">입문 무공 <small class="muted">입문 무공이 곧 첫 병기입니다</small></p>
       <div class="starters starter-books">${STARTERS.map(id => { const M = MANUALS[id]; return `<button class="starter ${chosen === id ? 'on' : ''}" data-starter="${id}">${starterIco(id)}<b>${STARTER_LABEL[M.weapon]}</b></button>`; }).join('')}</div>`)}
       ${step(4, `<p class="field-l">기예 <small class="muted">(技藝)</small></p>
       <div class="starters talents">${Object.entries(TALENTS).map(([k, T]) => `<button class="starter ${talent === k ? 'on' : ''}" data-talent="${k}"><span class="talent-ico" style="background-image:url('${TALENT_ICO[k]}')"></span><b>${T.name} <small>${T.hanja}</small></b><em class="talent-sub">${T.sub}</em></button>`).join('')}</div>
-      ${left() ? `<p class="muted">남은 점수 ${left()}점을 모두 나눠야 시작할 수 있습니다.</p>` : ''}
-      <button class="btn primary big" id="begin" ${left() ? 'disabled' : ''}>강호 출도</button>`)}
+      <button class="btn primary big" id="begin">강호 출도</button>`)}
       ${stage < INTRO_STEPS ? `<button class="intro-next" data-intro-next>▼ 눌러서 계속</button>` : ''}
     </div>`;
     fresh = -1;
@@ -305,10 +297,8 @@ function showIntro() {
     if (t) { talent = t.dataset.talent; draw(); return; }
     if (e.target.id === 'pname' && sealed) { sealed = false; draw(); const el = $('#pname'); if (el) el.focus(); return; }   // 찍은 이름을 누르면 다시 고친다
     if (e.target.closest('[data-namecheck]')) { const el = $('#pname'); if (el && [...el.value.trim()].length > 5) return toast('성명은 최대 5자까지만 가능합니다.'); if (el) el.value = el.value.trim() || '무명'; sealed = stampNow = true; if (stage < 2) { stage = 2; fresh = 2; } draw(); stampNow = false; return; }   // 낙관을 찍고 다음 단계로
-    if (e.target.closest('[data-reroll]')) { apt = rollApt(); draw(); return; }
-    const a = e.target.closest('[data-attr]');
-    if (a && !a.disabled) { const k = a.dataset.attr, d = +a.dataset.d; if (attr[k] + d >= ATTR_MIN && attr[k] + d <= ATTR_MAX && (d < 0 || left() > 0)) attr[k] += d; draw(); return; }
-    if (e.target.closest('#begin') && !left()) {
+    if (e.target.closest('[data-reroll]')) { attr = rollAttr(); apt = rollApt(); draw(); return; }
+    if (e.target.closest('#begin')) {
       if ([...($('#pname').value || '').trim()].length > 5) return toast('성명은 최대 5자까지만 가능합니다.');
       const name = ($('#pname').value || '').trim() || '무명';
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
