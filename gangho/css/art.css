@@ -187,7 +187,7 @@
 .btn.plaque:hover:not(:disabled) { border-color: #d9ad55; filter: brightness(1.12); }
 .btn.plaque:disabled { opacity: .55; }
 .btn.plaque.primary { border-color: #d4af37; }
-.plaque-btns { gap: 10px; justify-content: center; }
+
 .furnace-stage .note-warn, .furnace-stage .result { position: relative; z-index: 1; margin: 0 16px 16px; }
 @media (max-width: 640px) {
   .pot.furnace-stage { min-height: 380px; aspect-ratio: auto; }
@@ -665,14 +665,7 @@
 .stance-cut.solid { filter: drop-shadow(0 0 1px rgba(255, 236, 190, .8)) drop-shadow(0 0 5px rgba(255, 200, 90, .35)); }   /* 철사장: 돌 · 쇠빛 그림은 섞지 않고 그대로, 따뜻한 테두리 빛 */
 .stance-cut.ink { filter: drop-shadow(0 0 1px rgba(250, 244, 226, .85)) drop-shadow(0 0 5px rgba(250, 244, 226, .35)); }   /* 먹빛 무공(유묵검법): 파란 빛 대신 종이빛 테두리, 섞지 않고 그대로 */
 @keyframes liveCut { from { background-position: 0 0; } to { background-position: 100% 0; } }
-}
 /* 화로 › 서재: 찢어진 비급 조각 엮기 */
-.study-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
-.study-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 255, 255, .03); }
-.study-row.ready { border-color: rgba(212, 175, 55, .6); }
-.study-row .icon { width: 52px; height: 52px; display: grid; place-items: center; }
-.study-row .mprog { height: 5px; margin: 5px 0 3px; border-radius: 3px; background: rgba(120, 100, 70, .25); overflow: hidden; }
-.study-row .mprog span { display: block; height: 100%; background: linear-gradient(90deg, #8a6a3a, #d4a64c); }
 /* 화로 › 연혼: 장면 그림 비율 그대로 (명경 · 비급 자리가 %로 맞도록) */
 .pot.furnace-stage.study { min-height: 0; aspect-ratio: 1280 / 716; height: auto; }
 .furnace-stage.study .stage-bg .art-frame > img { object-fit: fill; }
@@ -680,8 +673,6 @@
 .furnace-stage.study .yh-book { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; pointer-events: none; animation: yhBook 5.2s ease-in-out infinite; }
 @keyframes yhBook { 0%, 100% { opacity: .05; filter: blur(3px); } 28% { opacity: .6; filter: blur(1.6px); } 40% { opacity: .22; filter: blur(2.6px); } 55% { opacity: .8; filter: blur(1.2px); } 74% { opacity: .12; filter: blur(3px); } }
 html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: blur(1.5px); }
-.mirror-sheet { max-width: 460px; }
-.study-btns { justify-content: center; margin-top: 12px; }   /* 연혼: 단추는 그림 아래 (혼로를 가리지 않게) */
 /* 연혼 엮기 연출 (3.9초): 여덟 거울이 등급 색(--gc)으로 빛나고 → 넋이 명경으로 모이고 → 명경 속 비급이 등급 색으로 물들며 또렷해지고
    → 명경에 금이 가 깨지며(같은 그림 조각이 흩어짐) → 엮은 비급이 튀어나온다 */
 .furnace-stage.study { --gc: #7fc4ff; --gtint: none; }
@@ -710,13 +701,8 @@ html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: 
 .yh-fx .burst img { width: 100%; height: 100%; object-fit: contain; }
 @keyframes yhBurst { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(-12deg); } 25% { opacity: 1; } 70% { opacity: 1; transform: translate(-50%, -40%) scale(1.6) rotate(4deg); } 100% { opacity: 0; transform: translate(-50%, -40%) scale(1.75) rotate(0); } }
 /* 조각 창: 등급 색 */
-.mirror-sheet .study-row { border-color: color-mix(in srgb, var(--gc) 45%, transparent); background: linear-gradient(90deg, color-mix(in srgb, var(--gc) 14%, transparent), transparent 70%); }
-.mirror-sheet .study-row b { color: color-mix(in srgb, var(--gc) 70%, #fff); }
-.mirror-sheet .study-row .icon img { filter: drop-shadow(0 0 6px var(--gc)); }
-.mirror-sheet .study-row .mprog span { background: linear-gradient(90deg, color-mix(in srgb, var(--gc) 60%, #000), var(--gc)); }
 /* 이류무사 승급 연출 (3.2초): 불 꺼진 고리 → 24칸이 한 바퀴 돌며 차례로 켜지고 → 고리 전체가 폭발하듯 타오르며 커지고 → 금빛 · 청빛 번쩍 → 二流武士 붓글씨가 찍힌다 */
 .rku { position: relative; width: min(70vw, 340px); aspect-ratio: 1; margin: 0 auto; }
-.rku .med { position: absolute; inset: 16%; width: 68%; height: 68%; object-fit: contain; border-radius: 50%; z-index: 1; }
 .rku .ring { position: absolute; inset: -36.2%; width: 172.4%; height: 172.4%; max-width: none; pointer-events: none; }
 .rku .ring.on { -webkit-mask: conic-gradient(#000 0 var(--sweep), transparent calc(var(--sweep) + 2.5%)); mask: conic-gradient(#000 0 var(--sweep), transparent calc(var(--sweep) + 2.5%)); animation: rkuSweep 1.2s cubic-bezier(.4, 0, .6, 1) forwards, rkuBlaze 1.2s ease-out 1.2s forwards; }
 @property --sweep { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
@@ -802,7 +788,6 @@ html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage 
 @keyframes enhLate { 0% { opacity: 0; transform: translateY(-4px); } 100% { opacity: 1; transform: none; } }
 /* 화로: 왼쪽 무대(+칸 · 정보) · 오른쪽 재료 */
 .forge-left { display: grid; gap: 12px; min-width: 0; align-content: start; }
-.yh-pick { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
 .pot-slots .slot.gear small { max-width: 100%; }
 .chip.gear small { color: var(--dim); }
 

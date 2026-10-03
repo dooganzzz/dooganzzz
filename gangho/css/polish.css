@@ -23,7 +23,7 @@ small { font-size: .82rem; }
 
 /* 폰에서도 10px 아래로는 내려가지 않게 */
 @media (max-width: 640px) {
-  .chip-badge, .currency-chips .chip-badge { font-size: 10.5px; }
+  .chip-badge { font-size: 10.5px; }
   .skill-card-compact .btn-upgrade, .skill-card-compact .btn-unequip { font-size: 10px; }
   .meditation-caption { font-size: 11px; }
 }
@@ -40,15 +40,15 @@ small { font-size: .82rem; }
 
   /* 헤더 */
   .main-header { padding: 14px 26px; min-height: 84px; }
-  .char-name { font-size: 18px; }
-  .char-sub, .who .char-sub { font-size: 13.5px; }
+
+
   .gauge-badge { font-size: 12.5px; padding: 3px 9px; }
   .gauge-bar-track { width: 190px; height: 22px; border-radius: 11px; }
   .gauge-text { font-size: 12.5px; line-height: 20px; }
-  .currency-chips { gap: 12px; }
+
   .status-chip { height: 30px; padding: 0 12px 0 4px; gap: 7px; }
-  .currency-chips .chip-badge { font-size: 12.5px; padding: 3px 9px; }
-  .chip-value { font-size: 15px; }
+
+
   .brand-symbol, .brand .brand-symbol { width: 42px; height: 42px; font-size: 13px; }
   .brand-title, .brand h1.brand-title { font-size: 21px; }
   .brand-sub, .brand small.brand-sub { font-size: 12px; }
@@ -66,14 +66,14 @@ small { font-size: .82rem; }
   .cp-card { padding: 12px 20px; }
   .cp-value { font-size: 1.8rem; }
   .cp-attr { font-size: 13.5px; gap: 4px 14px; }
-  .exp-help { font-size: 13px; }
+
 
   /* 상태 › 무공: 방위 카드 · 좌선 */
   .mslots.martial-arts-core-layout { max-width: 820px; gap: 10px; }
   .skill-card-compact.mslot { width: 172px; padding: 9px 11px; }
   .skill-card-compact .slot-type-label { font-size: 12px; }
-  .skill-card-compact .skill-title { font-size: 14.5px; }
-  .skill-card-compact .skill-title .aff-tag { font-size: 10.5px; }
+
+
   .skill-card-compact .realm { font-size: 11px; padding: 1px 6px; }
   .skill-card-compact .skill-level, .skill-card-compact .art-star { font-size: 13px; }
   .skill-card-compact .btn-upgrade, .skill-card-compact .btn-unequip { font-size: 12px; height: 26px; padding: 3px 6px; }
@@ -85,7 +85,7 @@ small { font-size: .82rem; }
   .section-title { font-size: 17px; }
   .total-count-badge { font-size: 12.5px; }
   .skill-category-tabs .tab-btn { font-size: 13.5px; padding: 5px 14px; }
-  .acquired-cards-grid .skill-item-card { width: 180px; padding: 10px 12px; }
+
   .mcard b { font-size: 14.5px; }
   .mcard small { font-size: 12.5px; }
   .card-status-tag { font-size: 11.5px; }
@@ -140,13 +140,6 @@ small { font-size: .82rem; }
 .hj { font-size: max(.62em, 9.5px); color: #7f8793; }
 @media (min-width: 1024px) { .hj { font-size: max(.64em, 11px); } }
 
-/* 폰: 재화 칩 네 개를 2×2로 (값이 잘리지 않게) */
-@media (max-width: 640px) {
-  .currency-chips.user-status-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
-  .currency-chips .status-chip { justify-content: space-between; padding: 0 10px 0 3px; height: 28px; }
-  .currency-chips .chip-value { font-size: 13px; overflow: visible; }
-}
-
 /* 강적 도감: 실루엣은 왼쪽에 세우고 이름·특성이 그 오른쪽에 흐른다 */
 .beasts li { align-items: center; }
 .beasts li .beast-art.mini { align-self: center; }
@@ -168,34 +161,34 @@ small { font-size: .82rem; }
 .main-header .brand-title, .main-header .brand h1.brand-title { font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-weight: 400; font-size: clamp(40px, 4.77vw, 72px); line-height: .95; color: #15110d; letter-spacing: .08em; text-shadow: 0 0 18px rgba(245, 242, 235, .95), 0 0 6px rgba(245, 242, 235, .9); }
 .main-header .brand-sub, .main-header .brand small.brand-sub { font-size: clamp(9px, .8vw, 11px); color: #2b241c; letter-spacing: .18em; font-weight: 700; text-shadow: 0 0 8px rgba(245, 242, 235, 1); }
 .main-header .header-left { display: flex; flex-direction: column; gap: 10px; padding: 4px 24px 14px; margin-top: -6px; position: relative; z-index: 1; }
-.vitals .status-indicator-row { display: flex; align-items: center; gap: 22px; flex-wrap: nowrap; width: 100%; }
+
 /* 활력 위 · 내력 아래 */
 .vitals .gauge-group { display: flex; flex-direction: column; align-items: stretch; gap: 6px; flex: 0 1 440px; min-width: 0; }
 .vitals .stat-gauge { display: grid; grid-template-columns: 26px 42px minmax(0, 1fr); align-items: center; gap: 6px; }
 .vitals .gauge-bar-track { width: 100%; height: 20px; border-radius: 10px; }
 .vitals .gauge-badge { background: none; padding: 0; font-size: 13px; font-weight: 800; justify-content: flex-start; }
 .ui-ico { display: inline-block; flex: none; width: 26px; height: 26px; background: center / contain no-repeat; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .7)); vertical-align: middle; }
-.ui-ico.inline { width: 16px; height: 16px; margin: -3px 3px 0 0; }
+
 /* 정보 칸: 아이콘 + (이름 · 값) */
-.vitals .currency-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; flex: 1 1 auto; min-width: 0; }
+
 .vitals .status-chip { display: grid; grid-template-columns: 38px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; row-gap: 0; align-items: center; height: auto; padding: 7px 12px 7px 8px; border-radius: 10px; border: 1px solid rgba(212, 175, 55, .22); background: radial-gradient(ellipse at 15% 50%, rgba(212, 175, 55, .08), transparent 60%), linear-gradient(180deg, rgba(34, 29, 23, .9), rgba(20, 17, 14, .9)); box-shadow: inset 0 1px 0 rgba(255, 236, 190, .05); }
 .vitals .status-chip .ui-ico { grid-row: 1 / 3; width: 38px; height: 38px; }
 .vitals .status-chip .chip-badge { grid-column: 2; background: none; border: none; padding: 0; height: auto; font-size: 11.5px; font-weight: 700; justify-content: flex-start; color: #b9ad97; letter-spacing: .06em; }
-.vitals .status-chip .chip-value { grid-column: 2; font-size: 19px; font-weight: 800; color: #f3ead7; overflow: hidden; text-overflow: ellipsis; }
-.vitals .status-chip.combat .chip-value { color: #f0cf82; }
+
+
 .vitals { display: block; padding: 12px 14px; margin-bottom: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }   /* 상태 탭 맨 위: 머리에서 옮겨 온 활력 · 내력 · 수련치 · 은자 · 공헌 */
 .cp-card .cp-main { position: relative; } .cp-card .cp-delta { position: static; margin-left: 8px; font-size: .8rem; }
 @media (max-width: 900px) {
-  .vitals .status-indicator-row { flex-direction: column; align-items: stretch; gap: 10px; }
+
   .vitals .gauge-group { flex-basis: auto; }
 }
 @media (max-width: 640px) {
   .main-header .header-left { padding: 2px 12px 12px; }
   .main-header .header-banner .brand-symbol { right: -26px; top: 4px; width: 22px; height: 22px; font-size: 9px; }
-  .vitals .currency-chips, .vitals .currency-chips.user-status-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-  .vitals .status-chip, .vitals .currency-chips .status-chip { grid-template-columns: 30px minmax(0, 1fr); padding: 5px 8px 5px 5px; height: auto; }
+
+  .vitals .status-chip { grid-template-columns: 30px minmax(0, 1fr); padding: 5px 8px 5px 5px; height: auto; }
   .vitals .status-chip .ui-ico { width: 30px; height: 30px; }
-  .vitals .status-chip .chip-value, .vitals .currency-chips .chip-value { font-size: 15px; }
+
   .vitals .stat-gauge { grid-template-columns: 22px 36px minmax(0, 1fr); }
   .vitals .stat-gauge .ui-ico { width: 22px; height: 22px; }
 }

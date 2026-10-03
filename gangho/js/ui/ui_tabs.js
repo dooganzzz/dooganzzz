@@ -92,7 +92,7 @@ function screen() {
   const cur = ui[SUB_KEY[ui.tab]];
   return subs.some(([id]) => id === cur) ? cur : subs[0][0];
 }
-/* 탭 이동. 청풍문은 들어올 때마다 첫 하위 탭(정청)부터, 상태는 마지막 하위 탭을 기억한다 */
+/* 탭 이동. 청풍문은 들어올 때마다 전경부터, 관조는 마지막 하위 탭을 기억한다 */
 function goTab(tab, sub) {
   ui.tab = tab;
   Bus.emit('trace', 'tab', `${tab}${sub ? ' › ' + sub : ''}`);
@@ -118,9 +118,6 @@ function cpDeltaHtml(cp) {
   cpMark.last = cp;
   return t < cpMark.until && cpMark.delta ? `<em class="cp-delta ${cpMark.delta > 0 ? 'up' : 'down'}">${cpMark.delta > 0 ? '▲' : '▼'}${fmt(Math.abs(cpMark.delta))}</em>` : '';
 }
-/* 헤더 수치: 10만 이상은 만·억 단위로 줄인다 (폰에서도 한 줄). 정확한 값은 툴팁에 */
-const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
-  return a >= 1e8 ? `${+(n / 1e8).toFixed(1)}억` : a >= 1e5 ? `${+(n / 1e4).toFixed(1)}만` : fmt(n); };
 /* 머리: 이름 줄만. 활력 · 내력 · 수련치 · 은자 · 공헌 · 투력은 상태 › 관조 탭(#vitals · 투력 카드)에 (유저 요청). 매초 다시 그린다 */
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S), dl = cpDeltaHtml(cp);
