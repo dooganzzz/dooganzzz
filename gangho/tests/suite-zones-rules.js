@@ -84,7 +84,7 @@ module.exports = async (b) => {
     // 4. 도감 4탭
     await p.click('[data-tab="codex"]');
     const cx = await p.evaluate(() => ({ tabs: [...document.querySelectorAll('[data-codextab]')].map(e => e.querySelector('.ko').textContent).join('|') }));
-    ok('4 도감: 강적 | 비급 | 단조 비법 | 연단 비법', cx.tabs === '강적|비급|단조 비법|연단 비법', cx.tabs);
+    ok('4 도감: 강적 | 비급 | 별호 | 단조 | 연단', cx.tabs === '강적|비급|별호|단조|연단', cx.tabs);
     await p.click('[data-codextab="forge"]');
     const fr = await p.evaluate(() => ({ known: document.querySelectorAll('.recipe-row:not(.unknown)').length, unknown: document.querySelectorAll('.recipe-row.unknown').length, text: (document.querySelector('.recipe-row:not(.unknown)') || {}).textContent || '' }));
     ok('4 단조 비법: 발견한 것만 재료·결과와 함께 (못 찾은 비법은 숨김)', fr.known === 1 && fr.unknown === 0 && /청강검/.test(fr.text) && /조철광 ×3/.test(fr.text), JSON.stringify(fr));

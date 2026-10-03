@@ -1,7 +1,7 @@
-/* [화면] 도감: [ 강적 ] | [ 비급 ] | [ 단조 비법 ] | [ 연단 비법 ]
+/* [화면] 도감: [ 강적 ] | [ 비급 ] | [ 별호 ] | [ 단조 ] | [ 연단 ]
    만난 요수 · 독파한 비급(영구 보너스) · 화로에서 한 번이라도 성공한 비법만 적힌다. 총 몇 개인지, 못 찾은 것은 드러내지 않는다 */
 
-const CODEX_TABS = [['monster', '강적', '强敵'], ['martial', '비급', '秘笈'], ['title', '별호', '別號'], ['forge', '단조 비법', '鍛造'], ['alchemy', '연단 비법', '煉丹']];
+const CODEX_TABS = [['monster', '강적', '强敵'], ['martial', '비급', '秘笈'], ['title', '별호', '別號'], ['forge', '단조', '鍛造'], ['alchemy', '연단', '煉丹']];
 
 function viewCodex() {
   const tab = CODEX_TABS.some(([k]) => k === ui.codexTab) ? ui.codexTab : 'monster';

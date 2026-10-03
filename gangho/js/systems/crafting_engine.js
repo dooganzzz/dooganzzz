@@ -49,7 +49,7 @@ function doCraft(craft, pot) {
       give(recipe.out, 1, true);
       result = { ok: true, first, text: `${ITEMS[recipe.out].icon} ${ITEMS[recipe.out].name}`, sub: ITEMS[recipe.out].desc };
     }
-    log(`${C.name} 성공: ${hlItem(result.text)}${first ? ` — 도감 › ${C.name} 비법에 새로 기록!` : ''}`, 'good');
+    log(`${C.name} 성공: ${hlItem(result.text)}${first ? ` — 도감 › ${C.name}에 새로 기록!` : ''}`, 'good');
   } else {
     const fail = C.fail, nFail = craft === 'forge' ? (talentOf().slag || 1) : 1;   // 기예 단조: 부산물 2배
     S.inv[fail] = (S.inv[fail] || 0) + nFail;
