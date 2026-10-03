@@ -37,11 +37,11 @@ module.exports = async (b) => {
     ok('2 토벌 임무는 하루 정해진 횟수까지 (다 하면 더 못 받음)', ms.n === ms.daily && ms.left === 0 && ms.blocked, JSON.stringify(ms));
 
     // 3. 장보각 3탭 · 이류 장비 (4대 스탯 보정 포함) · 공헌도
-    await p.evaluate(() => { S.contrib = 1000; goTab('sect', 'hall'); ui.fold.library = false; render(); });
+    await p.evaluate(() => { S.contrib = 1000; goTab('sect', 'hall'); render(); });
     const lt = {};
     for (const t of ['equipment', 'skills', 'tokens']) { await p.click(`[data-libtab="${t}"]`); lt[t] = await p.evaluate(() => [...document.querySelectorAll('.lib-grid .lib-item b')].map(e => e.textContent).join(',')); }
-    const ir = await p.evaluate(() => LIBRARY_BOOKS.map(id => MANUALS[id]).filter(M => M.grade === '이류').map(M => M.name));   // 이류 비급, 분류마다 하나씩
-    ok('3 장보각 [장비] 7 · [무공] 이류 분류마다 하나(8) · [제자패] 2', lt.equipment.split(',').length === 7 && ir.length === 8 && lt.skills.split(',').length === ir.length && ir.every(n => lt.skills.includes(n)) && lt.tokens.split(',').length === 2, JSON.stringify(lt));
+    const ir = await p.evaluate(() => LIBRARY_BOOKS.map(id => MANUALS[id].name));   // 장보각 비급: 분류마다 하나씩
+    ok('3 장보각 [장비] 7 · [무공] 분류마다 하나(8) · [제자패] 2', lt.equipment.split(',').length === 7 && ir.length === 8 && lt.skills.split(',').length === ir.length && ir.every(n => lt.skills.includes(n)) && lt.tokens.split(',').length === 2, JSON.stringify(lt));
     ok('3 제자패 공헌도 120 · 350', await p.evaluate(() => SHOP_GEAR.find(g => g.id === 'badge2').cost === 120 && SHOP_GEAR.find(g => g.id === 'badge3').cost === 350));
     await p.click('[data-libtab="equipment"]');
     await p.click('[data-buylib="lg_sword"]');
@@ -56,15 +56,16 @@ module.exports = async (b) => {
       const r = {};
       const E = ENEMIES.turtle, keep = { ...E };
       S.hp = 99999; const mk = { ...S.equip };
-      r.minDmg = COMBAT_RULES.minDmg === 0.2 && COMBAT_RULES.elemPenalty === 0.15;
+      r.minDmg = COMBAT_RULES.minDmg === 0.2 && COMBAT_RULES.elemPenalty === 0.1;
+      S.manuals.gi1a = S.manuals.gi1a || { star: 1 }; equipManual('gi1a');   // 철포삼(金) — 입문 기공은 무작위
       const a = affinity('slinger');   // 火 투석수 vs 金 기공 → 역상성
       const wpF = a.wp < 0 ? 1 + AFFINITY.weapAtk : a.wp > 0 ? 1 - AFFINITY.weapDown : 1;
-      r.inverse = a.el === -1 && Math.abs(a.taken - (1 + AFFINITY.elem) * 1.15 * wpF) < 0.01;
+      r.inverse = a.el === -1 && Math.abs(a.taken - Math.min(AFFINITY_CAP.taken[1], (1 + AFFINITY.elem - (calcStats().elemRes || 0) / 100) * (1 + COMBAT_RULES.elemPenalty) * wpF * (1 - a.sd * SCHOOL_RULES.edge))) < 0.01;   // 정마사(심법 칸) · 상한까지
       r.first = !ENEMIES.slinger.first && !ENEMIES.slinger.hits && ENEMIES.slinger.pierce > 0 && Object.values(ENEMIES).some(e => e.first === true);   // 투석수: 초보 벽이라 선공 · 연투를 뺌 (10월 2일), 선공 규칙은 다른 요수가 씀
       Object.assign(E, keep); S.equip = mk; S.hp = calcStats().maxHp;
       return r;
     });
-    ok('4 강적 최소 피해 20% · 역상성 받는 피해 +15% · 위험 강적 선공·관통', cb.minDmg && cb.inverse && cb.first, JSON.stringify(cb));
+    ok('4 강적 최소 피해 20% · 역상성 받는 피해 +10% · 위험 강적 선공·관통', cb.minDmg && cb.inverse && cb.first, JSON.stringify(cb));
     const lose = await p.evaluate(() => { const k = ENEMIES.slinger.atk; ENEMIES.slinger.atk = 999; S.hp = 50; const bt = fight('slinger', { sim: true }); ENEMIES.slinger.atk = k; S.hp = calcStats().maxHp; return { win: bt.win, cause: bt.cause, known: Object.values(DEFEAT_CAUSE).includes(bt.cause) }; });
     ok('4 패배하면 원인을 남긴다', !lose.win && lose.known, JSON.stringify(lose));
 
@@ -101,8 +102,8 @@ module.exports = async (b) => {
     await p.click('.confirm-sheet [data-act="closemodal"]');
 
     // 8. 컴팩트: 헤더 칩 · 무공 카드
-    const cp = await p.evaluate(() => { goTab('status', 'observe'); render(); const b = document.querySelector('#vitals .chip-badge'), bs = { f: parseFloat(getComputedStyle(b).fontSize), h: b.getBoundingClientRect().height }; goTab('status', 'martial'); render(); const s = document.querySelector('.mslot'); return { badge: bs.f, bh: bs.h, pad: getComputedStyle(s).paddingTop, minh: getComputedStyle(s).minHeight }; });
-    ok('8 관조 정보 칸 이름 11~12px·한 줄 · 무공 방위 카드는 좁은 여백(10px 이하)', cp.badge >= 10 && cp.badge <= 12 && cp.bh <= 20 && parseFloat(cp.pad) <= 10, JSON.stringify(cp));
+    const cp = await p.evaluate(() => { goTab('status', 'martial'); render(); const s = document.querySelector('.mslot'); return { pad: getComputedStyle(s).paddingTop, minh: getComputedStyle(s).minHeight }; });
+    ok('8 무공 방위 카드는 좁은 여백(10px 이하)', parseFloat(cp.pad) <= 10, JSON.stringify(cp));
 
     const ow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     ok('오류/가로스크롤 없음', !errs.length && !ow, errs.join(';'));

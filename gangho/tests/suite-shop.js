@@ -12,7 +12,7 @@ module.exports = async (b) => {
 
     // 1. 대사형: 거래 없음, 안내 전담
     await p.click('[data-tab="sect"]');
-    await p.evaluate(() => { ui.fold.hq = false; render(); });
+    await p.evaluate(() => { render(); });
     const hall = await p.evaluate(() => ({ store: document.querySelectorAll('[data-store], [data-buy], [data-sell], .store').length, guide: !!document.querySelector('[data-act="jounguide"]'), joun: [...document.querySelectorAll('.npc-head h3 .ko')].map(e => e.textContent).includes('조운') }));
     ok('1 정청 대사형: 매매 버튼·창고 없음', hall.store === 0 && hall.joun, JSON.stringify(hall));
     ok('1 시스템에 옛 창고 함수 없음', await p.evaluate(() => typeof buyStore === 'undefined' && typeof JOUN_SHOP === 'undefined'));
