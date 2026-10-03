@@ -22,7 +22,7 @@ module.exports = async (b) => {
   ok('1 약과 없음 · 대화만', !(await p.$('[data-act="snack"]')) && !!(await p.$('[data-act="talk"]')));
   // 5
   await p.click('[data-tab="field"]');   // 강호행 탭은 강호 지도부터
-  const openZones = () => p.$$eval('.map-spot:not(.locked)', e => e.map(x => x.getAttribute('aria-label')).join(','));
+  const openZones = () => p.$$eval('.map-spot:not(.locked)', e => e.map(x => x.getAttribute('aria-label')).filter(t => !t.includes('돌아가기')).join(','));
   const z1 = await openZones();
   ok('5 초기에는 청풍산만 열림', z1 === '청풍산', z1);
   await p.evaluate(() => { S.flags[ZONES.yeomhwa.unlock.boss] = true; render(); });

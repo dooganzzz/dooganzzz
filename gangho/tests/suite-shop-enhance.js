@@ -38,7 +38,7 @@ module.exports = async (b) => {
     const potFlow = await p.evaluate(() => {   // 장비도 솥 칸에: 본템 → 같은 장비(재료) → 두드리기
       const w = S.equip.weapon, m = { ...w, uid: S.uid++, enh: 0, shop: undefined }; S.gear.push(m); S.silver = 99999; render();
       document.querySelector(`[data-gadd="${w.uid}"]`).click(); document.querySelector(`[data-gadd="${m.uid}"]`).click();
-      const slots = document.querySelectorAll('.pot-slots .slot.gear').length, panel = !!document.querySelector('.enh-panel'), e0 = w.enh || 0;
+      const slots = document.querySelectorAll('.fslot.gear').length, panel = !!document.querySelector('.enh-panel'), e0 = w.enh || 0;
       document.querySelector('[data-act="craft"]').click(); const c = document.querySelector('[data-act="confirmok"]'); if (c) c.click();
       return { slots, panel, e0, e1: w.enh || 0, res: ui.enhResult && ui.enhResult.kind, left: S.gear.some(g => g.uid === m.uid) };
     });

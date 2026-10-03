@@ -12,22 +12,20 @@ module.exports = async (b) => {
 
     // 1. 대사형: 거래 없음, 안내 전담
     await p.click('[data-tab="sect"]');
-    await p.evaluate(() => { render(); });
+    await p.evaluate(() => { goTab("sect", "hall"); render(); });
     const hall = await p.evaluate(() => ({ store: document.querySelectorAll('[data-store], [data-buy], [data-sell], .store').length, guide: !!document.querySelector('[data-act="jounguide"]'), joun: [...document.querySelectorAll('.npc-head h3 .ko')].map(e => e.textContent).includes('조운') }));
     ok('1 정청 대사형: 매매 버튼·창고 없음', hall.store === 0 && hall.joun, JSON.stringify(hall));
     ok('1 시스템에 옛 창고 함수 없음', await p.evaluate(() => typeof buyStore === 'undefined' && typeof JOUN_SHOP === 'undefined'));
-    await p.click('[data-act="jounguide"]');
-    const g = await p.evaluate(() => S.log[S.log.length - 1].text);
-    ok('1 [문파 안내] → 대화 창에 대사가 뜬다', await p.evaluate(() => ui.modal === 'npc' && /조운/.test(document.querySelector('.npc-sheet').textContent)));
-    await p.click('[data-act="closemodal"]');
-    ok('1 [문파 안내] → 대사형이 할 일을 짚어 줌', /^조운: "/.test(g), g);
+    await p.click('[data-act="jounask"]');   // [문파 안내] 단추는 [문파 일 여쭙기]로 바뀜
+    ok('1 [문파 일 여쭙기] → 대화 창에 조운 대사가 뜬다', await p.evaluate(() => ui.modal === 'npc' && /조운/.test(document.querySelector('.npc-sheet').textContent)));
+    await p.evaluate(() => { ui.modal = null; ui.npcTalk = null; render(); });
     const g2 = await p.evaluate(() => { give('bk_sm2a', 1, true); jounGuide(); const t = S.log[S.log.length - 1].text; take('bk_sm2a', 1); return t; });
-    ok('1 안내는 상황에 맞게 (비급 있으면 익히기 안내)', /상태 탭의 무공에서 \[ 익히기 \]/.test(g2), g2);
+    ok('1 안내는 상황에 맞게 (비급 있으면 익히기 안내)', /\[ 익히기 \]/.test(g2), g2);
 
     // 2. 청풍문 › 전방
-    const subs = await p.$$eval('.subtabs:not(.lib-tabs) .subtab', els => els.map(e => e.dataset.sub).join(','));
-    ok('2 서브탭 순서: 정청 | 화로 | 연무장 | 무신상 | 전방', subs === 'hall,forge,yeonmu,shrine,shop', subs);
-    await p.click('.subtabs [data-sub="shop"]');
+    const subs = await p.evaluate(() => SECT_SUBS.map(s => s[0]).join(','));   // 갈래 띠는 없어지고 전경의 이름표로 들어간다
+    ok('2 갈래 순서: 전경 | 정청 | 화로 | 연무장 | 무신상 | 전방', subs === 'grounds,hall,forge,yeonmu,shrine,shop', subs);
+    await p.evaluate(() => { goTab("sect", "shop"); render(); });
     const shop = await p.evaluate(() => ({ head: document.querySelector('.shop-panel .panel-head .ko').textContent, npc: document.querySelector('.shop-panel .npc-head h3').textContent, mode: document.querySelector('.shop-mode .subtab.on').dataset.shopmode, items: document.querySelectorAll('[data-buy]').length, gear: (() => { let n = 0; for (const t of Object.keys(SHOP_GEAR_TABS)) { ui.shopBuy = 'gear'; ui.shopGear = t; render(); n += document.querySelectorAll('[data-buygear]').length; } ui.shopBuy = 'items'; render(); return n; })(), purse: document.querySelector('.shop-panel .purse').textContent }));
     ok('2 청풍전방 왕 가 인터페이스', shop.head === '청풍전방' && /왕 가/.test(shop.npc) && /청풍전방 주인/.test(shop.npc), JSON.stringify(shop));
     ok('3 구매 탭: 소모품·재료 + 기본 장비 진열, 소지 은자 표시', shop.mode === 'buy' && shop.items >= 7 && shop.gear >= 8 && /은자/.test(shop.purse), JSON.stringify(shop));

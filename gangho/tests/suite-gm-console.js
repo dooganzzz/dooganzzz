@@ -7,7 +7,7 @@ module.exports = async (b) => {
     console.log(`\n=== ${w}px ===`);
     const p = await newPage(b, w, h);
     const errs = watchErrors(p);
-    await p.goto(GAME_URL);
+    await p.goto(GAME_URL + '#gm');   // [GM] 단추는 주소에 #gm이 있을 때만 보인다
 
     // 여닫기: 게임 안 단축키는 없다
     await p.focus('#pname'); await p.keyboard.press('Backquote');

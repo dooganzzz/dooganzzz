@@ -61,9 +61,9 @@ module.exports = async (b) => {
       for (const [id, n] of Object.entries(rec.in)) S.inv[id] = (S.inv[id] || 0) + n * 2;
       const R = Math.random; Math.random = () => 0.999; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(rec.craft, { ...rec.in }); Math.random = R;   // 맞는 조합인데 운이 없어 실패
       const n = craftNoteFor(rec.craft, rec.in), wrongN = craftNoteFor('alchemy', { herb: 2 });
-      return { near: n && n.near && !n.ok, wrong: wrongN && !wrongN.near, codex: S.codex.includes(rec.id) };
+      return { ok: n && n.ok, wrong: wrongN && !wrongN.ok && !wrongN.near, codex: S.codex.includes(rec.id) };
     });
-    ok('4 맞는 조합이 운으로 실패하면 “불길이 크게 일렁임” (틀린 조합은 그냥 실패)', near.near && near.wrong && !near.codex, JSON.stringify(near));
+    ok('4 맞는 조합은 운과 상관없이 반드시 성공 (틀린 조합은 그냥 실패)', near.ok && near.wrong && near.codex, JSON.stringify(near));
     await p.evaluate(() => { ui.tab = 'codex'; ui.codexTab = 'alchemy'; render(); });
     ok('4 도감에 단서 칸 없음', await p.evaluate(() => !document.querySelector('.ctile.clue, .hidden-mat') && document.querySelectorAll('.recipe-row:not(.unknown)').length >= 1));
     ok('4 사건 보상의 단서 → 수련치', await p.evaluate(() => !JSON.stringify(EVENTS).includes('clue')));
@@ -76,7 +76,7 @@ module.exports = async (b) => {
       return { on: document.querySelector('.tab.on').dataset.tab, tabs: t.querySelectorAll('.tab').length, over: t.scrollWidth - t.clientWidth, rows: new Set([...t.querySelectorAll('.tab')].map(e => Math.round(e.getBoundingClientRect().top))).size,
         filters: [...document.querySelectorAll('[data-chron]')].map(e => e.textContent).join(','), days: document.querySelectorAll('.chron-day').length, rows2: document.querySelectorAll('.chron-row').length, total: S.log.length };
     });
-    ok('5 1차 탭 8개가 한 줄 · 가로 스크롤 없음', ch.on === 'chronicle' && ch.tabs === 8 && ch.over <= 0 && ch.rows === 1, JSON.stringify(ch));
+    ok('5 1차 탭 8개 (모바일은 두 줄까지) · 가로 스크롤 없음', ch.on === 'chronicle' && ch.tabs === 8 && ch.over <= 0 && ch.rows <= 2, JSON.stringify(ch));
     ok('5 분류: 전체·탐험·전투·획득·인물·경고', ch.filters === '전체,탐험,전투,획득,인물,경고', ch.filters);
     ok('5 날짜별로 묶어 전부 표시', ch.days >= 1 && ch.rows2 === ch.total, JSON.stringify(ch));
     await p.click('[data-chron="battle"]');

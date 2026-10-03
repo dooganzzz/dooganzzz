@@ -32,7 +32,7 @@ module.exports = async (b) => {
     await p.click('[data-slot="weapon"]');
     ok('3 무장 슬롯 누르면 장비 팝업', await p.evaluate(() => ui.modal === 'equip:weapon' && !!document.querySelector('.sheet')));
     await p.click('.sheet [data-act="closemodal"]');
-    await p.click('[data-sub="martial"]');
+    await p.evaluate(() => { unequipManual('gigong'); goTab('status', 'martial'); render(); });   // 칸 창은 빈 칸에서만 열린다
     await p.click('[data-artslot]');
     ok('3 무공 슬롯 누르면 무공 팝업', await p.evaluate(() => /^artslot:/.test(ui.modal) && !!document.querySelector('.sheet')));
     await p.click('.sheet [data-act="closemodal"]');

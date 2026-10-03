@@ -29,7 +29,7 @@ module.exports = async (b) => {
   // 명령: 적용·소환·재료·치트는 게임 쪽에서 실행
   await admin.click('.gm-tab[data-gmtab="cheat"]'); await admin.click('[data-gm="silver"]');
   await game.waitForFunction(() => S.silver === 2234, null, { timeout: 3000 });
-  ok('1 [은자 +1000] → 게임의 은자가 바뀜 · 게임 화면 갱신', await game.evaluate(() => { ui.tab = 'status'; ui.statusSub = 'observe'; render(); return /2,234/.test(document.querySelector('#vitals').textContent); }));
+  ok('1 [은자 +1000] → 게임의 은자가 바뀜 · 게임 화면 갱신', await game.evaluate(() => { goTab('bag'); render(); return /2,234/.test(document.querySelector('.bag-silver').textContent); }));
   await admin.click('.gm-tab[data-gmtab="items"]');
   const n0 = await game.evaluate(() => count('lingzhi'));
   await admin.click('[data-gmspawn="lingzhi"][data-n="10"]');
