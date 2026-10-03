@@ -17,6 +17,7 @@ Bus.on('tick', () => {
     sc.classList.toggle('rest', liveDone(lr) && !liveHeld(lr)); sc.classList.toggle('dead', liveDead(lr));
     const wh = document.querySelector('.live-panel .live-where'), X = S.expedition; const wz = lr ? lr.zone : X.zone, wn = lr && lr.live ? lr.stage : X.stage || 1;
     if (wh && wz && wh.dataset.k !== wz + wn) wh.outerHTML = liveWhere(wz, wn);   // 지역 이름 붓글씨 (단계가 바뀔 때만)
+    if (wz) livePageCheck(wz, wn);   // 단계가 바뀌면 책장 넘김
   }
   if (typeof ui !== 'undefined' && ui.tab === 'chronicle' && !ui.modal) render();
 });

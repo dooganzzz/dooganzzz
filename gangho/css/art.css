@@ -849,3 +849,11 @@ html.calm .pot-hot { animation: none; }
 .ground-bld:hover > img, .ground-bld:focus-visible > img { filter: drop-shadow(3px 5px 4px rgba(40, 28, 15, .35)) drop-shadow(0 0 10px rgba(255, 214, 130, .7)) brightness(1.06); }
 .map-box.grounds .ground-tag.lit { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.12) saturate(1.15); z-index: 4; }
 .map-box.grounds .ground-tag.lit > img { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 214, 130, .95)) drop-shadow(0 0 16px rgba(255, 190, 90, .6)) drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
+/* 단계가 바뀔 때 책장 넘김 (10월 3일 유저): 떠 낸 무대 한 장의 오른쪽 모서리가 왼쪽으로 쓸려 가며 넘어가고(--p 0→1, rAF),
+   넘김 모서리에는 종이 뒷면이 말려 따라간다. 뒤로 가는 단계(.rev)는 반대쪽에서. 3D 회전 대신 평면으로 그려 어느 기기에서나 같게 */
+.live-page { position: absolute; inset: 0; z-index: 9; pointer-events: none; --p: 0; }
+.live-page .lp-face { position: absolute; inset: 0; overflow: hidden; background: #d8cfbb; clip-path: inset(0 calc(var(--p) * 100%) 0 0); }
+.live-page .lp-back { position: absolute; top: -2%; bottom: -2%; right: calc(var(--p) * 100%); width: calc(min(var(--p), 1 - var(--p)) * 46%); transform: skewX(-6deg); transform-origin: bottom;
+  background: linear-gradient(90deg, #cdbb92, #efe3c6 55%, #d9c79f); box-shadow: -10px 0 24px rgba(0, 0, 0, .45), inset 6px 0 10px rgba(255, 255, 255, .25); border-radius: 0 6px 6px 0; }   /* 종이 뒷면 (말린 부분) */
+.live-page.rev .lp-face { clip-path: inset(0 0 0 calc(var(--p) * 100%)); }
+.live-page.rev .lp-back { right: auto; left: calc(var(--p) * 100%); transform: skewX(6deg); background: linear-gradient(270deg, #cdbb92, #efe3c6 55%, #d9c79f); box-shadow: 10px 0 24px rgba(0, 0, 0, .45); border-radius: 6px 0 0 6px; }

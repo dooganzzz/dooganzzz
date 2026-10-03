@@ -131,7 +131,7 @@ function liveLoop(ts) {
   liveAnim.raf = requestAnimationFrame(liveLoop);
   const sc = document.getElementById('liveScene'); if (!sc) { cancelAnimationFrame(liveAnim.raf); liveAnim.raf = 0; liveAnim.show = null; return; }
   const dt = liveAnim.last ? Math.min(100, ts - liveAnim.last) : 16; liveAnim.last = ts;
-  const walker = sc.querySelector('.live-walker'), hero = document.getElementById('liveHero'), strips = sc.querySelectorAll('.live-strip');
+  const walker = sc.querySelector('.live-walker'), hero = document.getElementById('liveHero'), strips = sc.querySelectorAll(':scope > .live-world > .live-strip');   // 책장 넘김(.live-page) 속 복사본은 움직이지 않는다
   const rest = sc.classList.contains('rest'), still = reduceMotion();
   if (liveAnim.show) { sc.classList.toggle('fight', liveAnim.show.phase === 'fight'); sc.classList.toggle('approach', liveAnim.show.phase === 'approach'); }   // 다시 그려져도 연출 상태를 잇는다
   if (liveAnim.show && liveAnim.show.phase === 'fight') { if (liveShowStep(sc, liveAnim.show, ts, dt)) liveShowEnd(sc); return; }   // 맞붙는 동안 산길은 멈춘다
@@ -200,10 +200,30 @@ if (typeof FontFace === 'function' && document.fonts) new FontFace('Gangho Brush
 function liveWhere(zid, n) {
   return `<span class="live-where" data-k="${zid}${n}">${esc(stageName(zid, n))}</span>`;
 }
+/* 단계가 바뀌면 무대가 책장 넘기듯 (10월 3일 유저): 지금 무대를 한 장 떠서 왼쪽으로 넘긴다 (뒤로 가면 반대로) */
+function livePageCheck(zid, n) {
+  const k = `${zid}:${n}`, old = liveAnim.pageKey; liveAnim.pageKey = k;
+  if (!old || old === k || old.split(':')[0] !== zid) return;
+  setTimeout(() => livePageTurn(n > +old.split(':')[1] ? 1 : -1), 0);
+}
+function livePageTurn(dir) {
+  const sc = $('#liveScene'); if (!sc || reduceMotion()) return;
+  sc.querySelectorAll('.live-page').forEach(e => e.remove());
+  const pg = document.createElement('div'), face = document.createElement('div'), back = document.createElement('i');
+  pg.className = `live-page ${dir < 0 ? 'rev' : ''}`; pg.setAttribute('aria-hidden', 'true'); face.className = 'lp-face'; back.className = 'lp-back';
+  for (const el of sc.querySelectorAll(':scope > .live-world, :scope > .live-mist, :scope > .live-sun, :scope > .live-sky, :scope > .live-moonbox, :scope > .live-tint')) { const c = el.cloneNode(true); c.querySelectorAll('[data-anim]').forEach(x => x.removeAttribute('data-anim')); face.appendChild(c); }
+  pg.dataset.live = '1'; pg.append(face, back); sc.appendChild(pg); sfx('page');   // data-live: 다시 그려도 그대로 (넘김은 rAF로 — 떼었다 붙여도 처음부터 다시 돌지 않게)
+  const t0 = performance.now(), D = 1100, ease = x => x < .5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+  const step = () => { const x = Math.min(1, (performance.now() - t0) / D), e = ease(x);
+    pg.style.setProperty('--p', e.toFixed(4));   // 넘긴 정도 0→1: 옛 장은 넘김 모서리까지만 보이고, 그 모서리에 종이 뒷면이 말려 따라간다
+    if (x < 1) requestAnimationFrame(step); else pg.remove(); };
+  requestAnimationFrame(step);
+}
 function liveScene(r) {
   const zid = (r && r.zone) || S.expedition.zone || 'cheongpung', w = weaponType(), N = walkMeta(w).n, fast = runFast();
   const md = liveMode(), spr = cls => `<div class="${cls}" data-anim style="background-image:url('${ASSET[md](w)}');background-size:${N * 100}% 100%"></div>`;
   const img = () => `<img src="${ASSET.travel(zid)}" alt="">`, gnd = () => `<img src="${ASSET.ground(zid)}" alt="">`;   // 먼 겹 = 산길 전체, 앞 겹 = 땅만 (같은 크기라 이음매 없이 되풀이)   // 끝과 처음이 이어지게 다듬은 그림 (이음매 없이 되풀이)
+  livePageCheck(zid, r && r.live ? r.stage : S.expedition.stage || 1);
   if (!liveAnim.raf) liveAnim.raf = requestAnimationFrame(liveLoop);
   return `<div class="live-scene ${liveDone(r) && !liveHeld(r) ? 'rest' : ''} ${liveDead(r) ? 'dead' : ''}" id="liveScene" data-zone="${zid}" data-tod="${liveTod()}" style="${liveTodVars()}">
     <div class="live-world far"><div class="live-strip" data-far="1" data-anim>${img()}${img()}</div></div>

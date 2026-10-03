@@ -148,7 +148,8 @@ const SFX = {
   ko: t => { sOsc('sine', 90, 35, t, .6, .4); sNoise(t, .3, .15, 'lowpass', 500, 150, .7); },
   boss: t => { sOsc('sine', 65, 38, t, 1.4, .55); sNoise(t, .5, .2, 'lowpass', 300, 80, .7); sOsc('sine', 65, 38, t + .38, 1.2, .45); },   // 큰북 두 번
   ougi: t => { [1, 1.48, 2, 2.73, 3.6].forEach((r, i) => sOsc('sine', 98 * r, 97 * r, t, 2.8 - i * .35, .11 / (1 + i * .6))); sNoise(t, .9, .08, 'bandpass', 500, 3000, .8, .3); },   // 징
-  scroll: t => sNoise(t, .4, .07, 'bandpass', 2500, 3500, .6, .05),                                                        // 두루마리 펼침
+  scroll: t => sNoise(t, .4, .07, 'bandpass', 2500, 3500, .6, .05),
+  page: t => sNoise(t, .45, .08, 'bandpass', 1800, 3200, .5, .06),                                                         // 책장 넘김                                                        // 두루마리 펼침
   drink: t => { [0, .13, .26].forEach(d => { sOsc('sine', 300, 520, t + d, .09, .08); sNoise(t + d, .06, .04, 'bandpass', 900, 600, 2); }); sOsc('sine', 880, 880, t + .45, .4, .03); },   // 꿀꺽꿀꺽 · 맑은 기운
   forge: (t, o) => { for (let i = 0; i < 3; i++) { const d = i * .22; sOsc('sine', 1900, 1850, t + d, .5, .07); sOsc('sine', 2950, 2900, t + d, .35, .04); sNoise(t + d, .05, .2, 'bandpass', 4000, 2000, 1); }
     if (o.ok) sNoise(t + .7, .6, .06, 'highpass', 3000, 6000, .5, .1); else sNoise(t + .7, .8, .08, 'lowpass', 600, 200, .7, .2); },   // 모루 망치 세 번 · 불똥 / 꺼지는 연기
@@ -194,6 +195,7 @@ const REC = {
   equip: t => rec('equip', t, .7), unequip: t => rec('unequip', t, .7),
   book: t => rec('book', t, .7), learn: t => rec('bookOpen', t, .6) && (sOsc('sine', 330, 330, t + .3, .35, .035), true),
   scroll: t => rec('bookFlip', t, .45),
+  page: t => rec('bookFlip', t, .5),
   merge: t => rec('bookFlip', t, .6) && rec('bookClose', t + .35, .6) && (sOsc('sine', 294, 294, t + .7, .4, .04), true),
   buy: t => rec('coins', t, .7), sell: t => rec('coins2', t, .75),
   mirror_crack: t => rec('glassCrack', t, .6), mirror_break: t => rec('glassBreak', t, .7),
@@ -211,7 +213,7 @@ function mixNode(name, bus) {
   let g = SND.mix[name]; if (!g) { g = SND.mix[name] = SND.ctx.createGain(); g.connect(bus); }
   g.gain.value = SND_MIX[name] ?? 1; return g;
 }
-const SFX_ON = new Set(['type', 'click', 'step', 'hit', 'hurt', 'kiai', 'scroll', 'poem', 'miss', 'buy', 'sell', 'portal']);   // 발소리 · 타격음 · 요수가 칠 때 · 사고팔기 · 지도 위 마우스도 켬 (10월 3일 유저)
+const SFX_ON = new Set(['type', 'click', 'step', 'hit', 'hurt', 'kiai', 'scroll', 'poem', 'miss', 'page', 'buy', 'sell', 'portal']);   // 발소리 · 타격음 · 요수가 칠 때 · 사고팔기 · 지도 위 마우스도 켬 (10월 3일 유저)
 function sfx(name, o = {}) {
   if (!SFX_ON.has(name)) return;
   const c = SND.ctx; if (!c || c.state !== 'running' || !(SFX[name] || (SND.file && SND.file[name])) || !sndVol('sfxVol')) return;
