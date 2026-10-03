@@ -2,7 +2,7 @@
    1장에서는 최하 · 하만 얻을 수 있다 — 중 · 상 · 최상은 이름만 두고 2장 이후에 연다.
    wear: 호패에 새겨 쓰고 있을 때만 주는 능력치 · gain: 한 번 얻으면 영구히 주는 능력치 (습득 보너스)
    school: 그 별호의 결 (정 · 마 · 사, 없으면 어느 쪽도 아님)
-   cond: 얻는 조건 — k: start(처음부터) · runs(강호행 마친 횟수) · kills(요수 처치 합계) · killOf(그 요수 처치) · manuals(익힌 비급 수)
+   cond: 얻는 조건 — k: start(처음부터) · runs(강호행 마친 횟수) · kills(요수 처치 합계) · killOf(그 요수 처치) · manuals(익힌 비급 수, g면 그 등급만)
          school(그 파 비급 수) · craft(기예 품계) · shrine(무신상 공양 횟수) · star(가장 높은 무공 성급) · attr(단련 스탯) · silver(지닌 은자) */
 const TITLE_TIERS = [
   { name: '최하', hanja: '最下', cls: 't0' },
@@ -17,9 +17,9 @@ const TITLES = {
   // ── 최하 (最下) ──
   chocheol:  { name: '강호초출', hanja: '江湖初出', tier: 0, cond: { k: 'start' }, text: '처음부터', wear: { maxHp: 10 }, gain: { train: 1 } },
   chohaeng:  { name: '초행객', hanja: '初行客', tier: 0, cond: { k: 'runs', n: 1 }, text: '강호행을 한 번 마친다', wear: { staSave: 3 }, gain: { maxSta: 5 } },
-  yeopsu:    { name: '엽수수', hanja: '獵獸手', tier: 0, cond: { k: 'kills', n: 10 }, text: '요수 10마리를 쓰러뜨린다', wear: { atk: 3 }, gain: { atk: 1 } },
-  bunhyang:  { name: '분향객', hanja: '焚香客', tier: 0, cond: { k: 'shrine', n: 10 }, text: '무신상에 10번 공양한다', wear: { luck: 2 }, gain: { maxMp: 5 } },
-  seosaeng:  { name: '서생무사', hanja: '書生武士', tier: 0, cond: { k: 'manuals', n: 4 }, text: '비급 4권을 익힌다', wear: { train: 3 }, gain: { maxMp: 8 } },
+  yeopsu:    { name: '엽수수', hanja: '獵獸手', tier: 0, cond: { k: 'kills', n: 100 }, text: '요수 100마리를 쓰러뜨린다', wear: { atk: 3 }, gain: { atk: 1 } },
+  bunhyang:  { name: '분향객', hanja: '焚香客', tier: 0, cond: { k: 'shrine', n: 1 }, text: '무신상 탁기 정화 1회', wear: { luck: 2 }, gain: { maxMp: 5 } },
+  seosaeng:  { name: '서생무사', hanja: '書生武士', tier: 0, cond: { k: 'manuals', g: '삼류', n: 12 }, text: '삼류 비급 12권을 읽는다', wear: { train: 3 }, gain: { maxMp: 8 } },
   yajang:    { name: '견습 야장', hanja: '見習冶匠', tier: 0, cond: { k: 'craft', c: 'forge', n: 2 }, text: '단조를 8품까지 올린다', wear: { craft: 3 }, gain: { def: 1 } },
   chaeyak:   { name: '채약인', hanja: '採藥人', tier: 0, cond: { k: 'craft', c: 'alchemy', n: 2 }, text: '연단을 8품까지 올린다', wear: { mpRegen: 0.3 }, gain: { maxHp: 8 } },
   hyeopji:   { name: '협객지망', hanja: '俠客志望', tier: 0, school: 'jeong', cond: { k: 'school', s: 'jeong', n: 2 }, text: '정파 비급 2권을 익힌다', wear: { def: 2, block: 1 }, gain: { block: 0.5 } },

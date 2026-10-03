@@ -9,7 +9,7 @@ function titleProgress(id) {
     : C.k === 'runs' ? (S.expeditions || []).filter(r => r.end).length
     : C.k === 'kills' ? Object.values(S.bestiary || {}).reduce((a, b) => a + (b.kills || 0), 0)
     : C.k === 'killOf' ? ((S.bestiary || {})[C.e] || {}).kills || 0
-    : C.k === 'manuals' ? learned.length
+    : C.k === 'manuals' ? learned.filter(m => !C.g || (MANUALS[m] && MANUALS[m].grade === C.g)).length
     : C.k === 'school' ? learned.filter(m => schoolOf(m) === C.s).length
     : C.k === 'craft' ? ((S.crafts || {})[C.c] || {}).lv || 1
     : C.k === 'shrine' ? (S.shrine || {}).pulls || 0
