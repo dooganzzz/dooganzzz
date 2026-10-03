@@ -88,6 +88,7 @@ function ambBuild() {
   SND.amb = { wind, rain, hiss };
 }
 function ambSet() {
+  if (!SFX_ON.has('weather')) return;   // 날씨 소리도 지금은 뺌 (10월 3일 유저)
   const c = SND.ctx; if (!c) return;
   const sc = document.getElementById('liveScene'), on = !!(sc && sc.isConnected && !document.hidden);
   if (!on && !SND.amb) return;
@@ -197,7 +198,10 @@ const REC = {
   salve: t => rec('unequip', t, .35) && rec('unequip', t + .22, .3) && (sOsc('sine', 660, 660, t + .45, .5, .04), sOsc('sine', 990, 990, t + .57, .6, .035), true),
 };
 const SFX_GAP = { type: 45, step: 80, click: 40, portal: 200, equip: 150, unequip: 150, book: 150, buy: 120, sell: 150 };
+/* 지금 내는 효과음: 대사 도트음 · 누르기 소리만 (10월 3일 유저: 나머지 효과음 · 날씨 소리는 모두 뺌. 다시 켜려면 여기에 이름을 더한다) */
+const SFX_ON = new Set(['type', 'click']);
 function sfx(name, o = {}) {
+  if (!SFX_ON.has(name)) return;
   const c = SND.ctx; if (!c || c.state !== 'running' || !SFX[name] || !sndVol('sfxVol')) return;
   const n = performance.now(); if (n - (SND.last[name] || 0) < (SFX_GAP[name] || 25)) return; SND.last[name] = n;
   const t = c.currentTime + .005;
