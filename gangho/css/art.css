@@ -622,10 +622,10 @@
 /* 암기 비표 */
 .live-proj { position: absolute; z-index: 5; width: 7%; pointer-events: none; transform-origin: 50% 50%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .5)); }
 /* 강호 지도 팝업 · 출발 준비 */
-.map-sheet { width: min(860px, 96vw); max-width: 96vw; padding: 14px; }
+.map-sheet { width: 100%; max-width: none; padding: 14px; }   /* 강호 지도: 패널 폭을 다 쓰고, 화면 높이 안에 지도가 다 들어오게 (10월 3일) */
 .map-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .map-head h2 { margin: 0; } .map-head small { font-size: .6em; opacity: .7; letter-spacing: .15em; }
-.map-box { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: visible; background: #ece4d2; box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .35); }
+.map-box { position: relative; width: min(100%, calc((100vh - 240px) * 16 / 9)); min-width: min(100%, 560px); margin: 0 auto; aspect-ratio: 16 / 9; border-radius: 10px; overflow: visible; background: #ece4d2; box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .35); }
 .map-box > img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; user-select: none; }
 .map-spot { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; cursor: pointer; z-index: 2; }
 .map-spot:focus-visible { outline: none; }
