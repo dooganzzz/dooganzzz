@@ -87,7 +87,7 @@ function liveShowPlan(sh, w) {
       if (f.side === 'banner') {
         if (f.k === 'move' && f.mid && f.n) {
           const co = typeof calloutOf === 'function' && calloutOn() && calloutOf(f.mid, f.n);   // 초식 외침: 초식을 펼칠 때마다 (설정에서 끔)
-          if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(20); }   // 감기기 시작하면 바로 초식
+          if (co) { q.push({ at: t, k: 'callout', mid: f.mid, n: f.n }); t += T(20); }   // 시문이 끝나 두루마리가 거둬지면 기합과 함께 초식
           pending = { mid: f.mid, n: f.n, tier: f.n >= 3 ? 2 : 1, name: f.t, noName: !!co };   // 초식은 바로 뒤의 일격에 실어 낸다 (평타 동작과 겹치지 않게)
         }
         continue;
@@ -188,12 +188,12 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'kiai') sfx('kiai');
     else if (e.k === 'skill') liveSkill(sc, e.sk);
     else if (e.k === 'ougi') {
-      sh.hold = true; const t1 = performance.now(); sfx('ougi');
+      sh.hold = true; const t1 = performance.now(); sfx('kiai'); sfx('ougi');
       ougiPlay(sc, { w: hero.dataset.w || weaponType(), mid: e.mid, name: e.name, noName: e.noName, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
         onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
-    else if (e.k === 'callout') {                     // 초식 외침: 대사가 끝나 두루마리가 감기기 시작할 때까지 순서를 멈춘다 (감기는 동안 초식이 함께 나간다)
+    else if (e.k === 'callout') {                     // 초식 외침: 시문이 끝나 두루마리가 다 거둬질 때까지 순서를 멈춘다 (그 뒤 기합과 함께 초식)
       sh.hold = true; const t1 = performance.now();
       sfx('scroll'); calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
