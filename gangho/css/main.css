@@ -1053,10 +1053,9 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 /* 패의 빈 면(그림 가로 0~64% · 세로 30~72%): 왼쪽 별호(맨 위에서) · 가운데 성명(조금 아래에서) · 오른쪽 경지(더 아래에서), 낙관은 성명 오른쪽 위에 살짝 걸치게 (10월 3일 유저) */
 .hp-col { position: absolute; transform: translateX(-50%); writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; line-height: 1;
   font-family: 'Gangho Brush', var(--serif), serif; font-weight: 400; color: #2a1608; text-shadow: 0 0 2px rgba(255, 236, 200, .45); }
-.hp-alias { left: 15%; top: 29%; font-size: 13px; letter-spacing: .1em; opacity: .85; }
-.hp-name { left: 31%; top: 33%; font-size: 26px; letter-spacing: .12em; }
-.hp-name.n4, .hp-name.n5 { font-size: 21px; letter-spacing: .1em; } .hp-name.n6, .hp-name.n7, .hp-name.n8 { font-size: 17px; letter-spacing: .08em; }
-.hp-rank { left: 47%; top: 38%; font-size: 13px; letter-spacing: .1em; opacity: .9; }
+.hp-alias { left: 17%; top: 34%; font-size: 18px; letter-spacing: .1em; opacity: .85; }
+.hp-name { left: 31%; top: 51%; transform: translate(-50%, -50%); font-size: 24px; letter-spacing: .1em; }   /* 성명만 가운데 정렬: 글자 수와 상관없이 패의 빈 면 가운데에 */
+.hp-rank { left: 47%; top: 53%; font-size: 14px; letter-spacing: .1em; opacity: .9; }   /* 별호 · 성명 · 경지 · 낙관 자리는 유저가 미리보기 슬라이더로 맞춘 값 (10월 3일) */
 .hopae-seal { position: absolute; right: -14px; top: -22px; width: 22px; max-width: none; transform: rotate(-5deg); writing-mode: horizontal-tb; opacity: .95; }   /* 낙관: 성명 오른쪽 위에 이름과 살짝 걸치게 (10월 3일 유저) */
 .hopae-info { flex: 1; min-width: 0; margin: 0; display: grid; gap: 8px; }
 .hopae-info > div { display: flex; gap: 10px; align-items: baseline; }
