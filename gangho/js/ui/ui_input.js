@@ -186,10 +186,11 @@ function askStarUp(id) {
 }
 function askBuy(id) {
   const row = SHOP_STOCK.find(r => r[0] === id); if (!row || S.silver < row[1]) return buyItem(id);
-  const max = clamp(Math.floor(S.silver / row[1]), 1, 20); ui.buyQty = 1;   // 1~20개 (가진 은자만큼까지)
+  const max = clamp(Math.floor(S.silver / row[1]), 1, 50), q = clamp((ui.buyLast || {})[id] || 1, 1, max); ui.buyQty = q;   // 1~50개 (가진 은자만큼까지) · 지난번 고른 개수로 시작 (막대와 개수가 늘 같게)
   requestActionConfirm({ title: '구매', description: `${ITEMS[id].icon} <b>${esc(ITEMS[id].name)}</b>을(를) 몇 개 살까요?
-    <label class="buy-qty"><input type="range" min="1" max="${max}" value="1" data-buyqty="${row[1]}" aria-label="살 개수"><span><b class="qty-n">1개</b> · 은자 <b class="qty-sum">${row[1]}</b>냥</span></label>`,
-    details: [`가진 은자 ${fmt(S.silver)}냥 · 한 번에 최대 ${max}개`], confirmText: '구매', onConfirm: () => buyItem(id, ui.buyQty || 1) });
+    <label class="buy-qty"><input type="range" min="1" max="${max}" value="${q}" data-buyqty="${row[1]}" aria-label="살 개수"><span><b class="qty-n">${q}개</b> · 은자 <b class="qty-sum">${fmt(q * row[1])}</b>냥</span></label>`,
+    details: [`가진 은자 ${fmt(S.silver)}냥 · 한 번에 최대 ${max}개`], confirmText: '구매', onConfirm: () => { (ui.buyLast = ui.buyLast || {})[id] = ui.buyQty || 1; buyItem(id, ui.buyQty || 1); } });
+  const r = document.querySelector('[data-buyqty]'); if (r) r.value = q;   // 다시 그려도 막대가 옛 자리에 남지 않게
 }
 function askBuyGear(base, tier) {
   const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row || S.silver < row[2]) return buyGear(base, tier);
