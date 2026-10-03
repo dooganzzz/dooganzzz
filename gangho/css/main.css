@@ -1070,7 +1070,7 @@ html.calm .st-glow { animation: none; }
 .bag-tile .bag-n { font-size: .78rem; color: var(--silver); }
 /* 행낭 네모칸: 장비 · 단약 · 비급 모두 같은 칸 크기 · 같은 그림 크기 · 가운데 (10월 3일 유저) */
 .bag-tile .ink-box { width: 58px; height: 58px; padding: 0; box-sizing: border-box; }
-.bag-tile .ink-box > :not(.ink-frame) { width: 48px; height: 48px; margin: 0; padding: 0; background: none; border-radius: 0; box-sizing: border-box; }   /* 장비 그림 뒤 판 · 안쪽 여백 없앰 */
+.bag-tile .ink-box > :not(.ink-frame) { width: 54px; height: 54px; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; box-sizing: border-box; }   /* 장비 그림 뒤 판 · 테두리 · 안쪽 여백 없앰 */
 .bag-tile .ink-box > :not(.ink-frame) img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .bag-detail { display: flex; align-items: center; justify-content: flex-start; gap: 12px; text-align: left; }
 .bag-sheet .uniq { color: var(--gold); }
