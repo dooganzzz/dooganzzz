@@ -49,6 +49,7 @@ function liveShowPlan(sh, w) {
   // 초식 일격: 제자는 제자리에서 칼을 휘두르고 (연속 때리기 무공은 아래에서 달려가 붙음)(돌진하는 평타 동작 없이), 칼끝에서 나간 검기가 요수에 닿을 때 맞는다
   const skillAtk = (t0, ev, sk) => {
     q.push({ at: t0, k: 'kiai' });   // 기를 모아 들어가기 직전 기합 (10월 3일 유저)
+    const hitSnd = at => { const d = CO_HIT_SND[sk.n] || 0; if (d && ev.f.k !== 'miss') { ev.noSnd = true; q.push({ at: at + T(d), k: 'hs', crit: ev.f.k === 'crit' }); } };   // 타격음만 맞는 순간보다 당기거나 늦춘다 (유저 초식 타이밍)
     ev.art = !!(sk.mid && stanceFxSrc(sk.mid, sk.n || sk.tier));   // 초식 그림이 있으면 맞을 때 평타 타격 그림은 띄우지 않는다 (겹침 방지)
     if (!ranged && sk.mid && ASSET.hit(sk.mid) && stanceCutN(sk.n || sk.tier) === 1) {   // (제1초식만 — 제2초식은 손에서 뻗어 날아가는 기운)   // 연속 때리기(MANUAL_HIT): 달려가 붙어서 때리고, 맞는 자리에 초식 그림이 터진 뒤 돌아온다
       const N = ASSET.hitN(sk.mid);
@@ -56,13 +57,13 @@ function liveShowPlan(sh, w) {
       const s = t0 + T(330), hitAt = s + T(N > 1 ? 170 * (N - 1) + 40 : 150);
       if (N === 1) { heroF(s - T(90), 6); heroF(s, 11); }   // 한 번 깊게(철사장, 관수 11칸): 웅크렸다가 팔을 곧게 뻗어 찌른 채 멈춘다 (발차기 칸 없이)
       else for (let i = 0; i < N; i++) { heroF(s + T(i * 170), 4); heroF(s + T(i * 170 + 85), 5); }   // 무공마다 횟수 (통비권 연타 세 번 · 철사장 한 번 깊게) — 초식 그림은 첫 손에 터져 끝까지 이어진다
-      q.push({ at: s + T(40), k: 'skill', sk }); q.push({ ...ev, at: hitAt }); const e = hitAt + T(140); heroF(e, 6);
+      q.push({ at: s + T(40), k: 'skill', sk }); hitSnd(hitAt); q.push({ ...ev, at: hitAt }); const e = hitAt + T(140); heroF(e, 6);
       q.push({ at: e + T(200), k: 'hx', x: LIVE_POS.hero }); heroF(e + T(240), 0);
       return e + T(380);
     }
     heroF(t0, 4); q.push({ at: t0 + T(90), k: 'skill', sk }); heroF(t0 + T(140), 5);
     const hitAt = t0 + T(sk.n >= 2 ? 560 : 450);
-    q.push({ ...ev, at: hitAt }); heroF(t0 + T(420), 6); heroF(t0 + T(900), 0);
+    hitSnd(hitAt); q.push({ ...ev, at: hitAt }); heroF(t0 + T(420), 6); heroF(t0 + T(900), 0);
     return t0 + T(1050);
   };
   const foeAtk = (t0, ev) => {
@@ -186,11 +187,12 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'fx') foe.style.left = (sh.foeX + e.x * LIVE_POS.k) + '%';
     else if (e.k === 'fa') foe.classList.toggle('striking', e.f >= 0), e.f >= 0 && (foe.querySelector('.sp-fatk').style.backgroundPositionX = e.f * 50 + '%');
     else if (e.k === 'kiai') sfx('kiai');
+    else if (e.k === 'hs') sfxHit(hero.dataset.w || weaponType(), e.crit);
     else if (e.k === 'skill') liveSkill(sc, e.sk);
     else if (e.k === 'ougi') {
       sh.hold = true; const t1 = performance.now(); sfx('kiai'); sfx('ougi');
       ougiPlay(sc, { w: hero.dataset.w || weaponType(), mid: e.mid, name: e.name, noName: e.noName, heroEl: hero, foeEl: foe, foeImg: ASSET.beast(sh.eid), dmg: e.dmg, kill: e.kill,
-        onImpact: () => { spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
+        onImpact: () => { sfxHit(hero.dataset.w || weaponType(), true); spFlash(foe); liveHp(sc, 'foe', e.hp); } }).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
     else if (e.k === 'callout') {                     // 초식 외침: 시문이 끝나 두루마리가 다 거둬질 때까지 순서를 멈춘다 (그 뒤 기합과 함께 초식)
@@ -202,7 +204,7 @@ function liveShowStep(sc, sh, ts, dt) {
     else if (e.k === 'hitR') {                        // 제자의 공격: 기록된 피해 · 회심 · 빗나감
       const f = e.f;
       if (f.k === 'miss') { liveNum(sc, '빗나감', sh.foeX + 9, 'miss'); sfx('miss'); }
-      else { sfxHit(hero.dataset.w || weaponType(), f.k === 'crit'); spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
+      else { if (!e.noSnd) sfxHit(hero.dataset.w || weaponType(), f.k === 'crit'); spFlash(foe); liveNum(sc, f.t.replace('-', ''), sh.foeX + 9, f.k === 'crit' ? 'crit' : ''); if (!e.art) liveVfx(sc, f.k === 'crit' || f.big ? 'crit' : 'hit', sh.foeX + 7, f.k === 'crit' || f.big ? 'crit' : ''); liveHp(sc, 'foe', e.hp); }
     }
     else if (e.k === 'hurtR') {                       // 요수의 공격: 기록된 피해 · 회피
       const f = e.f;

@@ -9,7 +9,9 @@ const CALLOUT = {
 };
 const CO_TL = { inEnd: 900, poem: 1000, outStart: 2500, outEnd: 2950, end: 3050 };   // ms — 두루마리 시계 (두루마리 자신의 움직임)
 /* 무공 시계: 두루마리가 뜬 뒤 몇 ms에 무공(초식 · 오의)이 시작하는가. 두루마리 시계와 따로 센다 (서로 기다리지 않는다) */
-const CO_MOVE_AT = { move: 3050, ougi: 3050 };   // 초식 · 오의 모두 시문이 끝나 두루마리가 다 거둬진 뒤, 기합과 함께 (10월 3일 유저)
+const CO_MOVE_AT = { 1: 3070, 2: 3050, ougi: 3050 };   // 시문이 끝나 두루마리가 다 거둬진 뒤 기합과 함께 (10월 3일 유저 초식 타이밍 값: 제1초식 3070 · 제2초식 3050 · 오의 3050)
+/* 초식 타격음을 맞는 순간보다 몇 ms 당겨 낼까 (음수 = 먼저, 유저 초식 타이밍 값) */
+const CO_HIT_SND = { 1: -240, 2: 0 };
 const CO_AX = { w: .5, len: .75, start: 1.5, h0: 2.2, c0: .38, aspect: 135 / 505, frames: 16, turn: 4.6 };   // 축 굵기 · 길이 · 다 감겼을 때 굵기 배율 · 그림 비율 · 무늬 한 바퀴(라디안)
 /* [SSOT] 무공의 시: 검법은 비급마다 제 시(poem), 그 밖의 갈래는 갈래별 시(CAT_POEMS) 중 등급에 맞는 한 편. 두루마리 외침과 비급 상세 창이 함께 쓴다 (한쪽만 고쳐 시구가 비는 일이 없게) */
 const POEM_TIER = { '삼류': 0, '이류': 0, '일류': 1, '절정': 1, '초절정': 2 };
@@ -65,7 +67,7 @@ function calloutPlay(sc, mid, n) {
   const gap = Math.min(75, 1300 / Math.max(1, chars.length));
   return new Promise(done => {
     const t0 = performance.now();
-    setTimeout(done, CO_MOVE_AT[n >= 3 ? 'ougi' : 'move']);   // 무공 시계: 두루마리와 따로 세어 그때 무공을 시작한다
+    setTimeout(done, CO_MOVE_AT[n >= 3 ? 'ougi' : n] || CO_MOVE_AT[2]);   // 무공 시계: 두루마리와 따로 세어 그때 무공을 시작한다
     const step = now => {
       const ms = now - t0;
       const p = ms < CO_TL.inEnd ? easeOut(ms / CO_TL.inEnd) : ms < CO_TL.outStart ? 1 : ms < CO_TL.outEnd ? 1 - easeIn((ms - CO_TL.outStart) / (CO_TL.outEnd - CO_TL.outStart)) : 0;
