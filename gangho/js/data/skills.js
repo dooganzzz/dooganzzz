@@ -11,7 +11,7 @@ const MANUALS = {
     stances: [{ name: '응한(凝寒)', desc: '차가운 기운이 맺히다' }, { name: '암야파(暗夜破)', desc: '어두운 밤을 깨뜨린다' }, { name: '일인열장공(一刃裂長空)', desc: '칼 한 자루로 허공을 가르다' }] },
   sw1b: { name: '추상검법', hanja: '秋霜劍法', desc: '검을 뽑아 빛을 내다. 산천의 숨결을 끊는다. 서릿발 칼날이 흉부를 꿰뚫다.', cat: 'mugong', grade: '삼류', weapon: 'sword', passiveBonus: { str: 1, atk: 3 }, extra: { spd: 1 }, poem: { title: '추상(秋霜)', lines: ['칼집을 벗어나는 한 줄기 빛', '산천의 숨결마저 베어 문다.'] },
     stances: [{ name: '발광(拔光)', desc: '검을 뽑아 빛을 내다' }, { name: '산천단(山川斷)', desc: '산천의 숨결을 끊는다' }, { name: '추상직관흉(秋霜直貫胸)', desc: '서릿발 칼날이 흉부를 꿰뚫다' }] },
-  sw1c: { name: '유묵검법', hanja: '儒墨劍法', desc: '먹물의 서늘한 기운. 쇠날이 울부짖는다. 웅혼한 기운으로 앞의 적을 치다.', cat: 'mugong', grade: '삼류', weapon: 'sword', passiveBonus: { str: 1, atk: 3 }, extra: { eva: 2 }, poem: { title: '지(志)', lines: ['선비의 붓끝에 맺힌 기개', '날선 쇳소리로 울려 퍼지네.'] },
+  sw1c: { name: '유묵검법', hanja: '儒墨劍法', desc: '먹물의 서늘한 기운. 쇠날이 울부짖는다. 웅혼한 기운으로 앞의 적을 치다.', cat: 'mugong', grade: '삼류', cost: 150, weapon: 'sword', passiveBonus: { str: 1, atk: 3 }, extra: { eva: 2 }, poem: { title: '지(志)', lines: ['선비의 붓끝에 맺힌 기개', '날선 쇳소리로 울려 퍼지네.'] },
     stances: [{ name: '묵기(墨氣)', desc: '먹물의 서늘한 기운' }, { name: '철의명(鐵衣鳴)', desc: '쇠날이 울부짖는다' }, { name: '호기점전적(浩氣點前敵)', desc: '웅혼한 기운으로 앞의 적을 치다' }] },
   sw1d: { name: '월한검', hanja: '月寒劍', desc: '칼집에서 검을 뽑다. 달그림자를 베다. 검이 뽑히니 달빛마저 차갑다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'sword', passiveBonus: { str: 1, atk: 3 }, extra: { crit: 2 }, poem: { title: '냉월(冷月)', lines: ['칼집을 떠난 쇠 한 줄기에 달마저 숨을 죽인다.'] },
     stances: [{ name: '발초(拔鞘)', desc: '칼집에서 검을 뽑다' }, { name: '월영참(月影斬)', desc: '달그림자를 베다' }, { name: '검출월한(劍出月寒)', desc: '검이 뽑히니 달빛마저 차갑다' }] },
@@ -62,7 +62,7 @@ const MANUALS = {
     stances: [{ name: '노인(露刃)', desc: '칼날을 드러내다' }, { name: '참탁류(斬濁流)', desc: '탁한 흐름을 베고' }, { name: '도광락여우(刀光落如雨)', desc: '칼빛이 비처럼 쏟아지다' }] },
   bd1d: { name: '단강도', hanja: '斷江刀', desc: '물결을 쪼개다. 흐름을 끊는 기세. 한 칼에 강물을 끊는다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'blade', passiveBonus: { str: 1, atk: 3 }, extra: { atk: 2 }, poem: { title: '단류(斷流)', lines: ['내려친 칼 아래 강물이 잠시 흐르기를 잊는다.'] },
     stances: [{ name: '벽랑(劈浪)', desc: '물결을 쪼개다' }, { name: '절류세(截流勢)', desc: '흐름을 끊는 기세' }, { name: '일도단강(一刀斷江)', desc: '한 칼에 강물을 끊는다' }] },
-  bd1e: { name: '지풍도', hanja: '止風刀', desc: '바람을 일으키다. 칼날을 떨어뜨려 베다. 칼이 떨어지니 바람이 멎는다.', cat: 'mugong', grade: '삼류', weapon: 'blade', passiveBonus: { str: 1, atk: 3 }, extra: { spd: 1 }, poem: { title: '풍식(風息)', lines: ['칼이 떨어진 자리, 바람조차 감히 지나지 못한다.'] },
+  bd1e: { name: '지풍도', hanja: '止風刀', desc: '바람을 일으키다. 칼날을 떨어뜨려 베다. 칼이 떨어지니 바람이 멎는다.', cat: 'mugong', grade: '삼류', cost: 150, weapon: 'blade', passiveBonus: { str: 1, atk: 3 }, extra: { spd: 1 }, poem: { title: '풍식(風息)', lines: ['칼이 떨어진 자리, 바람조차 감히 지나지 못한다.'] },
     stances: [{ name: '기풍(起風)', desc: '바람을 일으키다' }, { name: '낙인참(落刃斬)', desc: '칼날을 떨어뜨려 베다' }, { name: '도락풍지(刀落風止)', desc: '칼이 떨어지니 바람이 멎는다' }] },
   bd1f: { name: '무회도', hanja: '無回刀', desc: '뜻을 정하다. 곧장 나아가 베다. 뽑힌 칼은 돌아오지 않는다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'blade', passiveBonus: { str: 1, atk: 3 }, extra: { crit: 2 }, poem: { title: '불귀(不歸)', lines: ['한 번 뽑은 칼은 돌아갈 길을 스스로 지운다.'] },
     stances: [{ name: '결의(決意)', desc: '뜻을 정하다' }, { name: '직진참(直進斬)', desc: '곧장 나아가 베다' }, { name: '도출무회(刀出無回)', desc: '뽑힌 칼은 돌아오지 않는다' }] },
@@ -109,7 +109,7 @@ const MANUALS = {
     stances: [{ name: '도등(挑燈)', desc: '등불을 쳐들다' }, { name: '무백광(舞白光)', desc: '하얀 빛을 휘두르니' }, { name: '점락여취우(點落如驟雨)', desc: '소나기처럼 창끝이 쏟아지다' }] },
   sp1d: { name: '관일창', hanja: '貫日槍', desc: '곧게 찌르다. 구름을 뚫고 치다. 한 창이 해를 꿰뚫는다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'spear', passiveBonus: { con: 1, pierce: 2 }, extra: { crit: 2 }, poem: { title: '천일(穿日)', lines: ['곧게 뻗은 창끝이 해의 한복판을 겨눈다.'] },
     stances: [{ name: '직자(直刺)', desc: '곧게 찌르다' }, { name: '천운격(穿雲擊)', desc: '구름을 뚫고 치다' }, { name: '일창관일(一槍貫日)', desc: '한 창이 해를 꿰뚫는다' }] },
-  sp1e: { name: '출룡창', hanja: '出龍槍', desc: '용이 머리를 들다. 용의 꼬리로 쓸다. 창이 나가니 용과 같다.', cat: 'mugong', grade: '삼류', weapon: 'spear', passiveBonus: { con: 1, pierce: 2 }, extra: { atk: 2 }, poem: { title: '용약(龍躍)', lines: ['창대가 굽이치니 한 마리 용이 물 밖으로 솟는다.'] },
+  sp1e: { name: '출룡창', hanja: '出龍槍', desc: '용이 머리를 들다. 용의 꼬리로 쓸다. 창이 나가니 용과 같다.', cat: 'mugong', grade: '삼류', cost: 150, weapon: 'spear', passiveBonus: { con: 1, pierce: 2 }, extra: { atk: 2 }, poem: { title: '용약(龍躍)', lines: ['창대가 굽이치니 한 마리 용이 물 밖으로 솟는다.'] },
     stances: [{ name: '용두(龍頭)', desc: '용이 머리를 들다' }, { name: '용미소(龍尾掃)', desc: '용의 꼬리로 쓸다' }, { name: '창출여룡(槍出如龍)', desc: '창이 나가니 용과 같다' }] },
   sp1f: { name: '한성창', hanja: '寒星槍', desc: '별을 찍다. 유성처럼 찌르다. 창끝은 차가운 별 한 점이다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'spear', passiveBonus: { con: 1, pierce: 2 }, extra: { spd: 1 }, poem: { title: '고성(孤星)', lines: ['마지막에 보이는 것은 찬 별 하나, 그것이 창끝이다.'] },
     stances: [{ name: '점성(點星)', desc: '별을 찍다' }, { name: '유성자(流星刺)', desc: '유성처럼 찌르다' }, { name: '한성일점(寒星一點)', desc: '창끝은 차가운 별 한 점이다' }] },
@@ -156,7 +156,7 @@ const MANUALS = {
     stances: [{ name: '합수(合手)', desc: '두 손을 모으다' }, { name: '추금산(推金山)', desc: '금산을 밀어내듯 치고' }, { name: '경력투중관(勁力透重關)', desc: '묵직한 경력이 빗장을 뚫다' }] },
   fs1d: { name: '쇄악권', hanja: '碎岳拳', desc: '바위를 치다. 산을 무너뜨려 치다. 한 주먹이 큰 산을 부순다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'fist', passiveBonus: { str: 1, def: 2 }, extra: { atk: 2 }, poem: { title: '붕악(崩岳)', lines: ['주먹 하나 지나간 자리에 큰 산이 돌무더기로 남는다.'] },
     stances: [{ name: '격석(擊石)', desc: '바위를 치다' }, { name: '붕산타(崩山打)', desc: '산을 무너뜨려 치다' }, { name: '일권쇄악(一拳碎岳)', desc: '한 주먹이 큰 산을 부순다' }] },
-  fs1e: { name: '풍뢰장', hanja: '風雷掌', desc: '바람이 일다. 우레가 울리듯 치다. 손바닥을 드니 바람과 우레가 인다.', cat: 'mugong', grade: '삼류', weapon: 'fist', passiveBonus: { str: 1, def: 2 }, extra: { spd: 1 }, poem: { title: '뇌성(雷聲)', lines: ['손바닥이 열리니 바람이 먼저 달리고 우레가 뒤따른다.'] },
+  fs1e: { name: '풍뢰장', hanja: '風雷掌', desc: '바람이 일다. 우레가 울리듯 치다. 손바닥을 드니 바람과 우레가 인다.', cat: 'mugong', grade: '삼류', cost: 150, weapon: 'fist', passiveBonus: { str: 1, def: 2 }, extra: { spd: 1 }, poem: { title: '뇌성(雷聲)', lines: ['손바닥이 열리니 바람이 먼저 달리고 우레가 뒤따른다.'] },
     stances: [{ name: '풍생(風生)', desc: '바람이 일다' }, { name: '뇌동격(雷動擊)', desc: '우레가 울리듯 치다' }, { name: '장기풍뢰(掌起風雷)', desc: '손바닥을 드니 바람과 우레가 인다' }] },
   fs1f: { name: '장천수', hanja: '藏天手', desc: '빈손을 내보이다. 하늘을 덮는 손바닥. 빈손에 하늘을 감춘다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'fist', passiveBonus: { str: 1, def: 2 }, extra: { eva: 2 }, poem: { title: '허공(虛空)', lines: ['아무것도 쥐지 않은 손이 하늘을 통째로 숨기고 있다.'] },
     stances: [{ name: '허수(虛手)', desc: '빈손을 내보이다' }, { name: '복천장(覆天掌)', desc: '하늘을 덮는 손바닥' }, { name: '공수장천(空手藏天)', desc: '빈손에 하늘을 감춘다' }] },
@@ -201,7 +201,7 @@ const MANUALS = {
     stances: [{ name: '암척(暗擲)', desc: '어둠 속에서 던지다' }, { name: '단거로(斷去路)', desc: '달아나는 길을 끊고' }, { name: '쇄골봉적보(碎骨封敵步)', desc: '뼈를 부숴 적의 발걸음을 묶다' }] },
   hd1c: { name: '은침결', hanja: '銀針訣', desc: '은바늘을 손가락에 비비다. 바람 소리를 찢으니 혈도를 찔러 적의 몸을 굳히다.', cat: 'mugong', grade: '삼류', weapon: 'hidden', passiveBonus: { agi: 1, crit: 0.5 }, extra: { combo: 4 },
     stances: [{ name: '염침(捻針)', desc: '은바늘을 손가락에 비비다' }, { name: '파풍향(破風響)', desc: '바람 소리를 찢으니' }, { name: '점혈정적신(點穴定敵身)', desc: '혈도를 찔러 적의 몸을 굳히다' }] },
-  hd1d: { name: '수성표', hanja: '袖星鏢', desc: '소매에 감추다. 별을 흩어 내보내다. 소매 속에 별을 감춘다.', cat: 'mugong', grade: '삼류', weapon: 'hidden', passiveBonus: { agi: 1, crit: 0.5 }, extra: { combo: 4 }, poem: { title: '은성(隱星)', lines: ['넓은 소매가 한 번 펄럭이면 밤하늘에 없던 별이 뜬다.'] },
+  hd1d: { name: '수성표', hanja: '袖星鏢', desc: '소매에 감추다. 별을 흩어 내보내다. 소매 속에 별을 감춘다.', cat: 'mugong', grade: '삼류', cost: 150, weapon: 'hidden', passiveBonus: { agi: 1, crit: 0.5 }, extra: { combo: 4 }, poem: { title: '은성(隱星)', lines: ['넓은 소매가 한 번 펄럭이면 밤하늘에 없던 별이 뜬다.'] },
     stances: [{ name: '은수(隱袖)', desc: '소매에 감추다' }, { name: '산성출(散星出)', desc: '별을 흩어 내보내다' }, { name: '수리장성(袖裏藏星)', desc: '소매 속에 별을 감춘다' }] },
   hd1e: { name: '무성비도', hanja: '無聲飛刀', desc: '소리를 죽이다. 목숨을 쫓아 던지다. 소리 없이 목숨을 거둔다.', cat: 'mugong', grade: '삼류', school: 'ma', weapon: 'hidden', passiveBonus: { agi: 1, crit: 0.5 }, extra: { crit: 2 }, poem: { title: '정야(靜夜)', lines: ['아무 소리도 없었다, 그래서 아무도 피하지 못했다.'] },
     stances: [{ name: '식음(息音)', desc: '소리를 죽이다' }, { name: '추명척(追命擲)', desc: '목숨을 쫓아 던지다' }, { name: '무성탈명(無聲奪命)', desc: '소리 없이 목숨을 거둔다' }] },
@@ -279,7 +279,7 @@ const MANUALS = {
     stances: [{ name: '연약(燕躍)', desc: '제비처럼 솟구치다' }, { name: '점류초(點柳梢)', desc: '버들가지 끝을 찍으니' }, { name: '질보피한봉(疾步避寒鋒)', desc: '빠른 보법으로 칼날을 피하다' }] },
   gy1c: { name: '비첨주벽', hanja: '飛簷走壁', desc: '손톱을 박아 벽을 타고 오르다. 기와지붕을 내달리니 힘을 빌려 높은 다락에 오르다.', cat: 'gyeonggong', grade: '삼류', school: 'sa', terrain: 'earth', passiveBonus: { agi: 1, eva: 0.5 },
     stances: [{ name: '반벽(攀壁)', desc: '손톱을 박아 벽을 타고 오르다' }, { name: '주와릉(走瓦陵)', desc: '기와지붕을 내달리니' }, { name: '차력상중루(借力上重樓)', desc: '힘을 빌려 높은 다락에 오르다' }] },
-  gy1d: { name: '답설보', hanja: '踏雪步', desc: '발끝에 기를 모아 체중을 덜어내는 기초 보법. 익히면 눈밭이나 모래 위에도 발자국을 거의 남기지 않는다.', cat: 'gyeonggong', grade: '삼류', terrain: 'plain', passiveBonus: { agi: 1, eva: 0.5 }, extra: { eva: 1 }, poem: { title: '백설(白雪)', lines: ['밤새 눈길을 달렸으나, 아침의 눈밭은 아무것도 기억하지 못한다.'] } },
+  gy1d: { name: '답설보', hanja: '踏雪步', desc: '발끝에 기를 모아 체중을 덜어내는 기초 보법. 익히면 눈밭이나 모래 위에도 발자국을 거의 남기지 않는다.', cat: 'gyeonggong', grade: '삼류', cost: 120, terrain: 'plain', passiveBonus: { agi: 1, eva: 0.5 }, extra: { eva: 1 }, poem: { title: '백설(白雪)', lines: ['밤새 눈길을 달렸으나, 아침의 눈밭은 아무것도 기억하지 못한다.'] } },
   gy1e: { name: '승풍행', hanja: '乘風行', desc: '바람의 결을 읽어 몸을 싣는 도약술. 담장이나 지붕 높이는 한 번에 오르며, 순풍을 받으면 특히 빠르다.', cat: 'gyeonggong', grade: '삼류', school: 'ma', terrain: 'plain', passiveBonus: { agi: 1, eva: 0.5 }, extra: { spd: 1 }, poem: { title: '월보(月步)', lines: ['바람을 디딤돌 삼아 달빛 위를 거닌다.'] } },
   gy1f: { name: '천리보', hanja: '千里步', desc: '보폭을 넓히고 호흡 소모를 줄이는 장거리 주법. 순간 속도는 평범하나 하루 종일 달려도 쉽게 지치지 않는다.', cat: 'gyeonggong', grade: '삼류', school: 'ma', terrain: 'earth', passiveBonus: { agi: 1, eva: 0.5 }, extra: { staSave: 5 }, poem: { title: '원행(遠行)', lines: ['한 걸음 내딛고 돌아보니 고향이 천 리 밖이다.'] } },
   // ── 이류 경공 ──
@@ -321,7 +321,7 @@ const MANUALS = {
   gi1c: { name: '배원공', hanja: '培元功', desc: '근원의 원기를 모으다. 심장의 경맥을 지키고 기운을 굳혀 바깥 사기를 막다.', cat: 'gigong', grade: '삼류', elem: 'wood', passiveBonus: { int: 1, elem: 3 },
     stances: [{ name: '축원(蓄元)', desc: '근원의 원기를 모으다' }, { name: '호심맥(護心脈)', desc: '심장의 경맥을 지키고' }, { name: '기고어외사(氣固禦外邪)', desc: '기운을 굳혀 바깥 사기를 막다' }] },
   gi1d: { name: '장홍공', hanja: '長虹功', desc: '단전의 기를 한 줄기로 곧게 뽑아 올리는 기초 기공. 주먹과 병기에 힘이 실리지만 오래 유지하기는 어렵다.', cat: 'gigong', grade: '삼류', school: 'ma', elem: 'fire', passiveBonus: { int: 1, elem: 3 }, extra: { atk: 2 }, poem: { title: '홍기(虹氣)', lines: ['배 속에서 일어난 기운이 무지개가 되어 하늘에 걸린다.'] } },
-  gi1e: { name: '장해공', hanja: '藏海功', desc: '기를 쌓아 두는 데 치중한 축기공. 위력은 평범하지만 내력의 바닥이 깊어져 장기전에 강하다.', cat: 'gigong', grade: '삼류', elem: 'water', passiveBonus: { int: 1, elem: 3 }, extra: { maxMp: 10 }, poem: { title: '심해(深海)', lines: ['배꼽 아래 세 치, 그곳에 바다 하나가 잠들어 있다.'] } },
+  gi1e: { name: '장해공', hanja: '藏海功', desc: '기를 쌓아 두는 데 치중한 축기공. 위력은 평범하지만 내력의 바닥이 깊어져 장기전에 강하다.', cat: 'gigong', grade: '삼류', cost: 120, elem: 'water', passiveBonus: { int: 1, elem: 3 }, extra: { maxMp: 10 }, poem: { title: '심해(深海)', lines: ['배꼽 아래 세 치, 그곳에 바다 하나가 잠들어 있다.'] } },
   gi1f: { name: '탄천공', hanja: '吞天功', desc: '한 번의 호흡으로 많은 기를 들이는 호흡법. 내력 회복이 빠르지만, 거칠게 들이는 탓에 기가 탁해지기 쉽다.', cat: 'gigong', grade: '삼류', school: 'ma', elem: 'earth', passiveBonus: { int: 1, elem: 3 }, extra: { mpRegenPct: 3 }, poem: { title: '대식(大息)', lines: ['한 번 들이쉰 숨에 하늘이 한 뼘 낮아진다.'] } },
   // ── 이류 기공 ──
   gi2a: { name: '금종조', hanja: '金鐘罩', desc: '금빛 종을 울리다. 기운이 모여 종 모양 덮개가 되니 도검과 창날도 능히 상하지 못하다.', cat: 'gigong', grade: '이류', elem: 'metal', cost: 250, passiveBonus: { int: 1, elem: 4 }, extra: { elem: 5, def: 4 },
@@ -361,7 +361,7 @@ const MANUALS = {
     stances: [{ name: '응신(凝神)', desc: '흩어진 정신을 하나로 모으다' }, { name: '거심마(祛心魔)', desc: '마음의 마구니를 털어내고' }, { name: '심정수무파(心靜水無波)', desc: '마음이 고요해 물결조차 일지 않다' }] },
   sm1c: { name: '양혈술', hanja: '養血術', desc: '두 눈을 감고 잡념을 끊다. 핏줄을 뜨겁게 적시니 피의 기운이 쉬지 않고 솟아나다.', cat: 'simbeop', grade: '삼류', school: 'sa', passiveBonus: { maxMp: 15, mpRegenPct: 2 },
     stances: [{ name: '폐목(閉目)', desc: '두 눈을 감고 잡념을 끊다' }, { name: '윤혈맥(潤血脈)', desc: '핏줄을 뜨겁게 적시니' }, { name: '혈기생불식(血氣生不息)', desc: '피의 기운이 쉬지 않고 솟아나다' }] },
-  sm1d: { name: '명경결', hanja: '明鏡訣', desc: '잡념을 닦아 마음을 맑히는 기초 심법. 놀람과 분노에 흔들리지 않고 상대의 움직임을 또렷이 본다.', cat: 'simbeop', grade: '삼류', passiveBonus: { maxMp: 15, mpRegenPct: 2 }, extra: { def: 2 }, poem: { title: '경심(鏡心)', lines: ['닦고 또 닦은 마음에 적의 다음 수가 먼저 비친다.'] } },
+  sm1d: { name: '명경결', hanja: '明鏡訣', desc: '잡념을 닦아 마음을 맑히는 기초 심법. 놀람과 분노에 흔들리지 않고 상대의 움직임을 또렷이 본다.', cat: 'simbeop', grade: '삼류', cost: 120, passiveBonus: { maxMp: 15, mpRegenPct: 2 }, extra: { def: 2 }, poem: { title: '경심(鏡心)', lines: ['닦고 또 닦은 마음에 적의 다음 수가 먼저 비친다.'] } },
   sm1e: { name: '귀일결', hanja: '歸一訣', desc: '흩어진 생각을 한곳으로 모으는 집중 심법. 한 가지 무공을 펼칠 때 위력이 오르지만, 여러 일에 주의를 나누기는 어렵다.', cat: 'simbeop', grade: '삼류', school: 'ma', passiveBonus: { maxMp: 15, mpRegenPct: 2 }, extra: { atk: 3 }, poem: { title: '귀원(歸元)', lines: ['만 갈래로 흩어진 생각이 한 점으로 돌아와 고요해진다.'] } },
   sm1f: { name: '무아결', hanja: '無我訣', desc: '승부욕과 두려움을 내려놓는 심법. 살기가 겉으로 드러나지 않아 상대에게 기척과 의도를 읽히지 않는다.', cat: 'simbeop', grade: '삼류', passiveBonus: { maxMp: 15, mpRegenPct: 2 }, extra: { eva: 2 }, poem: { title: '공심(空心)', lines: ['나를 내려놓으니, 맞설 적도 벨 것도 남지 않는다.'] } },
   // ── 이류 심법 ──
@@ -398,7 +398,7 @@ const MANUALS = {
 };
 
 /* 장경각에 들어오는 비급: 이류 비급을 분류(검 · 도 · 창 · 권장 · 암기 · 경공 · 기공 · 심법)마다 하나씩 (유저 요청) */
-const LIBRARY_BOOKS = ['sw2b', 'bd2b', 'sp2b', 'fs2b', 'hd2b', 'gy2b', 'gi2b', 'sm2b'];   // 2a는 장문인 가르침 보상(CP_BOOK)이라 겹치지 않게 2b
+const LIBRARY_BOOKS = ['sw1c', 'bd1e', 'sp1e', 'fs1e', 'hd1d', 'gy1d', 'gi1e', 'sm1d'];   // 장경각 공헌도 비급: 분류마다 정파 삼류 하나 (10월 3일 유저). 장문인 가르침 보상(x1a~c)과 되도록 겹치지 않게 — 검은 정파 삼류가 a~c뿐이라 1c
 
 /* 갈래별 과거 시: [짧은 시(삼류 · 이류) · 보통 시(일류 · 절정) · 긴 시(초절정)] — 검법은 비급마다 poem */
 const CAT_POEMS = {

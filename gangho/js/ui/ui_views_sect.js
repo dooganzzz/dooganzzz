@@ -54,7 +54,7 @@ function viewYeonmu() {
 /* 정청 */
 function viewHall() {
   const qi = questIndex(), q = QUESTS[qi];
-  const shopManuals = LIBRARY_BOOKS.filter(id => MANUALS[id] && !manualSealed(id)).map(id => [id, MANUALS[id]]);   // 이류 비급, 분류마다 하나씩
+  const shopManuals = LIBRARY_BOOKS.filter(id => MANUALS[id] && !manualSealed(id)).map(id => [id, MANUALS[id]]);   // 정파 삼류 비급, 분류마다 하나씩
   const ownsBook = id => !!S.manuals[id] || has('bk_' + id);
   const badges = SHOP_GEAR.filter(g => g.cost);
   const supplied = S.supplyDay === today();
