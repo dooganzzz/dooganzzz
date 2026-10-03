@@ -21,7 +21,7 @@ const ASSET_KIND = {
   beast:    { dir: 'beasts/', ext: 'webp' },
   item:     { dir: 'items/', ext: 'webp' },
   ui:       { dir: 'ui/', ext: 'webp' },
-  font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_536 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
+  font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_537 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
   common:   { dir: 'common/', ext: 'webp' },         // 공용: scroll_초식(두루마리 종이) · _hz(기운 12컷) · scroll_ax(도는 축 16컷) · scroll_face(제자 얼굴) · strike_hit · strike_crit(평타 타격 · 치명)
   portrait: { dir: 'portraits/', ext: 'webp' },
   audio:    { dir: 'audio/', ext: 'mp3' },          // 소리: teahouse(배경음악 옥루관 금소합주) · sfx(녹음 효과음 묶음 — SFX_SPRITE)
