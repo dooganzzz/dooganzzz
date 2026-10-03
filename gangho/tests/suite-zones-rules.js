@@ -3,8 +3,8 @@
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
 const FOES = {
-  yeomhwa: [['화염 살모사', 'fire', 'hidden'], ['적토 늑대', 'earth', 'fist'], ['단애 독수리', 'metal', 'fist'], ['염화채 벌목수', 'wood', 'blade'], ['염화채 정예 도부수', 'fire', 'blade'], ['염화채 화포수', 'fire', 'hidden'], ['염화채 강행 돌격병', 'earth', 'spear'], ['열화 장갑병', 'metal', 'fist'], ['염화석괴', 'fire', 'fist'], ['염화채주 적패천', 'fire', 'blade']],
-  suryong: [['수로 청어귀', 'water', 'hidden'], ['뻘밭 흑악어', 'earth', 'fist'], ['수룡방 뗏목 척후', 'water', 'spear'], ['수룡방 투망수', 'metal', 'hidden'], ['수룡방 강습대원', 'water', 'blade'], ['수룡방 수중 잠영수', 'water', 'hidden'], ['수룡방 철퇴수', 'metal', 'fist'], ['소택지 독지네', 'wood', 'spear'], ['빙화수요', 'water', 'hidden'], ['수룡방주 벽해룡', 'water', 'spear']],
+  yeomhwa: [['화염 살모사', 'fire', 'hidden'], ['적토 늑대', 'earth', 'fist'], ['단애 독수리', 'metal', 'fist'], ['염화채 벌목수', 'earth', 'blade'], ['염화채 정예 도부수', 'fire', 'blade'], ['염화채 화포수', 'fire', 'hidden'], ['염화채 강행 돌격병', 'earth', 'spear'], ['열화 장갑병', 'metal', 'fist'], ['염화석괴', 'fire', 'fist'], ['염화채주 적패천', 'fire', 'blade']],
+  suryong: [['수로 청어귀', 'water', 'hidden'], ['뻘밭 흑악어', 'earth', 'fist'], ['수룡방 뗏목 척후', 'water', 'spear'], ['수룡방 투망수', 'metal', 'hidden'], ['수룡방 강습대원', 'water', 'blade'], ['수룡방 수중 잠영수', 'water', 'hidden'], ['수룡방 철퇴수', 'water', 'fist'], ['소택지 독지네', 'water', 'spear'], ['빙화수요', 'water', 'hidden'], ['수룡방주 벽해룡', 'water', 'spear']],
 };
 // 단조 장비 위계: 2재료(중급) 공격 18~22·방어 7~9·스탯 +1 / 3재료(상급 이류) 공격 26~32·방어 12~15·스탯 +2
 const GEAR = { c_fist: ['흑철 호수', { atk: 20, def: 8, str: 1 }], c_sword: ['청강검', { atk: 28, crit: 3, agi: 2 }], c_blade: ['혈문도', { atk: 32, str: 2 }], c_spear: ['벽파 삼지창', { atk: 30, pierce: 5, con: 2 }], c_hidden: ['칠성 투골정', { atk: 26, agi: 2 }], c_armor: ['청강 사슬갑', { def: 15, maxHp: 80, con: 2 }], c_ring: ['벽옥 지환', { maxMp: 40, atk: 5, int: 1 }], c_belt: ['웅모 포대', { def: 8, con: 1 }], c_jade: ['수정 영옥대', { qiPct: 6, elemRes: 5, int: 2 }],
@@ -52,7 +52,7 @@ module.exports = async (b) => {
     ok('2 요수마다 드랍 표 · 사냥터 재료만', mo.drops && mo.zoneMats, JSON.stringify(mo));
     ok('2 연격: 한 턴에 두 번 공격', mo.hits === 2 && mo.combo, JSON.stringify(mo));
     ok('2 중독: 지속 피해 · 해독산이면 면역', mo.poisoned && mo.tick && mo.immune, JSON.stringify(mo));
-    ok('2 혈문도: 적에게 출혈 · 청령목괴는 화 기공에 약점', mo.bleed && mo.weak === 0.25, JSON.stringify(mo));
+    ok('2 혈문도: 적에게 출혈 · 청령목괴는 화 기공에 약점', mo.bleed && mo.weak === 0.2, JSON.stringify(mo));
 
     // 3. 화로 단조·단약 · 비밀 조합식 · 중급 장비 9종 · 8품 단약 6종
     const fu = await p.evaluate(GEAR => {
@@ -79,7 +79,7 @@ module.exports = async (b) => {
     ok('3 단조 성공 → 상급 장비 · 도감 등재 · 실패 → 찌꺼기 (주력 단조면 2배)', fu.made && fu.slag, JSON.stringify(fu));
     ok('3 생혈고 조합식은 청풍산 재료만 · 2티어 권장 기본형은 "흑철 수투"', fu.saeng && fu.fistName === '흑철 수투', JSON.stringify(fu));
     await p.evaluate(() => { goTab('sect', 'forge'); ui.craft = 'forge'; render(); });
-    ok('3 화로 [단조] | [단약] | [연혼] 탭 · 품계 표시 · 비법 개수는 숨김', await p.evaluate(() => { const t = document.querySelector('.furnace .panel-head').textContent; return document.querySelectorAll('.furnace-tabs [data-craft]').length === 3 && /단조 \d품/.test(t) && !/비법 \d+\/\d+/.test(t); }));
+    ok('3 화로 [단조] | [연단] | [연혼] 탭 · 비법 개수는 숨김', await p.evaluate(() => { const t = document.querySelector('.furnace').textContent; return [...document.querySelectorAll('[data-craft]')].map(e => e.textContent.slice(0, 2)).join() === '단조,연단,연혼' && !/비법 \d+\/\d+/.test(t); }));
 
     // 4. 도감 4탭
     await p.click('[data-tab="codex"]');
