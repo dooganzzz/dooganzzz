@@ -1011,7 +1011,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .hopae-panel > .obs-gauge .gauge-bar-track { height: var(--gh); border-radius: calc(var(--gh) / 2); }
 .hopae-panel > .obs-gauge .gauge-text { line-height: var(--gh); }
 .hopae-panel > .obs-cp .cp-main { white-space: nowrap; }
-@media (max-width: 480px) { .hopae-panel > .obs-cp, .hopae-panel > .obs-gauge { position: static; transform: none; width: auto; margin-top: 10px; } .hopae-panel > .obs-gauge .stat-gauge { grid-template-columns: var(--gi) auto minmax(0, 1fr); } }
+/* 폰도 PC와 같은 자리 · 크기 (10월 3일 유저) */
 /* 무장: 채비 자리는 유저가 슬라이더로 정한 값 (패널 안 %, 10월 3일) — 좁은 화면에서는 제자리(흐름)에 */
 .gear-panel { position: relative; }
 .gear-panel > .auto-equip { position: absolute; left: var(--chabi-x, 62.5%); top: var(--chabi-y, 8.5%); transform: translate(-50%, -50%); z-index: 2; }
