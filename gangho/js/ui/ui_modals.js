@@ -13,15 +13,15 @@ function manualModal(cat) {
 const fmtBonus = b => Object.entries(b).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
 function manualAttrHtml(id) {
   const M = MANUALS[id], P = SCHOOLS[schoolOf(id)], rows = [];
-  if (P) rows.push([`${P.name}(${P.hanja})`, `${P.words}. 성향(계열마다 가장 높은 비급) 한 칸마다 ${P.bonus}.${M.cat === 'mugong' ? ` ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음).` : ''}`]);
+  if (P) rows.push([`${P.name}(${P.hanja})`, `${P.words}.${M.cat === 'mugong' ? ` ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음).` : ''}`]);
   if (M.elem) rows.push([`오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})`, `${ELEMENTS[ELEM_BEATS[M.elem]].name}(${ELEMENTS[ELEM_BEATS[M.elem]].hanja}) 속성 적에게 피해 +25%, ${(e => `${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`)(Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem))} 속성 적에게는 -25%`]);
   if (M.terrain) rows.push([`지형 ${TERRAINS[M.terrain].name}(${TERRAINS[M.terrain].hanja})`, `${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%`]);
   return rows.length ? `<h4 class="sec-h">속성</h4><dl class="attr-rows">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` : '';
 }
 function manualFxHtml(id, star) {
   const M = MANUALS[id], cat = M.cat, rows = [], got = n => star != null && star >= n;
-  rows.push(['습득 시', `${bonusText(M.passiveBonus) || '없음'} <small class="muted">(익히면 장착하지 않아도 늘 적용)</small>`, star != null]);
-  rows.push(['장착 시', `${fmtBonus(manualBonus(id, star || 1))} <small class="muted">(${star || 1}성 기준 · 성급마다 조금씩 오름)</small>`, star != null]);
+  rows.push(['습득 시', `${bonusText(M.passiveBonus) || '없음'}`, star != null]);
+  rows.push(['장착 시', `${fmtBonus(manualBonus(id, star || 1))}`, star != null]);
   rows.push(['소성(6성) 시', `장착 능력치 30% 상승${got(6) ? ' <small class="gold">(적용 중)</small>' : ` — ${fmtBonus(manualBonus(id, 6))}`}${M.weapon && M.stances ? ' · 제2초식 열림' : ''}`, got(6)]);
   rows.push(['대성(12성) 시', `${DAESUNG_PASSIVE[cat].text}${M.weapon && M.stances ? ' · 오의 열림' : ''}${got(MAX_STAR) ? ' <small class="gold">(적용 중)</small>' : ''}`, got(MAX_STAR)]);
   return `<h4 class="sec-h">부가 효과</h4><dl class="attr-rows fx">${rows.map(([k, v, on]) => `<dt class="${on ? 'on' : ''}">${k}</dt><dd class="${on ? '' : 'muted'}">${v}</dd>`).join('')}</dl>`;
