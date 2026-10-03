@@ -288,3 +288,4 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .alert-dot.slot-up { position: absolute; top: 4px; right: 4px; margin: 0; width: 9px; height: 9px; z-index: 3; }   /* 무장 칸: 행낭에 더 좋은(낄 수 있는) 장비가 있음 */
 .bag-tile .ink-box > .alert-dot.slot-up { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .35), 0 0 4px rgba(224, 65, 42, .7); background: #e0412a; }   /* 행낭 칸: 지금 낀 것보다 좋은 장비 */
 .bag-tile > .hj-seal { flex: none; margin-left: auto; }   /* 행낭 칸 오른쪽 끝: 장비 등급 낙관 */
+.hj-seal.sm { height: 20px; margin: 0 2px; vertical-align: -5px; }   /* 글줄 속 작은 낙관 (출정 준비 속성 줄) */

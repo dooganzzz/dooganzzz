@@ -133,9 +133,9 @@ function prepPanel() {
     ${(() => { const e = myElem(), t = myTerrain(), m = X.zone ? terrainMult(X.zone) : 1, Z = X.zone && ZONES[X.zone];
       const win = e ? ELEM_BEATS[e] : null, lose = e ? Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === e) : null;
       const tv = !t ? '<span class="warn">지형 없음 — 경공 무공을 익히고 장착하십시오</span>'
-        : `${terrainTag(t)} <small>걷는 땅의 성질. 탐험지 지형과 맞으면 기력이 덜 듭니다.</small>${Z ? `<br><small>${Z.name} 지형 ${zoneTerrainText(X.zone)} → ${m < 1 ? '<b class="good">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn">불일치 · 기력 +20%</span>' : '영향 없음'}</small>` : ''}`;
+        : `${terrainTag(t)} <small>걷는 땅의 성질. 탐험지 지형과 맞으면 기력이 덜 듭니다.</small>${Z ? `<br><small>${Z.name} 지형 ${(Z.terrain || []).map(k => `${sealImg('t_' + k, `${TERRAINS[k].name}(${TERRAINS[k].hanja})`, false, 'sm')}${TERRAINS[k].name}`).map(x => `<span class="nw">${x}</span>`).join(' · ')} → ${m < 1 ? '<b class="good nw">일치 · 기력 -20%</b>' : m > 1 ? '<span class="warn nw">불일치 · 기력 +20%</span>' : '영향 없음'}</small>` : ''}`;
       const ev = !e ? '<span class="warn">오행 없음 — 기공 무공을 익히고 장착하십시오</span>'
-        : `${elemTag(e)} <small>싸울 때의 기운. 요수의 오행과 맞물려 피해가 달라집니다.</small><br><small>${ELEMENTS[win].hanja} 속성 요수에게 <b class="good">주는 피해 +25% · 받는 피해 -25%</b><br><small>${ELEMENTS[lose].hanja} 속성 요수에게는 <span class="warn">주는 피해 -25% · 받는 피해 +40%</span></small>`;
+        : `${elemTag(e)} <small>싸울 때의 기운. 요수의 오행과 맞물려 피해가 달라집니다.</small><br><small>${sealImg(win, `${ELEMENTS[win].name}(${ELEMENTS[win].hanja})`, false, 'sm')} 속성 요수에게 <b class="good"><span class="nw">주는 피해 +25%</span> · <span class="nw">받는 피해 -25%</span></b><br><small>${sealImg(lose, `${ELEMENTS[lose].name}(${ELEMENTS[lose].hanja})`, false, 'sm')} 속성 요수에게는 <span class="warn"><span class="nw">주는 피해 -25%</span> · <span class="nw">받는 피해 +40%</span></span></small>`;
       return row(!!t && m <= 1, '경공 · 지형', tv, go('status', 'martial', '무공')) + row(!!e, '기공 · 오행', ev, go('status', 'martial', '무공')); })()}
     ${(() => { const lr = liveRec(), c = lr && lootChips(lr.gain); return lr ? row(true, '전리품', c ? `<div class="loot-chips">${c}</div>` : '<span class="muted">아직 없음</span>') : ''; })()}
     ${row(true, '준비한 단약', S.buffs.length ? S.buffs.map(b => b.name).join(', ') : '없음 (철골단·통맥환·해독산·청심단은 다음 강호행 동안 효과)', go('bag', null, '행낭'))}

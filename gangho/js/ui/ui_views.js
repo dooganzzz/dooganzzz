@@ -45,7 +45,7 @@ const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico
 
 /* 상성 표식: 기공의 오행 · 경공의 지형 · 적의 오행/병기 */
 /* 한자 낙관(인장) 그림: 한자 글자 대신 (tall = 세로 낙관 — 경지 · 비급 등급) */
-const sealImg = (id, alt, tall) => `<img class="hj-seal${tall ? ' tall' : ''}" src="${ASSET.seal(id)}" alt="${alt}" title="${alt}">`;
+const sealImg = (id, alt, tall, cls = '') => `<img class="hj-seal${tall ? ' tall' : ''}${cls ? ' ' + cls : ''}" src="${ASSET.seal(id)}" alt="${alt}" title="${alt}">`;
 const rarityTag = r => sealImg(RARITY[r].cls, `${RARITY[r].name}(${RARITY[r].hanja})`);   // 장비 등급 낙관 (下 · 中 · 上 · 眞 · 名 · 極)
 const elemTag = e => e ? sealImg(e, `오행 ${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`) : '';
 const terrainTag = t => t ? sealImg('t_' + t, `지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})`) : '';
