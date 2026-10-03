@@ -143,7 +143,7 @@ function liveVfx(sc, name, left, cls) {
 }
 function liveShowStart(sc, sh) {
   const foe = sc.querySelector('.live-foe'); if (!foe) return null;
-  const n = FOE_SHEET[sh.eid] || 6, size = Math.max(.8, foeSize(sh.eid));   // 작은 요수도 폰에서 보이게 0.8배 이상
+  const n = FOE_SHEET[sh.eid] || 6, size = foeSize(sh.eid);   // 소형 · 중형 · 대형 (ui_sprite.js FOE_SCALE)
   foe.className = 'sp-fighter sp-foe flip fsheet live-foe';
   foe.style.width = (LIVE_POS.foeW * size).toFixed(1) + '%'; foe.style.left = '104%';
   sh.foeX = 100 - LIVE_POS.foeR - LIVE_POS.foeW * size;  sh.size = size;   // 맞붙는 자리 (왼쪽 끝 %)

@@ -111,8 +111,9 @@ const WEAPON_ADV = {
 };
 
 /* 상성 계수. elem: 오행 극 · weapAtk: 병기 우세 공격력 · weapHit: 병기 우세 명중 보정(%p) · weapDown: 병기 열세 피해 감소
+   sizeRes: 요수 크기(FOE_SIZES)가 잘 막는 병기로 칠 때 주는 피해 감소
    terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 */
-const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terrainMatch: 0.8, terrainMiss: 1.2 };
+const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terrainMatch: 0.8, terrainMiss: 1.2, sizeRes: 0.15 };   // sizeRes: 요수 크기가 막기에 능숙한 병기로 칠 때 피해 감소
 /* 전투 보정: minDmg 적 공격의 최소 피해(공격력 대비, 방어로도 못 막는 몫) · elemPenalty 오행 역상성일 때 받는 피해 추가
    powerBase 초식 피해 배율의 기준(장보각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
 /* 초식 피해 배율 (제1초식 · 제2초식 · 오의) · 공격마다 MOVE_START%(+ 연환 combo)로 초식이 발동하고, 발동하면 MOVE_PICK 비율로 셋 중 하나를 펼친다

@@ -299,3 +299,4 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .beasts .cx-seals .hj-seal.tall { width: 22px; height: 39px; }
 .beasts .cx-seals small { margin-left: 4px; }
 .beasts li > small.passive { flex-basis: 100%; margin-left: 0; white-space: normal; }   /* 각인 줄은 다음 줄에 통째로 (모바일 잘림 방지) */
+.aff-tag.fsz { color: var(--ink); white-space: nowrap; }   /* 요수 크기 (소형 · 중형 · 대형) */

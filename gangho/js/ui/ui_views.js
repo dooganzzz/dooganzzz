@@ -53,6 +53,7 @@ const elemTag = e => e ? sealImg(e, `오행 ${ELEMENTS[e].name}(${ELEMENTS[e].ha
 const terrainTag = t => t ? sealImg('t_' + t, `지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})`) : '';
 /* 파 표식 (正 · 魔 · 邪): 정마사 상성과 파의 고유 효과 */
 const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return sealImg(k, `${P.name}(${P.hanja}) — ${P.desc} 성향 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다`); };
+const sizeTag = z => z ? `<span class="aff-tag fsz" title="${FOE_SIZES[z].name} 요수 — ${WEAPON_CLASS_NAME[FOE_SIZES[z].resist]}을 잘 막음">${FOE_SIZES[z].name}</span>` : '';   // 요수 크기 (소형 · 중형 · 대형)
 const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_CLASS[w]]}</span>` : '';
 
 const realmTag = star => { const r = realmOf(star); return sealImg(r.seal, `${r.name}(${r.hanja})`, true); };

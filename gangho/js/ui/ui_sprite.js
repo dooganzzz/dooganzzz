@@ -59,11 +59,9 @@ setInterval(() => (window.requestIdleCallback || setTimeout)(prewarmSprites), 20
 
 /* 요수 숨쉬기 칸 수 (흑비단독사는 똬리를 늘였다 줄이는 8칸, 나머지는 6칸) */
 const FOE_SHEET = { viper: 8 };
-/* 무대 위 요수 크기 (기본 1 = 무대 폭 18%): 작은 짐승은 작게, 두목은 크게 */
-const FOE_SIZE = { rabbit: .62, wildcat: .72, turtle: .86, boar: .92, eagle: 1.1, scaleFish: .8, centipede: 1.05, crocodile: 1.12,
-  redTiger: 1.15, jeokpaecheon: 1.1, byeokhaeryong: 1.1, magmaGolem: 1.1, treant: 1.05, armored: 1, anchor: 1 };
-const FOE_HUMAN = new Set(['scout', 'deserter', 'slinger', 'logger', 'cannoneer', 'charger', 'eliteAxe', 'raftScout', 'netter', 'raider', 'diver', 'ronin', 'iceSpirit']);
-function foeSize(eid) { return FOE_SIZE[eid] || (FOE_HUMAN.has(eid) ? .9 : 1); }
+/* 무대 위 요수 크기 (무대 폭 18%의 몇 배): 요수 크기 속성(FOE_SIZES)대로 소형 · 중형 · 대형이 한눈에 구분되게. 두목은 조금 더 크게 */
+const FOE_SCALE = { s: .75, m: .95, l: 1.18 };
+function foeSize(eid) { const E = ENEMIES[eid] || {}; return (FOE_SCALE[E.size] || .95) * (E.boss ? 1.06 : 1); }
 function spriteOn(zid, eid) { return SPRITE_STAGES.has(zid) && !!ENEMIES[eid]; }
 function spriteStage(zid, eid) {
   const n = FOE_SHEET[eid] || 6, w = weaponType();
