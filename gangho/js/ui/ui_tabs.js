@@ -153,7 +153,7 @@ const questAlert = () => !!S && (masterAlert() || subqReadyCount() > 0);
 const alertDot = on => on ? '<i class="alert-dot" aria-label="받을 보상 있음"></i>' : '';
 function renderTabs() {
   const qa = questAlert();
-  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : id === 'encounter' ? alertDot(!!S && encountersWaiting().length > 0) : ''}</button>`).join(''));
+  setHTML($('#tabs'), TABS.map(([id, ko, hj]) => `<button class="tab ${ui.tab === id ? 'on' : ''}" data-tab="${id}">${label(ko, hj)}${id === 'sect' ? alertDot(qa) : id === 'encounter' ? alertDot(!!S && encountersWaiting().length > 0) : id === 'codex' ? alertDot(!!S && newTitles().length > 0) : ''}</button>`).join(''));
 }
 
 function head(ko, hj, extra = '') { return `<div class="panel-head"><h2>${label(ko, hj)}</h2>${extra}</div>`; }

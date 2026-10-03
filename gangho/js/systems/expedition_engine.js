@@ -255,8 +255,9 @@ function stageFirst(rec, t) {
   S.stages = S.stages || {}; S.stages[zid] = n;
   const silver = Math.round(STAGE.firstSilver * n * Z.tier), exp = Math.round(STAGE.firstExp * n * Z.tier);
   S.silver += silver; S.exp += exp; give('saenghyeol', STAGE.firstPot, true);
-  const ls = rec.steps[rec.steps.length - 1]; if (ls && ls.d) ls.d.push({ text: `🏯 ${stageName(zid, n)} 첫 돌파 — 은자 ${silver} · 수련치 ${exp} · 생혈고 ${STAGE.firstPot}`, cls: 'gold' });
-  log(`🏯 ${stageName(zid, n)}${n >= STAGE.count ? '의 두목을 쓰러뜨려 탐험지를 평정했습니다' : '을 돌파했습니다'}! 첫 돌파 보상: ${hlSilver(silver)} · 수련치 +${exp} · 생혈고 ${STAGE.firstPot}`, 'gold', t);
+  const bossPill = n >= STAGE.count && zid === 'cheongpung' && give('pillLow', 1, true);   // 적염 호랑이를 처음 쓰러뜨리면 소성 돌파단 1 (10월 3일 유저)
+  const ls = rec.steps[rec.steps.length - 1]; if (ls && ls.d) ls.d.push({ text: `🏯 ${stageName(zid, n)} 첫 돌파 — 은자 ${silver} · 수련치 ${exp} · 생혈고 ${STAGE.firstPot}${bossPill ? ` · ${ITEMS.pillLow.name} 1` : ''}`, cls: 'gold' });
+  log(`🏯 ${stageName(zid, n)}${n >= STAGE.count ? '의 두목을 쓰러뜨려 탐험지를 평정했습니다' : '을 돌파했습니다'}! 첫 돌파 보상: ${hlSilver(silver)} · 수련치 +${exp} · 생혈고 ${STAGE.firstPot}${bossPill ? ` · ${ITEMS.pillLow.name} 1` : ''}`, 'gold', t);
   notify.refresh();
 }
 function stageClear(rec, t) {

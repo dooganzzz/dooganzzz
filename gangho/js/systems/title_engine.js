@@ -1,5 +1,7 @@
 /* [시스템] 별호: 조건을 채우면 얻고(습득 보너스는 영구), 호패에 하나를 새겨 쓴다(착용 보너스). 1장은 최하 · 하만 (TITLE_OPEN_TIER) */
 const ownedTitles = () => S.titles || {};
+/* 새로 얻고 아직 도감 › 별호에서 보지 않은 별호 (빨간 점, 10월 3일 유저) */
+const newTitles = () => Object.keys(S.titles || {}).filter(id => S.titles[id] > (S.titleSeen || 0));
 const titleOpen = id => TITLES[id] && !TITLES[id].sealed && TITLES[id].tier <= TITLE_OPEN_TIER;
 /* 조건 진행: { cur, need } */
 function titleProgress(id) {

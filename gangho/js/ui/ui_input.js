@@ -38,7 +38,7 @@ function onClick(e) {
   if (t.dataset.act === 'doreset') return doReset();
   if (!S) return;
   const d = t.dataset;
-  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } if (ui.modal && t.closest('#modal')) ui.modal = null; /* 창 안의 이동 단추(출발 준비 › 무공 등)는 창을 닫고 간다 */ goTab(d.tab, d.sub); if (d.tab === 'field') ui.fieldMap = !activeRun(); render(); return; }   // 강호행 탭: 먼저 지도
+  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } if (ui.modal && t.closest('#modal')) ui.modal = null; /* 창 안의 이동 단추(출발 준비 › 무공 등)는 창을 닫고 간다 */ goTab(d.tab, d.sub); if (d.tab === 'codex' && ui.codexTab === 'title') seeTitles(); if (d.tab === 'field') ui.fieldMap = !activeRun(); render(); return; }   // 강호행 탭: 먼저 지도
   if (d.encpick) {                                               // 기연 고르기
     const [uid, ci] = d.encpick.split(':').map(Number), r = resolveEncounter(uid, ci);
     if (r && r.fail) toast(r.fail); else if (r) { const g = encGainText(r); toast(`📜 ${r.text}${g ? ` (${g})` : ''}`); }
@@ -52,7 +52,7 @@ function onClick(e) {
     const n = run ? run.stage : S.expedition.stage || 1;
     return showConfirmModal({ title: '돌파 조건 미달', message: n >= STAGE.count ? '두목을 쓰러뜨리면 탐험지를 평정합니다.' : `<b>${stageName(S.expedition.zone, n)}</b>에서 요수를 <b>${stageNeed(n)}번</b> 이겨야 돌파할 수 있습니다.<br>아직 조건을 채우지 못했습니다${run ? ` (지금 ${run.kills} / ${stageNeed(n)}승)` : ' — 강호행을 시작해 요수와 싸우십시오'}.`, confirmText: '알겠습니다', cancelText: '닫기' }); }
   if (d.chron) { ui.chronFilter = d.chron; return render(); }
-  if (d.codextab) { ui.codexTab = d.codextab; return render(); }
+  if (d.codextab) { ui.codexTab = d.codextab; if (d.codextab === 'title') seeTitles(); return render(); }
   if (d.titleuse) { if (equipTitle(d.titleuse)) { notify.save(); render(); } return; }   // 도감 › 별호: 호패에 새기기
   if (d.codexzone) { ui.codexZone = d.codexzone; return render(); }
   if (d.simzone) { ui.simZone = d.simzone; return render(); }
@@ -193,6 +193,8 @@ function askBuy(id) {
     details: [`가진 은자 ${fmt(S.silver)}냥 · 한 번에 최대 ${max}개`], confirmText: '구매', onConfirm: () => { (ui.buyLast = ui.buyLast || {})[id] = ui.buyQty || 1; buyItem(id, ui.buyQty || 1); } });
   const r = document.querySelector('[data-buyqty]'); if (r) r.value = q;   // 다시 그려도 막대가 옛 자리에 남지 않게
 }
+/* 도감 › 별호를 열면 새 별호를 본 것으로 (카드의 빨간 점은 이번에 보는 동안만 남김) */
+function seeTitles() { if (!newTitles().length) return; ui.titleSeenPrev = S.titleSeen || 0; S.titleSeen = Date.now(); notify.save(); }
 function askSell(id) {
   const have = count(id), pr = itemSellPrice(id); if (have < 1) return;
   const max = Math.min(have, 50), q = clamp((ui.sellLast || {})[id] || 1, 1, max); ui.sellQty = q;   // 1~50개 (가진 만큼까지) · 지난번 고른 개수로 시작

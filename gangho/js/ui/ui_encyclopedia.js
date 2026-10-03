@@ -6,7 +6,7 @@ const CODEX_TABS = [['monster', '강적', '强敵'], ['martial', '비급', '秘�
 function viewCodex() {
   const tab = CODEX_TABS.some(([k]) => k === ui.codexTab) ? ui.codexTab : 'monster';
   const bar = `<div class="subtabs codex-tabs" role="tablist" aria-label="도감" style="--n:${CODEX_TABS.length}">${CODEX_TABS.map(([k, ko, hj]) =>
-    `<button class="subtab ${tab === k ? 'on' : ''}" role="tab" aria-selected="${tab === k}" data-codextab="${k}">${label(ko, hj)}</button>`).join('')}</div>`;
+    `<button class="subtab ${tab === k ? 'on' : ''}" role="tab" aria-selected="${tab === k}" data-codextab="${k}">${label(ko, hj)}${k === 'title' ? alertDot(newTitles().length > 0) : ''}</button>`).join('')}</div>`;
   const body = tab === 'monster' ? codexMonsters() : tab === 'martial' ? codexMartial() : tab === 'title' ? codexTitles() : codexRecipes(tab);
   return `<section class="panel codex-panel">${head('도감', '圖鑑')}${bar}${body}</section>`;
 }
@@ -68,9 +68,9 @@ function codexTitles() {
   const card = id => {
     const T = TITLES[id], has = !!own[id], worn = S.title === id;
     if (T.sealed) return `<div class="title-card sealed ${T.school ? 's-' + T.school : ''}"><b class="tc-name">${T.name}<small>${T.hanja}</small></b>${T.school ? schoolBadge(T.school) : ''}<small class="muted">2장 이후에 열립니다</small></div>`;
-    const p = titleProgress(id);
+    const p = titleProgress(id), fresh = has && own[id] > (ui.titleSeenPrev ?? S.titleSeen ?? 0);   // 이번에 처음 보는 별호
     return `<div class="title-card ${has ? 'own' : ''} ${worn ? 'worn' : ''} ${T.school ? 's-' + T.school : ''}">
-      <b class="tc-name">${T.name}<small>${T.hanja}</small></b>${T.school ? schoolBadge(T.school) : ''}
+      <b class="tc-name">${T.name}<small>${T.hanja}</small>${alertDot(fresh)}</b>${T.school ? schoolBadge(T.school) : ''}
       ${T.desc ? `<small class="tc-desc">${T.desc}</small>` : ''}<small class="tc-cond">${T.text}${has ? '' : ` <span class="num">(${fmt(p.cur)} / ${fmt(p.need)})</span>`}</small>
       <div class="tc-bonus"><span>착용</span>${bonusText(T.wear)}</div><div class="tc-bonus"><span>습득</span>${bonusText(T.gain)}</div>
       ${has ? (worn ? '<span class="tc-worn">호패에 새김</span>' : `<button class="btn sm" data-titleuse="${id}">호패에 새기기</button>`) : '<span class="muted tc-lock">아직</span>'}
