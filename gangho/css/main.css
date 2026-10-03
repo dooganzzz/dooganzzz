@@ -1097,7 +1097,7 @@ html.calm .st-glow { animation: none; }
 .npc-mood { font-size: .55em; padding: 1px 8px; margin-left: 6px; border-radius: 999px; border: 1px solid rgba(212, 175, 55, .4); color: var(--gold); vertical-align: middle; }
 /* 무공 탭 네 칸: 칸 크기 · 글씨 크기는 유저 슬라이더 값 (10월 3일) — PC만, 폰은 위 미디어 규칙 */
 @media (min-width: 641px) {
-  .martial-arts-core-layout { --ms-box: 58px; --ms-font: 14px; }
+  .martial-arts-core-layout { --ms-box: 77px; --ms-font: 15px; }   /* 유저 슬라이더 값 */
   .martial-arts-core-layout .slot-lite .mslot-box { width: var(--ms-box); height: var(--ms-box); }
   .martial-arts-core-layout .slot-lite .mslot-box .mslot-cover { width: calc(var(--ms-box) * .69); height: calc(var(--ms-box) * .9); }
   .martial-arts-core-layout .mslot.slot-lite .slot-type-label { font-size: var(--ms-font); }
