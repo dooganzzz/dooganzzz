@@ -198,7 +198,7 @@ function liveShowStep(sc, sh, ts, dt) {
     }
     else if (e.k === 'callout') {                     // 초식 외침: 시문이 끝나 두루마리가 다 거둬질 때까지 순서를 멈춘다 (그 뒤 기합과 함께 초식)
       sh.hold = true; const t1 = performance.now();
-      sfx('scroll'); calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
+      sfx('scroll'); setTimeout(() => sfx('poem'), CO_TL.poem); calloutPlay(sc, e.mid, e.n).then(() => { sh.hold = false; sh.t0 += performance.now() - t1; });
       return false;
     }
     else if (e.k === 'proj') liveProj(sc, sh, e.dur);

@@ -203,7 +203,7 @@ const REC = {
 const SFX_GAP = { type: 45, step: 80, click: 40, portal: 200, equip: 150, unequip: 150, book: 150, buy: 120, sell: 150 };
 /* 지금 내는 효과음: 대사 도트음 · 누르기 소리만 (10월 3일 유저: 나머지 효과음 · 날씨 소리는 모두 뺌. 다시 켜려면 여기에 이름을 더한다) */
 /* 소리마다 따로 맞춘 크기 (1 = 처음 값. 연출 미리보기 '소리 크기' 슬라이더로 유저가 정한다) · 녹음을 낮춰 다르게 쓰는 것(팔 때 엽전 = 살 때보다 낮게) */
-const SND_MIX = { teahouse: 1.25, gangho_road: 1.25, type: 4, click: 2.2, step: 1.5, buy: 1.55, sell: 1.55, portal: 3, hit_fist: 1.85, hit_sword: 2.1, hit_blade: 1.45, hit_spear: 1.65, hit_hidden: 2.75, hurt: 1.85, kiai: 2, scroll: 2.45 };   // 10월 3일 유저 값
+const SND_MIX = { teahouse: 1.25, gangho_road: 1.25, type: 4, click: 2.2, step: 1.5, buy: 1.55, sell: 1.55, portal: 3, hit_fist: 1.85, hit_sword: 2.1, hit_blade: 1.45, hit_spear: 1.65, hit_hidden: 2.75, hurt: 1.85, kiai: 2, scroll: 2.45, poem: 2 };   // 10월 3일 유저 값
 const SFX_RATE = { sell: .82 };
 /* 녹음 앞부분을 건너뛰고 낼 길이(초): 두루마리 '탁'이 뜬 뒤 0.5초에 가장 세게 (유저 초식 타이밍 값, 파일의 센 자리 0.55초) */
 const SFX_SKIP = { scroll: .05 };
@@ -211,7 +211,7 @@ function mixNode(name, bus) {
   let g = SND.mix[name]; if (!g) { g = SND.mix[name] = SND.ctx.createGain(); g.connect(bus); }
   g.gain.value = SND_MIX[name] ?? 1; return g;
 }
-const SFX_ON = new Set(['type', 'click', 'step', 'hit', 'hurt', 'kiai', 'scroll', 'buy', 'sell', 'portal']);   // 발소리 · 타격음 · 요수가 칠 때 · 사고팔기 · 지도 위 마우스도 켬 (10월 3일 유저)
+const SFX_ON = new Set(['type', 'click', 'step', 'hit', 'hurt', 'kiai', 'scroll', 'poem', 'buy', 'sell', 'portal']);   // 발소리 · 타격음 · 요수가 칠 때 · 사고팔기 · 지도 위 마우스도 켬 (10월 3일 유저)
 function sfx(name, o = {}) {
   if (!SFX_ON.has(name)) return;
   const c = SND.ctx; if (!c || c.state !== 'running' || !(SFX[name] || (SND.file && SND.file[name])) || !sndVol('sfxVol')) return;
