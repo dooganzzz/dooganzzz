@@ -91,7 +91,7 @@ const ELEMENTS = {
 const ELEM_BEATS = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };   // 목극토 · 토극수 · 수극화 · 화극금 · 금극목
 
 /* 지형(地形) 5대: 구역마다 하나 이상(복합 지형). 장착 경공의 지형이 구역 지형 중 하나라도 맞으면 그 탐험의 기력 소모 -20%,
-   하나도 맞지 않으면 +20%. 경공이 없으면 보정 없음. */
+   하나도 맞지 않아도 보정 없음 (10월 3일 보완 대책으로 +20% 벌점 삭제). 경공이 없으면 보정 없음. */
 const TERRAINS = {
   grass: { name: '풀', hanja: '草' },
   water: { name: '물', hanja: '水' },
@@ -103,28 +103,29 @@ const TERRAINS = {
 /* 병기 상성: 병기 계열끼리의 가위바위보. 1 = 우세, -1 = 열세, 0 = 호각. 짐승처럼 병기가 없는 적과는 호각. */
 const WEAPON_CLASS = { fist: 'fist', sword: 'blade', blade: 'blade', spear: 'spear', hidden: 'hidden' };
 const WEAPON_CLASS_NAME = { fist: '권장', blade: '검/도', spear: '창', hidden: '암기' };
-const WEAPON_ADV = {
-  fist:   { blade: 1,  hidden: -1, spear: -1 },
-  spear:  { fist: 1,   blade: -1,  hidden: 0 },
-  blade:  { hidden: 1, spear: 1,   fist: -1 },
-  hidden: { fist: 1,   blade: -1,  spear: 0 },
+const WEAPON_ADV = {   // 네 계열이 한 바퀴: 권장 › 검/도 › 창 › 암기 › 권장 (10월 3일 보완 대책 — 모든 계열이 하나를 이기고 하나에게 짐)
+  fist:   { blade: 1,  hidden: -1, spear: 0 },
+  blade:  { spear: 1,  fist: -1,   hidden: 0 },
+  spear:  { hidden: 1, blade: -1,  fist: 0 },
+  hidden: { fist: 1,   spear: -1,  blade: 0 },
 };
 
 /* 크기 상성 (10월 3일 유저): 그 병기로 그 크기의 요수를 때릴 때 주는 피해 % — 칸 순서는 SIZE_GRADES (소형 작음 · 보통 · 큼 · 중형 … · 대형 …)
-   기본: 유리 +15 · 불리 −15. 창은 대형에 크게 유리(+30) · 검은 불리해도 −8만 깎임(기교로 빈틈을 찌름) · 권장은 상성 없음.
-   크기 경계의 '작음 · 큼'은 이웃 크기 쪽으로 1/4쯤 기울인 값 (예: 표창은 소형 · 큼부터 덜 불리하고 중형 · 작음은 덜 유리)
-   처음 안(유리 20 · 불리 20 · 창 40 · 검 10)에서 상성 전체 균형을 위해 3/4로 줄임 (10월 3일 유저) */
+   보완 대책(10월 3일): 범용(암기 · 도)은 유리 +10 · 불리 −15, 창은 불리 −10 · 대형 +30, 검은 소형 +15 · 중형 0 · 대형 −5, 권장은 상성 없음.
+   크기 경계의 '작음 · 큼'은 이웃 크기 쪽으로 1/4 기울인 값 (반올림). 병기 계열 × 크기는 합쳐서 ±AFFINITY_CAP.weapSize 안 */
 const SIZE_DMG = {
-  hidden: [-15, -15,  -8,    8,  15,  15,   15,  15,  15],   // 표창: 큰 놈에게 강한 범용
-  blade:  [ 15,  15,  15,   15,  15,   8,   -8, -15, -15],   // 도: 작은 놈에게 강한 범용
-  spear:  [-15, -15, -15,  -15, -15,  -4,   19,  30,  30],   // 창: 대형 전문, 유리할 때 한 방이 큼
-  sword:  [ 15,  15,   9,   -2,  -8,  -8,   -8,  -8,  -8],   // 검: 불리해도 버티는 안정형
+  hidden: [-15, -15,  -9,    4,  10,  10,   10,  10,  10],   // 암기(표창): 큰 놈에게 강한 범용
+  blade:  [ 10,  10,  10,   10,  10,   4,   -9, -15, -15],   // 도: 작은 놈에게 강한 범용
+  spear:  [-10, -10, -10,  -10, -10,   0,   20,  30,  30],   // 창: 대형 전문, 유리할 때 한 방이 큼
+  sword:  [ 15,  15,  11,    4,   0,  -1,   -4,  -5,  -5],   // 검: 불리해도 버티는 안정형
   fist:   [  0,   0,   0,    0,   0,   0,    0,   0,   0],   // 권장: 상성 없음
 };
 
 /* 상성 계수. elem: 오행 극 · weapAtk: 병기 우세 공격력 · weapHit: 병기 우세 명중 보정(%p) · weapDown: 병기 열세 피해 감소
-   terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 · bossGain: 두목에게는 상성으로 얻는 이득(주는 피해 + · 받는 피해 − · 명중 +)을 이 비율만 (손해는 그대로) */
-const AFFINITY = { elem: 0.2, weapAtk: 0.12, weapHit: 8, weapDown: 0.12, terrainMatch: 0.8, terrainMiss: 1.2, bossGain: 0.5 };   // 10월 3일 상성 전체 조정: 오행 25→20 · 병기 15→12 · 명중 10→8 (모든 상성이 곱해져도 1.55배 ~ 0.6배 안)
+   terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 · bossGain: 두목은 격이 달라 상성(오행 · 병기 · 크기 · 정마사)이 이 비율만 통함 — 이득 · 손해 모두, 주는 · 받는 피해 모두. 고유 약점 · 경지 압제는 그대로 */
+const AFFINITY = { elem: 0.2, weapAtk: 0.12, weapHit: 8, weapDown: 0.12, terrainMatch: 0.8, terrainMiss: 1, bossGain: 0.5 };   // terrainMiss 1.2 → 1 (보완 대책: 경공 지형이 안 맞아도 벌점 없음)
+/* 상성 상한 (보완 대책 10월 3일): weapSize 병기 계열 × 크기 ±30% · dealt 주는 피해 전체(오행 · 병기 · 크기 · 약점 · 정마사) · taken 받는 피해 전체. 경지 압제는 밖에서 따로 */
+const AFFINITY_CAP = { weapSize: 0.3, dealt: [0.6, 1.8], taken: [0.7, 1.5] };   // 10월 3일 상성 전체 조정: 오행 25→20 · 병기 15→12 · 명중 10→8 (모든 상성이 곱해져도 1.55배 ~ 0.6배 안)
 /* 전투 보정: minDmg 적 공격의 최소 피해(공격력 대비, 방어로도 못 막는 몫) · elemPenalty 오행 역상성일 때 받는 피해 추가
    powerBase 초식 피해 배율의 기준(장보각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
 /* 초식 피해 배율 (제1초식 · 제2초식 · 오의) · 공격마다 MOVE_START%(+ 연환 combo)로 초식이 발동하고, 발동하면 MOVE_PICK 비율로 셋 중 하나를 펼친다

@@ -5,7 +5,7 @@
 function zoneUnlocked(zid) { const u = ZONES[zid].unlock; return !u || !!S.flags[u.boss]; }
 
 /* 가중치 표에서 하나 고르기: { key: weight } */
-/* 지형 상성: 장착 경공의 지형이 구역 지형(복합) 중 하나라도 맞으면 기력 소모 -20%, 하나도 안 맞으면 +20%, 경공이 없으면 보정 없음 */
+/* 지형 상성: 장착 경공의 지형이 구역 지형(복합) 중 하나라도 맞으면 기력 소모 -20%, 하나도 안 맞으면 보정 없음(AFFINITY.terrainMiss), 경공이 없으면 보정 없음 */
 /* 걸음 간격: 장착 경공 경지가 높을수록 조금 짧다 */
 function stepMsNow() { const id = S.active.gyeonggong, g = id && MANUALS[id] && MANUALS[id].grade; return Math.round(EXPEDITION.stepMs * ((g && EXPEDITION.stepGrade[g]) || 1)); }
 function myTerrain() { const id = S.active.gyeonggong; return (id && MANUALS[id] && MANUALS[id].terrain) || null; }

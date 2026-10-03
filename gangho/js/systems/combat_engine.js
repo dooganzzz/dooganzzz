@@ -94,18 +94,23 @@ function sizeRelText(wt, pct) {
 function weaponRel(a, b) { if (!a || !b) return 0; return (WEAPON_ADV[WEAPON_CLASS[a]] || {})[WEAPON_CLASS[b]] || 0; }
 /* 나와 적 사이의 상성. dealt: 내가 주는 피해 배율 · taken: 내가 받는 피해 배율 · myHit/foeHit: 명중 보정(%p) */
 function affinity(eid, st = calcStats()) {
-  const E = ENEMIES[eid], me = myElem(), wt = weaponType(), A = AFFINITY;
-  const el = elemRel(me, E.elem), wp = weaponRel(wt, E.wtype);
-  /* 두목 (10월 3일 유저): 상성으로 제자가 얻는 이득만 A.bossGain(절반)으로 줄인다. 손해는 그대로 */
-  const g = E.boss ? A.bossGain : 1, gain = x => x > 1 ? 1 + (x - 1) * g : x, guard = x => x < 1 ? 1 - (1 - x) * g : x;
-  const up = A.elem + (st.elem || 0) / 100;                   // 지력: 내가 극할 때 오행술 위력
-  const weak = (E.weak && me === E.weak.elem ? E.weak.mult : 0) * g;  // 요수 고유 약점 (예: 청령목괴는 화 기공에 취약)
-  const raw = sizeDmg(wt, E.size), sizePct = raw > 0 ? Math.round(raw * g) : raw;   // 크기 상성: 이 병기로 이 크기를 칠 때 주는 피해 %
+  const E = ENEMIES[eid], me = myElem(), wt = weaponType(), A = AFFINITY, C = AFFINITY_CAP;
+  const el = elemRel(me, E.elem), wp = weaponRel(wt, E.wtype), clamp = (v, [lo, hi]) => Math.max(lo, Math.min(hi, v));
+  /* 두목 (10월 3일 유저): 격이 달라 상성(오행 · 병기 · 크기 · 정마사)이 A.bossGain(절반)만 통한다 — 이득 · 손해 모두. 고유 약점 · 경지 압제는 그대로 */
+  const g = E.boss ? A.bossGain : 1, half = x => 1 + (x - 1) * g;
+  const up = A.elem + (st.elem || 0) / 100;                   // 오성: 내가 극할 때 오행술 위력
+  const weak = E.weak && me === E.weak.elem ? E.weak.mult : 0;  // 요수 고유 약점 (오행 고리 밖 · 두목도 줄지 않음)
+  const sizePct = sizeDmg(wt, E.size);                          // 크기 상성: 이 병기로 이 크기를 칠 때 주는 피해 %
+  const sa = schoolEdge(mySchool('mugong'), E.school), sd = schoolEdge(mySchool('simbeop'), E.school);   // 정마사: 공격은 무공 칸 · 방어는 심법 칸
+  const wpD = wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1;
+  const ws = clamp(wpD * (1 + sizePct / 100), [1 - C.weapSize, 1 + C.weapSize]);   // 병기 계열 × 크기 ±30%
+  const dealt = half(el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * half(ws) * half(1 + sa * SCHOOL_RULES.edge) * (1 + weak);
+  const taken = half(el > 0 ? 1 - A.elem : el < 0 ? (1 + Math.max(0, A.elem - (st.elemRes || 0) / 100)) * (1 + COMBAT_RULES.elemPenalty) : 1)
+    * half(wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1) * half(1 - sd * SCHOOL_RULES.edge);
   return {
-    el, wp, me, foe: E.elem, wt, fwt: E.wtype || null, weak, size: E.size || null, sizePct, boss: !!E.boss,
-    dealt: gain(el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * gain(wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1) * (1 + weak) * (1 + sizePct / 100),
-    taken: guard(el > 0 ? 1 - A.elem : el < 0 ? (1 + Math.max(0, A.elem - (st.elemRes || 0) / 100)) * (1 + COMBAT_RULES.elemPenalty) : 1) * guard(wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
-    myHit: wp > 0 ? A.weapHit * g : 0, foeHit: wp < 0 ? A.weapHit : 0,
+    el, wp, me, foe: E.elem, wt, fwt: E.wtype || null, weak, size: E.size || null, sizePct: Math.round(sizePct * g), boss: !!E.boss, sa, sd, school: E.school || null,
+    dealt: clamp(dealt, C.dealt), taken: clamp(taken, C.taken),
+    myHit: wp > 0 ? A.weapHit * g : 0, foeHit: wp < 0 ? A.weapHit * g : 0,
   };
 }
 const NO_AFF = { dealt: 1, taken: 1, myHit: 0, foeHit: 0 };   // 상성이 없는 전투 (직접 꾸린 전투 기록 등)
@@ -116,8 +121,10 @@ function affinityText(a) {
   const wn = w => w ? WEAPON_CLASS_NAME[WEAPON_CLASS[w]] : '맨몸';
   const weap = !a.fwt ? '호각 (상대는 병기가 없음)' : a.wp > 0 ? `<b class="good">우세</b> (${wn(a.wt)} › ${wn(a.fwt)})` : a.wp < 0 ? `<b class="warn">열세</b> (${wn(a.wt)} ‹ ${wn(a.fwt)})` : `호각 (${wn(a.wt)} = ${wn(a.fwt)})`;
   const size = a.size ? ` · 크기 ${sizeName(a.size)} — ${sizeRelText(a.wt, a.sizePct)}` : '';
-  const boss = a.boss ? ` · <b class="warn">두목 — 상성 이득 절반</b>` : '';
-  return `오행 ${elem} · 병기 ${weap}${size}${boss}${a.weak ? ` · <b class="good">약점 공략 (+${Math.round(a.weak * 100)}%)</b>` : ''}`;
+  const SN = k => `${SCHOOLS[k].name}(${SCHOOLS[k].hanja})`;
+  const school = a.school ? ` · 성향 상대 ${SN(a.school)} — 공격 ${a.sa > 0 ? '<b class="good">우세</b>' : a.sa < 0 ? '<b class="warn">열세</b>' : '호각'} · 방어 ${a.sd > 0 ? '<b class="good">우세</b>' : a.sd < 0 ? '<b class="warn">열세</b>' : '호각'}` : '';
+  const boss = a.boss ? ` · <b class="warn">두목 — 격이 달라 상성이 절반만 통함</b>` : '';
+  return `오행 ${elem} · 병기 ${weap}${size}${school}${boss}${a.weak ? ` · <b class="good">약점 공략 (+${Math.round(a.weak * 100)}%)</b>` : ''}`;
 }
 
 /* 기척 비율: 내가 버티는 합 수 ÷ 적을 쓰러뜨리는 데 드는 합 수 (속도 보정). 높을수록 내가 유리 */
@@ -285,7 +292,7 @@ function playerHit(b, mult, o) {
   let dmg = dmgCalc(st.atk, def) * mult * A.dealt * (o.title && o.cls !== 'counter' ? 1 + (st.qiDmg || 0) : 1);   // 통맥환(초식)
   const crit = Math.random() * 100 < st.crit + (o.critUp || 0);
   if (crit) dmg *= COMBAT_RULES.critBase + (st.critDmg || 0) / 100;   // 회심 위력
-  dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step) * (1 + schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge));   // 경지 압제 · 정마사 상성(요수는 없음)
+  dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step));   // 경지 압제 (정마사는 affinity의 A.dealt에 들어 있음)
   e.hpNow = Math.max(0, e.hpNow - dmg);
   if (e.hpNow <= 0) b.finisher = !!(o.title && o.cls !== 'counter');   // 초식(오의 포함)으로 마무리했는가 — 수련치 보너스
   if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= e.hp * 0.2 });
@@ -357,7 +364,7 @@ function enemyTurn(b) {
     let dmg = Math.max(1, Math.round(Math.max(dmgCalc(e.atk, Math.max(0, st.def - (e.pierce || 0))), e.atk * COMBAT_RULES.minDmg) * A.taken * (h > 0 ? 0.6 : 1)));
     const crit = Math.random() * 100 < Math.max(0, (e.crit || 8) - st.critRes / 2);
     if (crit) dmg = Math.round(dmg * 1.5);
-    dmg = Math.max(1, Math.round(dmg * (1 - (b.realm || 0) * COMBAT_RULES.realm.step) * (1 - schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge)));   // 경지 압제 · 정마사 상성
+    dmg = Math.max(1, Math.round(dmg * (1 - (b.realm || 0) * COMBAT_RULES.realm.step)));   // 경지 압제 (정마사는 A.taken에 들어 있음)
     if (st.block && Math.random() * 100 < st.block) {                                       // 막기: 일부만 받는다
       dmg = Math.max(1, Math.round(dmg * (1 - COMBAT_RULES.blockCut)));
       bLine(`🛡 막기! 팔을 세워 공격을 받아 냅니다. (피해 -${COMBAT_RULES.blockCut * 100}%)`, 'log-stance-desc aff-up');
