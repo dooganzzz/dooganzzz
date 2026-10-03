@@ -192,12 +192,13 @@ function viewGear() {
 
 /* 행낭: 보관 장비 · 소지품 */
 function viewBag() {
-  // 분류: 전체 · 무기 · 방어구 · 장신구(장비 부위는 전방 장비 탭과 같음) · 기타(장비 밖의 모든 소지품)
-  const tabs = [['all', '전체'], ['weapon', '무기'], ['armor', '방어구'], ['acc', '장신구'], ['etc', '기타']], f = tabs.some(t => t[0] === ui.bagFilter) ? ui.bagFilter : 'all';
-  const gear = f === 'etc' ? [] : gearSort(S.gear.filter(it => f === 'all' || SHOP_GEAR_TABS[f].slots.includes(it.slot)));
-  const items = f === 'all' || f === 'etc' ? itemSort(Object.keys(S.inv)) : [];
-  return `<section class="panel">
-    ${head('행낭', '行囊', `<span class="bag-silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}은자 <b>${fmt(S.silver)}</b></span><span class="num muted">${bagUsed()} / ${bagCap()}칸</span>`)}
+  // 분류: 전체 · 무기 · 방어구 · 장신구(장비 부위는 전방 장비 탭과 같음) · 비급 · 기타(장비 · 비급 밖의 모든 소지품)
+  const tabs = [['all', '전체'], ['weapon', '무기'], ['armor', '방어구'], ['acc', '장신구'], ['book', '비급'], ['etc', '기타']], f = tabs.some(t => t[0] === ui.bagFilter) ? ui.bagFilter : 'all';
+  const gear = f === 'etc' || f === 'book' ? [] : gearSort(S.gear.filter(it => f === 'all' || SHOP_GEAR_TABS[f].slots.includes(it.slot)));
+  const isBook = k => ITEMS[k] && ITEMS[k].kind === '비급';
+  const items = f === 'all' ? itemSort(Object.keys(S.inv)) : f === 'book' ? itemSort(Object.keys(S.inv).filter(isBook)) : f === 'etc' ? itemSort(Object.keys(S.inv).filter(k => !isBook(k))) : [];
+  return `<section class="panel bag-panel">
+    ${head('행낭', '行囊', `<span class="bag-silver" title="은자 ${fmt(S.silver)}냥">${uiIco('h_silver')}은자 <b>${fmt(S.silver)}</b></span><span class="num muted bag-cap">${bagUsed()} / ${bagCap()}칸</span>`)}
     <div class="chips">${tabs.map(([k, n]) => `<button class="chip ${f === k ? 'on' : ''}" data-filter="${k}">${n}</button>`).join('')}</div>
     ${gear.length || items.length ? `<div class="bag-tiles">${gear.map(it => `<button class="bag-tile ${gradeClass(RARITY[it.rarity].name)}" data-bagitem="g:${it.uid}" title="${esc(it.name)}">${inkBox(gearIco(it, 'card'))}<b class="item-name">${it.name}</b></button>`).join('')}${items.map(id => `<button class="bag-tile" data-bagitem="i:${id}" title="${esc(ITEMS[id].name)}">${inkBox(itemIco(id))}<b class="item-name">${ITEMS[id].name}</b><span class="num bag-n">×${count(id)}</span></button>`).join('')}</div>` : ''}
     ${gear.length || items.length ? '' : '<p class="muted">이 갈래에 든 것이 없습니다.</p>'}

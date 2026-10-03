@@ -13,7 +13,8 @@ module.exports = async (b) => {
   ok('1 1차 탭 순서', tabs === '청풍문,상태,행낭,강호행,견문록,기연,도감,설정', tabs);
   const st0 = await p.evaluate(() => ({ learned: Object.keys(S.manuals).length, active: Object.values(S.active).filter(Boolean).length, books: Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').sort().join(',') }));
   ok('2 시작 시 장착·습득 없음', st0.learned === 0 && st0.active === 0);
-  ok('2 비급 4권 지급', st0.books === 'bk_bd1a,bk_gi1a,bk_gy1a,bk_sm1a', st0.books);
+  const gifts = await p.evaluate(() => Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급' && k !== 'bk_bd1a').map(k => [MANUALS[k.slice(3)].cat, MANUALS[k.slice(3)].grade, schoolOf(k.slice(3))].join('/')).sort().join(','));
+  ok('2 비급 4권 지급 (입문 무공 + 삼류 정파 심법 · 경공 · 기공 무작위)', st0.books.split(',').length === 4 && gifts === 'gigong/삼류/jeong,gyeonggong/삼류/jeong,simbeop/삼류/jeong', gifts);
   // 빈 슬롯 상태: 연무장·전투
   const bare = await p.evaluate(() => { S.hp = 9999; return fightSync('rabbit').win; });
   ok('무공 없이도 맨손 전투 가능', bare === true);
@@ -24,7 +25,7 @@ module.exports = async (b) => {
   await p.evaluate(() => { learnManual('bk_bd1a'); render(); });
   const l1 = await p.evaluate(() => ({ learned: !!S.manuals.bd1a, left: count('bk_bd1a') }));
   ok('2 익히기: 소모 + 습득 목록 등록', l1.learned && l1.left === 0);
-  for (const k of ['bk_sm1a', 'bk_gy1a', 'bk_gi1a']) { await p.evaluate(k => { learnManual(k); render(); }, k);   // 익히기 단추는 무공 탭에서 뺌 (행낭에서 익힘) }
+  for (const k of await p.evaluate(() => Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급'))) { await p.evaluate(k => { learnManual(k); render(); }, k); }   // 익히기 단추는 무공 탭에서 뺌 (행낭에서 익힘)
   // 상태 › 무공
   await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
   const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mrow .mrow-name')].map(e => e.textContent).join(','), total: (document.querySelector('.total-count-badge') || {}).textContent }));

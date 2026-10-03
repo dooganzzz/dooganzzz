@@ -1108,3 +1108,9 @@ html.calm .st-glow { animation: none; }
 .hopae-btn { display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; }
 .hopae-btn:hover .hopae-board, .hopae-btn:focus-visible .hopae-board { filter: brightness(1.08) drop-shadow(0 0 10px rgba(212, 175, 55, .35)); }
 .bag-sheet .alias-row { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+/* 행낭: 은자 · 칸 수 자리는 유저 슬라이더 값 (패널 안 %, 10월 3일) — 좁은 화면에서는 제자리 */
+.bag-panel { position: relative; }
+@media (min-width: 641px) {
+  .bag-panel .bag-silver { position: absolute; left: var(--silver-x, 50%); top: var(--silver-y, 12%); transform: translate(-50%, -50%); margin: 0; }
+  .bag-panel .bag-cap { position: absolute; left: var(--cap-x, 94%); top: var(--cap-y, 12%); transform: translate(-50%, -50%); white-space: nowrap; }
+}

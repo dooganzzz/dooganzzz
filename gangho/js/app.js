@@ -20,7 +20,7 @@ function newState(name, mugongId, opts = {}) {
     alias: '강호초출', titles: { chocheol: now() }, title: 'chocheol', attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), apt: validApt(opts.apt) ? { ...opts.apt } : rollApt(), talent: TALENTS[opts.talent] ? opts.talent : null,
     expedition: { zone: null, run: null, stage: 1, auto: true }, stages: {}, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
-    inv: { hopae: 1, saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, bk_sm1a: 1, bk_gy1a: 1, bk_gi1a: 1 },
+    inv: { hopae: 1, saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, ...Object.fromEntries(['simbeop', 'gyeonggong', 'gigong'].map(starterGift).filter(Boolean).map(k => [k, 1])) },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
     perm: { maxHp: 0, maxMp: 0, attr: {}, apt: {} },

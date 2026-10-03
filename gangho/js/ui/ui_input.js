@@ -33,7 +33,7 @@ function onClick(e) {
   if (t.dataset.act === 'doreset') return doReset();
   if (!S) return;
   const d = t.dataset;
-  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } goTab(d.tab, d.sub); if (d.tab === 'field') ui.fieldMap = !activeRun(); render(); return; }   // 강호행 탭: 먼저 지도
+  if (d.tab) { if (ui.modal && ui.modal.startsWith('settle:')) { replayStop(); ui.modal = null; } if (ui.modal && t.closest('#modal')) ui.modal = null; /* 창 안의 이동 단추(출발 준비 › 무공 등)는 창을 닫고 간다 */ goTab(d.tab, d.sub); if (d.tab === 'field') ui.fieldMap = !activeRun(); render(); return; }   // 강호행 탭: 먼저 지도
   if (d.encpick) {                                               // 기연 고르기
     const [uid, ci] = d.encpick.split(':').map(Number), r = resolveEncounter(uid, ci);
     if (r && r.fail) toast(r.fail); else if (r) { const g = encGainText(r); toast(`📜 ${r.text}${g ? ` (${g})` : ''}`); }
