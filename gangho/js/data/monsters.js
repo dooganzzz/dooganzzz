@@ -8,7 +8,7 @@
 
 /* 공격력 · 활력은 10월 3일 유저 요청으로 전체 공격력 ×0.8 · 활력 ×1.1 한 값 */
 /* 상성 보완 (10월 3일 유저 「상성 시스템 보완 대책」): school = 사람형 요수의 성향 (흑풍채 · 낭인 마 · 염화채 사 · 수룡방 정, 짐승 · 요괴는 없음).
-   weak = 고유 약점 (오행 고리 밖, 두목에게도 줄지 않음): 청령목괴 ← 화 · 염화석괴 ← 목 · 빙화수요 ← 화 +40% · 적염 호랑이 ← 토 · 적패천 ← 목 · 벽해룡 ← 금 */
+   weak = 고유 약점 (오행 고리 밖, 두목에게도 줄지 않음): 청령목괴 ← 화 · 염화석괴 ← 목 · 빙화수요 ← 화 +40% (두목에게는 고유 약점을 두지 않음 — 10월 3일 유저: 기공 바꿔 끼기만 늘어남) */
 /* 요수 크기 (10월 3일 유저): size = 크기 + 그 안의 세 단계 (s1 소형 · 작음 … l3 대형 · 큼). 순서는 SIZE_GRADES.
    병기마다 크기에 따라 주는 피해가 달라진다 (martial_arts.js SIZE_DMG). 무대 위 실제 크기는 ui_sprite.js FOE_SCALE */
 const FOE_SIZES = { s: { name: '소형', hanja: '小' }, m: { name: '중형', hanja: '中' }, l: { name: '대형', hanja: '大' } };
@@ -35,7 +35,7 @@ const ENEMIES = {
     atkText: '바위 같은 등껍질을 앞세워 굴러 들어온다', trait: '방어에 능함 [정예]' },
   treant:   { size: 'l2', name: '청령목괴', elem: 'wood', wtype: 'spear', tier: 3, hp: 572, atk: 42, def: 13, spd: 9, eva: 3, xp: 36, silver: [5, 10], weak: { elem: 'fire', mult: 0.2 },
     atkText: '뾰족한 가지를 창처럼 꼬아 내찌른다', trait: '화(火) 속성 기공에 약함' },
-  redTiger: { size: 'l2', weak: { elem: 'earth', mult: 0.25 }, name: '적염 호랑이', elem: 'fire', wtype: 'fist', hp: 660, atk: 24, def: 16, spd: 20, eva: 9, xp: 90, silver: [40, 60], gear: [1, 1], boss: 'boss1', hits: 2,
+  redTiger: { size: 'l2', name: '적염 호랑이', elem: 'fire', wtype: 'fist', hp: 660, atk: 24, def: 16, spd: 20, eva: 9, xp: 90, silver: [40, 60], gear: [1, 1], boss: 'boss1', hits: 2,
     atkText: '붉은 갈기를 곤두세우고 화염 발톱을 연달아 휘두른다', trait: '강맹한 화염 발톱 연타' },
 
   // ───── 염화채 (중급 · 흙/일반) ─────
@@ -57,7 +57,7 @@ const ENEMIES = {
     atkText: '철갑을 두른 주먹으로 정면에서 밀고 들어온다', trait: '두터운 철갑' },
   magmaGolem: { size: 'l3', name: '염화석괴', elem: 'fire', wtype: 'fist', tier: 4, hp: 858, atk: 69, first: true, def: 30, spd: 6, eva: 0, xp: 52, silver: [12, 24], weak: { elem: 'wood', mult: 0.4 },
     atkText: '불타는 바위 팔을 내리쳐 불똥을 튀긴다', trait: '불타는 바위 요수 · 수(水) 속성에 극도로 약함' },
-  jeokpaecheon: { size: 'l2', weak: { elem: 'wood', mult: 0.25 }, school: 'sa', name: '염화채주 적패천', elem: 'fire', wtype: 'blade', hp: 2090, atk: 67, def: 34, spd: 12, eva: 8, xp: 220, silver: [150, 220], gear: [2, 1], boss: 'boss2', crit: 18,
+  jeokpaecheon: { size: 'l2', school: 'sa', name: '염화채주 적패천', elem: 'fire', wtype: 'blade', hp: 2090, atk: 67, def: 34, spd: 12, eva: 8, xp: 220, silver: [150, 220], gear: [2, 1], boss: 'boss2', crit: 18,
     atkText: '패도(覇刀)의 기세로 대지를 가르며 내려친다', trait: '파괴적인 패도 초식 (높은 회심)' },
 
   // ───── 수룡방 (상급 · 물/일반) ─────
@@ -79,7 +79,7 @@ const ENEMIES = {
     atkText: '긴 몸으로 휘감으며 독 다리를 박는다', trait: '휘감는 요수 (중독) · 흡혈 10%' },
   iceSpirit:  { size: 's3', drain: 25, name: '빙화수요', elem: 'water', wtype: 'hidden', tier: 3, hp: 1502, atk: 114, def: 75, spd: 10, eva: 10, xp: 115, silver: [40, 70], weak: { elem: 'fire', mult: 0.4 }, gear: [3, 0.06],
     atkText: '냉기 장막 너머에서 얼음 바늘을 흩뿌린다', trait: '냉기 장막(높은 방어) · 토(土) 기공에 약함 · 흡혈 25%' },
-  byeokhaeryong: { size: 'l3', weak: { elem: 'metal', mult: 0.25 }, school: 'jeong', name: '수룡방주 벽해룡', elem: 'water', wtype: 'spear', hp: 5720, atk: 120, def: 80, spd: 14, eva: 10, xp: 500, silver: [500, 700], gear: [3, 1], boss: 'boss3', hits: 2,
+  byeokhaeryong: { size: 'l3', school: 'jeong', name: '수룡방주 벽해룡', elem: 'water', wtype: 'spear', hp: 5720, atk: 120, def: 80, spd: 14, eva: 10, xp: 500, silver: [500, 700], gear: [3, 1], boss: 'boss3', hits: 2,
     atkText: '삼지창을 용처럼 휘몰아쳐 물기둥째 찔러 온다', trait: '용처럼 휘몰아치는 삼지창술 (2연격)' },
 
   // 기연
