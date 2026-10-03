@@ -34,7 +34,7 @@ function drawAuth() {
     <p class="eyebrow">江湖見聞錄 · ${join ? '入門' : '歸門'}</p>
     <h1>강호견문록</h1>
     ${A.notice ? `<p class="auth-notice">${esc(A.notice)}</p>` : ''}
-    <div class="chips auth-tabs"><button type="button" class="chip ${join ? '' : 'on'}" data-authmode="login">입문</button><button type="button" class="chip ${join ? 'on' : ''}" data-authmode="join">입문 등록</button></div>
+    <div class="chips auth-tabs"><button type="button" class="chip ${join ? '' : 'on'}" data-authmode="login">입문</button><button type="button" class="chip ${join ? 'on' : ''}" data-authmode="join">가입하기</button></div>
     <form class="auth-form" data-authform autocomplete="on">
       <label class="field-l" for="authId">아이디 <small class="muted">영문 소문자 · 숫자 · _ 3~16자</small></label>
       <input id="authId" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="16" value="${esc(A.id)}" required>
@@ -45,7 +45,7 @@ function drawAuth() {
       ${A.err ? `<p class="auth-err" role="alert">${esc(A.err)}</p>` : ''}
       <button class="btn primary big" type="submit" ${A.busy ? 'disabled' : ''}>${A.busy ? '잠시만…' : join ? '가입하고 시작' : '입문'}</button>
     </form>
-    <p class="muted auth-note">${join ? '캐릭터는 이 아이디에 저장되어 어느 기기에서든 이어서 할 수 있습니다. 암호는 암호화해서만 보관합니다.' : '처음이면 [입문 등록]으로 아이디를 만드십시오.'}</p>
+    <p class="muted auth-note">${join ? '캐릭터는 이 아이디에 저장되어 어느 기기에서든 이어서 할 수 있습니다. 암호는 암호화해서만 보관합니다.' : '처음이면 [가입하기]로 아이디를 만드십시오.'}</p>
     ${A.offline ? '<button type="button" class="btn ghost sm" data-authguest>이 기기에서만 하기 (입문 없이)</button>' : ''}
   </div>`;
   m.onclick = e => {
