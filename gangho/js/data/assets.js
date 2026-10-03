@@ -25,12 +25,12 @@ const ASSET_KIND = {
   font:     { dir: 'fonts/', ext: 'woff' },   // rank_hanja는 woff2 (ASSET_EXT)           // 붓글씨 폰트 gangho_brush_537 — 글자를 늘리면 이름도 바꿔 브라우저 캐시를 피한다 (지역 이름 · 1장 비급 글자 477자, tools/brush-font.py로 만듦)
   common:   { dir: 'common/', ext: 'webp' },         // 공용: scroll_초식(두루마리 종이) · _hz(기운 12컷) · scroll_ax(도는 축 16컷) · scroll_face(제자 얼굴) · strike_hit · strike_crit(평타 타격 · 치명)
   portrait: { dir: 'portraits/', ext: 'webp' },
-  audio:    { dir: 'audio/', ext: 'mp3' },          // 소리: teahouse(배경음악 옥루관 금소합주) · sfx(녹음 효과음 묶음 — SFX_SPRITE)
+  audio:    { dir: 'audio/', ext: 'mp3' },          // 소리: teahouse(배경음악 옥루관 금소합주) · gangho_road(강호행 배경음악) · sfx(녹음 효과음 묶음 — SFX_SPRITE)
   scene:    { dir: '', ext: 'webp' },                 // banner · shrine · shrine_awake · meditation · forge_scene · alchemy_scene · yeonhon_hall · rankup_2(이류무사 승급)
 };
 /* 배경음악: 장면 → 곡 (assets/art/audio/곡.mp3). 곡이 없는 장면은 hall 곡을 이어 튼다.
    장면: hall(정청 · 그 밖 모든 화면 · 로그인) · live(강호행 산길) · fight(강호행 전투) · boss(두목) */
-const BGM_TRACKS = { hall: 'teahouse' };
+const BGM_TRACKS = { hall: 'teahouse', live: 'gangho_road', fight: 'gangho_road' };   // 강호행(산길 · 전투 · 두목) = gangho_road (10월 3일 유저가 뽑은 곡)
 /* 맞힐 때 소리: 병기 → 녹음 파일 (assets/art/audio/이름.mp3, 10월 3일 유저가 보낸 소리에서 맞는 순간만 잘라 냄) */
 const HIT_SFX = { fist: 'hit_fist', sword: 'hit_sword', blade: 'hit_blade', spear: 'hit_spear', hidden: 'hit_hidden' };
 /* 녹음 파일로 내는 효과음: 효과음 이름 → 파일 (10월 3일 유저가 보낸 소리 — 대사 도트음은 울림을 끊고 작게, 지도 위 마우스는 음을 조금 올려 가볍게) */
