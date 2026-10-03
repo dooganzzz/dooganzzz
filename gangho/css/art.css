@@ -847,6 +847,10 @@ html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage 
 /* 화로: 왼쪽 무대(+칸 · 정보) · 오른쪽 재료 */
 .forge-left { display: grid; gap: 12px; min-width: 0; align-content: start; }
 .yh-pick { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
-.yh-pick .yh-slot { width: 78px; flex: none; }
 .pot-slots .slot.gear small { max-width: 100%; }
 .chip.gear small { color: var(--dim); }
+
+/* 연혼: 팔괘 자리에 놓인 조각 (10월 3일) — 조각 그림만, 작은 거울 크기에 맞춰 명경을 가리지 않게 */
+.furnace-stage.study .yh-scrap { position: absolute; z-index: 2; width: 5.4%; height: auto; transform: translate(-50%, -50%); pointer-events: none; filter: drop-shadow(0 0 4px rgba(0, 0, 0, .55)); animation: yhScrapIn .35s ease-out both; }
+@keyframes yhScrapIn { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } }
+html.calm .furnace-stage.study .yh-scrap { animation: none; }

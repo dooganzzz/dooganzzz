@@ -12,7 +12,6 @@ function furnaceTabs() {
    명경을 누르면 엮을 수 있는 조각 창이 뜬다 (같은 등급 조각 STUDY.need장이 다 모여야 엮임 · 등급끼리 섞이지 않음) */
 function viewStudy() {
   const pick = ui.yhPick, need = STUDY.need;
-  const slot = pick ? `<button class="slot full yh-slot" data-yhpick="${pick}" title="${ITEMS[pick].name} 빼기" style="--gc:${STUDY.color[pick]}">${itemIco(pick)}<small>${ITEMS[pick].name} ${count(pick)}/${need}</small></button>` : '<div class="slot yh-slot"><small class="slot-hint">조각</small></div>';
   const chips = Object.entries(STUDY.scraps).map(([id, grade]) => `<button class="chip ${pick === id ? 'on' : ''}" data-yhpick="${id}" style="--gc:${STUDY.color[id]}" title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${count(id)}/${need}</b></button>`).join('');
   return `<section class="panel furnace study">
     ${head('화로', '火爐')}
@@ -22,16 +21,21 @@ function viewStudy() {
       <div class="forge-left">
         <div class="pot furnace-stage study"><div class="stage-bg">${artPic(ART_SRC.yeonhonScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>
           <img class="yh-book" src="${ART_SRC.yeonhonBook()}" alt="" aria-hidden="true">
-          <button class="yh-mirror" data-act="mirror" aria-label="명경 — 찢어진 비급 조각 엮기"></button></div>
-        <div class="yh-pick">${slot}<div class="btns plaque-btns study-btns"><button class="btn plaque primary" data-act="yeonhon">연혼주입</button></div></div>
+          <button class="yh-mirror" data-act="mirror" aria-label="명경 — 찢어진 비급 조각 엮기"></button>${yhScraps(pick)}</div>
+        <div class="yh-pick"><div class="btns plaque-btns study-btns"><button class="btn plaque primary" data-act="yeonhon">연혼주입</button></div></div>
       </div>
       <div class="mats">
         <h4>조각 재료</h4>
         <div class="chips">${chips}</div>
-        <p class="muted furnace-desc">조각을 골라 칸에 올린 뒤 [연혼주입]을 누르십시오. 같은 등급 ${need}장이 모여야 엮입니다.</p>
+        <p class="muted furnace-desc">조각을 고르면 명경 둘레 팔괘 자리에 한 장씩 놓입니다. 여덟 자리가 다 차면(같은 등급 ${need}장) [연혼주입]을 누르십시오.</p>
       </div>
     </div>
   </section>`;
+}
+/* 고른 등급의 조각을 명경 둘레 팔괘 자리(YH_MIRRORS)에 한 장씩 — 가진 만큼(최대 STUDY.need장). 칸 테두리 · 배경 없이 조각 그림만, 작게 놓아 명경이 가려지지 않게 */
+function yhScraps(pick) {
+  if (!pick) return '';
+  return YH_MIRRORS.slice(0, Math.min(count(pick), STUDY.need)).map(([x, y]) => `<img class="yh-scrap" src="${ITEM_ART(pick)}" style="left:${x}%;top:${y}%" alt="" aria-hidden="true">`).join('');
 }
 /* 엮기 연출: 여덟 거울(자리 %) → 넋이 명경(50%, 35.2%)으로 모임 → 비급이 또렷해지며 번쩍. 끝나면 resolve */
 const YH_MIRRORS = [[50, 8.45], [60.91, 17.06], [64.73, 33.32], [60.73, 49.24], [50, 53.31], [39.27, 49.24], [35, 33.32], [38.91, 17.06]];
