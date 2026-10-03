@@ -860,19 +860,6 @@ html.calm .qi-ring, html.calm .qi-comet, html.calm .martial-arts-core-layout .sl
 .mslot-head-txt { min-width: 0; flex: 1; }
 .mslot-head .mslot-cover { flex: none; width: 34px; height: 44px; font-size: 26px; }
 .mslot-head .mslot-cover img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6)); }
-@media (max-width: 640px) {   /* 폰: 위 두 칸(심법 · 기공) — 가운데 좌선 — 아래 두 칸(무공 · 경공). 고리는 좌선 뒤에만 */
-  .mslots.martial-arts-core-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "heart aura" "core core" "attack agility"; gap: 10px 8px; aspect-ratio: auto; width: 100%; }
-  .mslots.martial-arts-core-layout > .slot-pos { position: relative; left: auto; top: auto; transform: rotate(var(--tilt, 0deg)); justify-self: stretch; min-width: 0; }
-  .qi-comet { display: none; } .martial-arts-core-layout .slot-pos .mslot-box { animation: none; }   /* 폰: 칸이 고리 위에 있지 않아 도는 빛 · 칸 빛남은 뺀다 */
-  .slot-pos.pos-12 { grid-area: heart; } .slot-pos.pos-3 { grid-area: aura; } .slot-pos.pos-9 { grid-area: attack; } .slot-pos.pos-6 { grid-area: agility; }
-  .mslots.martial-arts-core-layout > .meditation-center-frame { grid-area: core; position: relative; left: auto; top: auto; transform: none; justify-self: center; width: min(62vw, 240px); height: auto; aspect-ratio: 1; margin: 4px 0; }
-  .mslots.martial-arts-core-layout { position: relative; }
-  .mslots.martial-arts-core-layout > .qi-orbit { position: absolute; inset: auto; left: 50%; top: 50%; width: min(118%, 470px); height: auto; aspect-ratio: 1; transform: translate(-50%, -50%); margin: 0; }   /* 폰: 큰 기운 고리가 네 칸을 감싸게 (10월 3일 유저) */
-  .mslots.martial-arts-core-layout > .qi-ring { animation: none; }
-  .mslots.martial-arts-core-layout > .slot-pos, .mslots.martial-arts-core-layout > .meditation-center-frame { z-index: 2; }
-  .skill-card-compact.mslot, .pos-12 .skill-card-compact.mslot, .pos-6 .skill-card-compact.mslot { width: 100%; max-width: none; }
-  .mslot-head .mslot-cover { width: 26px; height: 34px; }
-}
 /* 무사 품계 게이지: 좌선 둥근 테두리 = 24칸 청동 고리(확정본 그림). 켜진 칸(--rk)만큼 같은 그림의 '불 켜진 판'이 드러나 파랗게 넘실댄다.
    칸 경계는 부드럽게 (불꽃이 칸에 얽매이지 않게), 다 차면(.full) 고리 전체가 타오른다 */
 .meditation-center-frame { --rk: 0%; overflow: visible; }
@@ -1145,3 +1132,22 @@ html.calm .st-glow { animation: none; }
 
 /* 붓글씨 폰트(Gangho Brush)를 받기 전에는 그 글씨를 숨긴다 — 기본 글씨로 먼저 보였다 바뀌는 깜빡임 없애기 (ui_live.js가 html.brush-ok를 단다) */
 html:not(.brush-ok) :is(.ground-tag > span, .live-where, .lh-nm, .rku .title b, .enh-tag, .og-ban, .co-art, .co-move, .co-poem, .name-box #pname, .name-ink, .title-card .tc-name, .main-header .brand-title, .hopae .hp-col) { visibility: hidden; }
+
+/* 폰 무공 판 (10월 3일 유저): 정사각 판 — 큰 기운 고리 안에 네 칸, 가운데 좌선. 자리 · 크기는 유저 슬라이더 값(--p12x … --mbox · --medw) */
+@media (max-width: 640px) {
+  .mslots.martial-arts-core-layout { --p12x: 25%; --p12y: 25%; --p3x: 75%; --p3y: 25%; --p9x: 25%; --p9y: 75%; --p6x: 75%; --p6y: 75%; --mbox: 48px; --medw: 44%;
+    display: block; position: relative; width: min(100%, 420px); aspect-ratio: 1; margin: 0 auto; zoom: 1; }
+  .mslots.martial-arts-core-layout > .qi-orbit { position: absolute; inset: 0; width: 100%; height: 100%; transform: none; margin: 0; }
+  .mslots.martial-arts-core-layout > .qi-ring { animation: none; }
+  .mslots.martial-arts-core-layout > .qi-comet { display: none; }
+  .mslots.martial-arts-core-layout .slot-pos .mslot-box { animation: none; }
+  .mslots.martial-arts-core-layout > .meditation-center-frame { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: var(--medw); height: auto; aspect-ratio: 1; margin: 0; z-index: 2; }
+  .mslots.martial-arts-core-layout > .slot-pos { position: absolute; transform: translate(-50%, -50%); z-index: 3; min-width: 0; }
+  .mslots.martial-arts-core-layout > .slot-pos.pos-12 { left: var(--p12x); top: var(--p12y); } .mslots.martial-arts-core-layout > .slot-pos.pos-3 { left: var(--p3x); top: var(--p3y); }
+  .mslots.martial-arts-core-layout > .slot-pos.pos-9 { left: var(--p9x); top: var(--p9y); } .mslots.martial-arts-core-layout > .slot-pos.pos-6 { left: var(--p6x); top: var(--p6y); }
+  .mslots.martial-arts-core-layout > .slot-pos .skill-card-compact.mslot { display: flex; flex-direction: column; align-items: center; gap: 2px; width: auto; max-width: none; padding: 0; text-align: center; transform: none; }
+  .mslots.martial-arts-core-layout .slot-lite .mslot-box { width: var(--mbox); height: var(--mbox); }
+  .mslots.martial-arts-core-layout .slot-lite .mslot-box .mslot-cover { width: 66%; height: 86%; }
+  .mslots.martial-arts-core-layout .mslot-head-txt { text-align: center; }
+  .mslots.martial-arts-core-layout .mslot-cat { font-size: 12px; } .mslots.martial-arts-core-layout .mslot-name { font-size: 11px; white-space: nowrap; }
+}
