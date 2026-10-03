@@ -854,3 +854,7 @@ html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage 
 .furnace-stage.study .yh-scrap { position: absolute; z-index: 2; width: 5.4%; height: auto; transform: translate(-50%, -50%); pointer-events: none; filter: drop-shadow(0 0 4px rgba(0, 0, 0, .55)); animation: yhScrapIn .35s ease-out both; }
 @keyframes yhScrapIn { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } }
 html.calm .furnace-stage.study .yh-scrap { animation: none; }
+/* 여덟 자리가 다 차면 명경이 은은하게 숨 쉬듯 빛난다 → [연혼주입]을 누를 때 (조각 등급 빛깔 --gc) */
+.furnace-stage.study.yh-ready .yh-mirror { animation: yhReady 2.4s ease-in-out infinite; }
+@keyframes yhReady { 0%, 100% { box-shadow: 0 0 10px 2px rgba(255, 240, 200, .25), inset 0 0 18px rgba(255, 245, 220, .15); } 50% { box-shadow: 0 0 34px 10px rgba(255, 236, 180, .55), inset 0 0 40px rgba(255, 250, 230, .45); } }
+html.calm .furnace-stage.study.yh-ready .yh-mirror { animation: none; box-shadow: 0 0 24px 6px rgba(255, 236, 180, .45), inset 0 0 30px rgba(255, 250, 230, .35); }
