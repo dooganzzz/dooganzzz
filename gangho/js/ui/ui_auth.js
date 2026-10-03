@@ -3,9 +3,9 @@
    세션 보관 · 게임 열기는 app.js(authSignedIn · startGuest)가 맡는다 */
 const AUTH_ID_RE = /^[a-z0-9_]{3,16}$/;
 const AUTH_ERR = {
-  'bad login': '명첩 또는 암호가 맞지 않습니다.',
-  'id taken': '이미 쓰고 있는 명첩입니다.',
-  'bad id': '명첩는 영문 소문자 · 숫자 · _ 로 3~16자입니다.',
+  'bad login': '아이디 또는 암호가 맞지 않습니다.',
+  'id taken': '이미 쓰고 있는 아이디입니다.',
+  'bad id': '아이디는 영문 소문자 · 숫자 · _ 로 3~16자입니다.',
   'bad pass': '암호는 4~64자입니다.',
   'locked': '암호를 여러 번 틀려 10분 동안 입문이 막혔습니다. 잠시 뒤 다시 시도하십시오.',
 };
@@ -36,7 +36,7 @@ function drawAuth() {
     ${A.notice ? `<p class="auth-notice">${esc(A.notice)}</p>` : ''}
     <div class="chips auth-tabs"><button type="button" class="chip ${join ? '' : 'on'}" data-authmode="login">입문</button><button type="button" class="chip ${join ? 'on' : ''}" data-authmode="join">입문 등록</button></div>
     <form class="auth-form" data-authform autocomplete="on">
-      <label class="field-l" for="authId">명첩 <small class="muted">영문 소문자 · 숫자 · _ 3~16자</small></label>
+      <label class="field-l" for="authId">아이디 <small class="muted">영문 소문자 · 숫자 · _ 3~16자</small></label>
       <input id="authId" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="16" value="${esc(A.id)}" required>
       <label class="field-l" for="authPw">암호 <small class="muted">4자 이상</small></label>
       <input id="authPw" name="password" type="password" autocomplete="${join ? 'new-password' : 'current-password'}" maxlength="64" required>
@@ -45,7 +45,7 @@ function drawAuth() {
       ${A.err ? `<p class="auth-err" role="alert">${esc(A.err)}</p>` : ''}
       <button class="btn primary big" type="submit" ${A.busy ? 'disabled' : ''}>${A.busy ? '잠시만…' : join ? '가입하고 시작' : '입문'}</button>
     </form>
-    <p class="muted auth-note">${join ? '캐릭터는 이 명첩에 저장되어 어느 기기에서든 이어서 할 수 있습니다. 암호는 암호화해서만 보관합니다.' : '처음이면 [입문 등록]으로 명첩를 만드십시오.'}</p>
+    <p class="muted auth-note">${join ? '캐릭터는 이 아이디에 저장되어 어느 기기에서든 이어서 할 수 있습니다. 암호는 암호화해서만 보관합니다.' : '처음이면 [입문 등록]으로 아이디를 만드십시오.'}</p>
     ${A.offline ? '<button type="button" class="btn ghost sm" data-authguest>이 기기에서만 하기 (입문 없이)</button>' : ''}
   </div>`;
   m.onclick = e => {
@@ -69,8 +69,8 @@ function drawAuth() {
 function authLegacyOffer(st, yes, no) {
   const m = $('#modal'); m.hidden = false; m.dataset.intro = '1';
   m.innerHTML = `<div class="sheet intro auth-sheet"><p class="eyebrow">江湖見聞錄</p><h2>이 기기에 있던 캐릭터</h2>
-    <p class="story">입문하기 전에 이 기기에서 하던 제자 <b>${esc(st.name || '무명')}</b>이 있습니다. 이 명첩로 옮겨 이어서 하시겠습니까?</p>
-    <p class="muted">옮기면 이 기기의 예전 저장은 명첩 쪽으로 넘어갑니다. 새로 시작하면 예전 저장은 그대로 남습니다.</p>
+    <p class="story">입문하기 전에 이 기기에서 하던 제자 <b>${esc(st.name || '무명')}</b>이 있습니다. 이 아이디로 옮겨 이어서 하시겠습니까?</p>
+    <p class="muted">옮기면 이 기기의 예전 저장은 아이디 쪽으로 넘어갑니다. 새로 시작하면 예전 저장은 그대로 남습니다.</p>
     <div class="btns"><button class="btn primary" data-legacy="yes">옮겨서 이어 하기</button><button class="btn ghost" data-legacy="no">새로 시작</button></div></div>`;
   m.onsubmit = null;
   m.onclick = e => {
