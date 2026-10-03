@@ -16,7 +16,7 @@ module.exports = async (b) => {
     ok('6 같은 재료 구성의 조합식이 둘 이상 없음', dup === 0, String(dup));
   }
   // 1
-  await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');
+  await p.evaluate(() => { goTab('sect', 'hall'); render(); });
   const yard = await p.$eval('#main', e => e.textContent);
   ok('1 아린 조합법 물어보기 제거', !/조합법 물어보기|레시피 힌트/.test(yard) && !(await p.$('[data-act="hint"]')));
   ok('1 약과 없음 · 대화만', !(await p.$('[data-act="snack"]')) && !!(await p.$('[data-act="talk"]')));

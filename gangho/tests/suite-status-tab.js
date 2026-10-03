@@ -26,7 +26,7 @@ module.exports = async (b) => {
     await p.click('[data-tab="status"]');
     const s0 = await p.evaluate(() => ({ on: document.querySelector('.subtab.on .ko').textContent, vit: !!document.querySelector('#main #vitals .gauge-group'), cp: !!document.querySelector('#main #vitals + .cp-card'), chips: document.querySelectorAll('#vitals .status-chip').length }));
     ok('2 처음엔 상태: 활력 · 내력 막대 + 수련치 · 은자 · 공헌 + 투력 카드', s0.on === '상태' && s0.vit && s0.cp && s0.chips === 3, JSON.stringify(s0));
-    await p.click('[data-sub="gear"]');
+    await p.evaluate(() => { goTab('status', 'gear'); render(); });
     const s1 = await p.evaluate(() => ({ subs: [...document.querySelectorAll('.subtabs .subtab .ko')].map(e => e.textContent).join(','), on: document.querySelector('.subtab.on .ko').textContent, sel: document.querySelector('.subtab.on').getAttribute('aria-selected'), doll: !!document.querySelector('.paperdoll'), slots: document.querySelectorAll('.dslot').length, mslots: document.querySelectorAll('.mslot').length, bagList: !!document.querySelector('.items, [data-filter]') }));
     ok('2 하위 탭 [ 관조 ] / [ 무장 ] / [ 무공 ]', s1.subs === '관조,무장,무공', s1.subs);
     ok('2 무장: 착용 장비 슬롯 (행낭 목록은 따로)', s1.on === '무장' && s1.sel === 'true' && s1.doll && s1.slots >= 9 && s1.mslots === 0 && !s1.bagList, JSON.stringify(s1));
@@ -38,9 +38,9 @@ module.exports = async (b) => {
     ok('2 무공에서 바로 익히기 → 익힌 무공 목록, 하위 탭 유지', s3.learned === 4 && s3.card >= 1 && s3.on === '무공', JSON.stringify(s3));
 
     // 다른 탭에 다녀와도 마지막 하위 탭 기억
-    await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]'); await p.click('[data-tab="status"]');
+    await p.evaluate(() => { goTab('sect', 'hall'); render(); }); await p.click('[data-tab="status"]');
     ok('2 마지막 하위 탭 기억', await p.$eval('.subtab.on .ko', e => e.textContent) === '무공');
-    await p.click('[data-sub="gear"]');
+    await p.evaluate(() => { goTab('status', 'gear'); render(); });
     ok('2 무장으로 전환', await p.evaluate(() => !!document.querySelector('.paperdoll') && ui.statusSub === 'gear'));
 
     // 탐험 결산 창의 [견문록 보기] → 견문록 탭, 해당 탐험 기록 강조

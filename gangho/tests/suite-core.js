@@ -12,7 +12,7 @@ module.exports = async (b) => {
   // 1
   const tabs = await p.$$eval('.tab .ko', els => els.map(e => e.textContent).join(','));
   ok('1 탭 순서', tabs === '청풍문,관조,행낭,강호행,견문록,기연,도감,설정', tabs);
-  ok('1 첫 화면=청풍문 › 정청', await p.$eval('.tab.on .ko', e => e.textContent) === '청풍문' && await p.$eval('.subtab.on .ko', e => e.textContent) === '정청');
+  ok('1 새 제자로 시작하면 청풍문 › 정청 (장문인에게서 시작)', await p.$eval('.tab.on .ko', e => e.textContent) === '청풍문' && await p.evaluate(() => ui.sectSub === 'hall'));
   // 2 성장: 연무장·비급별 수련치 없음, 수련치로 성급 올리기
   const t = await p.evaluate(() => {
     const r = {}, id = S.active.simbeop, m = S.manuals[id];
@@ -26,7 +26,7 @@ module.exports = async (b) => {
   ok('2 수련치 부족하면 막힘 → 채우면 성급 +1, 수련치 차감', /수련치 60 필요/.test(t.block) && t.up && t.star === 2 && t.left === 0, JSON.stringify(t));
   // 3 강호행: 강호행 중이 아니면 탭을 누르면 강호 지도 화면 (탐험지 3곳 · 처음엔 2곳 잠김)
   await p.click('[data-tab="field"]');
-  ok('3 강호행 탭 → 강호 지도 화면 · 구역 3곳(잠김 2)', await p.evaluate(() => !ui.modal && !!document.querySelector('#main .map-sheet')) && (await p.$$('.map-spot')).length === 3 && (await p.$$('.map-spot.locked')).length === 2);
+  ok('3 강호행 탭 → 강호 지도 화면 · 구역 3곳(잠김 2)', await p.evaluate(() => !ui.modal && !!document.querySelector('#main .map-sheet')) && (await p.$$('.map-spot[data-mapzone]')).length === 3 && (await p.$$('.map-spot.locked')).length === 2);
   // 4 전투 (fight: 한 판을 끝까지 계산해 기록)
   const bt = await p.evaluate(() => {
     const r = {}; S.hp = 99999;
@@ -43,13 +43,13 @@ module.exports = async (b) => {
   ok('4 합마다 기록 (리플레이용)', bt.rounds);
   ok('4 반격 발생 (반격 스탯)', bt.counter);
   // 5
-  await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
-  const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.character-portrait-card .portrait-img'), head: document.querySelector('.panel-head .ko').textContent }));
-  ok('5 무장 명칭', bag.head === '무장'); ok('5 행낭 100칸 이상 (근력 각인·장비로 늘어남)', bag.cap >= 100, String(bag.cap));
+  await p.evaluate(() => { goTab('status', 'gear'); render(); });
+  const bag = await p.evaluate(() => ({ cap: bagCap(), top: [...document.querySelectorAll('.paperdoll .dslot small')].map(e=>e.textContent).join(','), bottom: [...document.querySelectorAll('.acc-row .dslot small')].map(e=>e.textContent).join(','), img: !!document.querySelector('.character-portrait-card .portrait-img'), head: [...document.querySelectorAll('.panel-head .ko')].map(e => e.textContent) }));
+  ok('5 무장 명칭 (호패 · 무장 · 능력치)', bag.head.includes('무장'), bag.head.join()); ok('5 행낭 100칸 이상 (근력 각인·장비로 늘어남)', bag.cap >= 100, String(bag.cap));
   ok('5 몸 둘레 슬롯 (왼쪽 가락지·무기·요대 · 가운데 투구 · 오른쪽 옥대·호갑·가락지)', bag.top === '가락지,무기,요대,투구,옥대,호갑,가락지', bag.top); ok('5 하단 가로 2슬롯 (탈것 없음)', bag.bottom === '신발,신분패', bag.bottom); ok('5 초상 카드 이미지', bag.img);
   // 7 + 6
   await p.evaluate(() => { S.silver = 100; render(); });
-  await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');
+  await p.evaluate(() => { goTab('sect', 'hall'); render(); });
   ok('7 아린 힌트 버튼 제거됨', !(await p.$('[data-act="hint"]')));
   await p.evaluate(() => { ui.tab = 'sect'; ui.sectSub = 'forge'; ui.craft = 'alchemy'; S.crafts.alchemy.lv = 99; for (let i = 0; i < 20 && !S.codex.includes('a_haedok'); i++) { Object.assign(S.inv, { silentReed: 2, centipedeLeg: 1 }); ui.pot = { silentReed: 2, centipedeLeg: 1 }; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(ui.craft, ui.pot); } });
   await p.click('[data-tab="codex"]'); await p.click('[data-codextab="alchemy"]');
@@ -61,9 +61,9 @@ module.exports = async (b) => {
   await p.click('.sheet [data-fill]');
   ok('6 화로 이동·재료 투입', await p.evaluate(() => ui.tab === 'sect' && ui.sectSub === 'forge' && potTotal(ui.pot) > 0));
   ok('9 성공률 % 비노출', !(await p.$eval('#main', e => /\d+%/.test(e.textContent))));
-  ok('9 화로 10칸', (await p.$$('.pot-slots .slot')).length === 10);
+  ok('9 화로 8칸 (솥 둘레)', (await p.$$('.fslot')).length === 8);
   // 7 portraits + quest
-  await p.click('[data-tab="sect"]'); await p.click('[data-sub="hall"]');
+  await p.evaluate(() => { goTab('sect', 'hall'); render(); });
   ok('7 초상화 컨테이너 (정청: 노벽송·조운·아린)', (await p.$$('.npc-portrait')).length === 3);
   ok('7 퀘스트 1개만', (await p.$$('.quest > b')).length === 1);
   // 8

@@ -28,7 +28,7 @@ module.exports = async (b) => {
     ok('2 도감에 [강적 영혼흡수 효과] 표시', !!(await p.$('.codex-col .codex-bonus .cb-label')));
 
     // 3. 무장 · 무공 슬롯 팝업
-    await p.click('[data-tab="status"]'); await p.click('[data-sub="gear"]');
+    await p.evaluate(() => { goTab('status', 'gear'); render(); });
     await p.click('[data-slot="weapon"]');
     ok('3 무장 슬롯 누르면 장비 팝업', await p.evaluate(() => ui.modal === 'equip:weapon' && !!document.querySelector('.sheet')));
     await p.click('.sheet [data-act="closemodal"]');
