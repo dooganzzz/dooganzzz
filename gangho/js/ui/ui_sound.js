@@ -9,7 +9,7 @@
 /* 소리 전체 스위치 (10월 3일 유저: 효과음 · 배경음악 일단 전부 뺌). false면 소리 · 날씨 소리 · 소리 파일 받기 · 설정 칸 · 행동 감시가 모두 꺼진다 */
 const SOUND_ON = false;
 const SND = { ctx: null, bgmBus: null, sfxBus: null, noise: null, deck: null, track: null, last: {}, amb: null, xf: 4, userAt: 0, hover: null };
-const SND_DEF = { bgmVol: 35, sfxVol: 60 };
+const SND_DEF = { bgmVol: 15, sfxVol: 30 };   // 처음 크기 (10월 3일 유저)
 function sndVol(k) {
   const s = typeof S !== 'undefined' && S && S.settings;
   if (s && s[k.replace('Vol', 'Off')]) return 0;
