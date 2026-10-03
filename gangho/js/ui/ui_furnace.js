@@ -105,7 +105,7 @@ function potCells(flat) {
   const cell = i => { const k = kinds[i];
     if (k && k.id) return `<button class="fslot full" data-rem="${k.id}" title="${ITEMS[k.id].name} 빼기">${inkFrame()}${itemIco(k.id)}</button>`;
     if (k && k.g) return `<button class="fslot full gear r${k.g.rarity}" data-grem="${k.g.uid}" title="${esc(gearName(k.g))} 빼기">${inkFrame()}${gearIco(k.g, 'sm')}</button>`;
-    return `<div class="fslot">${inkFrame()}</div>`; };
+    return `<div class="fslot">${inkFrame()}<span class="slot-plus" aria-hidden="true">+</span></div>`; };   // 빈 칸: 금빛 +
   const ready = flat.length || ui.potGear.length, forge = ui.craft === 'forge';
   return `<div class="pot-side left">${[0, 1, 2, 3].map(cell).join('')}</div><div class="pot-side right">${[4, 5, 6, 7].map(cell).join('')}</div>
           <button class="pot-hot ${ui.craft}" data-act="craft" ${ready ? '' : 'disabled'} aria-label="${forge ? '모루 — 두드려 벼리기' : '단로 — 내력 주입'}" title="${ready ? (forge ? '모루를 눌러 두드립니다' : '단로를 눌러 내력을 불어넣습니다') : '재료를 먼저 칸에 올리십시오'}"></button>`;

@@ -58,6 +58,7 @@
 
 /* ───────── 장비 칸 아이콘 ───────── */
 .slot-ico { width: 20px; height: 20px; color: var(--dim); opacity: .8; }
+.fslot > .slot-plus, .mslot-box > .slot-plus { position: relative; z-index: 1; }
 .slot-plus { font-size: 26px; line-height: 1; font-weight: 300; color: var(--gold); text-shadow: 0 0 6px rgba(212, 175, 55, .35); }   /* 빈 장착 칸 */
 .dslot:not(.empty) .slot-ico { color: var(--gold); opacity: 1; }
 
