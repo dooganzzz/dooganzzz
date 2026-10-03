@@ -27,7 +27,7 @@ function aiAct(note) {
   // 1. 전투를 다 관찰했다고 친다
   for (const r of S.expeditions) for (const b of r.battles) if (b.seen === false) b.seen = true;
   // 2. 인물: 장문인 가르침 · 조운 보급
-  let tg = 0; while (tutorReady() && tg++ < 5) masterTalk();   // 받을 가르침은 모두 받는다
+  acceptQuest(); let tg = 0; while (tutorReady() && tg++ < 5) { masterTalk(); acceptQuest(); }   // 사명은 바로 수락하고, 받을 가르침은 모두 받는다
   if (S.supplyDay !== today() && subqCur()) jounSupply();   // 보급품은 이제 조운이 '걱정'일 때(토벌을 맡았을 때) 하루 한 번
   // 3. 비급 읽기 → 무공 고르기
   for (const id of Object.keys(S.inv)) if (id.startsWith('bk_') && ITEMS[id].use && ITEMS[id].use.learn && !S.manuals[ITEMS[id].use.learn]) { const mid = ITEMS[id].use.learn; learnManual(id); note(`비급 습득: ${MANUALS[mid].name}`); }

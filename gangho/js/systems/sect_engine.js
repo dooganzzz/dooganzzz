@@ -300,23 +300,43 @@ function giveQuestReward(q) {
   if (R.silver) S.silver += R.silver;
 }
 /* 장문인: 지금 가르침을 이루었으면 보상 받기, 아니면 가르침 · 귀띔 */
-function tutorReady() { const q = QUESTS[questIndex()]; return !!(q && q.reward && q.done()); }
+function tutorReady() { const q = QUESTS[questIndex()]; return !!(q && q.reward && questAccepted() && q.done()); }
+/* 사명: 장문인에게 [가르침 청하기] → [사명을 받는다] → 설명을 보고 [수락]해야 그 가르침이 걸린다 (10월 3일) */
+const questAccepted = () => S.mainQAcc === questIndex();
+function acceptQuest() {
+  const qi = questIndex(), q = QUESTS[qi]; if (!q || questAccepted()) return false;
+  S.mainQAcc = qi;
+  log(`노벽송: "그래, 해 보거라."`, 'npc');
+  log(`[사명 수락 · 장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${q.t}`, 'gold');
+  const r = q.pill && RECIPES.find(x => x.out === q.pill); if (r && !S.codex.includes(r.id)) addHint(r);
+  notify.refresh(); return true;
+}
+/* 장문인의 기분 (아린 · 조운과 다른 결): 지난 강호행에서 쓰러졌으면 걱정 · 가르침을 이뤘으면 흡족 · 비급만 많고 소성(6성)이 없으면 언짢음 ·
+   점심때(11~12시)엔 허기 · 새벽(0~6시)과 낮잠때(13~15시)엔 졸림 · 그 밖엔 하루 동안 같은 기분 (졸림 · 가르침 · 능청 · 회상 · 궂은 날 · 꿰뚫어 봄) */
+function masterMood() {
+  const M = S.master = S.master || {}, d = today(), h = new Date(now()).getHours();
+  const runs = S.expeditions || [], last = runs[runs.length - 1];
+  const learned = Object.keys(S.manuals || {}).length, top = Math.max(0, ...Object.values(S.manuals || {}).map(m => m.star || 0));
+  let m;
+  if (last && last.end === 'dead' && M.worrySeen !== last.id) { m = 'worry'; M.worrySeen = last.id; }
+  else if (tutorReady()) m = 'pleased';
+  else if (learned >= 6 && top < 6) m = 'annoyed';
+  else if (h >= 11 && h < 13) m = 'hungry';
+  else if (h < 6 || (h >= 13 && h < 15)) m = 'sleepy';
+  else if (M.moodDay === d && ['sleepy', 'teach', 'sly', 'memory', 'rainy', 'see'].includes(M.mood)) m = M.mood;
+  else { const pool = ['sleepy', 'sleepy', 'teach', 'sly', 'memory', 'rainy', 'see']; m = pool[Math.floor(Math.random() * pool.length)]; }
+  M.mood = m; M.moodDay = d;
+  return m;
+}
 function masterTalk() {
   const qi = questIndex(), q = QUESTS[qi];
   if (!q) return masterHint();
-  if (!tutorReady()) {
-    log(`노벽송: "${q.talk}"`, 'npc');
-    log(`[장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${q.t}`, 'gold');
-    const r = q.pill && RECIPES.find(x => x.out === q.pill);
-    if (r && !S.codex.includes(r.id)) addHint(r);
-    notify.refresh(); return;
-  }
+  if (!tutorReady()) return;
   const txt = questRewardText(q);
   giveQuestReward(q);
   S.mainQ = qi + 1;
   log(`노벽송: "${pick(['잘했다.', '제법이구나.', '허허, 벌써 해냈느냐.'])} 받아라."`, 'npc');
   log(`🏆 [장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${q.t} — 보상: ${hlItem(txt)}`, 'gold');
   const nx = QUESTS[qi + 1];
-  if (nx) { log(`노벽송: "${nx.talk}"`, 'npc'); const r = nx.pill && RECIPES.find(x => x.out === nx.pill); if (r && !S.codex.includes(r.id)) addHint(r); }
   notify.refresh();
 }

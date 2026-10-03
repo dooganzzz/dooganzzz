@@ -207,6 +207,10 @@ function renderModal() {
         ? Array.from({ length: stageMax(ui.npcTalk.stages) }, (_, i) => `<button class="btn" data-subqstage="${ui.npcTalk.stages}:${i + 1}">${stageName(ui.npcTalk.stages, i + 1).replace(ZONES[ui.npcTalk.stages].name + ' ', '')} <small>${i + 1 >= STAGE.count ? '두목' : `${i + 1}단계`}</small></button>`).join('') + '<button class="btn ghost" data-act="subqask">← 다른 땅</button>'
         : ui.npcTalk.zones
         ? ZONE_ORDER.filter(zoneUnlocked).map(z => `<button class="btn" data-subqzone="${z}">${ZONES[z].name}</button>`).join('') + '<button class="btn ghost" data-act="closemodal">그만두기</button>'
+        : ui.npcTalk.questView
+        ? '<button class="btn primary" data-act="questaccept">수락</button><button class="btn ghost" data-act="closemodal">취소</button>'
+        : ui.npcTalk.questOffer
+        ? '<button class="btn primary" data-act="questshow">사명을 받는다</button><button class="btn ghost" data-act="closemodal">물러나기</button>'
         : ui.npcTalk.jounOffer
         ? `${subqReady() ? '<button class="btn primary" data-subq="1">토벌 임무 보고하기</button>' : ''}<button class="btn ${subqReady() ? '' : 'primary'}" data-act="subqask" ${subqLeft() ? '' : 'disabled'}>토벌 임무 받기 <small>(오늘 ${subqLeft()}/${SUBQ.daily})</small></button><button class="btn ghost" data-act="closemodal">물러나기</button>`
         : ui.npcTalk.offer
