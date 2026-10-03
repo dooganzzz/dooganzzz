@@ -174,6 +174,15 @@ function toggleFold(key) {
 
 function head(ko, hj, extra = '') { return `<div class="panel-head"><h2>${label(ko, hj)}</h2>${extra}</div>`; }
 
+/* 이름 글씨 자동 맞춤: 칸보다 길면 두 줄 안에 들고 단어가 쪼개지지 않을 때까지 글씨를 조금씩 줄인다 (최소 70%) */
+function fitNames(root = document) {
+  for (const el of root.querySelectorAll('.bag-tile .item-name')) {
+    el.style.fontSize = '';
+    const base = parseFloat(getComputedStyle(el).fontSize), lh = parseFloat(getComputedStyle(el).lineHeight) || base * 1.25;
+    for (let f = base; f > base * 0.7 && (el.scrollHeight > lh / base * f * 2 + 2 || el.scrollWidth > el.clientWidth + 1); f -= base * 0.05) el.style.fontSize = (f - base * 0.05) + 'px';
+  }
+}
+addEventListener('resize', () => fitNames());
 function render() {
   if (!S) return;
   renderHeader(); renderTabs();
@@ -183,6 +192,7 @@ function render() {
   renderModal();
   typewriteAll();
   wireImages();
+  fitNames();
   artAfterRender();
   saveSoon();
 }
