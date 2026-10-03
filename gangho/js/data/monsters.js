@@ -10,7 +10,7 @@
 const ENEMIES = {
   // ───── 청풍산 (초급 · 흙/풀/나무) ─────
   wildcat:  { name: '살쾡이', elem: 'wood', wtype: 'fist', tier: 2, hp: 286, atk: 21, def: 2, spd: 14, eva: 16, xp: 20, bleed: [0.2, 0.02, 2], silver: [2, 4],
-    atkText: '낮게 웅크렸다가 발톱을 세우고 덮쳐 든다', trait: '높은 회피율 · 찰과상 출혈' },
+    atkText: '낮게 웅크렸다가 발톱을 세우고 덮쳐 든다', trait: '높은 회피 · 찰과상 출혈' },
   boar:     { name: '사나운 멧돼지', elem: 'earth', wtype: 'spear', tier: 2, hp: 374, atk: 23, def: 5, spd: 8, eva: 2, xp: 22, silver: [4, 8], gear: [1, 0.06],
     atkText: '콧김을 뿜으며 창날 같은 엄니를 앞세워 돌진한다', trait: '돌진 공격 · 높은 체력' },
   viper:    { name: '흑비단독사', elem: 'water', wtype: 'hidden', tier: 2, hp: 363, atk: 22, def: 2, spd: 13, eva: 12, xp: 20, silver: [2, 5], poison: [0.35, 0.02, 3],
@@ -24,9 +24,9 @@ const ENEMIES = {
   slinger:  { name: '흑풍채 투석수', elem: 'fire', wtype: 'hidden', tier: 4, hp: 148, atk: 18, def: 6, spd: 11, eva: 6, xp: 55, pierce: 8, silver: [4, 8], gear: [1, 0.05],
     atkText: '투석끈을 빙빙 돌려 자갈을 날린다', trait: '묵직한 자갈 투척 · 방어 관통 [위험 강적]' },
   turtle:   { name: '바위 등껍질 거북', elem: 'earth', wtype: 'fist', tier: 3, hp: 292, atk: 14, def: 14, spd: 5, eva: 0, xp: 34, silver: [4, 9],
-    atkText: '바위 같은 등껍질을 앞세워 굴러 들어온다', trait: '방어력 특화 [정예]' },
+    atkText: '바위 같은 등껍질을 앞세워 굴러 들어온다', trait: '방어에 능함 [정예]' },
   treant:   { name: '청령목괴', elem: 'wood', wtype: 'spear', tier: 3, hp: 440, atk: 32, def: 10, spd: 7, eva: 2, xp: 36, silver: [5, 10], weak: { elem: 'fire', mult: 0.25 },
-    atkText: '뾰족한 가지를 창처럼 꼬아 내찌른다', trait: '화(火) 속성 기공에 취약' },
+    atkText: '뾰족한 가지를 창처럼 꼬아 내찌른다', trait: '화(火) 속성 기공에 약함' },
   redTiger: { name: '적염 호랑이', elem: 'fire', wtype: 'fist', hp: 440, atk: 16, def: 11, spd: 13, eva: 6, xp: 90, silver: [40, 60], gear: [1, 1], boss: 'boss1', hits: 2,
     atkText: '붉은 갈기를 곤두세우고 화염 발톱을 연달아 휘두른다', trait: '강맹한 화염 발톱 연타' },
 
@@ -48,7 +48,7 @@ const ENEMIES = {
   armored:    { name: '열화 장갑병', elem: 'metal', wtype: 'fist', tier: 3, hp: 647, atk: 50, def: 36, spd: 7, eva: 2, xp: 50, silver: [14, 26], gear: [2, 0.07],
     atkText: '철갑을 두른 주먹으로 정면에서 밀고 들어온다', trait: '두터운 철갑' },
   magmaGolem: { name: '염화석괴', elem: 'fire', wtype: 'fist', tier: 4, hp: 858, atk: 69, first: true, def: 30, spd: 6, eva: 0, xp: 52, silver: [12, 24], weak: { elem: 'water', mult: 0.5 },
-    atkText: '불타는 바위 팔을 내리쳐 불똥을 튀긴다', trait: '불타는 바위 요수 · 수(水) 속성에 극도로 취약' },
+    atkText: '불타는 바위 팔을 내리쳐 불똥을 튀긴다', trait: '불타는 바위 요수 · 수(水) 속성에 극도로 약함' },
   jeokpaecheon: { name: '염화채주 적패천', elem: 'fire', wtype: 'blade', hp: 2090, atk: 67, def: 34, spd: 12, eva: 8, xp: 220, silver: [150, 220], gear: [2, 1], boss: 'boss2', crit: 18,
     atkText: '패도(覇刀)의 기세로 대지를 가르며 내려친다', trait: '파괴적인 패도 초식 (높은 회심)' },
 
@@ -70,7 +70,7 @@ const ENEMIES = {
   centipede:  { drain: 10, name: '소택지 독지네', elem: 'wood', wtype: 'spear', tier: 3, hp: 1386, atk: 118, def: 50, spd: 12, eva: 8, xp: 105, silver: [36, 64], poison: [0.35, 0.02, 3], gear: [3, 0.06],
     atkText: '긴 몸으로 휘감으며 독 다리를 박는다', trait: '휘감는 요수 (중독) · 흡혈 10%' },
   iceSpirit:  { drain: 25, name: '빙화수요', elem: 'water', wtype: 'hidden', tier: 3, hp: 1502, atk: 114, def: 75, spd: 10, eva: 10, xp: 115, silver: [40, 70], weak: { elem: 'earth', mult: 0.25 }, gear: [3, 0.06],
-    atkText: '냉기 장막 너머에서 얼음 바늘을 흩뿌린다', trait: '냉기 장막(높은 방어) · 토(土) 기공에 취약 · 흡혈 25%' },
+    atkText: '냉기 장막 너머에서 얼음 바늘을 흩뿌린다', trait: '냉기 장막(높은 방어) · 토(土) 기공에 약함 · 흡혈 25%' },
   byeokhaeryong: { name: '수룡방주 벽해룡', elem: 'water', wtype: 'spear', hp: 5720, atk: 120, def: 80, spd: 14, eva: 10, xp: 500, silver: [500, 700], gear: [3, 1], boss: 'boss3', hits: 2,
     atkText: '삼지창을 용처럼 휘몰아쳐 물기둥째 찔러 온다', trait: '용처럼 휘몰아치는 삼지창술 (2연격)' },
 

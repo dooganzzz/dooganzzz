@@ -248,3 +248,4 @@ small { font-size: .82rem; }
 .manual-poem { margin: 8px 0 12px; padding: 8px 14px; border-left: 3px solid rgba(226, 181, 74, .55); background: rgba(226, 181, 74, .06); border-radius: 0 8px 8px 0;
   font-family: var(--serif, serif); font-size: 14px; line-height: 1.75; color: inherit; display: grid; gap: 1px; }
 .manual-poem b { font-size: 13px; color: var(--gold, #c9a24a); letter-spacing: .06em; margin-bottom: 2px; }
+.ui-ico.vit-ico { display: inline-block; width: 18px; height: 18px; margin: -3px 4px 0 0; vertical-align: middle; background: center / contain no-repeat; }

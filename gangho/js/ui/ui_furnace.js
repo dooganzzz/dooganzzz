@@ -11,18 +11,17 @@ function furnaceTabs() {
 /* 화로 › 연혼(煉魂): 장면 그림 한 장. 가운데 명경 속 초절정 비급이 흐릿하게 깜박인다(같은 그림의 거울 안쪽을 잘라 그 자리에서만).
    명경을 누르면 엮을 수 있는 조각 창이 뜬다 (같은 등급 조각 STUDY.need장이 다 모여야 엮임 · 등급끼리 섞이지 않음) */
 function viewStudy() {
-  const pick = ui.yhPick, need = STUDY.need;
-  const chips = Object.entries(STUDY.scraps).filter(([id]) => has(id)).map(([id, grade]) => `<button class="chip ${pick === id ? 'on' : ''}" data-yhpick="${id}" style="--gc:${STUDY.color[id]}" title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${count(id)}/${need}</b></button>`).join('');
+  const yi = ui.yhIn, need = STUDY.need, full = !!yi && yi.n >= need;
+  const chips = Object.entries(STUDY.scraps).filter(([id]) => has(id)).map(([id]) => `<button class="chip ${yi && yi.id === id ? 'on' : ''}" data-yhpick="${id}" style="--gc:${STUDY.color[id]}" title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <small class="muted">${count(id) - (yi && yi.id === id ? yi.n : 0)}</small></button>`).join('');
   return `<section class="panel furnace study">
     ${head('화로', '火爐')}
     ${furnaceTabs()}
-    <p class="muted furnace-desc">연혼각(煉魂閣). 무신상이 내린 찢어진 비급 조각을 명경(明鏡)이 끌어온 넋으로 다시 잇는 곳입니다. 같은 등급 조각 ${need}장을 모아 내력을 불어넣으면 온전한 비급이 됩니다.</p>
+    <p class="muted furnace-desc">연혼각(煉魂閣). 무신상이 내린 찢어진 비급 조각을 명경(明鏡)이 끌어온 넋으로 다시 잇는 곳입니다.</p>
     <div class="forge">
       <div class="forge-left">
-        <div class="pot furnace-stage study ${pick && count(pick) >= need ? 'yh-ready' : ''}"><div class="stage-bg">${artPic(ART_SRC.yeonhonScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>
-          <img class="yh-book" src="${ART_SRC.yeonhonBook()}" alt="" aria-hidden="true">
-          <button class="yh-mirror" data-act="mirror" aria-label="명경 — 찢어진 비급 조각 엮기"></button>${yhScraps(pick)}</div>
-        <div class="yh-pick"><div class="btns plaque-btns study-btns"><button class="btn plaque primary" data-act="yeonhon">연혼주입</button></div></div>
+        <div class="pot furnace-stage study ${full ? 'yh-ready' : ''}"><div class="stage-bg">${artPic(ART_SRC.yeonhonScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>
+          <img class="yh-book" src="${ART_SRC.yeonhonBook()}" alt="" aria-hidden="true">${yhScraps(yi)}
+          <button class="yh-burner" data-act="yeonhon" ${full ? '' : 'disabled'} aria-label="단로 — 연혼 주입" title="${full ? '단로를 눌러 넋을 불어넣습니다' : `팔괘 거울 여덟 자리에 같은 등급 조각을 모두 채우면 단로에 불이 듭니다`}"></button></div>
       </div>
       <div class="mats">
         <h4>조각 재료</h4>
@@ -31,10 +30,10 @@ function viewStudy() {
     </div>
   </section>`;
 }
-/* 고른 등급의 조각을 명경 둘레 팔괘 자리(YH_MIRRORS)에 한 장씩 — 가진 만큼(최대 STUDY.need장). 칸 테두리 · 배경 없이 조각 그림만, 작게 놓아 명경이 가려지지 않게 */
-function yhScraps(pick) {
-  if (!pick) return '';
-  return YH_MIRRORS.slice(0, Math.min(count(pick), STUDY.need)).map(([x, y]) => `<img class="yh-scrap" src="${ITEM_ART(pick)}" style="left:${x}%;top:${y}%" alt="" aria-hidden="true">`).join('');
+/* 팔괘 거울 자리(YH_MIRRORS)에 넣은 조각 — 한 장씩 (최대 STUDY.need장). 누르면 한 장 뺀다. 칸 테두리 · 배경 없이 조각 그림만 */
+function yhScraps(yi) {
+  if (!yi) return '';
+  return YH_MIRRORS.slice(0, yi.n).map(([x, y]) => `<button class="yh-scrap" data-yhout="1" style="left:${x}%;top:${y}%" title="${ITEMS[yi.id].name} 빼기"><img src="${ITEM_ART(yi.id)}" alt=""></button>`).join('');
 }
 /* 엮기 연출: 여덟 거울(자리 %) → 넋이 명경(50%, 35.2%)으로 모임 → 비급이 또렷해지며 번쩍. 끝나면 resolve */
 const YH_MIRRORS = [[50, 8.4], [60.93, 18], [64.65, 34.4], [60.5, 51.6], [50, 57.1], [39.3, 51.8], [35.35, 34.4], [39.07, 18.2]];   // 작은 거울 여덟의 한가운데 (그림에서 잰 값, 10월 3일)
@@ -53,14 +52,6 @@ function studyBindFx(stage, scrap, id) {
   // 효과음 자리 (지금은 소리 없음 — 나중에 Bus.on('sfx')로 받아 재생): 금 가는 순간 · 깨져 비급이 튀어나오는 순간
   const sfx = [setTimeout(() => Bus.emit('sfx', 'mirror_crack'), 2000), setTimeout(() => Bus.emit('sfx', 'mirror_break'), 2500)];
   return new Promise(done => setTimeout(() => { sfx.forEach(clearTimeout); fx.remove(); stage.classList.remove('binding'); done(); }, 3900));
-}
-/* 명경을 누르면: 등급마다 조각 칸 (다 모인 등급만 [엮기]) */
-function mirrorModal() {
-  const rows = Object.entries(STUDY.scraps).map(([id, grade]) => { const n = count(id), ok = n >= STUDY.need;
-    return `<li class="study-row ${ok ? 'ready' : ''}" style="--gc:${STUDY.color[id]}"><span class="icon">${itemIco(id)}</span><div><b>${ITEMS[id].name}</b><div class="mprog"><span style="width:${Math.min(100, n / STUDY.need * 100)}%"></span></div><small class="muted">${n} / ${STUDY.need}장${ok ? '' : ' — 다 모여야 엮을 수 있습니다'}</small></div>
-      <button class="btn sm ${ok ? 'primary' : ''}" data-bind="${id}" ${ok ? '' : 'disabled'}>엮기</button></li>`; }).join('');
-  return `<div class="sheet mirror-sheet"><p class="eyebrow">煉魂 · 明鏡</p><h2>명경</h2><ul class="study-list">${rows}</ul>
-    <div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
 }
 /* 단조의 장비 재료: 같은 장비 강화. 본템을 고르면 행낭의 같은 이름 · 같은 등급 · 강화 안 된 장비를 재료로 쓴다 */
 /* 강화 연출 (모루 무대): 망치 세 번 → 불똥 → 결과(성공 금빛 고리 · 그대로 연기 · 파괴 파편). 화면이 다시 그려져도 처음부터 되풀이되지 않게
@@ -103,7 +94,7 @@ function forgeGearInfo() {
   }
   return `<div class="forge-gear">
     ${enhStage(main, res)}
-    ${res ? `<div class="result enh-late ${res.kind === 'ok' ? 'ok' : 'fail'}" style="--el:${res.at ? Math.max(-ENH_FX_MS, res.at - Date.now()) : -ENH_FX_MS}ms"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? '💥 강화 실패 — 장비가 부서졌습니다' : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
+    ${res ? `<div class="result enh-late ${res.kind === 'ok' ? 'ok' : 'fail'}" style="--el:${res.at ? Math.max(-ENH_FX_MS, res.at - Date.now()) : -ENH_FX_MS}ms"><b>${res.kind === 'ok' ? `강화 성공 — ${esc(res.name)}` : res.kind === 'boom' ? `${uiIco('c_forgefail', 'vit-ico')} 강화 실패 — 장비가 부서졌습니다` : '아무 일도 일어나지 않았습니다 (재료만 흡수)'}</b></div>` : ''}
     ${panel}
   </div>`;
 }
@@ -114,7 +105,7 @@ function potCells(flat) {
   const cell = i => { const k = kinds[i];
     if (k && k.id) return `<button class="fslot full" data-rem="${k.id}" title="${ITEMS[k.id].name} 빼기">${inkFrame()}${itemIco(k.id)}</button>`;
     if (k && k.g) return `<button class="fslot full gear r${k.g.rarity}" data-grem="${k.g.uid}" title="${esc(gearName(k.g))} 빼기">${inkFrame()}${gearIco(k.g, 'sm')}</button>`;
-    return `<div class="fslot">${inkFrame()}${i === 0 && !kinds.length ? '<small class="slot-hint">재료</small>' : ''}</div>`; };
+    return `<div class="fslot">${inkFrame()}</div>`; };
   const ready = flat.length || ui.potGear.length, forge = ui.craft === 'forge';
   return `<div class="pot-side left">${[0, 1, 2, 3].map(cell).join('')}</div><div class="pot-side right">${[4, 5, 6, 7].map(cell).join('')}</div>
           <button class="pot-hot ${ui.craft}" data-act="craft" ${ready ? '' : 'disabled'} aria-label="${forge ? '모루 — 두드려 벼리기' : '단로 — 내력 주입'}" title="${ready ? (forge ? '모루를 눌러 두드립니다' : '단로를 눌러 내력을 불어넣습니다') : '재료를 먼저 칸에 올리십시오'}"></button>`;
@@ -130,7 +121,7 @@ function viewFurnace() {
   return `<section class="panel furnace">
     ${head('화로', '火爐', `<span class="num muted">${C.name} ${craftGrade(lv.lv)}${S.talent === ui.craft ? ' · 주력' : ''}</span>`)}
     ${furnaceTabs()}
-    <p class="muted furnace-desc">${C.desc} 조합식은 알려져 있지 않습니다. 성공하면 도감에 적힙니다.</p>
+    <p class="muted furnace-desc">${C.desc}</p>
     <div class="forge">
       <div class="forge-left">
       <div class="pot furnace-stage ${ui.craft}">
@@ -140,7 +131,7 @@ function viewFurnace() {
         <div class="stage-ui">
           ${potCells(flat)}
         </div>
-        ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">📓 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
+        ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">${uiIco('c_notes', 'vit-ico')} 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
         ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${chronDecor(res.text)}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
       </div>
       ${ui.craft === 'forge' ? forgeGearInfo() : ''}

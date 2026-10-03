@@ -132,11 +132,10 @@ function viewObserve() {
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k] ?? 0}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('')
     + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
   return `<div class="observe-duo"><div class="observe-left">
-  <section class="panel hopae-panel">${head('호패', '號牌')}${hopaeCard(true)}</section>
+  <section class="panel hopae-panel">${head('호패', '號牌')}${hopaeCard(true)}<div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
   <section class="panel observe">${head('능력치', '能力')}
     <h4 class="obs-h">근본 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
-    <h4 class="obs-h">성향 <small>性向</small></h4>${schoolTriangle()}
-    <h4 class="obs-h">세부 능력치</h4><div class="statsheet">${statList}</div>
+    <button class="obs-h obs-toggle" data-act="obsdetail" aria-expanded="${!!ui.obsDetail}">세부 능력치 <span class="fold-arrow">${ui.obsDetail ? '▲' : '▼'}</span></button>${ui.obsDetail ? `<div class="statsheet">${statList}</div>` : ''}
   </section></div>
   ${viewGear()}
   </div>`;
@@ -172,8 +171,10 @@ function viewGear() {
     const it = S.equip[s];
     return `<button class="equip-slot-card dslot ${cls} ${it ? 'r' + it.rarity : 'empty'}" data-slot="${s}" aria-haspopup="dialog">${inkBox(slotIcon(s))}<small class="slot-label">${SLOTS[s].name}</small><span class="slot-item-name ${it ? 'equipped' : 'empty'}">${it ? gearName(it) : '비어있음'}</span></button>`;
   };
-  return `<section class="panel">
-    ${head('무장', '武裝', `<button class="btn primary sm auto-equip" data-act="autoequip" title="행낭 장비 가운데 투력이 가장 많이 오르는 것으로 한 번에 바꿉니다">채비</button>`)}
+  return `<section class="panel gear-panel">
+    ${head('무장', '武裝')}
+    <button class="btn primary sm auto-equip" data-act="autoequip" title="행낭 장비 가운데 투력이 가장 많이 오르는 것으로 한 번에 바꿉니다">채비</button>
+    <div class="gear-tend"><h4 class="obs-h">성향 <small>性向</small></h4>${schoolTriangle()}</div>
     <div class="bag-top">
       <div class="armory">
         <!-- 왼쪽: 가락지 · 무기 · 요대 / 가운데: 투구 + 제자 초상 / 오른쪽: 옥대 · 호갑 · 가락지 -->
@@ -184,9 +185,7 @@ function viewGear() {
         </div>
         <div class="equipment-bottom-bar acc-row">${['boots', 'badge'].map(s => slot(s, 'small')).join('')}</div>
       </div>
-      <div class="side-col">
-        <p class="muted slot-help">장비 칸을 누르면 그 부위에 맞는 행낭 장비가 떠서 바로 장착·교체·해제·강화할 수 있습니다.</p>
-      </div>
+      
     </div>
   </section>`;
 }

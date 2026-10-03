@@ -63,7 +63,7 @@ function starUp(id) {
   return true;
 }
 
-/* 적을 쓰러뜨려 얻는 수련치: 신분패·음식·영단의 '수련치 획득' 보정을 곱한다 */
+/* 적을 쓰러뜨려 얻는 수련치: 신분패·음식·영단의 '정진' 보정을 곱한다 */
 function expGain(base, st) { st = st || calcStats(); return Math.round(base * (1 + st.train / 100 + st.trainBuff)); }
 
 /* 공격 무공 초식: 비급을 익히면 제1초식, 소성(6성)에 제2초식, 대성(12성)에 오의(奧義) */

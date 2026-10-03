@@ -217,7 +217,6 @@ function renderModal() {
         ? `<button class="btn primary" data-act="arineat">죽 얻어먹기 <small>(${arinFree() ? '오늘 첫 죽 무료' : `은자 ${ARIN_CARE}냥`})</small></button><button class="btn ghost" data-act="arinno">다음에</button>`
         : '<button class="btn primary" data-act="closemodal">알겠습니다</button>'}</div></div>`);
   }
-  if (ui.modal === 'mirror') setHTML(m, mirrorModal());
   if (ui.modal === 'rankup') { const R = warriorRank();   // 이류무사 승급: 24칸이 한 바퀴 켜지고 → 고리 폭발 → 번쩍 → 二流武士
     setHTML(m, `<div class="sheet rankup-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武士 · 품계 승급</p><div class="rku-stage play"><img class="art" src="${ASSET.scene('rankup_2')}" alt=""><div class="rku"><img class="ring off" src="${ASSET.ui('rank_ring_off')}" alt=""><img class="ring on" src="${ASSET.ui('rank_ring_on')}" alt=""><i class="flash"></i><div class="title"><b>${R.hanja}</b><small>${R.name} · 전체 능력치 +${Math.round((R.mult - 1) * 100)}%</small></div></div></div>
       <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`); }
@@ -275,7 +274,7 @@ function showIntro() {
       <h1>강호견문록</h1>
       <div class="prologue ${stage === 0 && fresh === 0 ? 'reveal-lines' : ''}">${PROLOGUE.map((p, i) => `<p class="story" style="--i:${i}">${p}</p>`).join('')}</div>
       ${step(1, `<h3 class="intro-h">호패 만들기</h3>
-      <div class="name-row ${sealed ? 'sealed' : ''}"><div class="name-box"><input id="pname" maxlength="5" placeholder="성명 (5자까지)" value="${esc(name)}" autocomplete="off" aria-label="성명" ${sealed ? 'readonly title="눌러서 고치기"' : ''}><span class="name-ink" aria-hidden="true">${esc(name)}</span>${sealed ? `<img class="nakgwan name-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관">` : ''}</div>${sealed ? '' : '<button class="btn sm" data-namecheck>확인</button>'}</div>`)}
+      <div class="name-row ${sealed ? 'sealed' : ''}"><div class="name-box"><input id="pname" maxlength="20" placeholder="성명" value="${esc(name)}" autocomplete="off" aria-label="성명" ${sealed ? 'readonly title="눌러서 고치기"' : ''}><span class="name-ink" aria-hidden="true">${esc(name)}</span>${sealed ? `<img class="nakgwan name-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관">` : ''}</div>${sealed ? '' : '<button class="btn sm" data-namecheck>확인</button>'}</div>`)}
       ${step(2, `<p class="field-l">단련 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
       <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
         <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
@@ -305,12 +304,13 @@ function showIntro() {
     const t = e.target.closest('[data-talent]');
     if (t) { talent = t.dataset.talent; draw(); return; }
     if (e.target.id === 'pname' && sealed) { sealed = false; draw(); const el = $('#pname'); if (el) el.focus(); return; }   // 찍은 이름을 누르면 다시 고친다
-    if (e.target.closest('[data-namecheck]')) { const el = $('#pname'); if (el) el.value = el.value.trim().slice(0, 5) || '무명'; sealed = stampNow = true; if (stage < 2) { stage = 2; fresh = 2; } draw(); stampNow = false; return; }   // 낙관을 찍고 다음 단계로
+    if (e.target.closest('[data-namecheck]')) { const el = $('#pname'); if (el && [...el.value.trim()].length > 5) return toast('성명은 최대 5자까지만 가능합니다.'); if (el) el.value = el.value.trim() || '무명'; sealed = stampNow = true; if (stage < 2) { stage = 2; fresh = 2; } draw(); stampNow = false; return; }   // 낙관을 찍고 다음 단계로
     if (e.target.closest('[data-reroll]')) { apt = rollApt(); draw(); return; }
     const a = e.target.closest('[data-attr]');
     if (a && !a.disabled) { const k = a.dataset.attr, d = +a.dataset.d; if (attr[k] + d >= ATTR_MIN && attr[k] + d <= ATTR_MAX && (d < 0 || left() > 0)) attr[k] += d; draw(); return; }
     if (e.target.closest('#begin') && !left()) {
-      const name = ($('#pname').value || '').trim().slice(0, 5) || '무명';
+      if ([...($('#pname').value || '').trim()].length > 5) return toast('성명은 최대 5자까지만 가능합니다.');
+      const name = ($('#pname').value || '').trim() || '무명';
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
       startNewGame(name, chosen, { attr: { ...attr }, apt: { ...apt }, talent });
       goTab('sect', 'hall');

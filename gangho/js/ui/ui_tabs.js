@@ -126,6 +126,7 @@ function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S), dl = cpDeltaHtml(cp);
   setHTML($('#status'), '');   // 머리 배너 아래 '이름 · 청풍문 제자 · 탐험지' 줄은 뺐다 (10월 3일 유저) — 이름은 관조 › 호패에
   const v = $('#vitals'); if (v) setHTML(v, vitalsHtml(st));
+  const c = $('#obsCp'); if (c) setHTML(c, cpCardHtml());
   const cm = document.querySelector('.cp-card .cp-main');            // 투력이 바뀌면 투력 카드에 잠깐 ▲/▼
   if (cm) { const old = cm.querySelector('.cp-delta'); if (old) old.remove(); if (dl) cm.insertAdjacentHTML('beforeend', dl); }
 }
@@ -133,12 +134,13 @@ function renderHeader() {
 /* 관조 › 메인 능력치 (#vitals, 매초 갱신): 투력 · 활력 · 내력 막대 · 4대 스탯(아이콘). 수련치는 무공 탭, 은자는 행낭, 공헌은 장경각에 */
 function vitalsHtml(st = calcStats()) {
   return `<div class="obs-main">
-      <div class="cp-card obs-cp"><div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수">${uiIco('h_cp', 'obs-ico')}<span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(combatPowerParts(S).total)}</b></div></div>
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
       <div class="obs-attrs">${Object.entries(APTS).map(([q, P]) => { const A = ATTRS[P.pair], tile = (k, N, v, cls) => `<div class="obs-attr ${cls}" title="${N.desc}">${uiIco('st_' + k, 'obs-ico')}<span>${N.name}<small>${N.hanja}</small></span><b>${v}</b></div>`;
             return tile(P.pair, A, attrOf(P.pair), 'drill') + tile(q, P, aptOf(q), 'apt'); }).join('')}</div>
     </div>`;
 }
+/* 관조 › 호패 옆 투력 카드 (#obsCp, 매초 갱신) — 자리는 유저가 슬라이더로 정한 값 */
+const cpCardHtml = () => `<div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수">${uiIco('h_cp', 'obs-ico')}<span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(combatPowerParts(S).total)}</b></div>`;
 /* 수묵 아이콘 (ASSET.ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
 const uiIco = (id, cls = '') => `<i class="ui-ico ${cls}" style="background-image:url('${ASSET.ui(id)}')" aria-hidden="true"></i>`;
 /* 헤더 게이지: [아이콘·활력] 뱃지 + 막대(수치는 막대 안). 활력 위 · 내력 아래로 쌓는다 */
@@ -176,7 +178,7 @@ function render() {
   if (!S) return;
   renderHeader(); renderTabs();
   const main = $('#main');
-  const scr = screen(), bar = SUBS[ui.tab] ? subtabBar(ui.tab) : '';
+  const scr = screen(), bar = SUBS[ui.tab] && ui.tab !== 'sect' ? subtabBar(ui.tab) : '';   // 청풍문은 갈래 메뉴 없이 전경 그림으로만 옮겨 다닌다
   setHTML(main, bar + ({ observe: viewObserve, gear: viewObserve, martial: viewMartial, bag: viewBag, shrine: viewShrine, yeonmu: viewYeonmu, forge: viewFurnace, grounds: viewGrounds, hall: viewHall, shop: viewShop, field: () => ui.fieldMap !== false && !activeRun() ? mapScreen() : viewField(), chronicle: viewChronicle, codex: viewCodex, settings: viewSettings, encounter: viewEncounters })[scr]());
   renderModal();
   typewriteAll();

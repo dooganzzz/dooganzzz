@@ -23,7 +23,11 @@ function chronMatch(e, f) {
    아이템 기호+이름은 그 아이템 그림으로, 인물의 말은 얼굴로, 나머지 기호는 분류 아이콘으로 */
 const CHRON_UI = { '⛰️': 'c_explore', '⛰': 'c_explore', '🏔️': 'c_explore', '👹': 'c_boss', '🔓': 'c_chest', '🚫': 'c_forbid', '🛒': 'c_shop', '🗿': 'c_shrine',
   '🔨': 'c_hammer', '⚙️': 'c_hammer', '✨': 'c_star', '🌟': 'c_star', '🪤': 'c_trap', '🧭': 'c_compass', '⌛': 'c_incense', '💀': 'c_skull', '💫': 'c_crit',
-  '🩸': 'c_bleed', '🏘️': 'c_village', '🏆': 'c_trophy', '💰': 'h_silver', '☯': 'h_mp' };
+  '🩸': 'c_bleed', '🏘️': 'c_village', '🏆': 'c_trophy', '💰': 'h_silver', '☯': 'h_mp',
+  '🚶': 'c_walk', '🏃': 'c_run', '🔥': 'c_burn', '💧': 'c_mppill', '🟢': 'c_pill', '🧪': 'c_antidote', '💥': 'c_forgefail', '📓': 'c_notes',
+  '📚': 'c_bind', '🔷': 'c_rank2', '🎁': 'c_reward', '🏯': 'c_sect' };   // 힉스 아이콘 (10월 3일, 이모지 대신)
+/* 알림 · 화면 글의 기호만 수묵 아이콘으로 (아이템 · 인물 처리 없이). html은 이미 이스케이프된 글 */
+const emojiIcons = html => Object.entries(CHRON_UI).reduce((h, [e, f]) => h.includes(e) ? h.split(e).join(`<i class="chron-ico" style="background-image:url('${ASSET.ui(f)}')"></i>`) : h, html);
 const CHRON_ITEM = { '📜': 'hasanryeong', '📖': 'book_g3', '📘': 'book_g3', '🔖': 'book_g3', '🗡️': 'w_sword', '🛡️': 's_armor', '💍': 's_ring', '🎗️': 's_belt',
   '🟩': 's_jade', '⛓️': 'roughOre', '🌿': 'herb' };
 const CHRON_NPC = [['노벽송', 'master'], ['조운', 'joun'], ['아린', 'arin'], ['왕 가', 'merchant']];

@@ -78,9 +78,14 @@ function onClick(e) {
   if (d.pray) return askPray(+d.pray);
   if (d.sim) { const b = simulate(d.sim); if (b) { ui.sim = { ...(ui.sim || {}), b }; openReplay('sim'); } return; }
   if (d.simx) { const r = simulateMany(d.simx, 10); if (r) { ui.sim = { ...(ui.sim || {}), many: r }; render(); } return; }
-  if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.potGear = []; ui.yhPick = null; ui.craftResult = null; ui.enhResult = null; return render(); }
-  if (d.bind) return doBind(d.bind);
-  if (d.yhpick) { ui.yhPick = ui.yhPick === d.yhpick ? null : d.yhpick; return render(); }
+  if (d.craft) { ui.craft = d.craft; ui.pot = {}; ui.potGear = []; ui.yhIn = null; ui.craftResult = null; ui.enhResult = null; return render(); }
+  if (d.yhpick) {                                            // 연혼: 조각을 누르면 팔괘 거울에 한 장씩 (다른 등급을 누르면 새로)
+    const yi = ui.yhIn && ui.yhIn.id === d.yhpick ? ui.yhIn : { id: d.yhpick, n: 0 };
+    if (yi.n >= STUDY.need) return toast(`팔괘 거울이 다 찼습니다. 단로를 누르십시오.`);
+    if (yi.n >= count(d.yhpick)) return toast(`${ITEMS[d.yhpick].name}이 더 없습니다.`);
+    yi.n++; ui.yhIn = yi; return render();
+  }
+  if (d.yhout) { if (ui.yhIn && --ui.yhIn.n <= 0) ui.yhIn = null; return render(); }
   if (d.gadd) {                                              // 단조: 장비를 솥 칸에 (먼저 올린 것이 본템, 둘째가 재료)
     const g = gearByUid(+d.gadd), main = ui.potGear[0] != null && gearByUid(ui.potGear[0]); if (!g) return;
     if (potTotal(ui.pot)) ui.pot = {};                       // 재료와 장비는 한 번에 하나만
@@ -114,7 +119,7 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     craft: () => ui.potGear.length ? acts.enhance() : askCraft(),
-    confirmok: confirmAccept, calm: toggleCalm, mirror: () => { ui.modal = 'mirror'; render(); }, callout: toggleCallout, bgm: () => sndToggle('bgm'), sfx: () => sndToggle('sfx'), talk: () => { const M = ARIN_MOODS[arinMood()]; notify.save(); ui.npcTalk = { who: 'arin', offer: true, tag: M.name, lines: [{ text: M.narr }, { text: `아린: "${M.say}"` }] }; ui.modal = 'npc'; render(); },   // 담소 나누기: 아린의 기분에 따라
+    confirmok: confirmAccept, calm: toggleCalm, callout: toggleCallout, bgm: () => sndToggle('bgm'), sfx: () => sndToggle('sfx'), talk: () => { const M = ARIN_MOODS[arinMood()]; notify.save(); ui.npcTalk = { who: 'arin', offer: true, tag: M.name, lines: [{ text: M.narr }, { text: `아린: "${M.say}"` }] }; ui.modal = 'npc'; render(); },   // 담소 나누기: 아린의 기분에 따라
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => {   // 가르침 청하기: 이룬 가르침이 있으면 보상, 없으면 기분에 따른 대화 → [사명을 받는다]
       if (tutorReady()) { npcTalk('master', masterTalk); if (ui.npcTalk) ui.npcTalk.questOffer = !questAccepted() && !!QUESTS[questIndex()]; render(); return; }
       const M = MASTER_MOODS[masterMood()]; ui.npcTalk = { who: 'master', tag: M.name, questOffer: !questAccepted() && !!QUESTS[questIndex()], lines: [{ text: M.narr }, { text: `노벽송: "${M.say}"` }] }; ui.modal = 'npc'; notify.save(); render(); },
@@ -145,14 +150,14 @@ function onClick(e) {
       if (r.boom) return requestActionConfirm({ title: '장비 강화', description: `<b>${esc(gearName(it))}</b> +${(it.enh || 0) + 1} 강화 — 실패하면 부서질 수 있습니다 (${r.boom}%).`, details: [`은자 -${fmt(enhCost(it))}냥`, `재료 ${esc(it.name)} 1개 소모`], confirmText: '강화', onConfirm: go });
       go();
     },
-    yeonhon: () => {                                          // 연혼: 고른 조각 8장으로 엮기
-      const pick = ui.yhPick || Object.keys(STUDY.scraps).find(id => count(id) >= STUDY.need);
-      if (!pick) return toast(`같은 등급 조각 ${STUDY.need}장이 필요합니다. 오른쪽에서 조각을 골라 보십시오.`);
-      if (count(pick) < STUDY.need) return toast(`${ITEMS[pick].name} ${STUDY.need}장이 필요합니다 (지금 ${count(pick)}장).`);
-      doBind(pick);
+    yeonhon: () => {                                          // 연혼: 팔괘 거울 여덟 자리가 다 차면 단로를 눌러 엮기
+      const yi = ui.yhIn;
+      if (!yi || yi.n < STUDY.need || count(yi.id) < STUDY.need) return toast(`같은 등급 조각 ${STUDY.need}장을 팔괘 거울에 채우십시오.`);
+      doBind(yi.id);
     },
     setalias: () => { const el = $('#titleSel'); if (el && el.value !== S.title && equipTitle(el.value)) { notify.save(); render(); } },
     runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 이미 받았습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); goTab('sect'); render(); /* 귀환하면 청풍문으로 */ } }),
+    obsdetail: () => { ui.obsDetail = !ui.obsDetail; render(); },
     autoequip: () => { const r = autoEquipBest(); toast(r.names.length ? `투력 ${fmt(r.from)} → ${fmt(r.to)} (+${fmt(r.to - r.from)}) · ${r.names.length}점 바꿈` : '지금 장비가 가장 강합니다.'); },
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },
     gochron: () => {                                          // 결산 창 → 견문록 탭, 방금 탐험의 결산을 펼쳐 보인다
@@ -202,7 +207,7 @@ function askPray(times) {
 /* 연혼: 조각 8장을 엮은 뒤 연출 (비급이 명경을 깨고 나옴) → 알림 */
 function doBind(scrap) {
   if (count(scrap) < STUDY.need) return;
-  const id = studyBind(scrap); if (!id) return; ui.modal = null; ui.yhPick = null; render();
+  const id = studyBind(scrap); if (!id) return; ui.modal = null; ui.yhIn = null; render();
   return studyBindFx(document.querySelector('.furnace-stage.study'), scrap, id).then(() => { toast(`📚 《${MANUALS[id].name}》 비급을 엮었습니다 — 행낭에서 확인하십시오`); render(); });
 }
 function askCraft() {

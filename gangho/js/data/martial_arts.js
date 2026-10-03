@@ -15,7 +15,7 @@ const OPEN_GRADES = ['삼류', '이류'];
 const CATS = {
   mugong:     { name: '무공', hanja: '武功', desc: '초식 발동과 순간 피해' },
   simbeop:    { name: '심법', hanja: '心法', desc: '최대 내력과 기본 능력치' },
-  gyeonggong: { name: '경공', hanja: '輕功', desc: '공격 속도와 회피율' },
+  gyeonggong: { name: '경공', hanja: '輕功', desc: '공격 속도와 회피' },
   gigong:     { name: '기공', hanja: '氣功', desc: '최대 활력과 방어력' },
 };
 
@@ -45,7 +45,7 @@ const REALMS = [
 const DAESUNG_PASSIVE = {
   mugong:     { text: '극의(極意): 출수 +15%, 회심 +5%', stats: { combo: 15, crit: 5 } },
   simbeop:    { text: '극의(極意): 최대 내력 +20%, 내력 회복 +3', stats: { mpPct: 20, mpRegen: 3 } },
-  gyeonggong: { text: '극의(極意): 속도 +3, 회피율 +8%', stats: { spd: 3, eva: 8 } },
+  gyeonggong: { text: '극의(極意): 속도 +3, 회피 +8%', stats: { spd: 3, eva: 8 } },
   gigong:     { text: '극의(極意): 최대 활력 +15%, 반격 +10%', stats: { hpPct: 15, counter: 10 } },
 };
 
@@ -147,7 +147,7 @@ const DEFEAT_CAUSE = {
 };
 
 /* 단련 스탯 4종 (캐릭터 생성 때 배분 · 비급 독파와 성장으로 자주 오른다). 계열마다 짝이 되는 자질(APTS)이 한 점당 증가량의 계수가 된다.
-   per: ATTR_BASE를 기준으로 한 점마다 더하거나 뺀다 · abs: 수치 그대로 곱해 더한다 — 민첩: 회피율 민첩×0.5% · 탐험 기력 소모 민첩×1% 감소.
+   per: ATTR_BASE를 기준으로 한 점마다 더하거나 뺀다 · abs: 수치 그대로 곱해 더한다 — 민첩: 회피 민첩×0.5% · 탐험 기력 소모 민첩×1% 감소.
    선공은 '속도 + 민첩 + 선공(안력)'과 요수의 속도를 비교한다. 투력에는 선공(≥ 기준 상대 속도)으로 들어간다 */
 const ATTRS = {
   str: { name: '근력', hanja: '筋力', desc: '공격력 · 적재량', per: { atk: 2, bag: 6 } },

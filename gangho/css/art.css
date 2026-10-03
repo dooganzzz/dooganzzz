@@ -180,7 +180,6 @@
 .furnace-stage .slot::before, .furnace-stage .slot::after { content: ''; position: absolute; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; transform: rotate(45deg); background: #1a1511; border: 1.5px solid rgba(232, 222, 198, .6); }
 .furnace-stage .slot::before { top: -5px; } .furnace-stage .slot::after { bottom: -5px; }
 .furnace-stage .slot.full { border-color: var(--gold-2); background: rgba(58, 44, 24, .7); }
-.furnace-stage .slot-hint { color: rgba(232, 222, 198, .7); font-style: italic; }
 .furnace-stage.alchemy .slot { border-color: rgba(220, 235, 228, .55); background: rgba(236, 240, 236, .1); }
 /* 명패 버튼: 단조는 나무·청동 명패, 연단은 옥빛 알약 */
 .btn.plaque { display: inline-flex; justify-content: center; align-items: center; text-align: center; min-width: 180px; padding: 11px 26px; font-family: var(--serif, serif); font-size: 1.02rem; font-weight: 700; letter-spacing: .12em; color: #f3e2b8; border: 2px solid #9c7432; border-radius: 6px; background: linear-gradient(180deg, #6a4a27 0%, #4a3219 55%, #3a2713 100%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 220, 160, .25), 0 4px 10px rgba(0, 0, 0, .6); text-shadow: 0 1px 2px #000; }
@@ -635,7 +634,6 @@
 .map-box > .map-word.home { width: 9%; }
 .map-box > .map-word.locked { display: none; }   /* 앞 사냥터를 깨기 전에는 다음 사냥터 이름을 숨긴다 (손을 대도 연출 없음) */
 .map-spot:hover + .map-word, .map-spot:focus-visible + .map-word { opacity: 1; filter: drop-shadow(0 0 4px rgba(255, 225, 150, .9)); mix-blend-mode: normal; }
-.map-hint { margin: 8px 2px 0; font-size: 12px; }
 .map-go { width: min(640px, 96vw); }
 .map-vit { font-size: 13px; }
 .live-panel.enter { animation: liveEnter .9s ease-out; }
@@ -681,8 +679,6 @@
 .furnace-stage.study .yh-book { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; pointer-events: none; animation: yhBook 5.2s ease-in-out infinite; }
 @keyframes yhBook { 0%, 100% { opacity: .05; filter: blur(3px); } 28% { opacity: .6; filter: blur(1.6px); } 40% { opacity: .22; filter: blur(2.6px); } 55% { opacity: .8; filter: blur(1.2px); } 74% { opacity: .12; filter: blur(3px); } }
 html.calm .furnace-stage.study .yh-book { animation: none; opacity: .5; filter: blur(1.5px); }
-.furnace-stage.study .yh-mirror { position: absolute; left: 42.6%; top: 20.6%; width: 14.8%; height: 25.8%; border-radius: 50%; border: 0; padding: 0; background: transparent; cursor: pointer; }
-.furnace-stage.study .yh-mirror:hover, .furnace-stage.study .yh-mirror:focus-visible { box-shadow: 0 0 0 2px rgba(212, 175, 55, .55), 0 0 22px rgba(160, 200, 255, .35); outline: none; }
 .mirror-sheet { max-width: 460px; }
 .study-btns { justify-content: center; margin-top: 12px; }   /* 연혼: 단추는 그림 아래 (혼로를 가리지 않게) */
 /* 연혼 엮기 연출 (3.9초): 여덟 거울이 등급 색(--gc)으로 빛나고 → 넋이 명경으로 모이고 → 명경 속 비급이 등급 색으로 물들며 또렷해지고
@@ -810,24 +806,28 @@ html.calm .rku-stage .art { opacity: 1; animation: none; } html.calm .rku-stage 
 .chip.gear small { color: var(--dim); }
 
 /* 연혼: 팔괘 자리에 놓인 조각 (10월 3일) — 조각 그림만, 작은 거울 크기에 맞춰 명경을 가리지 않게 */
-.furnace-stage.study .yh-scrap { position: absolute; z-index: 2; width: 5.4%; height: auto; transform: translate(-50%, -50%); pointer-events: none; filter: drop-shadow(0 0 4px rgba(0, 0, 0, .55)); animation: yhScrapIn .35s ease-out both; }
+.furnace-stage.study .yh-scrap { position: absolute; z-index: 2; width: 5.4%; height: auto; padding: 0; border: 0; background: none; cursor: pointer; transform: translate(-50%, -50%); filter: drop-shadow(0 0 4px rgba(0, 0, 0, .55)); animation: yhScrapIn .35s ease-out both; }
+.furnace-stage.study .yh-scrap img { width: 100%; display: block; }
+/* 단로(연꽃 향로): 팔괘 거울이 다 차면 불이 들고, 누르면 연혼 주입 */
+.furnace-stage.study .yh-burner { position: absolute; z-index: 2; left: 50%; top: 82%; width: 13%; height: 20%; transform: translate(-50%, -50%); border: 0; padding: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.furnace-stage.study .yh-burner:disabled { cursor: default; }
+.furnace-stage.study.yh-ready .yh-burner { animation: yhReady 2.4s ease-in-out infinite; }
+.furnace-stage.study.yh-ready .yh-burner:hover, .furnace-stage.study.yh-ready .yh-burner:focus-visible { outline: none; background: radial-gradient(closest-side, rgba(170, 220, 255, .3), transparent); }
+html.calm .furnace-stage.study.yh-ready .yh-burner { animation: none; box-shadow: 0 0 24px 6px rgba(160, 210, 255, .45); }
 @keyframes yhScrapIn { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } }
 html.calm .furnace-stage.study .yh-scrap { animation: none; }
 /* 여덟 자리가 다 차면 명경이 은은하게 숨 쉬듯 빛난다 → [연혼주입]을 누를 때 (조각 등급 빛깔 --gc) */
-.furnace-stage.study.yh-ready .yh-mirror { animation: yhReady 2.4s ease-in-out infinite; }
 @keyframes yhReady { 0%, 100% { box-shadow: 0 0 10px 2px rgba(255, 240, 200, .25), inset 0 0 18px rgba(255, 245, 220, .15); } 50% { box-shadow: 0 0 34px 10px rgba(255, 236, 180, .55), inset 0 0 40px rgba(255, 250, 230, .45); } }
-html.calm .furnace-stage.study.yh-ready .yh-mirror { animation: none; box-shadow: 0 0 24px 6px rgba(255, 236, 180, .45), inset 0 0 30px rgba(255, 250, 230, .35); }
 
 /* ───────── 화로 칸 (10월 3일): 행낭 네모칸 여덟 — 모루 · 단로 좌우 2×2. 모루 · 단로를 누르면 조합 ───────── */
 .furnace-stage .stage-ui { position: absolute; inset: 0; }
 .furnace-stage .pot-side { position: absolute; display: grid; grid-template-columns: repeat(2, 9.2cqw); gap: 1.2cqw; transform: translate(-50%, -50%); z-index: 3; }
 .furnace-stage { container-type: inline-size; }
-.furnace-stage.forge .pot-side.left { left: 27%; top: 64%; } .furnace-stage.forge .pot-side.right { left: 76%; top: 64%; }
-.furnace-stage.alchemy .pot-side.left { left: 26%; top: 48%; } .furnace-stage.alchemy .pot-side.right { left: 74%; top: 48%; }
+/* 단조 · 연단 재료 칸 자리는 같다 (10월 3일 유저 — 왼쪽 · 오른쪽 2×2 한 벌씩, 값은 연출 미리보기 슬라이더로 정함) */
+.furnace-stage .pot-side.left { left: 27%; top: 56%; } .furnace-stage .pot-side.right { left: 75%; top: 56%; }
 .fslot { position: relative; display: grid; place-items: center; aspect-ratio: 1; width: 100%; padding: 14%; border: 0; border-radius: 4px; background: rgba(12, 11, 9, .62); cursor: default; }
 button.fslot { cursor: pointer; }
 .fslot .item-ico, .fslot .item-ico img { width: 100%; height: 100%; }
-.fslot .slot-hint { position: relative; z-index: 1; font-size: 11px; color: rgba(240, 225, 190, .65); }
 button.fslot:hover { filter: brightness(1.15); }
 .pot-hot { position: absolute; z-index: 2; border: 0; padding: 0; background: transparent; border-radius: 50%; cursor: pointer; transition: box-shadow .25s, background .25s, filter .25s; }
 .pot-hot.forge { left: 44%; top: 56%; width: 14%; height: 27%; border-radius: 40% 40% 30% 30%; }
@@ -840,9 +840,12 @@ button.fslot:hover { filter: brightness(1.15); }
 html.calm .pot-hot { animation: none; }
 @media (max-width: 640px) { .furnace-stage .pot-side { grid-template-columns: repeat(2, 11cqw); gap: 1.4cqw; } }
 /* 청풍문 전경: 이름은 평소 숨기고 손을 대면 붓글씨로 떠오른다 (강호 지도와 같은 결) */
-.map-box > .ground-word { position: absolute; z-index: 3; transform: translate(-50%, 0); pointer-events: none; opacity: 0; transition: opacity .2s;
-  font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-size: clamp(18px, 2.4vw, 34px); color: #15110d; white-space: nowrap;
-  text-shadow: 0 0 10px rgba(245, 236, 210, .95), 0 0 4px rgba(245, 236, 210, .9); }
-.map-box > .ground-word small { font-size: .5em; margin-left: .3em; opacity: .75; }
-.map-spot:hover + .ground-word, .map-spot:focus-visible + .ground-word { opacity: 1; }
+.map-box > .ground-tag { position: absolute; z-index: 3; transform: translate(-50%, -50%); width: clamp(84px, 11%, 150px); padding: 0; border: 0; background: none; cursor: pointer;
+  display: grid; place-items: center; transition: transform .15s, filter .15s; }
+.ground-tag > img { width: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .45)); }
+.ground-tag > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .25em; padding-bottom: 2%;
+  font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-size: clamp(15px, 1.9vw, 26px); color: #15110d; white-space: nowrap; }
+.ground-tag small { font-family: var(--serif), serif; font-size: .45em; opacity: .75; }
+.ground-tag:hover, .ground-tag:focus-visible { transform: translate(-50%, -50%) scale(1.08); filter: brightness(1.08); }
+.ground-tag > .alert-dot { position: absolute; top: 8%; right: 10%; }
 .map-box.grounds { width: min(100%, calc((100vh - 400px) * 16 / 9)); }   /* 청풍문 전경: 머리 · 갈래 줄 아래에 한 화면으로 */

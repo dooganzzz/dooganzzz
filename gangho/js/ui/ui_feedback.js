@@ -17,7 +17,8 @@ function toast(text) {
   const el = document.createElement('div');
   el.className = 'toast';
   el.textContent = text;
-  if (text.includes('「')) el.innerHTML = el.innerHTML.replace(/「([^」]+)」/g, '<b class="kw-place">「$1」</b>');   // 가야 할 곳 강조 (글은 먼저 textContent로 이스케이프)
+  if (text.includes('「')) el.innerHTML = el.innerHTML.replace(/「([^」]+)」/g, '<b class="kw-place">「$1」</b>');
+  el.innerHTML = emojiIcons(el.innerHTML);   // 기호는 힉스 아이콘으로   // 가야 할 곳 강조 (글은 먼저 textContent로 이스케이프)
   const box = $('#toasts');
   while (box.children.length >= 2) box.firstChild.remove();
   box.appendChild(el);

@@ -255,12 +255,12 @@ const SLOTS = {
   weapon: { name: '무기',   desc: '5대 병기' },
   armor:  { name: '호갑',   desc: '활력·방어력' },
   helmet: { name: '투구',   desc: '회심 방비' },
-  boots:  { name: '신발',   desc: '공격 속도·회피율' },
+  boots:  { name: '신발',   desc: '공격 속도·회피' },
   belt:   { name: '요대',   desc: '적재량·활력 보정' },
   jade:   { name: '옥대',   desc: '기공 위력·단전(내력) 보정' },
   ring:   { name: '가락지', desc: '내력·특수 보정' },
   ring2:  { name: '가락지', desc: '내력·특수 보정 (두 번째 손)' },
-  badge:  { name: '신분패', desc: '수련치 획득' },
+  badge:  { name: '신분패', desc: '정진' },
 };
 
 const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring', 'ring2', 'badge'];
@@ -268,9 +268,9 @@ const SLOT_ORDER = ['weapon', 'armor', 'helmet', 'boots', 'belt', 'jade', 'ring'
 const SLOT_ACCEPTS = { ring2: 'ring' };
 
 const STAT_NAMES = {
-  atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피율',
+  atk: '공격력', def: '방어력', maxHp: '최대 활력', maxMp: '최대 내력', spd: '속도', eva: '회피',
   crit: '회심', critRes: '회심 방비', mpRegen: '내력 회복', bag: '행낭 칸', mpCost: '내력 절약',
-  craft: '손재주', train: '수련치 획득', maxSta: '최대 기력', counter: '반격', combo: '출수',
+  craft: '손재주', train: '정진', maxSta: '최대 기력', counter: '반격', combo: '출수',
   staSave: '기력 절약', breathe: '승리 후 활력 회복', qiPct: '기공 위력', elemRes: '오행 내성', bleed: '출혈 확률', pierce: '관통력', acc: '명중',
   shock: '충격 확률', first: '선공', mpRegenPct: '내력 회복률', armorPen: '파갑', elem: '오행 위력',
   str: '근력', con: '체력', agi: '민첩', int: '심력', bone: '근골', phys: '체질', eye: '안력', wit: '오성', qiDmg: '초식 위력', mpSave: '내력 절약',
@@ -352,8 +352,8 @@ const STARTER_GEAR = { fist: 'g_hideTosu', sword: 'g_dullSword', blade: 'g_ironS
 /* 신분패 (구매) */
 const SHOP_GEAR = [
   { id: 'badge1', slot: 'badge', name: '청풍문 제자패',     rarity: 0, stats: { train: 10 } },
-  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 5 }, cost: 120, desc: '신분패 · 수련치 획득 +5%' },
-  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 10 }, cost: 350, desc: '신분패 · 수련치 획득 +10%' },
+  { id: 'badge2', slot: 'badge', name: '청풍문 정식제자패', rarity: 1, stats: { train: 5 }, cost: 120, desc: '신분패 · 정진 +5%' },
+  { id: 'badge3', slot: 'badge', name: '청풍문 내문제자패', rarity: 2, stats: { train: 10 }, cost: 350, desc: '신분패 · 정진 +10%' },
 ];
 
 /* 제작 고유 옵션 */
@@ -363,7 +363,7 @@ const UNIQUES = [
   { key: 'atkPct',    val: 8, text: '공격력 +8%' },
   { key: 'hpPct',     val: 8, text: '최대 활력 +8%' },
   { key: 'mpSave',    val: 8, text: '초식 내력 소모 -8%' },
-  { key: 'evaFlat',   val: 3, text: '회피율 +3%' },
+  { key: 'evaFlat',   val: 3, text: '회피 +3%' },
   { key: 'counter',   val: 6, text: '반격 +6%' },
 ];
 
@@ -425,8 +425,8 @@ const CRAFT_GEAR = {
    솜씨 품계: 솜씨 단계(lv) 1 = 9품, 올라갈수록 8품 … 1품 (CRAFT_GRADE_TOP 단계 이상은 1품) */
 const CRAFT_GRADE_TOP = 9;
 const TALENTS = {
-  forge:   { name: '단조', hanja: '鍛造', sub: '장비 제작 · 제련 특화', desc: '단조 9품에서 시작 · 장비 제작 성공률 +10% · 단조 시 검게 탄 찌꺼기 획득량 2배', craft: 'forge', rate: 10, slag: 2 },
-  alchemy: { name: '연단', hanja: '煉丹', sub: '영약 제조 · 연단 특화', desc: '연단 9품에서 시작 · 연단 성공률 +10% · 단약 섭취 효과 +15%', craft: 'alchemy', rate: 10, pill: 0.15 },
+  forge:   { name: '단조', hanja: '鍛造', sub: '장비 제작 · 제련에 능함', desc: '단조 9품에서 시작 · 장비 제작 성공률 +10% · 단조 시 검게 탄 찌꺼기 획득량 2배', craft: 'forge', rate: 10, slag: 2 },
+  alchemy: { name: '연단', hanja: '煉丹', sub: '영약 제조 · 연단에 능함', desc: '연단 9품에서 시작 · 연단 성공률 +10% · 단약 섭취 효과 +15%', craft: 'alchemy', rate: 10, pill: 0.15 },
 };
 
 /* 무신상 공양 (가챠): 검게 탄 찌꺼기 cost개를 바칠 때마다 표에서 하나. 기대값은 일부러 낮다 (조합 실패를 노리지 않도록).

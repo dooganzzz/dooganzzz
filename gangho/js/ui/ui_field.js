@@ -73,7 +73,7 @@ function liveSide() {
   return `${stageStrip()}${run || held ? `<div class="live-prog hp" title="활력"><span style="width:${hpP.toFixed(1)}%"></span></div><p class="live-vit"><span class="live-vit-hp">활력 ${fmt(Math.round(hpNow))} / ${fmt(st.maxHp)}</span><span>${pots}</span></p>
     <div class="live-prog mp" title="내력"><span style="width:${clamp(mpNow / (st.maxMp || 1) * 100, 0, 100).toFixed(1)}%"></span></div><p class="live-vit"><span class="live-vit-mp">내력 ${fmt(Math.round(mpNow))} / ${fmt(st.maxMp)}</span></p>
     <div class="live-prog sta" title="기력"><span style="width:${clamp(S.stamina / (st.maxSta || 100) * 100, 0, 100).toFixed(1)}%"></span></div>
-    <p class="live-vit"><span>기력 ${Math.round(S.stamina / (st.maxSta || 100) * 100)}% · ${r.mode === 'walk' ? '🚶 걷는 중 — 기력이 차면 다시 달립니다' : '🏃 달리는 중'}</span><button class="chip sm" data-act="gigeok" ${count('gigeokdan') ? '' : 'disabled'} title="기력을 가득 채워 곧바로 다시 달립니다 (전방 50냥)">기력단 ${count('gigeokdan')}</button></p>` : ''}
+    <p class="live-vit"><span>기력 ${Math.round(S.stamina / (st.maxSta || 100) * 100)}% · ${r.mode === 'walk' ? `${uiIco('c_walk', 'vit-ico')} 걷는 중 — 기력이 차면 다시 달립니다` : `${uiIco('c_run', 'vit-ico')} 달리는 중`}</span><button class="chip sm" data-act="gigeok" ${count('gigeokdan') ? '' : 'disabled'} title="기력을 가득 채워 곧바로 다시 달립니다 (전방 50냥)">기력단 ${count('gigeokdan')}</button></p>` : ''}
     <p class="live-state">${state}${unseen ? ` · <span class="warn">안 본 전투 ${unseen}</span>` : ''}</p>
     <ol class="live-log">${rows.join('') || '<li class="muted">산문을 나섰습니다…</li>'}</ol>
     <div class="btns live-btns">
