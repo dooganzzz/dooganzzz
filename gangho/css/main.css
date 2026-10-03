@@ -1061,3 +1061,18 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .hopae-info > div { display: flex; gap: 10px; align-items: baseline; }
 .hopae-info dt { width: 76px; white-space: nowrap; color: var(--dim); font-size: .85rem; } .hopae-info dd { margin: 0; font-weight: 700; }
 .alias-row { display: flex; gap: 6px; } .alias-row input { flex: 1; min-width: 0; }
+#status:empty { display: none; }
+
+/* 도감 › 별호 */
+.title-tier { margin: 14px 0 6px; font-size: 15px; } .title-tier small { color: var(--dim); font-weight: 400; margin-left: 4px; }
+.title-tier.t0 { color: #b8b2a4; } .title-tier.t1 { color: #8fd18a; } .title-tier.t2 { color: #6fb0f0; } .title-tier.t3 { color: #e0b84a; } .title-tier.t4 { color: #ef6b5b; }
+.title-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; }
+.title-card { display: grid; gap: 4px; align-content: start; padding: 10px 12px; border-radius: 6px; background: rgba(255, 255, 255, .03); border: 1px solid transparent; opacity: .62; min-width: 0; }
+.title-card.own { opacity: 1; border-color: rgba(212, 175, 55, .25); }
+.title-card.worn { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(212, 175, 55, .3) inset; }
+.title-card.sealed { opacity: .45; }
+.title-card .tc-name { font-family: 'Gangho Brush', var(--serif), serif; font-weight: 400; font-size: 20px; } .title-card .tc-name small { font-family: var(--serif); font-size: 11px; color: var(--dim); margin-left: 6px; }
+.title-card .tc-cond { color: var(--silver); }
+.title-card .tc-bonus { display: flex; gap: 6px; font-size: 12.5px; } .title-card .tc-bonus span { color: var(--dim); flex: none; width: 2.5em; }
+.title-card .tc-worn { color: var(--gold); font-size: 12px; font-weight: 700; }
+.title-card .btn { justify-self: start; }

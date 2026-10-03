@@ -147,7 +147,8 @@ function hopaeCard(edit) {
   return `<div class="hopae-wrap"><div class="hopae"><img class="hopae-board" src="${ASSET.ui('hopae_big')}" alt="">
       ${S.alias ? `<span class="hp-col hp-alias">${esc(S.alias)}</span>` : ''}<b class="hp-col hp-name n${Math.min(8, [...S.name].length)}">${esc(S.name)}<img class="nakgwan hopae-seal" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관"></b><span class="hp-col hp-rank">${R.name}</span></div>
     <dl class="hopae-info"><div><dt>성명</dt><dd>${esc(S.name)}</dd></div><div><dt>별호</dt><dd>${S.alias ? esc(S.alias) : '<span class="muted">없음</span>'}</dd></div><div><dt>무공 경지</dt><dd>${R.name} <small class="muted">${R.hanja}</small></dd></div>
-      ${edit ? `<div class="alias-row"><input id="aliasInput" maxlength="8" placeholder="별호 (8자까지)" value="${esc(S.alias || '')}" autocomplete="off"><button class="btn sm" data-act="setalias">새기기</button></div>` : ''}</dl></div>`;
+      ${edit ? `<div class="alias-row"><select id="titleSel" aria-label="별호 고르기">${Object.keys(S.titles || {}).filter(id => TITLES[id]).map(id => `<option value="${id}" ${S.title === id ? 'selected' : ''}>${TITLES[id].name} (${TITLE_TIERS[TITLES[id].tier].name})</option>`).join('')}</select><button class="btn sm" data-act="setalias">새기기</button></div>
+      <small class="muted">별호는 도감 › 별호에서 얻는 조건과 보너스를 볼 수 있습니다.</small>` : ''}</dl></div>`;
 }
 /* 성향: 익힌 비급의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 — 정 2 · 마 1 · 사 1이면 정 쪽으로 치우친 점 */
 const SCHOOL_TRI = { jeong: [50, 20], ma: [18.6, 73], sa: [83.6, 72.8] };   // 꼭짓점 (그림 school_tri 위 %)

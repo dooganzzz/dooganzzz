@@ -48,6 +48,7 @@ function onClick(e) {
     return showConfirmModal({ title: '돌파 조건 미달', message: n >= STAGE.count ? '두목을 쓰러뜨리면 탐험지를 평정합니다.' : `<b>${stageName(S.expedition.zone, n)}</b>에서 요수를 <b>${stageNeed(n)}번</b> 이겨야 돌파할 수 있습니다.<br>아직 조건을 채우지 못했습니다${run ? ` (지금 ${run.kills} / ${stageNeed(n)}승)` : ' — 강호행을 시작해 요수와 싸우십시오'}.`, confirmText: '알겠습니다', cancelText: '닫기' }); }
   if (d.chron) { ui.chronFilter = d.chron; return render(); }
   if (d.codextab) { ui.codexTab = d.codextab; return render(); }
+  if (d.titleuse) { if (equipTitle(d.titleuse)) { notify.save(); render(); } return; }   // 도감 › 별호: 호패에 새기기
   if (d.codexzone) { ui.codexZone = d.codexzone; return render(); }
   if (d.simzone) { ui.simZone = d.simzone; return render(); }
   if (d.codexcat) { ui.codexCat = d.codexcat; return render(); }
@@ -145,7 +146,7 @@ function onClick(e) {
       if (count(pick) < STUDY.need) return toast(`${ITEMS[pick].name} ${STUDY.need}장이 필요합니다 (지금 ${count(pick)}장).`);
       doBind(pick);
     },
-    setalias: () => { const el = $('#aliasInput'); if (setAlias(el ? el.value : '')) { notify.save(); render(); } },
+    setalias: () => { const el = $('#titleSel'); if (el && el.value !== S.title && equipTitle(el.value)) { notify.save(); render(); } },
     runstop: () => requestActionConfirm({ title: '귀환', description: '강호행을 멈추고 산문으로 돌아옵니다. 지금까지 얻은 것은 이미 받았습니다.', details: [], confirmText: '귀환한다', onConfirm: () => { recallRun(); goTab('sect'); render(); /* 귀환하면 청풍문으로 */ } }),
     autoequip: () => { const r = autoEquipBest(); toast(r.names.length ? `투력 ${fmt(r.from)} → ${fmt(r.to)} (+${fmt(r.to - r.from)}) · ${r.names.length}점 바꿈` : '지금 장비가 가장 강합니다.'); },
     closemodal: () => { if (ui.modal === 'confirm') return confirmCancel(); replayStop(); ui.modal = null; render(); },

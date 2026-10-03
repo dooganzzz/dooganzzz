@@ -17,7 +17,8 @@ function calcStats() {
   // 자질: 가운데 값(APT_MID)에서 한 점 벗어날 때마다
   for (const [a, P] of Object.entries(APTS)) { const d = aptOf(a) - APT_MID; for (const [k, v] of Object.entries(P.per)) s[k] = (s[k] || 0) + v * d; }
   for (const [k, v] of Object.entries(codexBonus().stats)) s[k] = (s[k] || 0) + v;   // 지역 도감 완성 보상
-  for (const [k, v] of Object.entries(manualPassive().stats)) s[k] = (s[k] || 0) + v;  // 비급 독파 영구 보너스 (장착 여부 무관)
+  for (const [k, v] of Object.entries(manualPassive().stats)) s[k] = (s[k] || 0) + v;
+  for (const [k, v] of Object.entries(titleStats())) s[k] = (s[k] || 0) + v;   // 별호: 습득 보너스(영구) + 새긴 별호의 착용 보너스  // 비급 독파 영구 보너스 (장착 여부 무관)
   // 옥대의 기공 위력(qiPct)은 기공 능력치에 곱하므로 먼저 모은다
   const qi = SLOT_ORDER.reduce((a, slot) => a + ((S.equip[slot] && S.equip[slot].stats.qiPct) || 0), 0);
   for (const cat of CAT_ORDER) {

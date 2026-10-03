@@ -1,13 +1,13 @@
 /* [화면] 도감: [ 강적 ] | [ 비급 ] | [ 단조 비법 ] | [ 연단 비법 ]
    만난 요수 · 독파한 비급(영구 보너스) · 화로에서 한 번이라도 성공한 비법만 적힌다. 총 몇 개인지, 못 찾은 것은 드러내지 않는다 */
 
-const CODEX_TABS = [['monster', '강적', '强敵'], ['martial', '비급', '秘笈'], ['forge', '단조 비법', '鍛造'], ['alchemy', '연단 비법', '煉丹']];
+const CODEX_TABS = [['monster', '강적', '强敵'], ['martial', '비급', '秘笈'], ['title', '별호', '別號'], ['forge', '단조 비법', '鍛造'], ['alchemy', '연단 비법', '煉丹']];
 
 function viewCodex() {
   const tab = CODEX_TABS.some(([k]) => k === ui.codexTab) ? ui.codexTab : 'monster';
   const bar = `<div class="subtabs codex-tabs" role="tablist" aria-label="도감" style="--n:${CODEX_TABS.length}">${CODEX_TABS.map(([k, ko, hj]) =>
     `<button class="subtab ${tab === k ? 'on' : ''}" role="tab" aria-selected="${tab === k}" data-codextab="${k}">${label(ko, hj)}</button>`).join('')}</div>`;
-  const body = tab === 'monster' ? codexMonsters() : tab === 'martial' ? codexMartial() : codexRecipes(tab);
+  const body = tab === 'monster' ? codexMonsters() : tab === 'martial' ? codexMartial() : tab === 'title' ? codexTitles() : codexRecipes(tab);
   return `<section class="panel codex-panel">${head('도감', '圖鑑')}${bar}${body}</section>`;
 }
 
@@ -38,8 +38,7 @@ function codexMonsters() {
 function codexMartial() {
   const cats = CAT_ORDER.filter(cat => Object.keys(MANUALS).some(id => MANUALS[id].cat === cat && S.manuals[id]));
   const P = manualPassive(), sum = bonusText({ ...P.attr, ...P.stats });
-  const sealed = Object.keys(MANUALS).filter(manualSealed).length;
-  const intro = `<p class="muted">독파하여 깨우친 비급의 비결이 온전히 기록되며, 몸에 영구히 각인됩니다.${sealed ? ` <span class="sealed-note">🔒 일류 · 절정 · 초절정 비급 ${sealed}종은 아직 봉인되어 있습니다.</span>` : ''}</p>${sum ? `<p class="passive-sum">몸에 새겨진 각인의 효과: <b>${sum}</b></p>` : ''}`;
+  const intro = `<p class="muted">독파하여 깨우친 비급의 비결이 온전히 기록되며, 몸에 영구히 각인됩니다.</p>${sum ? `<p class="passive-sum">몸에 새겨진 각인의 효과: <b>${sum}</b></p>` : ''}`;
   if (!cats.length) return intro + CODEX_EMPTY;
   const cat = cats.includes(ui.codexCat) ? ui.codexCat : cats[0];
   const cbar = `<div class="subtabs codex-zones" role="tablist" aria-label="비급 분류" style="--n:${cats.length}">${cats.map(k =>
@@ -62,3 +61,23 @@ function codexRecipes(craft) {
   }).join('');
   return `<p class="muted">화로를 통해 스스로 깨우친 제조 비법만 기록됩니다.</p>${rows ? `<ul class="recipes">${rows}</ul>` : CODEX_EMPTY}`;
 }
+
+/* 별호: 입수 난이도(최하 · 하 · 중 · 상 · 최상)별로 전시. 얻은 별호는 [호패에 새기기], 아직이면 조건과 진행. 중 이상은 이름만 (2장 이후) */
+function codexTitles() {
+  const own = S.titles || {};
+  const n = Object.keys(own).filter(id => TITLES[id]).length, open = Object.keys(TITLES).filter(titleOpen).length;
+  const card = id => {
+    const T = TITLES[id], has = !!own[id], worn = S.title === id;
+    if (T.sealed) return `<div class="title-card sealed ${T.school ? 's-' + T.school : ''}"><b class="tc-name">${T.name}<small>${T.hanja}</small></b>${T.school ? schoolBadge(T.school) : ''}<small class="muted">2장 이후에 열립니다</small></div>`;
+    const p = titleProgress(id);
+    return `<div class="title-card ${has ? 'own' : ''} ${worn ? 'worn' : ''} ${T.school ? 's-' + T.school : ''}">
+      <b class="tc-name">${T.name}<small>${T.hanja}</small></b>${T.school ? schoolBadge(T.school) : ''}
+      <small class="tc-cond">${T.text}${has ? '' : ` <span class="num">(${fmt(p.cur)} / ${fmt(p.need)})</span>`}</small>
+      <div class="tc-bonus"><span>착용</span>${bonusText(T.wear)}</div><div class="tc-bonus"><span>습득</span>${bonusText(T.gain)}</div>
+      ${has ? (worn ? '<span class="tc-worn">호패에 새김</span>' : `<button class="btn sm" data-titleuse="${id}">호패에 새기기</button>`) : '<span class="muted tc-lock">아직</span>'}
+    </div>`;
+  };
+  return `<p class="muted">얻은 별호 <b>${n}</b> / ${open} · 습득 보너스는 얻는 순간 영구히, 착용 보너스는 호패에 새긴 별호 하나만. 1장에서는 최하 · 하 별호만 얻을 수 있습니다.</p>`
+    + TITLE_TIERS.map((R, t) => { const ids = Object.keys(TITLES).filter(id => TITLES[id].tier === t); return ids.length ? `<h4 class="title-tier ${R.cls}">${R.name} <small>${R.hanja}</small></h4><div class="title-grid">${ids.map(card).join('')}</div>` : ''; }).join('');
+}
+const schoolBadge = k => `<span class="school-tag s-${k}">${SCHOOLS[k].hanja}</span>`;

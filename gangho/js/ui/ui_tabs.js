@@ -124,8 +124,7 @@ const fmtShort = n => { n = Math.floor(n); const a = Math.abs(n);
 /* 머리: 이름 줄만. 활력 · 내력 · 수련치 · 은자 · 공헌 · 투력은 상태 › 관조 탭(#vitals · 투력 카드)에 (유저 요청). 매초 다시 그린다 */
 function renderHeader() {
   const st = calcStats(), cp = calculateCombatPower(S), dl = cpDeltaHtml(cp);
-  setHTML($('#status'), `
-    <div class="character-meta-row who"><span class="char-name name">${esc(S.name)}</span><span class="char-sub sect">청풍문 제자 · ${S.expedition.zone ? `${uiIco('c_explore', 'inline')}${ZONES[S.expedition.zone].name}` : '탐험지 미정'}</span></div>`);
+  setHTML($('#status'), '');   // 머리 배너 아래 '이름 · 청풍문 제자 · 탐험지' 줄은 뺐다 (10월 3일 유저) — 이름은 관조 › 호패에
   const v = $('#vitals'); if (v) setHTML(v, vitalsHtml(st));
   const cm = document.querySelector('.cp-card .cp-main');            // 투력이 바뀌면 투력 카드에 잠깐 ▲/▼
   if (cm) { const old = cm.querySelector('.cp-delta'); if (old) old.remove(); if (dl) cm.insertAdjacentHTML('beforeend', dl); }
