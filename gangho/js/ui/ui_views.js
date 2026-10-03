@@ -126,7 +126,7 @@ function viewMartial() {
 /* 장비를 끼면 투력이 얼마나 바뀌는지 (▲ 오름 · ▼ 내림). 공세 · 수세 방향은 알려 주지 않는다 */
 function cpDiffTag(it, slot) {
   const d = cpTryGear(it, slot).cp;
-  return `<small class="cp-diff ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">끼면 투력 ${d > 0 ? '▲' : d < 0 ? '▼' : ''}${fmt(Math.abs(d))}</small>`;
+  return `<small class="cp-diff ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">투력 ${d > 0 ? '▲' : d < 0 ? '▼' : ''}${fmt(Math.abs(d))}</small>`;
 }
 
 /* 무장 · 행낭 */
