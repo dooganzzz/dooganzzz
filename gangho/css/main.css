@@ -992,21 +992,24 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 
 /* ───────── 관조 (10월 3일): 왼쪽 능력치 · 오른쪽 무장 ───────── */
 .observe-duo { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
-@media (min-width: 1100px) { .observe-duo { grid-template-columns: minmax(380px, 440px) minmax(0, 1fr); } }
+@media (min-width: 1100px) { .observe-duo { grid-template-columns: minmax(380px, 440px) minmax(0, 1fr); } .observe-duo.observe-trio { grid-template-columns: minmax(330px, 370px) minmax(0, 1fr) minmax(290px, 320px); } }
+.tend-panel .school-tri { grid-template-columns: minmax(0, 1fr); }
+.gear-panel .bag-top { grid-template-columns: minmax(0, 1fr); }   /* 성향이 제 칸으로 나가 무장은 한 칸 */
+.observe .obs-attr { gap: 6px; padding: 6px 8px; } .observe .obs-attr span { white-space: nowrap; }
 .observe .obs-h { margin: 14px 0 6px; font-size: .9rem; color: var(--gold, #d4af37); letter-spacing: .04em; }
 .observe .obs-toggle { display: flex; gap: 6px; align-items: center; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; font-weight: 700; text-align: left; }
 /* 호패 옆 투력 (유저 슬라이더 값, 호패 패널 안 %) */
 .hopae-panel { position: relative; }
-.hopae-panel > .obs-cp { position: absolute; left: var(--cp-x, 67%); top: var(--cp-y, 25%); transform: translate(-50%, -50%); width: max-content; margin: 0; z-index: 2; }
+.hopae-panel > .obs-cp { position: absolute; left: var(--cp-x, 67%); top: var(--cp-y, 25%); transform: translate(-50%, -50%) scale(var(--cp-s, 1)); width: max-content; margin: 0; z-index: 2; }
+/* 투력 위 활력 · 내력 막대 (유저 슬라이더 값: 자리 % · 크기 배) */
+.hopae-panel > .obs-gauge { position: absolute; left: var(--g-x, 67%); top: var(--g-y, 12%); transform: translate(-50%, -50%) scale(var(--g-s, 1)); width: 210px; margin: 0; padding: 0; background: none; border: 0; z-index: 2; }
+.hopae-panel > .obs-gauge .gauge-group { flex: none; }
 .hopae-panel > .obs-cp .cp-main { white-space: nowrap; }
-@media (max-width: 480px) { .hopae-panel > .obs-cp { position: static; transform: none; width: auto; margin-top: 10px; } }
-/* 무장: 채비 · 성향 자리는 유저가 슬라이더로 정한 값 (패널 안 %, 10월 3일) — 좁은 화면에서는 제자리(흐름)에 */
+@media (max-width: 480px) { .hopae-panel > .obs-cp, .hopae-panel > .obs-gauge { position: static; transform: none; width: auto; margin-top: 10px; } }
+/* 무장: 채비 자리는 유저가 슬라이더로 정한 값 (패널 안 %, 10월 3일) — 좁은 화면에서는 제자리(흐름)에 */
 .gear-panel { position: relative; }
 .gear-panel > .auto-equip { position: absolute; left: var(--chabi-x, 62.5%); top: var(--chabi-y, 8.5%); transform: translate(-50%, -50%); z-index: 2; }
-.gear-panel > .gear-tend { position: absolute; left: var(--tend-x, 82.5%); top: var(--tend-y, 42%); transform: translate(-50%, -50%); width: min(300px, 34%); z-index: 1; }
-.gear-panel > .gear-tend .school-tri { grid-template-columns: minmax(0, 1fr); }
-.gear-panel > .gear-tend .obs-h { margin: 0 0 6px; font-size: .9rem; color: var(--gold, #d4af37); }
-@media (max-width: 900px) { .gear-panel > .auto-equip, .gear-panel > .gear-tend { position: static; transform: none; width: auto; } .gear-panel > .auto-equip { justify-self: end; } }
+@media (max-width: 900px) { .gear-panel > .auto-equip { position: static; transform: none; width: auto; } .gear-panel > .auto-equip { justify-self: end; } }
 .observe .obs-h small { color: var(--dim); font-weight: 400; margin-left: 4px; }
 .observe .vitals { padding: 0; background: none; border: 0; }
 .obs-main { display: grid; gap: 10px; }

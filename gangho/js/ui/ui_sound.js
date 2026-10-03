@@ -34,7 +34,7 @@ function sndInit() {
   const nb = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = nb.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   SND.noise = nb;
-  fetch(ASSET.audio('sfx')).then(r => r.arrayBuffer()).then(b => c.decodeAudioData(b)).then(buf => { SND.rec = buf; }).catch(() => {});   // 녹음 효과음 묶음
+  if (location.protocol !== 'file:') fetch(ASSET.audio('sfx')).then(r => r.arrayBuffer()).then(b => c.decodeAudioData(b)).then(buf => { SND.rec = buf; }).catch(() => {});   // 녹음 효과음 묶음 (파일로 바로 연 화면에서는 받지 못하므로 합성음만)
   sndApply(true); sndTick();
 }
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, sndInit, true));

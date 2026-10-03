@@ -124,18 +124,20 @@ function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${
 
 
 /* 상태 › 무장: 착용 장비 슬롯 · 선택 장비 강화 · 능력치 */
-/* 상태 › 관조: 왼쪽 능력치(메인 #vitals 매초 갱신 · 성향 · 세부) · 오른쪽 무장 */
+/* 상태 › 관조: 왼쪽 호패(활력 · 내력 · 투력) · 성향 / 가운데 무장 / 오른쪽 능력치(#vitals 매초 갱신 · 세부) */
 function viewObserve() {
   const st = calcStats();
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k] ?? 0}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('')
     + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
-  return `<div class="observe-duo"><div class="observe-left">
-  <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-act="hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
-  <section class="panel observe">${head('능력치', '能力')}
-    <h4 class="obs-h">근본 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
-    <button class="obs-h obs-toggle" data-act="obsdetail" aria-expanded="${!!ui.obsDetail}">세부 능력치 <span class="fold-arrow">${ui.obsDetail ? '▲' : '▼'}</span></button>${ui.obsDetail ? `<div class="statsheet">${statList}</div>` : ''}
-  </section></div>
+  // 왼쪽: 호패(활력 · 내력 · 투력) · 성향 / 가운데: 무장 / 오른쪽: 능력치 (10월 3일 유저)
+  return `<div class="observe-duo observe-trio"><div class="observe-left">
+  <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-act="hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="vitals obs-gauge" id="obsGauge">${gaugeHtml(st)}</div><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
+  <section class="panel tend-panel">${head('성향', '性向')}${schoolTriangle()}</section></div>
   ${viewGear()}
+  <section class="panel observe">${head('능력치', '能力')}
+    <section class="vitals" id="vitals">${vitalsHtml(st)}</section>
+    <button class="obs-h obs-toggle" data-act="obsdetail" aria-expanded="${!!ui.obsDetail}">세부 능력치 <span class="fold-arrow">${ui.obsDetail ? '▲' : '▼'}</span></button>${ui.obsDetail ? `<div class="statsheet">${statList}</div>` : ''}
+  </section>
   </div>`;
 }
 /* 호패: 성명 · 별호 · 무공 경지를 패에 세로로 새기고 강호견문록 낙관을 찍는다. edit면 별호 새기기 칸을 곁에 둔다 (관조) */
@@ -174,7 +176,6 @@ function viewGear() {
   return `<section class="panel gear-panel">
     ${head('무장', '武裝')}
     <button class="btn primary sm auto-equip" data-act="autoequip" title="행낭 장비 가운데 투력이 가장 많이 오르는 것으로 한 번에 바꿉니다">채비</button>
-    <div class="gear-tend"><h4 class="obs-h">성향 <small>性向</small></h4>${schoolTriangle()}</div>
     <div class="bag-top">
       <div class="armory">
         <!-- 왼쪽: 가락지 · 무기 · 요대 / 가운데: 투구 + 제자 초상 / 오른쪽: 옥대 · 호갑 · 가락지 -->
