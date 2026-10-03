@@ -53,9 +53,11 @@ const elemTag = e => e ? sealImg(e, `오행 ${ELEMENTS[e].name}(${ELEMENTS[e].ha
 const terrainTag = t => t ? sealImg('t_' + t, `지형 ${TERRAINS[t].name}(${TERRAINS[t].hanja})`) : '';
 /* 파 표식 (正 · 魔 · 邪): 정마사 상성과 파의 고유 효과 */
 const schoolTag = id => { const k = schoolOf(id), P = SCHOOLS[k]; return sealImg(k, `${P.name}(${P.hanja}) — ${P.desc} 성향 한 칸마다 ${P.bonus}. ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이긴다`); };
-const sizeTag = z => z ? `<span class="aff-tag fsz" title="${sizeName(z)} — ${Object.keys(WEAPON_SHORT).map(w => { const v = sizeDmg(w, z); return `${WEAPON_SHORT[w]} ${v > 0 ? '+' : v < 0 ? '−' : '±'}${Math.abs(v)}%`; }).join(' · ')}">${sizeName(z)}</span>` : '';   // 요수 크기 (소형 · 중형 · 대형 × 작음 · 보통 · 큼)
+const sizeTag = (z, boss) => { if (!z) return ''; const g = boss ? AFFINITY.bossGain : 1;   // 요수 크기 (소형 · 중형 · 대형 × 작음 · 보통 · 큼) — 두목은 크기 상성이 절반
+  const tip = Object.keys(WEAPON_SHORT).map(w => { const v = Math.round(sizeDmg(w, z) * g); return `${WEAPON_SHORT[w]} ${v > 0 ? '+' : v < 0 ? '−' : '±'}${Math.abs(v)}%`; }).join(' · ');
+  return `<span class="aff-tag fsz" title="${sizeName(z)} — ${tip}${boss ? ' (두목: 격이 달라 상성이 절반만 통함)' : ''}">${sizeName(z)}</span>`; };
 /* 무기 상세의 크기 상성 한 줄 (무기 쪽에서 본 말, 각 크기의 '보통' 기준) */
-const sizeLine = wt => wt ? `<p class="muted size-line">크기 상성 — ${Object.keys(FOE_SIZES).map(k => { const v = sizeDmg(wt, k + '2'); return `${FOE_SIZES[k].name} ${v >= 8 ? '유리' : v <= -8 ? '불리' : '보통'}${v ? ` ${v > 0 ? '+' : '−'}${Math.abs(v)}%` : ''}`; }).join(' · ')}</p>` : '';
+const sizeLine = wt => wt ? `<p class="muted size-line">크기 상성 — ${Object.keys(FOE_SIZES).map(k => { const v = sizeDmg(wt, k + '2'); return `${FOE_SIZES[k].name} ${v >= 8 ? '유리' : v <= -8 ? '불리' : '보통'}${v ? ` ${v > 0 ? '+' : '−'}${Math.abs(v)}%` : ''}`; }).join(' · ')} <span class="nw">(두목은 절반)</span></p>` : '';
 const weaponTag = w => w ? `<span class="aff-tag wp">${WEAPON_CLASS_NAME[WEAPON_CLASS[w]]}</span>` : '';
 
 const realmTag = star => { const r = realmOf(star); return sealImg(r.seal, `${r.name}(${r.hanja})`, true); };
