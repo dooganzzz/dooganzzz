@@ -18,8 +18,8 @@ function viewEncounters() {
   };
   const past = E => { const ev = EVENTS.find(x => x.id === E.ev), D = E.done, g = encGainText(D);
     return `<li><b>「${ev ? ev.title : '?'}」</b> ▸ ${esc(D.label)} — ${esc(D.text)}${D.fight ? ` <span class="warn">${D.fight}</span>` : ''}${g ? ` <span class="gold">${g}</span>` : ''}</li>`; };
-  return `<section class="panel enc-panel">${head('기연', '奇緣', `<span class="pill">${wait.length ? `기다리는 기연 ${wait.length}` : '없음'}</span>`)}
-      <p class="muted">강호행에서 만난 기연이 여기 쌓입니다. 원할 때 골라 결과를 받으십시오. (기연은 ${ENCOUNTER_TTL / 3600000}시간 안에 골라야 사라지지 않습니다. 기다리는 기연은 ${ENCOUNTER_KEEP}개까지, 넘치면 가장 오래된 것이 지나갑니다)</p>
+  return `<section class="panel enc-panel">${head('기연', '奇緣', wait.length ? `<span class="pill">기다리는 기연 ${wait.length}</span>` : '')}
+      <p class="muted">강호행에서 만난 기연이 여기 쌓입니다. 원할 때 골라 결과를 받으십시오.</p>
       ${wait.length ? wait.map(card).join('') : '<p class="story muted">기다리는 기연이 없습니다. 강호를 다니다 보면 만납니다.</p>'}
     </section>
     ${done.length ? `<section class="panel">${head('지난 기연', '往緣')}<ol class="enc-log">${done.map(past).join('')}</ol></section>` : ''}`;

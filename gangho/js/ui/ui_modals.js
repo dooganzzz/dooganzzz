@@ -94,6 +94,8 @@ function fillPot(rid) {
 }
 
 /* ───────── 행낭: 칸을 누르면 그 물건의 세부정보 (장비: 부위 · 능력치 · 투력 · 착용/버리기, 소지품: 설명 · 사용) ───────── */
+/* 호패 창: 관조의 호패를 누르면 — 별호 새기기 (호패는 행낭 물건이 아니라 늘 지닌 것) */
+const hopaeModal = () => `<div class="sheet bag-sheet" role="dialog" aria-modal="true"><div class="sheet-head"><div><small class="muted">신분</small><h2>호패 <small class="muted">號牌</small></h2></div></div>${hopaeCard()}${titlePicker()}<div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
 function bagItemModal(key) {
   const [kind, id] = [key.slice(0, 1), key.slice(2)];
   if (kind === 'g') {
@@ -105,7 +107,6 @@ function bagItemModal(key) {
     </div>`;
   }
   const I = ITEMS[id]; if (!I || !has(id)) return '';
-  if (id === 'hopae') return `<div class="sheet bag-sheet" role="dialog" aria-modal="true"><div class="sheet-head"><div><small class="muted">신분</small><h2>호패 <small class="muted">號牌</small></h2></div></div>${hopaeCard()}${titlePicker()}<div class="btns"><button class="btn ghost" data-act="closemodal">닫기</button></div></div>`;
   return `<div class="sheet bag-sheet" role="dialog" aria-modal="true">
     <div class="sheet-head bag-detail">${inkBox(itemIco(id))}<div><small class="muted">${I.kind || '소지품'}</small><h2 class="item-name">${esc(I.name)} <span class="num muted">×${count(id)}</span></h2></div></div>
     <p>${I.desc || ''}</p>
@@ -185,6 +186,7 @@ function renderModal() {
   if (ui.modal === 'confirm') setHTML(m, confirmModal());
   if (ui.modal.startsWith('mapgo:')) setHTML(m, mapGoModal(ui.modal.slice(6)));
   if (ui.modal.startsWith('equip:')) setHTML(m, equipModal(ui.modal.slice(6)));
+  if (ui.modal === 'hopae') setHTML(m, hopaeModal());
   if (ui.modal.startsWith('bagitem:')) { const h = bagItemModal(ui.modal.slice(8)); if (!h) { ui.modal = null; m.hidden = true; return; } setHTML(m, h); }
   if (ui.modal.startsWith('artslot:')) setHTML(m, artSlotModal(ui.modal.slice(8)));
   if (ui.modal.startsWith('recipe:')) setHTML(m, recipeModal(ui.modal.slice(7)));

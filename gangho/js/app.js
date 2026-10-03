@@ -20,7 +20,7 @@ function newState(name, mugongId, opts = {}) {
     alias: '강호초출', titles: { chocheol: now() }, title: 'chocheol', attr: validAttr(opts.attr) ? { ...opts.attr } : DEFAULT_ATTR(), apt: validApt(opts.apt) ? { ...opts.apt } : rollApt(), talent: TALENTS[opts.talent] ? opts.talent : null,
     expedition: { zone: null, run: null, stage: 1, auto: true }, stages: {}, expeditions: [], potGift: true, zoneLog: {}, craftNotes: [], bestiary: {},
     manuals: {}, active: { mugong: null, simbeop: null, gyeonggong: null, gigong: null },
-    inv: { hopae: 1, saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, ...Object.fromEntries(['simbeop', 'gyeonggong', 'gigong'].map(starterGift).filter(Boolean).map(k => [k, 1])) },
+    inv: { saenghyeol: 10, herb: 2, ['bk_' + mugongId]: 1, ...Object.fromEntries(['simbeop', 'gyeonggong', 'gigong'].map(starterGift).filter(Boolean).map(k => [k, 1])) },
     gear: [], equip: {},
     shrine: { atk: 0, mp: 0, eva: 0, total: 0, pulls: 0 },
     perm: { maxHp: 0, maxMp: 0, attr: {}, apt: {} },
@@ -356,6 +356,7 @@ function startGame(st) {
   // 메인 퀘스트 개편: 예전 저장은 이미 이룬 가르침까지를 지난 것으로 (보상 없이)
   if (S.mainQ === undefined) { let i = 0; while (i < QUESTS.length - 1 && QUESTS[i].done()) i++; S.mainQ = i; delete S.tutorShown; S.qv = 2; }
   if (S.mainQAcc === undefined && S.qv === 2 && S.mainQ > 0) S.mainQAcc = S.mainQ;   // 사명 수락이 생기기 전 제자: 지금 가르침은 받은 것으로
+  delete S.inv.hopae;   // 호패는 행낭 물건이 아니라 늘 지닌 것 (10월 3일 유저) — 관조의 호패를 누르면 별호 창
   if (S.qv !== 2) { S.mainQ = QUEST_V2_MAP[Math.min(S.mainQ || 0, QUEST_V2_MAP.length - 1)]; S.qv = 2; }   // 가르침 2판: 옛 자리 → 새 자리
   for (const z of ZONE_ORDER) checkAreaEncyclopediaCompletion(z);   // 예전 저장: 이미 다 만났으면 도감 완성 보상
   if (S.migratedPot) { log('📜 강호행이 바뀌었습니다. 이제 정각마다 떠나지 않고, [강호행 시작]을 누르면 쓰러질 때까지 쭉 이어집니다. 조운이 생혈고 10개를 챙겨 주었습니다.', 'gold'); delete S.migratedPot; }

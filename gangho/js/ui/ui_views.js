@@ -130,7 +130,7 @@ function viewObserve() {
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k] ?? 0}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('')
     + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
   return `<div class="observe-duo"><div class="observe-left">
-  <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-bagitem="i:hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
+  <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-act="hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
   <section class="panel observe">${head('능력치', '能力')}
     <h4 class="obs-h">근본 능력치</h4><section class="vitals" id="vitals">${vitalsHtml(st)}</section>
     <button class="obs-h obs-toggle" data-act="obsdetail" aria-expanded="${!!ui.obsDetail}">세부 능력치 <span class="fold-arrow">${ui.obsDetail ? '▲' : '▼'}</span></button>${ui.obsDetail ? `<div class="statsheet">${statList}</div>` : ''}
