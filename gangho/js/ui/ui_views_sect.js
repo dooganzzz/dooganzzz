@@ -57,9 +57,8 @@ function viewHall() {
   const shopManuals = LIBRARY_BOOKS.filter(id => MANUALS[id] && !manualSealed(id)).map(id => [id, MANUALS[id]]);   // 정파 삼류 비급, 분류마다 하나씩
   const ownsBook = id => !!S.manuals[id] || has('bk_' + id);
   const badges = SHOP_GEAR.filter(g => g.cost);
-  const supplied = S.supplyDay === today();
   const hq = `
-    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint">${tutorReady() ? '보상 받기 <small>가르침을 이룸</small>' : '가르침 청하기'}</button><button class="btn talk-btn" data-act="subqask">토벌 임무 받기 <small>(오늘 ${subqLeft()}/${SUBQ.daily})</small></button></div>
+    <div class="npc-head">${portrait('master', '松', '노벽송')}<div><h3>${label('노벽송', '장문인')}</h3><p class="story" data-tw="npc">의자에 기대 반쯤 졸고 있습니다. 가끔 실눈을 뜨고 제자를 훑어봅니다.</p></div><button class="btn talk-btn ${tutorReady() ? 'ready' : ''}" data-act="masterhint">${tutorReady() ? '보상 받기 <small>가르침을 이룸</small>' : '가르침 청하기'}</button></div>
     <div class="quest main-quest ${tutorReady() ? 'ready' : ''}">
       ${!q ? '<b>제1장 완결</b><p class="story">낙양으로 가는 길이 열려 있습니다.</p>'
         : `<small class="muted">사명(師命) · 장문인의 가르침 ${qi + 1}/${QUESTS.length}</small><b>${q.t}${tutorReady() ? ' <span class="good">— 이룸!</span>' : ''}</b><p class="story">${tutorReady() ? '장문인에게 [ 보상 받기 ]를 누르십시오.' : q.hint}</p>${q.reward ? `<p class="quest-reward">보상: <b>${questRewardText(q)}</b></p>` : ''}`}
@@ -67,15 +66,15 @@ function viewHall() {
     </div>
     <!--subq-->
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
-      <div class="npc-acts"><button class="btn talk-btn" data-act="jounguide">문파 안내</button><button class="btn talk-btn ${supplied ? '' : 'ready'}" data-act="supply" ${supplied ? 'disabled' : ''}>${supplied ? '오늘은 받았음' : '[ 오늘의 보급품 ]'}</button></div></div>
+      <div class="npc-acts"><button class="btn talk-btn ${subqReady() || (!subqCur() && subqLeft()) ? 'ready' : ''}" data-act="jounask" title="조운 대사형과 이야기하고 토벌 임무를 받거나 보고합니다">문파 일 여쭙기</button></div></div>
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 배고프죠? 죽 끓여 놨어요!"</p></div>
       <div class="npc-acts"><button class="btn talk-btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'ready' : ''}" data-act="talk" title="아린과 이야기하고 죽을 얻어먹을 수 있습니다 (활력·내력 모두 회복)">담소 나누기</button></div></div>`;
   // 보조 퀘스트: 장문인에게 받은 토벌 임무 하나만
   const cq = subqCur(), cR = cq && subqReward(cq.zid, cq.n), cp = cq ? cq.prog || 0 : 0, cok = subqReady();
   const missions = `
-    <div class="subq-box"><p class="subq-title"><small class="muted">의뢰(依賴) · 반복</small> <b>토벌 임무</b> <small class="muted">장문인에게 탐험지 · 단계를 골라 받습니다. 보상을 받으면 다시 받을 수 있고, 하루 ${SUBQ.daily}번까지 (오늘 ${subqLeft()}번 남음).</small></p>
+    <div class="subq-box"><p class="subq-title"><small class="muted">의뢰(依賴) · 반복</small> <b>토벌 임무</b> <small class="muted">조운 대사형에게 탐험지 · 단계를 골라 받습니다. 보상을 받으면 다시 받을 수 있고, 하루 ${SUBQ.daily}번까지 (오늘 ${subqLeft()}번 남음).</small></p>
     <ul class="missions">${cq ? `<li class="${cok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(cq.zid, cq.n)} <small class="muted">${cq.n >= STAGE.count ? '두목' : `${cq.n}단계`}</small></div><div class="mprog"><span style="width:${cp / SUBQ.kills * 100}%"></span></div><span class="num">${cp}/${SUBQ.kills}</span><span class="reward">공헌 ${cR.contrib} · 은자 ${cR.silver} · 수련치 ${cR.exp} · 생혈고 ${cR.pot}</span><button class="btn sm ${cok ? 'primary' : ''}" data-subq="1" ${cok ? '' : 'disabled'}>${cp >= SUBQ.kills && !subqLeft() ? '내일' : '보상'}</button></li>`
-      : `<li class="muted">${subqLeft() ? '맡은 토벌이 없습니다. 장문인에게 [토벌 임무 받기].' : `오늘 토벌은 ${SUBQ.daily}번 다 했습니다. 내일 다시 받으십시오.`}</li>`}</ul></div>`;
+      : `<li class="muted">${subqLeft() ? '맡은 토벌이 없습니다. 조운 대사형에게 [문파 일 여쭙기].' : `오늘 토벌은 ${SUBQ.daily}번 다 했습니다. 내일 다시 받으십시오.`}</li>`}</ul></div>`;
   // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
   const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌'], ['pills', '영단', '靈丹']];
   const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';

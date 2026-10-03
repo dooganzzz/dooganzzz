@@ -13,18 +13,18 @@ function subqToday() { const d = S.subqDay; return d && d.date === today() ? (d.
 const subqLeft = () => Math.max(0, SUBQ.daily - subqToday());
 const subqReady = () => { const q = subqCur(); return !!q && (q.prog || 0) >= SUBQ.kills && subqLeft() > 0; };
 const subqReadyCount = () => (subqReady() ? 1 : 0);
-/* 장문인에게 토벌 임무 받기: 탐험지 → 단계 고르기 */
+/* 조운 대사형에게 토벌 임무 받기 (문파 일 여쭙기 뒤에): 탐험지 → 단계 고르기 (10월 3일: 장문인 → 조운) */
 function subqAsk() {
   const q = subqCur();
-  if (!subqLeft()) return log(`노벽송: "오늘 토벌은 ${SUBQ.daily}번 다 했다. 내일 오너라."`, 'npc');
-  log(q ? `노벽송: "${stageName(q.zid, q.n)} 토벌을 맡고 있지 않느냐. 다른 곳으로 바꾸면 쌓은 것은 사라진다. 어디로 가겠느냐?"`
-    : `노벽송: "토벌을 맡겠느냐? 어느 땅, 어느 길목에서 할지 골라라. 보상은 하루 ${SUBQ.daily}번이다. 높은 땅일수록 조금 더 얹어 주마."`, 'npc');
+  if (!subqLeft()) return log(`조운: "오늘 토벌은 ${SUBQ.daily}번 다 했다. 쉬는 것도 수련이다. 내일 와라."`, 'npc');
+  log(q ? `조운: "${stageName(q.zid, q.n)} 토벌 맡았잖아. 바꾸면 쌓은 건 없어진다. 그래도 바꿀 거면 골라라."`
+    : `조운: "일 할 거냐. 어느 땅, 어느 길목인지 골라라. 하루 ${SUBQ.daily}번까지다. 높은 땅일수록 조금 더 쳐준다."`, 'npc');
 }
-function subqPickZone(z) { if (!ZONES[z] || !zoneUnlocked(z)) return false; log(`노벽송: "${ZONES[z].name}이라… 어느 길목이냐?"`, 'npc'); return true; }
+function subqPickZone(z) { if (!ZONES[z] || !zoneUnlocked(z)) return false; log(`조운: "${ZONES[z].name}이라. 어느 길목이냐."`, 'npc'); return true; }
 function acceptSubq(z, n) {
   if (!ZONES[z] || !zoneUnlocked(z) || n < 1 || n > stageMax(z) || !subqLeft()) return false;
   S.subqCur = { zid: z, n, prog: 0 };
-  log(`노벽송: "좋다. ${stageName(z, n)}에서 ${SUBQ.kills}번 이기고 오너라."`, 'npc'); notify.refresh(); return true;
+  log(`조운: "${stageName(z, n)}에서 ${SUBQ.kills}번 이기고 와라. 무리하지 말고."`, 'npc'); notify.refresh(); return true;
 }
 function claimSubq() {
   const q = subqCur(); if (!q || !subqReady()) return false;
@@ -39,10 +39,26 @@ function claimSubq() {
 }
 
 /* ───────── 인물 ───────── */
-function jounSupply() {
+/* 조운의 기분 (아린과 겹치지 않게): 토벌을 맡고 아직이면 걱정(꾸러미 — 하루 한 번 보급품) · 토벌을 다 했으면 흡족 ·
+   비급만 많고 성급이 낮으면 엄격함 · 해 질 녘(17~21시)엔 느긋함 · 오늘 아린 죽을 먹었으면 장난기 · 그 밖엔 하루 동안 같은 기분 */
+function jounMood() {
+  const J = S.joun = S.joun || {}, d = today(), h = new Date(now()).getHours();
+  const learned = Object.keys(S.manuals || {}).length, top = Math.max(0, ...Object.values(S.manuals || {}).map(m => m.star || 0));
+  let m;
+  if (subqCur() && !subqReady()) m = 'worry';
+  else if (subqReady()) m = 'pleased';
+  else if (learned >= 4 && top < 3) m = 'strict';
+  else if (h >= 17 && h < 21) m = 'ease';
+  else if (S.arinFreeDay === d && J.teaseDay !== d) { m = 'tease'; J.teaseDay = d; }
+  else if (J.moodDay === d && ['usual', 'annoyed', 'tired', 'awkward', 'lonely'].includes(J.mood)) m = J.mood;
+  else { const pool = ['usual', 'usual', 'annoyed', 'tired', 'awkward', 'lonely']; m = pool[Math.floor(Math.random() * pool.length)]; }
+  J.mood = m; J.moodDay = d; S.flags.askedJoun = true;
+  return m;
+}
+function jounSupply(quiet) {   // quiet: 걱정 대사 뒤라 조운의 말은 빼고 꾸러미만
   if (S.supplyDay === today()) return;
   S.supplyDay = today(); S.flags.supplied = true;
-  log(`조운: "${pick(['오늘 몫이다. 아껴 써라.', '창고 정리하다 나온 거다. 챙겨가.', '산에 들어갈 거면 이 정도는 들고 가야지.'])}"`, 'npc');
+  if (!quiet) log(`조운: "${pick(['오늘 몫이다. 아껴 써라.', '창고 정리하다 나온 거다. 챙겨가.', '산에 들어갈 거면 이 정도는 들고 가야지.'])}"`, 'npc');
   const pool = [...SUPPLY];
   for (let k = 0; k < 3; k++) { const [id, a, b] = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; give(id, rint(a, b)); }
   notify.refresh();
@@ -197,8 +213,8 @@ const QUESTS = [
     talk: '몸에 걸었으면 강호에 나가 부딪혀야지. 청풍산 초입부터 하나씩 꺾어 올라가거라. 생혈고를 넉넉히 챙기고.', reward: { gear: ['helmet', 1, 1] } },
   { t: '수련치로 무공 성급 올리기', done: () => Object.values(S.manuals).some(m => m.star >= 2), hint: '탐험에서 모은 수련치로 상태 › 무공에서 [ 성급 올리기 ]를 누르십시오.',
     talk: '싸우고 돌아오면 수련치가 쌓인다. 그걸로 상태 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.', reward: { silver: 50, items: { saenghyeol: 5 } } },
-  { t: '조운 대사형에게 오늘의 보급품 받기', done: () => !!S.flags.supplied, hint: '정청의 조운에게 보급품을 받으십시오.',
-    talk: '조운이 녀석이 보급품을 챙겨 뒀을 게다. 가서 받아 오너라. 하루에 한 번이다.', reward: { items: { saenghyeol: 3, potionMp: 2 } } },
+  { t: '조운 대사형에게 문파 일 여쭙기', done: () => !!S.flags.askedJoun, hint: '정청의 조운에게 [문파 일 여쭙기]를 누르십시오. 토벌 임무도 조운이 맡깁니다.',
+    talk: '조운이 녀석한테 가서 문파 일을 여쭤라. 토벌 일거리는 그 녀석이 나눠 준다.', reward: { items: { saenghyeol: 3, potionMp: 2 } } },
   { t: '네 갈래 무공 모두 2성', done: allStar(2), hint: '장착한 무공 · 심법 · 경공 · 기공을 모두 2성 이상으로 올리십시오.',
     talk: '한 갈래만 키우면 절름발이다. 심법 · 경공 · 기공도 고루 2성까지 끌어올려라.', reward: { silver: 60, items: { potionMp: 3 } } },
   { t: '청풍산 산길 돌파 (2단계)', done: st10('cheongpung', 2), hint: '청풍산 2단계를 돌파하십시오.',

@@ -95,9 +95,9 @@ function onClick(e) {
   if (d.grem) { ui.potGear = ui.potGear.filter(u => u !== +d.grem); ui.enhResult = null; return render(); }
   if (d.add) { if (!getFilteredMaterials(ui.craft).includes(d.add)) return; ui.potGear = []; if (potTotal(ui.pot) >= POT_MAX) return toast(`화로에는 ${POT_MAX}개까지만 들어갑니다.`); if ((ui.pot[d.add] || 0) >= count(d.add)) return; ui.pot[d.add] = (ui.pot[d.add] || 0) + 1; ui.craftResult = null; return render(); }
   if (d.rem) { ui.pot[d.rem]--; if (ui.pot[d.rem] <= 0) delete ui.pot[d.rem]; return render(); }
-  if (d.subq) { claimSubq(); return; }
-  if (d.subqzone) { const z = d.subqzone; npcTalk('master', () => subqPickZone(z)); if (ui.npcTalk) { ui.npcTalk.stages = z; render(); } return; }
-  if (d.subqstage) { const [z, n] = d.subqstage.split(':'); npcTalk('master', () => acceptSubq(z, +n)); return; }
+  if (d.subq) { claimSubq(); if (ui.modal === 'npc') ui.modal = null; render(); return; }
+  if (d.subqzone) { const z = d.subqzone; npcTalk('joun', () => subqPickZone(z)); if (ui.npcTalk) { ui.npcTalk.stages = z; render(); } return; }
+  if (d.subqstage) { const [z, n] = d.subqstage.split(':'); npcTalk('joun', () => acceptSubq(z, +n)); return; }
   if (d.buymanual) { const M = MANUALS[d.buymanual]; return askContrib(`《${M.name}》 비급`, M.cost, () => buyManual(d.buymanual), '비급은 행낭에 들어가고, [ 익히기 ]로 독파하면 영구 각인이 새겨집니다.'); }
   if (d.buypill) { const id = d.buypill; return askContrib(ITEMS[id].name, LIBRARY_PILLS[id], () => buyLibraryPill(id), '돌파단은 행낭에 들어갑니다. 5성 · 11성 관문에서 성급을 올릴 때 쓰입니다.'); }
   if (d.buybadge) { const g = SHOP_GEAR.find(x => x.id === d.buybadge); return askContrib(g.name, g.cost, () => buyBadge(d.buybadge), '신분패는 행낭에 들어갑니다. 무장에서 착용하십시오.'); }
@@ -115,7 +115,8 @@ function onClick(e) {
   const acts = {
     craft: () => ui.potGear.length ? acts.enhance() : askCraft(),
     confirmok: confirmAccept, calm: toggleCalm, mirror: () => { ui.modal = 'mirror'; render(); }, callout: toggleCallout, bgm: () => sndToggle('bgm'), sfx: () => sndToggle('sfx'), talk: () => { const M = ARIN_MOODS[arinMood()]; notify.save(); ui.npcTalk = { who: 'arin', offer: true, tag: M.name, lines: [{ text: M.narr }, { text: `아린: "${M.say}"` }] }; ui.modal = 'npc'; render(); },   // 담소 나누기: 아린의 기분에 따라
-    arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), subqask: () => { npcTalk('master', subqAsk); if (ui.npcTalk && subqLeft()) { ui.npcTalk.zones = true; render(); } }, jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
+    arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), jounask: () => { const M = JOUN_MOODS[jounMood()]; if (M === JOUN_MOODS.worry && S.supplyDay !== today()) { npcTalk('joun', () => jounSupply(true)); ui.npcTalk.lines.unshift({ text: M.narr }, { text: `조운: "${M.say}"` }); } else ui.npcTalk = { who: 'joun', lines: [{ text: M.narr }, { text: `조운: "${M.say}"` }] }; ui.npcTalk.tag = M.name; ui.npcTalk.jounOffer = true; ui.modal = 'npc'; notify.save(); render(); },   // 문파 일 여쭙기: 조운의 기분에 따라 → 토벌 임무
+    subqask: () => { npcTalk('joun', subqAsk); if (ui.npcTalk && subqLeft()) { ui.npcTalk.zones = true; render(); } },
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
     runhome: () => { ui.modal = null; ui.fieldMap = true; goTab('field'); render(); },             // 끝난 강호행에서 귀환: 지도로 (다음 출발은 지도에서)
     runstart: () => { ui.modal = null; ui.fieldMap = true; goTab('field'); render(); },          // 강호행 시작은 지도에서 탐험지를 고르고 [출발]
