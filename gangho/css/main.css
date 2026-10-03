@@ -1057,7 +1057,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .hp-name { left: 31%; top: 33%; font-size: 26px; letter-spacing: .12em; }
 .hp-name.n4, .hp-name.n5 { font-size: 21px; letter-spacing: .1em; } .hp-name.n6, .hp-name.n7, .hp-name.n8 { font-size: 17px; letter-spacing: .08em; }
 .hp-rank { left: 47%; top: 38%; font-size: 13px; letter-spacing: .1em; opacity: .9; }
-.hopae-seal { position: absolute; right: -24px; top: -27px; width: 34px; transform: rotate(-5deg); writing-mode: horizontal-tb; opacity: .95; }   /* 낙관: 성명 오른쪽 위에 이름과 살짝 걸치게 (10월 3일 유저) */
+.hopae-seal { position: absolute; right: -24px; top: -27px; width: 34px; max-width: none; transform: rotate(-5deg); writing-mode: horizontal-tb; opacity: .95; }   /* 낙관: 성명 오른쪽 위에 이름과 살짝 걸치게 (10월 3일 유저) */
 .hopae-info { flex: 1; min-width: 0; margin: 0; display: grid; gap: 8px; }
 .hopae-info > div { display: flex; gap: 10px; align-items: baseline; }
 .hopae-info dt { width: 76px; white-space: nowrap; color: var(--dim); font-size: .85rem; } .hopae-info dd { margin: 0; font-weight: 700; }
