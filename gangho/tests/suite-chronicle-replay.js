@@ -22,7 +22,7 @@ module.exports = async (b) => {
 
     // 3. 관찰하기 → 그 전투만 리플레이
     await p.click('.chron .watch');
-    await p.waitForTimeout(1600);
+    await p.waitForFunction(() => typeof RP !== 'undefined' && RP.i >= 0, null, { timeout: 8000 }).catch(() => {});   // 첫 합이 나올 때까지 (고정 시간 대신)
     const rp = await p.evaluate(() => { const bx = document.querySelector('#rpBox'); return { open: !!bx && /^replay:/.test(ui.modal), i: RP.i, lines: document.querySelectorAll('#rpLog p').length, intro: RP.key && replayData(RP.key).b.intro.length, prog: document.querySelector('#rpProg').textContent }; });
     ok('3 [관찰하기] → 관찰 창에서 합마다 재생', rp.open && rp.i >= 0 && rp.lines > rp.intro, JSON.stringify(rp));
     await p.click('[data-rp="speed"][data-x="4"]');

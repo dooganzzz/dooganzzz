@@ -107,8 +107,8 @@ function rest() {
   notify.refresh();
 }
 
-/* 조운(대사형): 문파 안내 전담. 지금 상태를 보고 다음에 할 일을 짚어 준다 (거래는 전방 왕 가) */
-function jounGuide() {
+/* 조운(대사형): 지금 상태를 보고 다음에 할 일을 한 줄로 짚어 준다 (맞는 것이 없으면 null). [문파 일 여쭙기] 대화 끝에 붙는다 */
+function jounTip() {
   const books = Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급').length;
   const emptySlot = CAT_ORDER.some(c => !S.active[c]) && Object.keys(S.manuals).length;
   const ready = subqReadyCount();
@@ -124,7 +124,11 @@ function jounGuide() {
     [S.silver < 20, '은자가 궁하면 산에 들어가 금고를 열거나, 잡은 짐승 가죽을 전방에 팔아라.'],
   ];
   const hit = tips.find(([c]) => c);
-  log(`조운: "${hit ? hit[1] : pick(['필요한 물건은 청풍전방 왕 가에게 사라. 난 장작이나 팬다.', '강호행 들어가기 전에 생혈고는 꼭 챙겨라.', '두목은 무작정 덤빌 상대가 아니다. 기척부터 살펴라.'])}"`, 'npc');
+  return hit ? hit[1] : null;
+}
+function jounGuide() {
+  const tip = jounTip();
+  log(`조운: "${tip || pick(['필요한 물건은 청풍전방 왕 가에게 사라. 난 장작이나 팬다.', '강호행 들어가기 전에 생혈고는 꼭 챙겨라.', '두목은 무작정 덤빌 상대가 아니다. 기척부터 살펴라.'])}"`, 'npc');
   notify.refresh();
 }
 function masterHint() {

@@ -16,8 +16,10 @@ module.exports = async (b) => {
     const hall = await p.evaluate(() => ({ store: document.querySelectorAll('[data-store], [data-buy], [data-sell], .store').length, guide: !!document.querySelector('[data-act="jounguide"]'), joun: [...document.querySelectorAll('.npc-head h3 .ko')].map(e => e.textContent).includes('조운') }));
     ok('1 정청 대사형: 매매 버튼·창고 없음', hall.store === 0 && hall.joun, JSON.stringify(hall));
     ok('1 시스템에 옛 창고 함수 없음', await p.evaluate(() => typeof buyStore === 'undefined' && typeof JOUN_SHOP === 'undefined'));
-    await p.click('[data-act="jounask"]');   // [문파 안내] 단추는 [문파 일 여쭙기]로 바뀜
-    ok('1 [문파 일 여쭙기] → 대화 창에 조운 대사가 뜬다', await p.evaluate(() => ui.modal === 'npc' && /조운/.test(document.querySelector('.npc-sheet').textContent)));
+    await p.evaluate(() => give('bk_sm2a', 1, true));
+    await p.click('[data-act="jounask"]');   // [문파 안내] 단추는 [문파 일 여쭙기]로 바뀜 — 안내 한 줄은 그 대화 끝에
+    ok('1 [문파 일 여쭙기] → 대화 창에 조운 대사 + 지금 할 일 안내 한 줄', await p.evaluate(() => ui.modal === 'npc' && /조운/.test(document.querySelector('.npc-sheet').textContent) && ui.npcTalk.lines.some(l => /\[ 익히기 \]/.test(l.text))));
+    await p.evaluate(() => take('bk_sm2a', 1));
     await p.evaluate(() => { ui.modal = null; ui.npcTalk = null; render(); });
     const g2 = await p.evaluate(() => { give('bk_sm2a', 1, true); jounGuide(); const t = S.log[S.log.length - 1].text; take('bk_sm2a', 1); return t; });
     ok('1 안내는 상황에 맞게 (비급 있으면 익히기 안내)', /\[ 익히기 \]/.test(g2), g2);
