@@ -270,7 +270,7 @@ function showIntro() {
       <div class="prologue ${stage === 0 && fresh === 0 ? 'reveal-lines' : ''}">${PROLOGUE.map((p, i) => `<p class="story" style="--i:${i}">${p}</p>`).join('')}</div>
       ${step(1, `<h3 class="intro-h">호패 만들기</h3>
       <label class="field-l" for="pname">성명</label>
-      <div class="name-row"><input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off"><button class="btn sm" data-namecheck>확인</button>${sealed ? `<img class="intro-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('seal_gangho')}" alt="강호견문록 낙관">` : ''}</div>`)}
+      <div class="name-row"><input id="pname" maxlength="8" value="${esc(name)}" autocomplete="off"><button class="btn sm" data-namecheck>확인</button>${sealed ? `<img class="nakgwan intro-seal ${stampNow ? 'stamp' : ''}" src="${ASSET.ui('nakgwan')}" alt="강호견문록 낙관">` : ''}</div>`)}
       ${step(2, `<p class="field-l">단련 스탯 <small class="muted">합계 ${ATTR_TOTAL} · 한 스탯 ${ATTR_MIN}~${ATTR_MAX} · 남은 점수 <b id="attrLeft">${left()}</b></small></p>
       <div class="attrs">${Object.entries(ATTRS).map(([k, A]) => `<div class="attr-row" data-attrrow="${k}">
         <span class="attr-name">${label(A.name, A.hanja)}<small class="muted">${A.desc}</small></span>
