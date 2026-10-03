@@ -57,18 +57,18 @@ const ITEMS = {
   hasanryeong: { name: '낙양성 하산령', icon: '📜', kind: '증표', price: 0, desc: '청풍문 장문인이 내린 하산 허가증. 제2장 낙양성으로 가는 길이 열린다.' },
   // 비급서: 모든 비급마다 '비급' 아이템이 있다. 행낭에서 [ 익히기 ]로 소모하면 습득한 무공 목록에 오른다.
   bk_sw4d: { name: '《천마단혼검》 비급', icon: '📔', kind: '비급', price: 0, use: { learn: 'sw4d' }, desc: '마도(魔道)의 비급. 읽고 익히면 천마단혼검(天魔斷魂劍)을(를) 운용할 수 있다.' },
-  bk_sw3e: { name: '《혈하참검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw3e' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈하참검(血河斬劍)을(를) 운용할 수 있다.' },
-  bk_sw5d: { name: '《혈천만겁수라검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw5d' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈천만겁수라검(血天萬劫修羅劍)을(를) 운용할 수 있다.' },
-  bk_sp3e: { name: '《혈랑천심창》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sp3e' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈랑천심창(血狼穿心槍)을(를) 운용할 수 있다.' },
-  bk_fs2f: { name: '《쇄골혈장》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'fs2f' }, desc: '사파(邪派)의 비급. 읽고 익히면 쇄골혈장(碎骨血掌)을(를) 운용할 수 있다.' },
-  bk_gy3e: { name: '《혈영환형보》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'gy3e' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈영환형보(血影幻形步)을(를) 운용할 수 있다.' },
-  bk_gy5d: { name: '《혈해만리수라보》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'gy5d' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈해만리수라보(血海萬里修羅步)을(를) 운용할 수 있다.' },
-  bk_gi5d: { name: '《혈귀불사강체》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'gi5d' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈귀불사강체(血鬼不死剛體)을(를) 운용할 수 있다.' },
-  bk_sm4d: { name: '《혈기탈명심법》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sm4d' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈기탈명심법(血氣奪命心法)을(를) 운용할 수 있다.' },
-  bk_sm5d: { name: '《혈신불멸진경》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sm5d' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈신불멸진경(血神不滅眞經)을(를) 운용할 수 있다.' },
-  bk_sw1m: { name: '《혈영검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw1m' }, desc: '사파(邪派)의 비급. 읽고 익히면 혈영검(血影劍)을 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
-  bk_bd1m: { name: '《흡혈사도》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'bd1m' }, desc: '사파(邪派)의 비급. 읽고 익히면 흡혈사도(吸血邪刀)를 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
-  bk_fs1m: { name: '《흡성혈장》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'fs1m' }, desc: '사파(邪派)의 비급. 읽고 익히면 흡성혈장(吸星血掌)을 운용할 수 있다. 친 상대의 기운을 빨아 활력으로 삼는다.' },
+  bk_sw3e: { name: '《혈하참검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw3e' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈하참검(血河斬劍)을(를) 운용할 수 있다.' },
+  bk_sw5d: { name: '《혈천만겁수라검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw5d' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈천만겁수라검(血天萬劫修羅劍)을(를) 운용할 수 있다.' },
+  bk_sp3e: { name: '《혈랑천심창》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sp3e' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈랑천심창(血狼穿心槍)을(를) 운용할 수 있다.' },
+  bk_fs2f: { name: '《쇄골혈장》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'fs2f' }, desc: '사도(邪道)의 비급. 읽고 익히면 쇄골혈장(碎骨血掌)을(를) 운용할 수 있다.' },
+  bk_gy3e: { name: '《혈영환형보》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'gy3e' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈영환형보(血影幻形步)을(를) 운용할 수 있다.' },
+  bk_gy5d: { name: '《혈해만리수라보》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'gy5d' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈해만리수라보(血海萬里修羅步)을(를) 운용할 수 있다.' },
+  bk_gi5d: { name: '《혈귀불사강체》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'gi5d' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈귀불사강체(血鬼不死剛體)을(를) 운용할 수 있다.' },
+  bk_sm4d: { name: '《혈기탈명심법》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sm4d' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈기탈명심법(血氣奪命心法)을(를) 운용할 수 있다.' },
+  bk_sm5d: { name: '《혈신불멸진경》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sm5d' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈신불멸진경(血神不滅眞經)을(를) 운용할 수 있다.' },
+  bk_sw1m: { name: '《혈영검》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'sw1m' }, desc: '사도(邪道)의 비급. 읽고 익히면 혈영검(血影劍)을 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
+  bk_bd1m: { name: '《흡혈사도》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'bd1m' }, desc: '사도(邪道)의 비급. 읽고 익히면 흡혈사도(吸血邪刀)를 운용할 수 있다. 벤 상대의 피를 빨아 활력으로 삼는다.' },
+  bk_fs1m: { name: '《흡성혈장》 비급', icon: '📕', kind: '비급', price: 0, use: { learn: 'fs1m' }, desc: '사도(邪道)의 비급. 읽고 익히면 흡성혈장(吸星血掌)을 운용할 수 있다. 친 상대의 기운을 빨아 활력으로 삼는다.' },
   bk_sw1a: { name: '《한상검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1a' }, desc: '읽고 익히면 한상검법(寒霜劍法)을(를) 운용할 수 있다.' },
   bk_sw1b: { name: '《추상검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1b' }, desc: '읽고 익히면 추상검법(秋霜劍法)을(를) 운용할 수 있다.' },
   bk_sw1c: { name: '《유묵검법》 비급', icon: '📘', kind: '비급', price: 0, use: { learn: 'sw1c' }, desc: '읽고 익히면 유묵검법(儒墨劍法)을(를) 운용할 수 있다.' },
@@ -420,10 +420,9 @@ const CRAFT_GEAR = {
 };
 
 
-/* 기예 (캐릭터 생성 때 주력 하나): 단조·연단 모두 9품에서 시작하고, 주력 기예에만 고유 효과가 붙는다.
+/* 기예 (캐릭터 생성 때 주력 하나): 주력 기예에만 고유 효과가 붙는다.
    slag: 단조가 빗나갔을 때 찌꺼기 개수 · pill: 단약 섭취 효과 배율 보너스.
-   솜씨 품계: 솜씨 단계(lv) 1 = 9품, 올라갈수록 8품 … 1품 (CRAFT_GRADE_TOP 단계 이상은 1품) */
-const CRAFT_GRADE_TOP = 9;
+   품계는 없앰 (10월 3일 유저) — S.crafts[기예].n = 해 본 횟수 */
 const TALENTS = {
   forge:   { name: '단조', hanja: '鍛造', sub: '검게 탄 찌꺼기 2배', desc: '단조가 빗나가면 검게 탄 찌꺼기를 두 배로 얻는다', craft: 'forge', slag: 2 },
   alchemy: { name: '연단', hanja: '煉丹', sub: '단약 효과 +15%', desc: '단약 · 생혈고 · 소환단의 효과가 15% 더 크다', craft: 'alchemy', pill: 0.15 },

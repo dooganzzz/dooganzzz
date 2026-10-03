@@ -36,8 +36,7 @@ function doCraft(craft, pot) {
   if (saved) log(`손재주로 재료 ${saved}개를 아꼈습니다.`, 'good');
   const recipe = RECIPE_BY_KEY[craft + ':' + potKey(pot)];
   const ok = !!recipe;   // 조합이 맞으면 반드시 이룬다 — 어려운 것은 조합식을 알아내는 일 (10월 3일 유저)
-  lvl.xp += ok ? 10 : 6;
-  while (lvl.xp >= lvl.lv * 30) { lvl.xp -= lvl.lv * 30; lvl.lv++; log(`${C.name} 솜씨가 ${craftGrade(lvl.lv)}으로 올랐습니다.`, 'good'); }
+  lvl.n = (lvl.n || 0) + 1;   // 기예 횟수 (품계는 없앰, 10월 3일 유저 — 별호 조건 등에 씀)
   let result;
   if (ok) {
     const first = !S.codex.includes(recipe.id);

@@ -3,7 +3,7 @@
    wear: 호패에 새겨 쓰고 있을 때만 주는 능력치 · gain: 한 번 얻으면 영구히 주는 능력치 (습득 보너스)
    school: 그 별호의 결 (정 · 마 · 사, 없으면 어느 쪽도 아님)
    cond: 얻는 조건 — k: start(처음부터) · runs(강호행 마친 횟수) · kills(요수 처치 합계) · killOf(그 요수 처치) · manuals(익힌 비급 수, g면 그 등급만)
-         school(그 파 비급 수) · craft(기예 품계) · shrine(무신상 공양 횟수) · star(가장 높은 무공 성급) · attr(단련 스탯) · silver(지닌 은자) */
+         school(그 파 비급 수) · craft(기예 횟수) · schoolWorn(그 파 비급으로 장착 네 칸을 모두 채움) · shrine(무신상 공양 횟수) · star(가장 높은 무공 성급) · attr(단련 스탯) · silver(지닌 은자) */
 const TITLE_TIERS = [
   { name: '최하', hanja: '最下', cls: 't0' },
   { name: '하', hanja: '下', cls: 't1' },
@@ -20,11 +20,11 @@ const TITLES = {
   yeopsu:    { name: '엽수수', hanja: '獵獸手', tier: 0, cond: { k: 'kills', n: 100 }, text: '요수 100마리를 쓰러뜨린다', wear: { atk: 3 }, gain: { atk: 1 } },
   bunhyang:  { name: '분향객', hanja: '焚香客', tier: 0, cond: { k: 'shrine', n: 1 }, text: '무신상 탁기 정화 1회', wear: { luck: 2 }, gain: { maxMp: 5 } },
   seosaeng:  { name: '서생무사', hanja: '書生武士', tier: 0, cond: { k: 'manuals', g: '삼류', n: 12 }, text: '삼류 비급 12권을 읽는다', wear: { train: 3 }, gain: { maxMp: 8 } },
-  yajang:    { name: '견습 야장', hanja: '見習冶匠', tier: 0, cond: { k: 'craft', c: 'forge', n: 2 }, text: '단조를 8품까지 올린다', wear: { craft: 3 }, gain: { def: 1 } },
-  chaeyak:   { name: '채약인', hanja: '採藥人', tier: 0, cond: { k: 'craft', c: 'alchemy', n: 2 }, text: '연단을 8품까지 올린다', wear: { mpRegen: 0.3 }, gain: { maxHp: 8 } },
-  hyeopji:   { name: '협객지망', hanja: '俠客志望', tier: 0, school: 'jeong', cond: { k: 'school', s: 'jeong', n: 2 }, text: '정파 비급 2권을 익힌다', wear: { def: 2, block: 1 }, gain: { block: 0.5 } },
-  madoip:    { name: '마도입문', hanja: '魔道入門', tier: 0, school: 'ma', cond: { k: 'school', s: 'ma', n: 1 }, text: '마공 비급 1권을 익힌다', wear: { atk: 4 }, gain: { critDmg: 2 } },
-  sadoip:    { name: '사도입문', hanja: '邪道入門', tier: 0, school: 'sa', cond: { k: 'school', s: 'sa', n: 1 }, text: '사파 비급 1권을 익힌다', wear: { crit: 1.5 }, gain: { crit: 0.5 } },
+  yajang:    { name: '견습 야장', hanja: '見習冶匠', tier: 0, cond: { k: 'craft', c: 'forge', n: 50 }, text: '단조를 50번 한다', wear: { craft: 3 }, gain: { def: 1 } },
+  chaeyak:   { name: '채약인', hanja: '採藥人', tier: 0, cond: { k: 'craft', c: 'alchemy', n: 50 }, text: '연단을 50번 한다', wear: { mpRegen: 0.3 }, gain: { maxHp: 8 } },
+  hyeopji:   { name: '협객지망', hanja: '俠客志望', tier: 0, school: 'jeong', cond: { k: 'schoolWorn', s: 'jeong', n: 1 }, text: '정파 비급으로 네 칸을 모두 채운다', wear: { def: 2, block: 1 }, gain: { block: 0.5 } },
+  madoip:    { name: '마도입문', hanja: '魔道入門', tier: 0, school: 'ma', cond: { k: 'schoolWorn', s: 'ma', n: 1 }, text: '마공 비급으로 네 칸을 모두 채운다', wear: { atk: 4 }, gain: { critDmg: 2 } },
+  sadoip:    { name: '사도입문', hanja: '邪道入門', tier: 0, school: 'sa', cond: { k: 'schoolWorn', s: 'sa', n: 1 }, text: '사도 비급으로 네 칸을 모두 채운다', wear: { crit: 1.5 }, gain: { crit: 0.5 } },
   // ── 하 (下) ──
   baekin:    { name: '백인참', hanja: '百人斬', tier: 1, cond: { k: 'kills', n: 100 }, text: '요수 100마리를 쓰러뜨린다', wear: { atk: 8 }, gain: { atk: 3 } },
   pyeongjeong: { name: '청풍산 평정객', hanja: '淸風山平定客', tier: 1, cond: { k: 'killOf', e: 'redTiger', n: 1 }, text: '청풍산 두목 적염 호랑이를 쓰러뜨린다', wear: { maxHp: 40, def: 3 }, gain: { maxHp: 15 } },
@@ -35,7 +35,7 @@ const TITLES = {
   jeonju:    { name: '포전객', hanja: '抱錢客', tier: 1, cond: { k: 'silver', n: 1000 }, text: '은자 1,000냥을 지닌다', wear: { luck: 4 }, gain: { luck: 1 } },
   hyeopgaek: { name: '청풍협객', hanja: '淸風俠客', tier: 1, school: 'jeong', cond: { k: 'school', s: 'jeong', n: 4 }, text: '정파 비급 4권을 익힌다', wear: { def: 4, block: 2, shield: 2 }, gain: { shield: 1 } },
   main:      { name: '마인', hanja: '魔人', tier: 1, school: 'ma', cond: { k: 'school', s: 'ma', n: 3 }, text: '마공 비급 3권을 익힌다', wear: { atk: 10, critDmg: 5 }, gain: { critDmg: 3 } },
-  hyeolgwi:  { name: '혈귀', hanja: '血鬼', tier: 1, school: 'sa', cond: { k: 'school', s: 'sa', n: 3 }, text: '사파 비급 3권을 익힌다', wear: { crit: 3, critDmg: 3 }, gain: { crit: 1 } },
+  hyeolgwi:  { name: '혈귀', hanja: '血鬼', tier: 1, school: 'sa', cond: { k: 'school', s: 'sa', n: 3 }, text: '사도 비급 3권을 익힌다', wear: { crit: 3, critDmg: 3 }, gain: { crit: 1 } },
   // ── 중 (中) · 상 (上) · 최상 (最上): 이름만 (2장 이후) ──
   ilgeom:    { name: '일검표객', hanja: '一劍飄客', tier: 2, sealed: true },
   cheolhyeol: { name: '철혈수라', hanja: '鐵血修羅', tier: 2, school: 'sa', sealed: true },

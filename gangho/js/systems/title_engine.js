@@ -11,7 +11,8 @@ function titleProgress(id) {
     : C.k === 'killOf' ? ((S.bestiary || {})[C.e] || {}).kills || 0
     : C.k === 'manuals' ? learned.filter(m => !C.g || (MANUALS[m] && MANUALS[m].grade === C.g)).length
     : C.k === 'school' ? learned.filter(m => schoolOf(m) === C.s).length
-    : C.k === 'craft' ? ((S.crafts || {})[C.c] || {}).lv || 1
+    : C.k === 'craft' ? ((S.crafts || {})[C.c] || {}).n || 0
+    : C.k === 'schoolWorn' ? (CAT_ORDER.every(c => S.active[c] && schoolOf(S.active[c]) === C.s) ? 1 : 0)
     : C.k === 'shrine' ? (S.shrine || {}).pulls || 0
     : C.k === 'star' ? Math.max(0, ...Object.values(S.manuals || {}).map(m => m.star || 0))
     : C.k === 'attr' ? (S.attr || {})[C.a] || 0

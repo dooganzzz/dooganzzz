@@ -119,7 +119,7 @@ function viewFurnace() {
   const flat = Object.entries(ui.pot).filter(([, n]) => n > 0).flatMap(([id, n]) => Array(n).fill(id));
   const res = ui.craftResult;
   return `<section class="panel furnace">
-    ${head('화로', '火爐', `<span class="num muted">${C.name} ${craftGrade(lv.lv)}${S.talent === ui.craft ? ' · 주력' : ''}</span>`)}
+    ${head('화로', '火爐')}
     ${furnaceTabs()}
     <p class="muted furnace-desc">${C.desc}</p>
     <div class="forge">

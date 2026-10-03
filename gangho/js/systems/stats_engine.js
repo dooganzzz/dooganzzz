@@ -127,8 +127,6 @@ function codexBonus() {
     for (const [k, v] of Object.entries(R.stats)) out.stats[k] = (out.stats[k] || 0) + v; }
   return out;
 }
-/* 기예 솜씨 품계: 1단계 = 9품 … CRAFT_GRADE_TOP단계 이상 = 1품 */
-const craftGrade = lv => `${Math.max(1, CRAFT_GRADE_TOP + 1 - lv)}품`;
 const talentOf = () => (S.talent && TALENTS[S.talent]) || {};
 /* 캐릭터 생성 배분이 규칙에 맞는지 (4대 스탯 합계 ATTR_TOTAL · 한 스탯 ATTR_MIN~ATTR_MAX) */
 function validAttr(A) { return !!A && Object.keys(ATTRS).every(k => Number.isInteger(A[k]) && A[k] >= ATTR_MIN && A[k] <= ATTR_MAX) && Object.keys(ATTRS).reduce((a, k) => a + A[k], 0) === ATTR_TOTAL; }
