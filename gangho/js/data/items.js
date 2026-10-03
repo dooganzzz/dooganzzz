@@ -421,12 +421,12 @@ const CRAFT_GEAR = {
 
 
 /* 기예 (캐릭터 생성 때 주력 하나): 단조·연단 모두 9품에서 시작하고, 주력 기예에만 고유 효과가 붙는다.
-   rate: 주력 기예 성공률 +%p · slag: 단조 실패 시 찌꺼기 개수 · pill: 단약 섭취 효과 배율 보너스.
+   slag: 단조가 빗나갔을 때 찌꺼기 개수 · pill: 단약 섭취 효과 배율 보너스.
    솜씨 품계: 솜씨 단계(lv) 1 = 9품, 올라갈수록 8품 … 1품 (CRAFT_GRADE_TOP 단계 이상은 1품) */
 const CRAFT_GRADE_TOP = 9;
 const TALENTS = {
-  forge:   { name: '단조', hanja: '鍛造', sub: '장비 제작 · 제련에 능함', desc: '단조 9품에서 시작 · 장비 제작 성공률 +10% · 단조 시 검게 탄 찌꺼기 획득량 2배', craft: 'forge', rate: 10, slag: 2 },
-  alchemy: { name: '연단', hanja: '煉丹', sub: '영약 제조 · 연단에 능함', desc: '연단 9품에서 시작 · 연단 성공률 +10% · 단약 섭취 효과 +15%', craft: 'alchemy', rate: 10, pill: 0.15 },
+  forge:   { name: '단조', hanja: '鍛造', sub: '검게 탄 찌꺼기 2배', desc: '단조가 빗나가면 검게 탄 찌꺼기를 두 배로 얻는다', craft: 'forge', slag: 2 },
+  alchemy: { name: '연단', hanja: '煉丹', sub: '단약 효과 +15%', desc: '단약 · 생혈고 · 소환단의 효과가 15% 더 크다', craft: 'alchemy', pill: 0.15 },
 };
 
 /* 무신상 공양 (가챠): 검게 탄 찌꺼기 cost개를 바칠 때마다 표에서 하나. 기대값은 일부러 낮다 (조합 실패를 노리지 않도록).

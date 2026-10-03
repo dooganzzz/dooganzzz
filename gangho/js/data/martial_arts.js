@@ -150,10 +150,10 @@ const DEFEAT_CAUSE = {
    per: ATTR_BASE를 기준으로 한 점마다 더하거나 뺀다 · abs: 수치 그대로 곱해 더한다 — 민첩: 회피 민첩×0.5% · 탐험 기력 소모 민첩×1% 감소.
    선공은 '속도 + 민첩 + 선공(안력)'과 요수의 속도를 비교한다. 투력에는 선공(≥ 기준 상대 속도)으로 들어간다 */
 const ATTRS = {
-  str: { name: '근력', hanja: '筋力', desc: '공격력', per: { atk: 2, bag: 6 } },
+  str: { name: '근력', hanja: '筋力', desc: '공격력', per: { atk: 2.5 } },
   con: { name: '체력', hanja: '體力', desc: '활력 · 방어력', per: { maxHp: 12, def: 0.8 } },
   agi: { name: '민첩', hanja: '敏捷', desc: '속도 · 회피 · 경공 숙련', per: {}, abs: { eva: 0.5, staSave: 1 } },
-  int: { name: '심력', hanja: '心力', desc: '내력 · 호신강기', per: { maxMp: 6, mpRegen: 0.1, block: 0.4, shield: 0.5 } },
+  int: { name: '심력', hanja: '心力', desc: '내력 · 호신강기', per: { maxMp: 8, shield: 0.8 } },
 };
 /* 선천(先天) 자질 4종: 서장에서 주사위로 정한다 (후천 단련 4종도 주사위, 10월 3일) — 넷 모두 APT_MIN~APT_MAX, 합계는 늘 APT_TOTAL이라 제자끼리 공평하다.
    영약 · 기연 · 경지 돌파 때만 조금씩 오른다 (획득처는 차차). 가운데 값(APT_MID)이 지금까지의 기준이라 평균 제자는 수치가 그대로다.
@@ -162,7 +162,7 @@ const APTS = {
   bone: { name: '근골', hanja: '筋骨', desc: '공격력 · 회심 위력 · 기세', pair: 'str', scale: { atk: 0.05 }, per: { critDmg: 1, aura: 0.5 } },
   phys: { name: '체질', hanja: '體質', desc: '활력 · 회심 방비 · 기력', pair: 'con', scale: { maxHp: 0.05 }, per: { critRes: 1, maxSta: 2 } },
   eye:  { name: '안력', hanja: '眼力', desc: '선공 · 회심 · 반격', pair: 'agi', scale: {}, per: { first: 0.6, crit: 0.5, counter: 0.6 } },
-  wit:  { name: '오성', hanja: '悟性', desc: '초식 · 절약 · 오행 위력', pair: 'int', scale: {}, per: { qiDmg: 0.012, train: 1.5, mpSave: 1.5, craft: 1, elem: 2 } },
+  wit:  { name: '오성', hanja: '悟性', desc: '초식 · 절약 · 오행 위력', pair: 'int', scale: {}, per: { qiDmg: 0.015, mpSave: 2, elem: 2.5 } },
 };
 const APT_MIN = 1, APT_MAX = 12, APT_TOTAL = 26, APT_MID = 6.5;
 const ATTR_BASE = 6, ATTR_MIN = 3, ATTR_MAX = 10, ATTR_TOTAL = 24;

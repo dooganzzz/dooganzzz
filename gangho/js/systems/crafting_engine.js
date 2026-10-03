@@ -31,8 +31,7 @@ function doCraft(craft, pot) {
   if (craft === 'forge') S.hp -= cost; else S.mp -= cost;
   for (const [id, n] of Object.entries(pot)) take(id, n);
   const recipe = RECIPE_BY_KEY[craft + ':' + potKey(pot)];
-  const chance = Math.min(98, 78 + lvl.lv * 3 + st.craft + (talentOf().craft === craft ? talentOf().rate || 0 : 0));
-  const ok = recipe && Math.random() * 100 < chance;
+  const ok = !!recipe;   // 조합이 맞으면 반드시 이룬다 — 어려운 것은 조합식을 알아내는 일 (10월 3일 유저)
   lvl.xp += ok ? 10 : 6;
   while (lvl.xp >= lvl.lv * 30) { lvl.xp -= lvl.lv * 30; lvl.lv++; log(`${C.name} 솜씨가 ${craftGrade(lvl.lv)}으로 올랐습니다.`, 'good'); }
   let result;

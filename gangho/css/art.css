@@ -849,3 +849,6 @@ html.calm .pot-hot { animation: none; }
 .ground-tag:hover, .ground-tag:focus-visible { transform: translate(-50%, -50%) scale(1.08); filter: brightness(1.08); }
 .ground-tag > .alert-dot { position: absolute; top: 8%; right: 10%; }
 .map-box.grounds { width: min(100%, calc((100vh - 400px) * 16 / 9)); }   /* 청풍문 전경: 머리 · 갈래 줄 아래에 한 화면으로 */
+/* 단조 · 연단 · 연혼을 넘겨도 무대(재료 칸)가 같은 자리에 오게 설명 줄 높이를 고정 (10월 3일) */
+.furnace .furnace-desc { line-height: 1.6; min-height: 3.2em; margin-bottom: 8px; }
+@media (max-width: 640px) { .furnace .furnace-desc { min-height: 4.8em; } }
