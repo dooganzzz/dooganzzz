@@ -96,14 +96,16 @@ function weaponRel(a, b) { if (!a || !b) return 0; return (WEAPON_ADV[WEAPON_CLA
 function affinity(eid, st = calcStats()) {
   const E = ENEMIES[eid], me = myElem(), wt = weaponType(), A = AFFINITY;
   const el = elemRel(me, E.elem), wp = weaponRel(wt, E.wtype);
+  /* 두목 (10월 3일 유저): 상성으로 제자가 얻는 이득만 A.bossGain(절반)으로 줄인다. 손해는 그대로 */
+  const g = E.boss ? A.bossGain : 1, gain = x => x > 1 ? 1 + (x - 1) * g : x, guard = x => x < 1 ? 1 - (1 - x) * g : x;
   const up = A.elem + (st.elem || 0) / 100;                   // 지력: 내가 극할 때 오행술 위력
-  const weak = E.weak && me === E.weak.elem ? E.weak.mult : 0;  // 요수 고유 약점 (예: 청령목괴는 화 기공에 취약)
-  const sizePct = sizeDmg(wt, E.size);   // 크기 상성: 이 병기로 이 크기를 칠 때 주는 피해 %
+  const weak = (E.weak && me === E.weak.elem ? E.weak.mult : 0) * g;  // 요수 고유 약점 (예: 청령목괴는 화 기공에 취약)
+  const raw = sizeDmg(wt, E.size), sizePct = raw > 0 ? Math.round(raw * g) : raw;   // 크기 상성: 이 병기로 이 크기를 칠 때 주는 피해 %
   return {
-    el, wp, me, foe: E.elem, wt, fwt: E.wtype || null, weak, size: E.size || null, sizePct,
-    dealt: (el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * (wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1) * (1 + weak) * (1 + sizePct / 100),
-    taken: (el > 0 ? 1 - A.elem : el < 0 ? (1 + Math.max(0, A.elem - (st.elemRes || 0) / 100)) * (1 + COMBAT_RULES.elemPenalty) : 1) * (wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
-    myHit: wp > 0 ? A.weapHit : 0, foeHit: wp < 0 ? A.weapHit : 0,
+    el, wp, me, foe: E.elem, wt, fwt: E.wtype || null, weak, size: E.size || null, sizePct, boss: !!E.boss,
+    dealt: gain(el > 0 ? 1 + up : el < 0 ? 1 - A.elem : 1) * gain(wp > 0 ? 1 + A.weapAtk : wp < 0 ? 1 - A.weapDown : 1) * (1 + weak) * (1 + sizePct / 100),
+    taken: guard(el > 0 ? 1 - A.elem : el < 0 ? (1 + Math.max(0, A.elem - (st.elemRes || 0) / 100)) * (1 + COMBAT_RULES.elemPenalty) : 1) * guard(wp < 0 ? 1 + A.weapAtk : wp > 0 ? 1 - A.weapDown : 1),
+    myHit: wp > 0 ? A.weapHit * g : 0, foeHit: wp < 0 ? A.weapHit : 0,
   };
 }
 const NO_AFF = { dealt: 1, taken: 1, myHit: 0, foeHit: 0 };   // 상성이 없는 전투 (직접 꾸린 전투 기록 등)
@@ -114,7 +116,8 @@ function affinityText(a) {
   const wn = w => w ? WEAPON_CLASS_NAME[WEAPON_CLASS[w]] : '맨몸';
   const weap = !a.fwt ? '호각 (상대는 병기가 없음)' : a.wp > 0 ? `<b class="good">우세</b> (${wn(a.wt)} › ${wn(a.fwt)})` : a.wp < 0 ? `<b class="warn">열세</b> (${wn(a.wt)} ‹ ${wn(a.fwt)})` : `호각 (${wn(a.wt)} = ${wn(a.fwt)})`;
   const size = a.size ? ` · 크기 ${sizeName(a.size)} — ${sizeRelText(a.wt, a.sizePct)}` : '';
-  return `오행 ${elem} · 병기 ${weap}${size}${a.weak ? ` · <b class="good">약점 공략 (+${Math.round(a.weak * 100)}%)</b>` : ''}`;
+  const boss = a.boss ? ` · <b class="warn">두목 — 상성 이득 절반</b>` : '';
+  return `오행 ${elem} · 병기 ${weap}${size}${boss}${a.weak ? ` · <b class="good">약점 공략 (+${Math.round(a.weak * 100)}%)</b>` : ''}`;
 }
 
 /* 기척 비율: 내가 버티는 합 수 ÷ 적을 쓰러뜨리는 데 드는 합 수 (속도 보정). 높을수록 내가 유리 */
