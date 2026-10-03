@@ -1004,8 +1004,8 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .hopae-panel { position: relative; }
 .hopae-panel > .obs-cp { position: absolute; left: var(--cp-x, 70%); top: var(--cp-y, 40.5%); transform: translate(-50%, -50%) scale(var(--cp-s, .9)); width: max-content; margin: 0; z-index: 2; }
 /* 투력 위 활력 · 내력 막대 (유저 슬라이더 값: 자리 % · 크기 배 · 아이콘 · 글씨 · 간격 · 막대 길이/높이) */
-.hopae-panel > .obs-gauge { --gi: 26px; --gf: 13px; --gg: 4px; --gl: 150px; --gh: 20px;
-  position: absolute; left: var(--g-x, 70%); top: var(--g-y, 26.5%); transform: translate(-50%, -50%) scale(var(--g-s, .9)); width: max-content; margin: 0; padding: 0; background: none; border: 0; z-index: 2; }
+.hopae-panel > .obs-gauge { --gi: 27px; --gf: 14px; --gg: 2px; --gl: 156px; --gh: 20px;
+  position: absolute; left: var(--g-x, 70%); top: var(--g-y, 26.5%); transform: translate(-50%, -50%) scale(var(--g-s, .85)); width: max-content; margin: 0; padding: 0; background: none; border: 0; z-index: 2; }
 .hopae-panel > .obs-gauge .gauge-group { flex: none; }
 .hopae-panel > .obs-gauge .stat-gauge { grid-template-columns: var(--gi) auto var(--gl); column-gap: 4px; }
 .hopae-panel > .obs-gauge .ui-ico { width: var(--gi); height: var(--gi); }

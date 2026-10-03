@@ -150,17 +150,17 @@ function hopaeCard() {
 }
 /* 별호 새기기 칸 (호패를 누르면 뜨는 창에서만) */
 const titlePicker = () => `<div class="alias-row"><select id="titleSel" aria-label="별호 고르기">${Object.keys(S.titles || {}).filter(id => TITLES[id]).map(id => `<option value="${id}" ${S.title === id ? 'selected' : ''}>${TITLES[id].name} (${TITLE_TIERS[TITLES[id].tier].name})</option>`).join('')}</select><button class="btn sm" data-act="setalias">새기기</button></div>`;
-/* 성향: 익힌 비급의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 — 정 2 · 마 1 · 사 1이면 정 쪽으로 치우친 점 */
+/* 성향: 장착한 비급(최대 네 칸)의 정 · 마 · 사 수로 삼각형 안의 자리(무게 중심)를 정한다 — 정 2 · 마 1 · 사 1이면 정 쪽으로 치우친 점 */
 const SCHOOL_TRI = { jeong: [50, 20], ma: [18.6, 73], sa: [83.6, 72.8] };   // 꼭짓점 (그림 school_tri 위 %)
-const SCHOOL_GLOW_FULL = 8;   // 한 파를 이만큼 익히면 그 구슬이 가장 짙게 빛난다 (10월 3일 유저: 권수만큼 짙어지게)
+const SCHOOL_GLOW_FULL = 4;   // 장착 네 칸이 모두 한 파면 그 구슬이 가장 짙게 빛난다 (10월 3일 유저: 장착 기준 · 최대 4)
 function schoolTriangle() {
   const n = { jeong: 0, ma: 0, sa: 0 };
-  for (const id of Object.keys(S.manuals)) if (MANUALS[id]) n[schoolOf(id)]++;
+  const worn = CAT_ORDER.map(c => S.active[c]).filter(id => id && MANUALS[id]);
+  for (const id of worn) n[schoolOf(id)]++;
   const tot = n.jeong + n.ma + n.sa, w = k => tot ? n[k] / tot : 1 / 3;
   const x = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][0], 0), y = Object.keys(n).reduce((a, k) => a + w(k) * SCHOOL_TRI[k][1], 0);
   const top = Object.keys(n).sort((a, b) => n[b] - n[a]), lead = tot && n[top[0]] > n[top[1]] ? top[0] : null;
-  // 글 · 숫자 없이: 그 파를 많이 익힐수록 구슬 빛이 짙어진다(--w, SCHOOL_GLOW_FULL권에서 가장 짙음). 손을 대면 장착한 비급과 그 파를 보인다
-  const worn = CAT_ORDER.map(c => S.active[c]).filter(id => id && MANUALS[id]);
+  // 글 · 숫자 없이: 그 파 비급을 많이 장착할수록 구슬 빛이 짙어진다(--w, 네 칸 모두면 가장 짙음). 손을 대면 장착한 비급과 그 파를 보인다
   const tip = worn.length ? worn.map(id => `<li><b class="s-${schoolOf(id)}">${SCHOOLS[schoolOf(id)].name}</b> 《${esc(MANUALS[id].name)}》</li>`).join('') : '<li class="muted">장착한 비급 없음</li>';
   return `<div class="school-tri" tabindex="0" aria-label="성향 — 장착한 비급 보기">
     <div class="st-board"><img src="${ASSET.ui('school_tri')}" alt="" aria-hidden="true">
