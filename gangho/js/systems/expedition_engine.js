@@ -202,11 +202,12 @@ function startRun(t = now()) {
   const X = S.expedition; if (!X.zone || !zoneUnlocked(X.zone) || activeRun()) return null;
   const zid = X.zone, Z = ZONES[zid], st = calcStats(), tm = terrainMult(zid);
   if (S.hp <= 0) S.hp = st.maxHp;                                  // 출발할 때 따로 채우지 않는다 (쓰러졌다 오면 반만 회복한 채로)
+  // terrain.match: 경공이 없으면 null · 맞으면 true · 안 맞으면 false (안 맞아도 벌점은 없음 — AFFINITY.terrainMiss)
   const stage = clamp(X.stage || 1, 1, stageMax(zid));
   const rec = { id: S.uid++, at: t, zone: zid, stage, startStage: stage, kills: 0, live: true, mode: S.stamina > 0 ? 'run' : 'walk', staAt: t, next: t + EXPEDITION.firstMs, steps: [], battles: [], used: [],
     gain: { silver: 0, exp: 0, contrib: 0, items: {}, used: {}, gear: [] },
     defeats: 0, villages: 0, rests: 0, wins: 0, losses: 0,
-    terrain: { zone: [...(Z.terrain || [])], mine: myTerrain(), match: tm < 1 ? true : tm > 1 ? false : null, mult: Math.round(tm * (1 - (st.staSave || 0) / 100) * 1000) / 1000, extra: 0 } };
+    terrain: { zone: [...(Z.terrain || [])], mine: myTerrain(), match: !myTerrain() || !Z.terrain ? null : Z.terrain.includes(myTerrain()), mult: Math.round(tm * (1 - (st.staSave || 0) / 100) * 1000) / 1000, extra: 0 } };
   X.run = rec.id; S.expeditions.push(rec);
   const gift = ZONE_FIRST_GIFT[zid], seen = S.flags.zoneGift = S.flags.zoneGift || {};   // 처음 들어선 탐험지의 돌파단
   if (gift && !seen[zid]) { seen[zid] = 1; give(gift, 1, true); log(`🎁 ${Z.name}에 처음 들어서며 ${ITEMS[gift].name} 하나를 품에 넣었습니다.`, 'gold', t); }

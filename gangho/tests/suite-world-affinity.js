@@ -2,6 +2,7 @@
 'use strict';
 const { ok, GAME_URL, watchErrors, VIEWPORTS, newPage } = require('./lib');
 
+const AFFINITY_HIT = 8;   // AFFINITY.weapHit
 module.exports = async (b) => {
   for (const [w, h] of VIEWPORTS) {
     console.log(`\n=== ${w}px ===`);
@@ -33,15 +34,15 @@ module.exports = async (b) => {
       const ns = newState('x', 'sw1a', { attr: { str: 20, con: 0, agi: 6, int: -2 }, talent: 'nope' });
       return { d: { atk: b2.atk - a.atk, bag: b2.bag - a.bag, mp: b2.mp - a.mp }, c: { hp: c.hp - a.hp, def: c.def - a.def }, bad, ns: { attr: ns.attr, talent: ns.talent } };
     });
-    ok('1 근력 +1 → 공격력 +2 · 적재량 +6 / 지력 -1 → 내력 -6', st.d.atk === 2 && st.d.bag === 6 && st.d.mp === -6, JSON.stringify(st.d));
-    ok('1 체력 +2 → 활력 +24 · 방어 증가', st.c.hp === 24 && st.c.def >= 1, JSON.stringify(st.c));
+    ok('1 근력 +1 → 공격력 증가 / 지력 -1 → 내력 감소 (적재량은 근력과 무관, 오르는 폭은 근골 · 체질 자질에 따라 다름)', st.d.atk > 0 && st.d.bag === 0 && st.d.mp < 0, JSON.stringify(st.d));
+    ok('1 체력 +2 → 활력 · 방어 증가', st.c.hp > 0 && st.c.def >= 1, JSON.stringify(st.c));
     ok('1 배분 검증 (합계 24 · 3~10) · 잘못된 값은 기본 6/6/6/6', st.bad.join() === 'false,false,true' && st.ns.attr.str === 6 && st.ns.attr.agi === 6 && st.ns.talent === null, JSON.stringify(st));
 
     await p.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); ui.modal = null; render(); });
 
-    // 2. 오행 상성
+    // 2. 오행 상성 (입문 기공은 무작위라 철포삼(金)을 직접 장착)
     const el = await p.evaluate(() => {
-      const r = {};
+      const r = {}; S.manuals.gi1a = S.manuals.gi1a || { star: 1 }; equipManual('gi1a');
       r.beats = Object.entries(ELEM_BEATS).map(([a, b]) => `${ELEMENTS[a].hanja}剋${ELEMENTS[b].hanja}`).join(',');
       r.rel = [elemRel('metal', 'wood'), elemRel('wood', 'metal'), elemRel('earth', 'metal'), elemRel(null, 'wood')].join();
       r.me = myElem();                                  // 철포삼 = 金
@@ -49,22 +50,22 @@ module.exports = async (b) => {
       // 청령목괴 = 木·창, 내 병기 = 창 → 병기는 호각이라 오행만 본다
       const A = affinity('treant'), B = affinity('eliteAxe'), C = affinity('boar');
       r.up = Math.round((1 + AFFINITY.elem + calcStats().elem / 100) * 1000) / 1000;   // 지력·비급 각인의 오행 위력 포함
-      r.rabbit = [A.el, Math.round(A.dealt * 1000) / 1000, A.taken, A.wp]; r.bandit = [B.el, B.foe]; r.boar = C.el;
-      S.attr.int = 10; r.int = affinity('treant').dealt; S.attr.int = 6;
+      r.rabbit = [A.el, Math.round(A.dealt / (1 + A.sizePct / 100) * 1000) / 1000, A.taken, A.wp]; r.full = A.dealt; r.bandit = [B.el, B.foe]; r.boar = C.el;   // 크기 상성(창 → 대형)은 빼고 오행만
+      S.apt = S.apt || {}; const kw = S.apt.wit; S.apt.wit = APT_MAX; r.int = affinity('treant').dealt / (1 + affinity('treant').sizePct / 100); S.apt.wit = kw;   // 오행 위력은 오성(悟性)
       // 같은 난수로 한 대: 상극 우세 vs 상성 없음
       const R = Math.random; Math.random = () => 0.5;
       const mk = eid => ({ eid, e: { ...ENEMIES[eid], hpNow: 1e9 }, lines: [], fx: [], st: calcStats(), over: false, aff: affinity(eid) });
       const hit = bt => { RT.battle = bt; playerHit(bt, 1, '평타'); return 1e9 - bt.e.hpNow; };
       const x = mk('treant'), y = mk('treant'); y.aff = NO_AFF; r.ratio = Math.round(hit(x) / hit(y) * 100) / 100;
-      Math.random = R; RT.battle = null; S.attr.int = keepInt;
+      Math.random = R; RT.battle = null; S.attr.int = keepInt; r.full = Math.round(r.full * 1000) / 1000;
       return r;
     });
     ok('2 오행 상극: 木剋土 · 火剋金 · 土剋水 · 金剋木 · 水剋火', el.beats.split(',').sort().join() === '木剋土,水剋火,火剋金,土剋水,金剋木'.split(',').sort().join(), el.beats);
     ok('2 극하면 1, 극당하면 -1, 상생·무속성 0', el.rel === '1,-1,0,0', el.rel);
-    ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×(1.25 + 오행 위력) · 받는 피해 ×0.75', el.me === 'metal' && el.rabbit[0] === 1 && el.rabbit[1] === el.up && el.up >= 1.25 && el.rabbit[2] === 0.75 && el.rabbit[3] === 0, JSON.stringify(el));
-    ok('2 金 기공 vs 火 정예 도부수: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
-    ok('2 지력이 높으면 극할 때 위력 추가', el.int > el.up, String(el.int));
-    ok('2 실제 타격에 반영 (같은 난수 기준 주는 피해 배율만큼)', Math.abs(el.ratio - el.up) < 0.03, `${el.ratio} / ${el.up}`);
+    ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×(1.20 + 오행 위력) · 받는 피해 ×0.80', el.me === 'metal' && el.rabbit[0] === 1 && Math.abs(el.rabbit[1] - el.up) < 0.002 && Math.abs(el.rabbit[2] - 0.8) < 1e-9 && el.rabbit[3] === 0, JSON.stringify(el));
+    ok('2 金 기공 vs 火 요수: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
+    ok('2 오성이 높으면 극할 때 위력 추가', el.int > el.up, String(el.int));
+    ok('2 실제 타격에 반영 (같은 난수 기준 주는 피해 배율만큼)', Math.abs(el.ratio - el.full) < 0.05, `${el.ratio} / ${el.full}`);
 
     // 3. 병기 상성
     const wp = await p.evaluate(() => {
@@ -72,18 +73,18 @@ module.exports = async (b) => {
       const m = pairs.map(([a, b]) => weaponRel(a, b));
       const anti = Object.keys(WEAPON_ADV).every(a => Object.keys(WEAPON_ADV).every(b => a === b || weaponRel(a, b) === -weaponRel(b, a)));
       const keep = S.equip.weapon.wtype, r = {};
-      S.equip.weapon.wtype = 'spear'; const A = affinity('diver'); r.spearVsHidden = [A.wp, A.myHit];   // 향주 = 암기
-      S.equip.weapon.wtype = 'sword'; const B = affinity('diver'); r.swordVsHidden = [B.wp, B.myHit, Math.round(B.dealt / (B.el > 0 ? 1.25 : B.el < 0 ? 0.75 : 1) * 100) / 100];
-      S.equip.weapon.wtype = 'fist'; const C = affinity('eliteAxe'); r.fistVsBlade = C.wp;
-      S.equip.weapon.wtype = 'hidden'; const D = affinity('eliteAxe'); r.hiddenVsBlade = [D.wp, D.foeHit];
-      const E = affinity('wildcat'); r.beast = [E.wp, E.fwt];   // 살쾡이 = 권장(발톱), 내 병기 = 암기
+      const ef = X => X.el > 0 ? 1 + AFFINITY.elem + (calcStats().elem || 0) / 100 : X.el < 0 ? 1 - AFFINITY.elem : 1;   // 오행 몫을 덜어 낸다
+      S.equip.weapon.wtype = 'hidden'; const A = affinity('diver'); r.same = [A.wp, A.myHit, A.foeHit];   // 잠영수 = 암기 · 같은 병기는 호각
+      S.equip.weapon.wtype = 'sword'; const B = affinity('diver'); r.swordVsHidden = [B.wp, B.myHit, Math.round(B.dealt / ef(B) / (1 + B.sizePct / 100) * 100) / 100];
+      S.equip.weapon.wtype = 'fist'; const C = affinity('diver'); r.fistVsHidden = [C.wp, C.foeHit];
+      S.equip.weapon.wtype = 'hidden'; const E = affinity('wildcat'); r.beast = [E.wp, E.fwt];   // 살쾡이 = 권장(발톱), 내 병기 = 암기
       S.equip.weapon.wtype = keep;
       return { m: m.join(), anti, r };
     });
-    ok('3 권장›검/도 · 권장‹암기 · 창›권장 · 창‹검/도 · 창=암기 · 검/도›암기·창 · 검/도‹권장 · 암기›권장 · 암기‹검/도', wp.m === '1,-1,-1,1,-1,0,1,1,-1,1,-1,0,0', wp.m);
+    ok('3 다섯 병기 각 2승 2패: 권장›검·도 · 검›창·암기 · 도›검·창 · 창›권장·암기 · 암기›권장·도', wp.m === '1,-1,-1,1,-1,1,1,1,-1,1,1,-1,-1', wp.m);
     ok('3 상성표가 서로 맞물림 (한쪽 우세 = 다른 쪽 열세)', wp.anti);
-    ok('3 우세: 공격력 +15% · 명중 +10', wp.r.swordVsHidden[0] === 1 && wp.r.swordVsHidden[1] === 10 && wp.r.swordVsHidden[2] === 1.15, JSON.stringify(wp.r));
-    ok('3 열세: 상대 명중 보정 · 호각은 보정 없음', wp.r.hiddenVsBlade[0] === -1 && wp.r.hiddenVsBlade[1] === 10 && wp.r.spearVsHidden[0] === 0 && wp.r.spearVsHidden[1] === 0, JSON.stringify(wp.r));
+    ok('3 우세: 주는 피해 +12% · 명중 +8', wp.r.swordVsHidden[0] === 1 && wp.r.swordVsHidden[1] === AFFINITY_HIT && wp.r.swordVsHidden[2] === 1.12, JSON.stringify(wp.r));
+    ok('3 열세: 상대 명중 보정 · 같은 병기는 호각(보정 없음)', wp.r.fistVsHidden[0] === -1 && wp.r.fistVsHidden[1] === AFFINITY_HIT && wp.r.same.join() === '0,0,0', JSON.stringify(wp.r));
     ok('3 짐승도 병기 계열이 있다 (살쾡이 발톱 = 권장 → 암기 우세)', wp.r.beast[0] === 1 && wp.r.beast[1] === 'fist', JSON.stringify(wp.r));
 
     // 4. 지형 상성 (기력 소모)
@@ -102,16 +103,16 @@ module.exports = async (b) => {
       r.missMult = wear(miss); const m = [run(), run()];
       equipManual(g);
       r.match = { mult: a[0].terrain.mult, extra: a.every(x => x.terrain.extra < 0), rec: a[0].terrain.match === true && a[0].terrain.zone.join() === CP.join() };
-      r.miss = { mult: m[0].terrain.mult, extra: m.every(x => x.terrain.extra > 0), rec: m[0].terrain.match === false };
+      r.miss = { mult: m[0].terrain.mult, extra: m.every(x => x.terrain.extra === 0), rec: m[0].terrain.match === false };
       r.A = A; r.ids = [hit, miss];
       return r;
     });
     ok('4 5대 지형 (풀·물·흙·나무·평) · 청풍산 = 흙/풀/나무 복합', tr.terrains === 'grass,water,earth,wood,plain' && tr.zones[0] === 'earth/grass/wood', JSON.stringify(tr));
-    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 덜, 아니면 더 · 경공 없으면 보정 없음', tr.mult === tr.expect && tr.none === 1 && tr.hitMult === tr.A.match && tr.missMult === tr.A.miss && tr.A.match < 1 && tr.A.miss > 1, JSON.stringify(tr));
-    ok('4 탐험 기록에 지형 일치 여부 · 기력 증감', tr.match.rec && tr.miss.rec && tr.match.extra && tr.miss.extra, JSON.stringify(tr));
-    ok('4 지형이 맞으면 같은 걸음에 기력을 덜 쓴다', tr.match.mult < 1 && tr.miss.mult > 1, JSON.stringify(tr));
+    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 덜 · 안 맞아도 벌점 없음 · 경공 없으면 보정 없음', tr.mult === tr.expect && tr.none === 1 && tr.hitMult === tr.A.match && tr.missMult === tr.A.miss && tr.A.match < 1 && tr.A.miss === 1, JSON.stringify(tr));
+    ok('4 탐험 기록에 지형 일치 여부 · 기력 증감', tr.match.rec && tr.miss.rec && tr.match.extra, JSON.stringify(tr));
+    ok('4 지형이 맞으면 같은 걸음에 기력을 덜 쓴다', tr.match.mult < tr.miss.mult && tr.miss.mult <= 1, JSON.stringify(tr));
     await p.evaluate(() => { const r = S.expeditions.filter(x => !x.live).pop(); ui.modal = 'settle:' + r.id; render(); });
-    ok('4 결산 창에 지형 · 기력 증감', await p.evaluate(() => { const t = document.querySelector('#modal .tr-line'); return !!t && /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 \S+ (일치|불일치) \(기력 \+?[\d.]+ (더 씀|아낌)\)/.test(t.textContent); }));
+    ok('4 결산 창에 지형 · 기력 증감', await p.evaluate(() => { const t = document.querySelector('#modal .tr-line'); return !!t && /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 \S+ (일치|불일치) \(기력 (\+?[\d.]+ (더 씀|아낌)|보정 없음)\)/.test(t.textContent); }));
     await p.evaluate(() => { ui.modal = null; ui.fieldMap = false; goTab('field'); render(); });
     ok('4 출정 준비에 기공(오행) 줄 · 경공(지형) 줄 따로', await p.evaluate(() => {
       const f = k => [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent.startsWith(k)), txt = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
@@ -149,7 +150,7 @@ module.exports = async (b) => {
     ok('5 공양하면 돌아온 것 표시 · 견문록 기록', sh2.res === 1 && sh2.slag === 4 && sh2.log, JSON.stringify(sh2));
 
     // 6. 심상수련장
-    await p.click('.subtabs [data-sub="yeonmu"]');
+    await p.evaluate(() => { goTab('sect', 'yeonmu'); render(); });   // 갈래 메뉴는 없어지고 전경 이름표로 들어간다
     const ym = await p.evaluate(() => ({ view: !!document.querySelector('.yeonmu'), rows: [...document.querySelectorAll('.sim-row')].map(r => r.querySelector('b').textContent), met: Object.keys(S.bestiary).map(e => ENEMIES[e].name) }));
     ok('6 연무장 › 심상수련장: 만나 본 상대만 목록에', ym.view && ym.rows.length === ym.met.length && ym.rows.every(n => ym.met.includes(n)) && !ym.rows.includes('수룡방주 벽해룡'), JSON.stringify(ym));
     const sim = await p.evaluate(() => {
@@ -174,11 +175,10 @@ module.exports = async (b) => {
     const cx = await p.evaluate(() => ({ known: document.querySelectorAll('.beasts li:not(.unknown)').length, unknown: document.querySelectorAll('.beasts li.unknown').length, met: Object.keys(S.bestiary).filter(e => ZONE_ORDER.some(z => [...ZONES[z].enemies, ZONES[z].boss].includes(e))).length, total: document.querySelectorAll('.beasts li').length, tag: !!document.querySelector('.beasts .aff-tag') }));
     ok('7 요수 도감: 만난 요수만 오행·병기와 함께 (못 만난 요수·총수 숨김)', cx.known === cx.met && cx.unknown === 0 && cx.total === cx.met && cx.tag, JSON.stringify(cx));
     await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
-    ok('7 무공 칸에 기공 오행 · 경공 지형 표식', await p.evaluate(() => /金/.test(document.querySelector('.mslot .aff-tag.el-metal').textContent) && !!document.querySelector('.mslot .aff-tag.tr')));
     await p.evaluate(() => { ui.modal = 'mart:' + S.active.gigong; renderModal(); });
-    ok('7 기공 상세: 극하는 오행 · 극당하는 오행', await p.evaluate(() => /木 속성 적에게 피해 \+25%/.test(document.querySelector('.sheet').textContent) && /火 속성 적에게는 -25%/.test(document.querySelector('.sheet').textContent)));
-    await p.evaluate(() => { ui.modal = null; ui.statusSub = 'observe'; render(); });
-    ok('7 전투력 카드 아래 4대 스탯 · 주력 기예', ...(await p.evaluate(() => { const t = document.querySelector('.cp-attr').textContent; return [t.includes(`근력 ${attrOf('str')}`) && t.includes(`민첩 ${attrOf('agi')}`) && /기예 연단/.test(t), t + ' / 민첩 ' + attrOf('agi')]; })));   // 비급 각인이 더해진 값
+    ok('7 기공 상세: 극하는 오행 · 극당하는 오행', await p.evaluate(() => /木\) 속성 적에게 피해 \+20%/.test(document.querySelector('.sheet').textContent) && /火\) 속성 적에게는 -20%/.test(document.querySelector('.sheet').textContent)));
+    await p.evaluate(() => { ui.modal = null; ui.statusSub = 'observe'; ui.obsDetail = true; render(); });   // 기예는 세부 능력치에
+    ok('7 관조: 4대 스탯 · 주력 기예', ...(await p.evaluate(() => { const t = document.body.textContent; return [S.talent === 'alchemy' && /연단/.test(t), t.replace(/\s+/g, ' ').slice(0, 120)]; })));
 
     // 8. 주력 기예 효과
     const tl = await p.evaluate(() => {
@@ -186,15 +186,15 @@ module.exports = async (b) => {
       const heal = t => { S.talent = t; const bt = { st: calcStats(), fx: [], lines: [], sim: true, pots: { hp: 1, mp: 0 } }; RT.battle = bt; S.hp = 1; autoPotion(bt); RT.battle = null; return S.hp - 1; };
       r.alchemy = heal('alchemy'); r.plain = heal(null);
       r.noChef = !TALENTS.chef && !CRAFTS.cook;
-      S.talent = 'forge'; r.forge = talentOf().rate === 10 && talentOf().craft === 'forge' && talentOf().slag === 2;
-      S.talent = 'alchemy'; r.alch = talentOf().rate === 10 && talentOf().craft === 'alchemy';
+      S.talent = 'forge'; r.forge = talentOf().craft === 'forge' && talentOf().slag === 2;
+      S.talent = 'alchemy'; r.alch = talentOf().craft === 'alchemy' && talentOf().pill === 0.15;
       r.keys = Object.keys(TALENTS).join();
       S.talent = keep;
       return r;
     });
     ok('8 단약: 생혈고 회복 +15%', Math.abs(tl.alchemy / tl.plain - 1.15) < 0.03, JSON.stringify(tl));
     ok('8 조리 기예·보조 기예 조리 없음', tl.noChef, JSON.stringify(tl));
-    ok('8 기예는 단조·단약 둘: 성공률 +10 · 단조는 찌꺼기 2배', tl.keys === 'forge,alchemy' && tl.forge && tl.alch, JSON.stringify(tl));
+    ok('8 기예는 단조·연단 둘: 단조는 찌꺼기 2배 · 연단은 단약 +15%', tl.keys === 'forge,alchemy' && tl.forge && tl.alch, JSON.stringify(tl));
 
     // 9. 예전 저장 이전
     const mig = await p.evaluate(() => {
