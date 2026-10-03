@@ -1,0 +1,55 @@
+/* 연출 효과: 호버 발광·셰이크·섬광·펄스·수련 광원·기운 입자·타자기·성취 현판·토스트 (움직임 줄이기 존중) */
+
+.tab:hover:not(:disabled) { color: var(--ink); }
+.btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold-2); }
+.btn.primary:hover:not(:disabled) { background: var(--gold-2); color: #17130a; }
+.btn.danger:hover:not(:disabled) { background: var(--seal); color: var(--bg); }
+.chip:hover:not(:disabled) { border-color: var(--gold); }
+.art:hover { border-color: var(--gold); }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.dslot.empty { border-style: dashed; background: transparent; }
+.toasts { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; z-index: 20; pointer-events: none; }
+.toast { background: var(--gold); color: #17130a; font-weight: 700; padding: 8px 16px; border-radius: 4px; font-size: .9rem; transition: opacity .5s, transform .5s; }
+.toast.out { opacity: 0; transform: translateY(8px); }
+.btn:hover:not(:disabled), .chip:hover:not(:disabled), .art:hover, .dslot:hover, .starter:hover {
+  box-shadow: 0 0 12px rgba(212, 175, 55, .25); transform: translateY(-1px); border-color: rgba(212, 175, 55, .55);
+}
+/* 빈 슬롯·미해금: 안으로 파인 음영 */
+.slot:not(.full), .dslot.empty {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); background: rgba(10, 12, 16, .6); border: 1px dashed rgba(255, 255, 255, .1);
+}
+.mslot:hover { box-shadow: 0 0 12px rgba(212, 175, 55, .25); transform: translateY(-1px); }
+.mslot.empty:hover { transform: none; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6); }
+.card:hover, .shop-item:hover, .item:hover { background: rgba(255, 255, 255, .055); }
+.btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, #f3d27c, #d6a83d); color: #1a1408; }
+/* 토스트: 화면 위 오른쪽, 본문을 가리지 않게 */
+.toasts { left: auto; right: 20px; top: calc(env(safe-area-inset-top, 0px) + 18px); bottom: auto; transform: none; align-items: flex-end; }
+.toast { background: rgba(18, 22, 29, .95); color: var(--ink); border: 1px solid rgba(212, 175, 55, .4); border-left: 3px solid #d4af37; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); font-weight: 600; }
+.toast.out { transform: translateX(12px); }
+/* 성취 현판 */
+.banner { position: fixed; left: 50%; top: 18%; z-index: 30; transform: translate(-50%, -10px) scale(.96); opacity: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 44px; background: radial-gradient(ellipse at center, rgba(12, 14, 18, .96), rgba(12, 14, 18, .85)); border-top: 2px solid #d4af37; border-bottom: 2px solid #d4af37; box-shadow: 0 20px 60px rgba(0, 0, 0, .7); transition: opacity .4s, transform .4s; }
+.banner.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.banner b { font-family: var(--serif); font-weight: 900; font-size: 2rem; letter-spacing: .25em; color: #f0cf82; text-shadow: 0 0 18px rgba(212, 175, 55, .5); }
+.banner small { color: var(--silver); letter-spacing: .1em; }
+.banner.jade b { color: #8ee0c8; text-shadow: 0 0 18px rgba(95, 176, 155, .5); }
+.banner.seal { border-color: #d25a44; }
+.banner.seal b { color: #f09a86; text-shadow: 0 0 18px rgba(210, 90, 68, .5); }
+@media (max-width: 640px) {
+  .banner { padding: 14px 22px; width: calc(100% - 32px); }
+  .banner b { font-size: 1.5rem; letter-spacing: .15em; }
+  .toasts { right: 12px; left: 12px; align-items: stretch; }
+}
+@media (max-width: 640px) {
+  .toasts { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); }
+}
+.plaque.flash-hit .seal-av::after { animation: hitOverlay .1s linear; }
+@keyframes hitOverlay { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+/* 치명·강타: 0.15초 잔떨림 */
+.plaque.shake { animation: shake .15s linear; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+/* 타자기 커서 */
+.typing::after { content: '▍'; margin-left: 1px; color: var(--gold); animation: caretBlink .7s steps(1) infinite; }
+@keyframes caretBlink { 50% { opacity: 0; } }
+/* 상태 하위 탭 호버 */
+.subtab { transition: color .18s, background .18s; }
+.subtab:not(.on):hover { color: var(--ink); background: rgba(212, 175, 55, .08); }

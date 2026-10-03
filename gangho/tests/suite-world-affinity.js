@@ -1,0 +1,212 @@
+/* 세계관 개편: 프롤로그·제자 만들기(3대 스탯·입문 무공·보조 기예) · 3대 상성(지형·오행·병기) · 찌꺼기 공양 가챠 · 심상수련장 · 요수 도감 */
+'use strict';
+const { ok, GAME_URL, watchErrors, VIEWPORTS, newPage } = require('./lib');
+
+const AFFINITY_HIT = 8;   // AFFINITY.weapHit
+module.exports = async (b) => {
+  for (const [w, h] of VIEWPORTS) {
+    console.log(`\n=== ${w}px ===`);
+    const p = await newPage(b, w, h);
+    const errs = watchErrors(p);
+    await p.goto(GAME_URL);
+
+    // 1. 프롤로그 · 제자 만들기
+    const i0 = await p.evaluate(() => ({ pro: [...document.querySelectorAll('.prologue p')].map(e => e.textContent).join(' '), rows: document.querySelectorAll('.attr-row').length, plus: [...document.querySelectorAll('[data-attr][data-d="1"]')].every(e => e.disabled), begin: !document.querySelector('#begin').disabled, talents: document.querySelectorAll('[data-talent]').length, starters: document.querySelectorAll('[data-starter]').length }));
+    ok('1 프롤로그: 몰락한 청풍문의 마지막 제자 (무신상 빙의 설정은 지움)', /무신상/.test(i0.pro) && /청풍문/.test(i0.pro) && /제자/.test(i0.pro), i0.pro.slice(0, 60));
+    ok('1 선천 4 + 후천 4 · 입문 무공 5종 · 기예 2종(단조·연단)', i0.rows === 8 && i0.starters === 5 && i0.talents === 2, JSON.stringify(i0));
+    ok('1 후천도 주사위 (＋ · − 단추 없음) · 바로 시작 가능', !(await p.$('[data-attr]')) && i0.begin);
+    const shown = () => p.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-attrrow]')].map(r => [r.dataset.attrrow, +r.querySelector('.attr-val').textContent])));
+    const a0 = await shown();
+    ok('1 후천 합계 24 · 한 스탯 3~10', Object.values(a0).reduce((x, y) => x + y, 0) === 24 && Object.values(a0).every(v => v >= 3 && v <= 10), JSON.stringify(a0));
+    ok('1 설명 글 없음 (합계 · 남은 점수 · 타고난 바탕)', await p.evaluate(() => !/남은 점수|타고난 바탕|합계/.test(document.querySelector('[data-step="2"]').textContent)));
+    await p.click('[data-starter="sp1b"]'); await p.click('[data-talent="alchemy"]');
+    await p.fill('#pname', '석상제자');
+    await p.click('#begin');
+    const s0 = await p.evaluate(() => { const st = calcStats(); return { attr: S.attr, talent: S.talent, alch: S.crafts.alchemy.lv, forge: S.crafts.forge.lv, name: S.name, weapon: S.equip.weapon.wtype, atk: st.atk, hp: st.maxHp, mp: st.maxMp, log: S.log.some(l => /무신상/.test(l.text)) }; });
+    ok('1 화면의 후천 값이 그대로 반영', JSON.stringify(s0.attr) === JSON.stringify(a0), JSON.stringify(s0.attr));
+    ok('1 주력 기예 연단 → 두 기예 모두 9품(1단계)부터', s0.talent === 'alchemy' && s0.alch === 1 && s0.forge === 1, JSON.stringify(s0));
+    ok('1 입문 무공 = 첫 병기 (창) · 첫 기록은 석상 시점', s0.weapon === 'spear' && s0.name === '석상제자' && s0.log, JSON.stringify(s0));
+    const st = await p.evaluate(() => {
+      const base = () => { const s = calcStats(); return { atk: s.atk, hp: s.maxHp, mp: s.maxMp, def: s.def, bag: s.bag }; };
+      const keep = { ...S.attr }; S.attr = { str: 6, con: 6, agi: 6, int: 6 }; const a = base();
+      S.attr = { str: 7, con: 6, agi: 6, int: 5 }; const b2 = base(); S.attr = { str: 6, con: 8, agi: 6, int: 4 }; const c = base(); S.attr = keep;
+      const bad = [validAttr({ str: 10, con: 10, agi: 10, int: 10 }), validAttr({ str: 2, con: 8, agi: 6, int: 8 }), validAttr({ str: 6, con: 6, agi: 6, int: 6 })];
+      const ns = newState('x', 'sw1a', { attr: { str: 20, con: 0, agi: 6, int: -2 }, talent: 'nope' });
+      return { d: { atk: b2.atk - a.atk, bag: b2.bag - a.bag, mp: b2.mp - a.mp }, c: { hp: c.hp - a.hp, def: c.def - a.def }, bad, ns: { attr: ns.attr, talent: ns.talent } };
+    });
+    ok('1 근력 +1 → 공격력 증가 / 지력 -1 → 내력 감소 (적재량은 근력과 무관, 오르는 폭은 근골 · 체질 자질에 따라 다름)', st.d.atk > 0 && st.d.bag === 0 && st.d.mp < 0, JSON.stringify(st.d));
+    ok('1 체력 +2 → 활력 · 방어 증가', st.c.hp > 0 && st.c.def >= 1, JSON.stringify(st.c));
+    ok('1 배분 검증 (합계 24 · 3~10) · 잘못된 값은 기본 6/6/6/6', st.bad.join() === 'false,false,true' && st.ns.attr.str === 6 && st.ns.attr.agi === 6 && st.ns.talent === null, JSON.stringify(st));
+
+    await p.evaluate(() => { for (const k of Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급')) learnManual(k); for (const id of Object.keys(S.manuals)) equipManual(id); ui.modal = null; render(); });
+
+    // 2. 오행 상성 (입문 기공은 무작위라 철포삼(金)을 직접 장착)
+    const el = await p.evaluate(() => {
+      const r = {}; S.manuals.gi1a = S.manuals.gi1a || { star: 1 }; equipManual('gi1a');
+      r.beats = Object.entries(ELEM_BEATS).map(([a, b]) => `${ELEMENTS[a].hanja}剋${ELEMENTS[b].hanja}`).join(',');
+      r.rel = [elemRel('metal', 'wood'), elemRel('wood', 'metal'), elemRel('earth', 'metal'), elemRel(null, 'wood')].join();
+      r.me = myElem();                                  // 철포삼 = 金
+      const keepInt = S.attr.int; S.attr.int = 6;         // 지력 기준값에서 비교
+      // 청령목괴 = 木·창, 내 병기 = 창 → 병기는 호각이라 오행만 본다
+      const A = affinity('treant'), B = affinity('eliteAxe'), C = affinity('boar');
+      r.up = Math.round((1 + AFFINITY.elem + calcStats().elem / 100) * 1000) / 1000;   // 지력·비급 각인의 오행 위력 포함
+      r.rabbit = [A.el, Math.round(A.dealt / (1 + A.sizePct / 100) * 1000) / 1000, A.taken, A.wp]; r.full = A.dealt; r.bandit = [B.el, B.foe]; r.boar = C.el;   // 크기 상성(창 → 대형)은 빼고 오행만
+      S.apt = S.apt || {}; const kw = S.apt.wit; S.apt.wit = APT_MIN; r.int0 = affinity('treant').dealt; S.apt.wit = APT_MAX; r.int = affinity('treant').dealt; S.apt.wit = kw;   // 같은 병기 · 같은 요수로 오성만 바꿔 비교   // 오행 위력은 오성(悟性)
+      // 같은 난수로 한 대: 상극 우세 vs 상성 없음
+      const R = Math.random; Math.random = () => 0.5;
+      const mk = eid => ({ eid, e: { ...ENEMIES[eid], hpNow: 1e9 }, lines: [], fx: [], st: calcStats(), over: false, aff: affinity(eid) });
+      const hit = bt => { RT.battle = bt; playerHit(bt, 1, '평타'); return 1e9 - bt.e.hpNow; };
+      const x = mk('treant'), y = mk('treant'); y.aff = NO_AFF; r.ratio = Math.round(hit(x) / hit(y) * 100) / 100;
+      Math.random = R; RT.battle = null; S.attr.int = keepInt; r.full = Math.round(r.full * 1000) / 1000;
+      return r;
+    });
+    ok('2 오행 상극: 木剋土 · 火剋金 · 土剋水 · 金剋木 · 水剋火', el.beats.split(',').sort().join() === '木剋土,水剋火,火剋金,土剋水,金剋木'.split(',').sort().join(), el.beats);
+    ok('2 극하면 1, 극당하면 -1, 상생·무속성 0', el.rel === '1,-1,0,0', el.rel);
+    ok('2 金 기공 vs 木 청령목괴: 주는 피해 ×(1.20 + 오행 위력) · 받는 피해 ×0.80', el.me === 'metal' && el.rabbit[0] === 1 && Math.abs(el.rabbit[1] - el.up) < 0.002 && Math.abs(el.rabbit[2] - 0.8) < 1e-9 && el.rabbit[3] === 0, JSON.stringify(el));
+    ok('2 金 기공 vs 火 요수: 극당함', el.bandit[0] === -1 && el.bandit[1] === 'fire', JSON.stringify(el));
+    ok('2 오성이 높으면 극할 때 위력 추가', el.int > el.int0, el.int0 + ' → ' + el.int);
+    ok('2 실제 타격에 반영 (같은 난수 기준 주는 피해 배율만큼)', Math.abs(el.ratio - el.full) < 0.05, `${el.ratio} / ${el.full}`);
+
+    // 3. 병기 상성
+    const wp = await p.evaluate(() => {
+      const pairs = [['fist', 'blade'], ['fist', 'hidden'], ['fist', 'spear'], ['spear', 'fist'], ['spear', 'blade'], ['spear', 'hidden'], ['sword', 'hidden'], ['blade', 'spear'], ['blade', 'fist'], ['hidden', 'fist'], ['hidden', 'blade'], ['hidden', 'spear'], ['sword', 'blade']];
+      const m = pairs.map(([a, b]) => weaponRel(a, b));
+      const anti = Object.keys(WEAPON_ADV).every(a => Object.keys(WEAPON_ADV).every(b => a === b || weaponRel(a, b) === -weaponRel(b, a)));
+      const keep = S.equip.weapon.wtype, r = {};
+      const ef = X => X.el > 0 ? 1 + AFFINITY.elem + (calcStats().elem || 0) / 100 : X.el < 0 ? 1 - AFFINITY.elem : 1;   // 오행 몫을 덜어 낸다
+      S.equip.weapon.wtype = 'hidden'; const A = affinity('diver'); r.same = [A.wp, A.myHit, A.foeHit];   // 잠영수 = 암기 · 같은 병기는 호각
+      S.equip.weapon.wtype = 'sword'; const B = affinity('diver'); r.swordVsHidden = [B.wp, B.myHit, Math.round(B.dealt / ef(B) / (1 + B.sizePct / 100) * 100) / 100];
+      S.equip.weapon.wtype = 'fist'; const C = affinity('diver'); r.fistVsHidden = [C.wp, C.foeHit];
+      S.equip.weapon.wtype = 'hidden'; const E = affinity('wildcat'); r.beast = [E.wp, E.fwt];   // 살쾡이 = 권장(발톱), 내 병기 = 암기
+      S.equip.weapon.wtype = keep;
+      return { m: m.join(), anti, r };
+    });
+    ok('3 다섯 병기 각 2승 2패: 권장›검·도 · 검›창·암기 · 도›검·창 · 창›권장·암기 · 암기›권장·도', wp.m === '1,-1,-1,1,-1,1,1,1,-1,1,1,-1,-1', wp.m);
+    ok('3 상성표가 서로 맞물림 (한쪽 우세 = 다른 쪽 열세)', wp.anti);
+    ok('3 우세: 주는 피해 +12% · 명중 +8', wp.r.swordVsHidden[0] === 1 && wp.r.swordVsHidden[1] === AFFINITY_HIT && wp.r.swordVsHidden[2] === 1.12, JSON.stringify(wp.r));
+    ok('3 열세: 상대 명중 보정 · 같은 병기는 호각(보정 없음)', wp.r.fistVsHidden[0] === -1 && wp.r.fistVsHidden[1] === AFFINITY_HIT && wp.r.same.join() === '0,0,0', JSON.stringify(wp.r));
+    ok('3 짐승도 병기 계열이 있다 (살쾡이 발톱 = 권장 → 암기 우세)', wp.r.beast[0] === 1 && wp.r.beast[1] === 'fist', JSON.stringify(wp.r));
+
+    // 4. 지형 상성 (기력 소모)
+    const tr = await p.evaluate(() => {
+      const A = { match: AFFINITY.terrainMatch, miss: AFFINITY.terrainMiss }, CP = ZONES.cheongpung.terrain;
+      const r = { terr: myTerrain(), terrains: Object.keys(TERRAINS).join(), zones: ZONE_ORDER.map(z => ZONES[z].terrain.join('/')) };
+      r.mult = ZONE_ORDER.map(terrainMult).join();
+      r.expect = ZONE_ORDER.map(z => ZONES[z].terrain.includes(r.terr) ? A.match : A.miss).join();
+      const g = S.active.gyeonggong; S.active.gyeonggong = null; r.none = terrainMult('cheongpung'); S.active.gyeonggong = g;
+      // 청풍산 지형과 맞는 경공 · 안 맞는 경공 (1장에 열린 것 가운데)
+      const gys = Object.keys(MANUALS).filter(id => MANUALS[id].cat === 'gyeonggong' && !manualSealed(id));
+      const hit = gys.find(id => CP.includes(MANUALS[id].terrain)), miss = gys.find(id => !CP.includes(MANUALS[id].terrain));
+      const wear = id => { S.manuals[id] = S.manuals[id] || { star: 1 }; equipManual(id); return terrainMult('cheongpung'); };
+      const run = () => { S.expedition.zone = 'cheongpung'; S.stamina = 100; S.inv.saenghyeol = 20; S.hp = 1e9; return runExpedition(now(), 12); };
+      r.hitMult = wear(hit); const a = [run(), run()];
+      r.missMult = wear(miss); const m = [run(), run()];
+      equipManual(g);
+      r.match = { mult: a[0].terrain.mult, extra: a.every(x => x.terrain.extra < 0), rec: a[0].terrain.match === true && a[0].terrain.zone.join() === CP.join() };
+      r.miss = { mult: m[0].terrain.mult, extra: m.every(x => x.terrain.extra === 0), rec: m[0].terrain.match === false };
+      r.A = A; r.ids = [hit, miss];
+      return r;
+    });
+    ok('4 5대 지형 (풀·물·흙·나무·평) · 청풍산 = 흙/풀/나무 복합', tr.terrains === 'grass,water,earth,wood,plain' && tr.zones[0] === 'earth/grass/wood', JSON.stringify(tr));
+    ok('4 경공 지형이 구역 지형 중 하나라도 맞으면 덜 · 안 맞아도 벌점 없음 · 경공 없으면 보정 없음', tr.mult === tr.expect && tr.none === 1 && tr.hitMult === tr.A.match && tr.missMult === tr.A.miss && tr.A.match < 1 && tr.A.miss === 1, JSON.stringify(tr));
+    ok('4 탐험 기록에 지형 일치 여부 · 기력 증감', tr.match.rec && tr.miss.rec && tr.match.extra, JSON.stringify(tr));
+    ok('4 지형이 맞으면 같은 걸음에 기력을 덜 쓴다', tr.match.mult < tr.miss.mult && tr.miss.mult <= 1, JSON.stringify(tr));
+    await p.evaluate(() => { const r = S.expeditions.filter(x => !x.live).pop(); ui.modal = 'settle:' + r.id; render(); });
+    ok('4 결산 창에 지형 · 기력 증감', await p.evaluate(() => { const t = document.querySelector('#modal .tr-line'); return !!t && /지형 흙\(土\)·풀\(草\)·나무\(木\) · 경공 \S+ (일치|불일치) \(기력 (\+?[\d.]+ (더 씀|아낌)|보정 없음)\)/.test(t.textContent); }));
+    await p.evaluate(() => { ui.modal = null; ui.fieldMap = false; goTab('field'); render(); });
+    ok('4 출정 준비에 기공(오행) 줄 · 경공(지형) 줄 따로', await p.evaluate(() => {
+      const f = k => [...document.querySelectorAll('.prep li')].find(l => l.querySelector('.prep-k').textContent.startsWith(k)), txt = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
+      const g = f('기공'), t = f('경공');
+      return !!g && !!t && g.textContent.includes(txt(elemTag(myElem()))) && t.textContent.includes(txt(terrainTag(myTerrain()))) && /주는 피해/.test(g.textContent); }));
+    ok('4 전투 기록 첫머리에 상성 한 줄', await p.evaluate(() => S.expeditions.some(r => r.battles.some(bt => bt.intro.some(l => l.cls === 'aff' && /오행/.test(l.text) && /병기/.test(l.text))))));
+
+    // 5. 조합 실패물 → 검게 탄 찌꺼기 · 무신상 공양
+    const gc = await p.evaluate(() => {
+      const r = {};
+      r.fails = [...new Set(Object.values(CRAFTS).map(c => c.fail))].join();
+      r.old = ['twistedIron', 'burntAsh', 'dregs'].some(k => ITEMS[k]);
+      S.inv.slag = 0; for (const c of Object.keys(CRAFTS)) { S.inv.herb = (S.inv.herb || 0) + 3; (S.hp = calcStats().maxHp, S.mp = calcStats().maxMp, doCraft)(c, { herb: 3 }); }
+      r.slag = count('slag');
+      S.inv.slag = 2; r.none = pray(1);
+      S.inv.slag = 14; const p0 = S.shrine.pulls || 0;
+      const got = pray(10); r.got = got.length; r.left = count('slag'); r.pulls = S.shrine.pulls - p0;
+      r.kinds = got.every(g => GACHA.table.some(e => e.k === g.k) && g.text);
+      // 많이 돌려 분포 확인 (비급은 가진 것 제외)
+      S.inv.slag = 3 * 400; const all = pray(400); for (let i = 0; i < 39; i++) all.push(...pray(400) || []);
+      r.dist = {}; for (const g of all) r.dist[g.k] = (r.dist[g.k] || 0) + 1;
+      r.books = Object.keys(S.inv).filter(k => /^bk_/.test(k)); r.nBooks = GACHA.books.length;
+      return r;
+    });
+    ok('5 모든 기예의 실패물은 검게 탄 찌꺼기 하나', gc.fails === 'slag' && !gc.old && gc.slag === 2, JSON.stringify(gc));
+    ok('5 찌꺼기가 모자라면 공양 불가', gc.none === null);
+    ok('5 [공양 10회]: 찌꺼기가 모자라면 되는 만큼 (14개 → 4회)', gc.got === 4 && gc.left === 2 && gc.pulls === 4, JSON.stringify(gc));
+    ok('5 결과는 약재·소모품·광석·장비·영단·비급 중 하나', gc.kinds && ['herb', 'supply', 'ore', 'gear'].every(k => gc.dist[k] > 0), JSON.stringify(gc.dist));
+    ok('5 비급은 드물게 · 같은 비급은 두 번 나오지 않음', (gc.dist.book || 0) <= gc.nBooks && new Set(gc.books).size === gc.books.length, JSON.stringify(gc.books));
+    await p.evaluate(() => { S.inv.slag = 7; S.statueResidueCount = 0; ui.modal = null; goTab('sect', 'shrine'); render(); });   // 위 표본 공양으로 무신이 깨어났으면 창을 닫는다
+    const sh = await p.evaluate(() => ({ one: !document.querySelector('[data-pray="1"]').disabled, ten: !document.querySelector('[data-pray="10"]').disabled, me: !document.querySelector('.altar .pill'), rate: document.querySelectorAll('.gacha-table li').length, purify: !!document.querySelector('.purify') }));
+    await p.click('[data-pray="1"]'); await p.click('[data-act="confirmok"]');
+    const sh2 = await p.evaluate(() => ({ res: document.querySelectorAll('.gacha-res li').length, slag: count('slag'), log: /공양/.test(S.log[S.log.length - 1].text) }));
+    ok('5 무신상 화면(나 표시 없음): 공양 1회/10회 · 확률표 없음 · 탁기 정화 게이지', sh.one && sh.ten && sh.me && sh.rate === 0 && sh.purify, JSON.stringify(sh));
+    ok('5 공양하면 돌아온 것 표시 · 견문록 기록', sh2.res === 1 && sh2.slag === 4 && sh2.log, JSON.stringify(sh2));
+
+    // 6. 심상수련장
+    await p.evaluate(() => { goTab('sect', 'yeonmu'); render(); });   // 갈래 메뉴는 없어지고 전경 이름표로 들어간다
+    const ym = await p.evaluate(() => ({ view: !!document.querySelector('.yeonmu'), rows: [...document.querySelectorAll('.sim-row')].map(r => r.querySelector('b').textContent), met: Object.keys(S.bestiary).map(e => ENEMIES[e].name) }));
+    ok('6 연무장 › 심상수련장: 만나 본 상대만 목록에', ym.view && ym.rows.length === ym.met.length && ym.rows.every(n => ym.met.includes(n)) && !ym.rows.includes('수룡방주 벽해룡'), JSON.stringify(ym));
+    const sim = await p.evaluate(() => {
+      const snap = () => JSON.stringify({ hp: S.hp, mp: S.mp, exp: S.exp, silver: S.silver, inv: S.inv, best: S.bestiary, log: S.log.length, sta: S.stamina, kills: S.kills });
+      S.inv.saenghyeol = 5; const before = snap();
+      const foe = Object.keys(S.bestiary)[0], bt = simulate(foe), many = simulateMany(foe, 10);
+      return { same: snap() === before, sim: bt.sim, over: bt.over, unknown: simulate('byeokhaeryong'), many };
+    });
+    ok('6 가상 전투: 기력·수련치·은자·행낭·도감·견문록 모두 그대로', sim.same && sim.sim && sim.over, JSON.stringify(sim));
+    ok('6 만나 본 적 없는 상대는 불러낼 수 없음', sim.unknown === null);
+    ok('6 10판 모의: 승·패·평균 합', sim.many.n === 10 && sim.many.wins + sim.many.draws <= 10 && sim.many.rounds > 0, JSON.stringify(sim.many));
+    await p.click('.sim-row [data-simx]');
+    ok('6 [10판 모의] → 결과 줄', await p.evaluate(() => /10판 모의: \d+승/.test(document.querySelector('.sim-stat').textContent)));
+    await p.click('.sim-row [data-sim]');
+    await p.waitForSelector('#rpBox .eyebrow', { timeout: 3000 });   // 무대 그림을 풀고 열린다
+    const rp = await p.evaluate(() => ({ modal: ui.modal, eyebrow: document.querySelector('#rpBox .eyebrow').textContent, aff: [...document.querySelectorAll('#rpLog p')].some(l => /상성/.test(l.textContent)), tag: !!document.querySelector('#pl-foe .aff-tag') }));
+    ok('6 [겨루기] → 관찰 창으로 재생 (심상 · 보상 없음 · 상성 줄)', rp.modal === 'replay:sim' && /心象/.test(rp.eyebrow) && rp.aff && rp.tag, JSON.stringify(rp));
+    await p.click('[data-rp="end"]'); await p.click('#rpBox [data-act="closemodal"]');
+
+    // 7. 요수 도감 · 무공 상성 표식
+    await p.click('[data-tab="codex"]');
+    const cx = await p.evaluate(() => ({ known: document.querySelectorAll('.beasts li:not(.unknown)').length, unknown: document.querySelectorAll('.beasts li.unknown').length, met: Object.keys(S.bestiary).filter(e => ZONE_ORDER.some(z => [...ZONES[z].enemies, ZONES[z].boss].includes(e))).length, total: document.querySelectorAll('.beasts li').length, tag: !!document.querySelector('.beasts .aff-tag') }));
+    ok('7 요수 도감: 만난 요수만 오행·병기와 함께 (못 만난 요수·총수 숨김)', cx.known === cx.met && cx.unknown === 0 && cx.total === cx.met && cx.tag, JSON.stringify(cx));
+    await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
+    await p.evaluate(() => { ui.modal = 'mart:' + S.active.gigong; renderModal(); });
+    ok('7 기공 상세: 극하는 오행 · 극당하는 오행', await p.evaluate(() => /木\) 속성 적에게 피해 \+20%/.test(document.querySelector('.sheet').textContent) && /火\) 속성 적에게는 -20%/.test(document.querySelector('.sheet').textContent)));
+    await p.evaluate(() => { ui.modal = null; ui.statusSub = 'observe'; ui.obsDetail = true; render(); });   // 기예는 세부 능력치에
+    ok('7 관조: 4대 스탯 · 주력 기예', ...(await p.evaluate(() => { const t = document.body.textContent; return [S.talent === 'alchemy' && /연단/.test(t), t.replace(/\s+/g, ' ').slice(0, 120)]; })));
+
+    // 8. 주력 기예 효과
+    const tl = await p.evaluate(() => {
+      const r = {}, keep = S.talent;
+      const heal = t => { S.talent = t; const bt = { st: calcStats(), fx: [], lines: [], sim: true, pots: { hp: 1, mp: 0 } }; RT.battle = bt; S.hp = 1; autoPotion(bt); RT.battle = null; return S.hp - 1; };
+      r.alchemy = heal('alchemy'); r.plain = heal(null);
+      r.noChef = !TALENTS.chef && !CRAFTS.cook;
+      S.talent = 'forge'; r.forge = talentOf().craft === 'forge' && talentOf().slag === 2;
+      S.talent = 'alchemy'; r.alch = talentOf().craft === 'alchemy' && talentOf().pill === 0.15;
+      r.keys = Object.keys(TALENTS).join();
+      S.talent = keep;
+      return r;
+    });
+    ok('8 단약: 생혈고 회복 +15%', Math.abs(tl.alchemy / tl.plain - 1.15) < 0.03, JSON.stringify(tl));
+    ok('8 조리 기예·보조 기예 조리 없음', tl.noChef, JSON.stringify(tl));
+    ok('8 기예는 단조·연단 둘: 단조는 찌꺼기 2배 · 연단은 단약 +15%', tl.keys === 'forge,alchemy' && tl.forge && tl.alch, JSON.stringify(tl));
+
+    // 9. 예전 저장 이전
+    const mig = await p.evaluate(() => {
+      const old = JSON.parse(JSON.stringify(S)); delete old.attr; delete old.talent; delete old.bestiary; delete old.shrine.pulls;
+      old.inv.twistedIron = 2; old.inv.burntAsh = 1; old.inv.dregs = 3; old.inv.slag = 1;
+      old.zoneLog = { cheongpung: { trips: 1, wins: 3, losses: 0, defeats: 0, retreats: 0, seen: { rabbit: 2, wildcat: 1 }, bossMet: 0, bossWon: 0 } };
+      const st = migrate(old);
+      return { attr: st.attr, talent: st.talent, slag: st.inv.slag, old: ['twistedIron', 'burntAsh', 'dregs'].some(k => k in st.inv), best: st.bestiary, pulls: st.shrine.pulls };
+    });
+    ok('9 이전 저장: 스탯 6/6/6 · 기예 없음 · 부산물 → 찌꺼기 · 도감은 구역 기록에서', mig.attr.str === 6 && mig.talent === null && mig.slag === 7 && !mig.old && mig.best.rabbit.met === 2 && mig.best.wildcat.met === 1 && mig.pulls === 0, JSON.stringify(mig));
+
+    ok('오류/가로스크롤 없음', !errs.length && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(';'));
+    await p.close();
+  }
+};

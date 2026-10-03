@@ -1,0 +1,31 @@
+# 강호견문록 데스크톱판(스팀) 빌드: GitHub가 윈도우 컴퓨터에서 실행 파일을 만들어 준다.
+# 결과는 이 실행(Actions › 강호견문록 데스크톱판) 화면 아래 Artifacts에서 내려받는다:
+#   gangho-windows-exe  — 스팀에 올릴 실행 파일(Gangho.exe 하나. 그림 · 코드가 안에 들어 있음)
+#   gangho-windows-setup — 시험용 설치 파일
+name: 강호견문록 데스크톱판
+on:
+  workflow_dispatch:
+  push:
+    paths: ['gangho/js/**', 'gangho/css/**', 'gangho/assets/**', 'gangho/index.html', 'gangho/desktop/**', 'gangho/tools/desktop-dist.py', '.github/workflows/gangho-desktop.yml']
+jobs:
+  windows:
+    runs-on: windows-latest
+    env: { PYTHONIOENCODING: utf-8 }   # 윈도우 콘솔에서 한글 출력이 깨져 멈추지 않게
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: gangho/desktop/src-tauri }
+      - run: python gangho/tools/desktop-dist.py
+      - run: npx -y @tauri-apps/cli@2 build
+        working-directory: gangho/desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gangho-windows-exe
+          path: gangho/desktop/src-tauri/target/release/Gangho.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gangho-windows-setup
+          path: gangho/desktop/src-tauri/target/release/bundle/nsis/*.exe

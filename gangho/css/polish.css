@@ -1,0 +1,286 @@
+/* 가시성·가독성 다듬기 (맨 마지막에 읽는다)
+   - 모든 화면: 흐린 글자·경계선 대비를 한 단계 올리고, 작은 글씨의 최소 크기를 보장한다
+   - 모니터(1024px 이상): 글자·칸·카드를 한 단계 키우고, 1440px 이상에서 한 번 더 키운다
+   폰 배치는 그대로 두고, 폰에서 너무 작던 글자만 조금 올린다 */
+
+/* ───────── 대비: 흐린 글자·선을 한 단계 밝게 ───────── */
+:root {
+  --ink: #f1efea;
+  --silver: #bcc1c9;
+  --dim: #8c939e;
+  --line: #2c323b;
+  --line-2: #3e4550;
+}
+.muted { color: var(--dim); }
+.story { color: #c9ccd2; }
+.slot-item-name.empty { color: #77736c; }
+.item-category, .slot-type-label, .skill-card-compact .slot-type-label{ color: #a3a9b2; }
+small { font-size: .82rem; }
+
+/* 키보드로 움직일 때 지금 어디에 있는지 분명하게 */
+:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
+.equip-slot-card:focus-visible, .skill-card-compact.mslot:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 3px; }
+
+/* 폰에서도 10px 아래로는 내려가지 않게 */
+@media (max-width: 640px) {
+  .skill-card-compact .btn-upgrade, .skill-card-compact .btn-unequip { font-size: 10px; }
+  .meditation-caption { font-size: 11px; }
+}
+
+/* ───────── 모니터: 한 단계 크게 ───────── */
+@media (min-width: 1024px) {
+  html { font-size: 17px; }
+  body { font-size: 16px; line-height: 1.65; }
+  .app { max-width: 1360px; padding-inline: 24px; }
+  .main { gap: 20px; }
+  .panel { padding: 24px 26px; gap: 18px; }
+  h2 { font-size: 1.55rem; }
+  .muted, .story { line-height: 1.75; }
+
+  /* 헤더 */
+  .main-header { padding: 14px 26px; min-height: 84px; }
+
+  .gauge-badge { font-size: 12.5px; padding: 3px 9px; }
+  .gauge-bar-track { width: 190px; height: 22px; border-radius: 11px; }
+  .gauge-text { font-size: 12.5px; line-height: 20px; }
+
+  .brand-symbol, .brand .brand-symbol { width: 42px; height: 42px; font-size: 13px; }
+  .brand-title, .brand h1.brand-title { font-size: 21px; }
+  .brand-sub, .brand small.brand-sub { font-size: 12px; }
+
+  /* 탭 */
+  .tab { font-size: 1.05rem; padding: 10px 18px 12px; }
+  .subtab { font-size: .98rem; }
+
+  /* 버튼·칩 */
+  .btn { font-size: .95rem; padding: 9px 18px; }
+  .btn.sm { font-size: .86rem; padding: 5px 12px; }
+  .chip { font-size: .9rem; padding: 5px 14px; }
+
+  /* 상태 › 전투력 카드 */
+  .cp-card { padding: 12px 20px; }
+  .cp-value { font-size: 1.8rem; }
+
+  /* 상태 › 무공: 방위 카드 · 좌선 */
+  .mslots.martial-arts-core-layout { max-width: 820px; gap: 10px; }
+  .skill-card-compact.mslot { width: 172px; padding: 9px 11px; }
+  .skill-card-compact .slot-type-label { font-size: 12px; }
+
+  .skill-card-compact .realm { font-size: 11px; padding: 1px 6px; }
+  .skill-card-compact .skill-level, .skill-card-compact .art-star { font-size: 13px; }
+  .skill-card-compact .btn-upgrade, .skill-card-compact .btn-unequip { font-size: 12px; height: 26px; padding: 3px 6px; }
+  .meditation-center-frame { width: 340px; height: 340px; }
+  .meditation-silhouette { width: 170px; height: 170px; }
+  .meditation-caption { font-size: 14px; }
+
+  /* 상태 › 무공: 습득 비급 */
+  .section-title { font-size: 17px; }
+  .total-count-badge { font-size: 12.5px; }
+  .skill-category-tabs .tab-btn { font-size: 13.5px; padding: 5px 14px; }
+  .card-status-tag { font-size: 11.5px; }
+  .empty-notice { font-size: 13.5px; }
+
+  /* 상태 › 무장 */
+  .equip-column { height: 410px; }
+  .equip-slot-card { width: 158px; min-height: 78px; padding: 9px 12px; }
+  .equip-slot-card.small { width: 150px; min-height: 62px; }
+  .character-center-frame { width: 230px; }
+  .character-center-frame .character-portrait-card { max-width: 230px; }
+  .slot-label { font-size: 12.5px; }
+  .slot-item-name { font-size: 13.5px; }
+  .slot-ico { width: 22px; height: 22px; }
+  .statsheet { font-size: .92rem; }
+  .kv { font-size: .95rem; }
+
+  /* 아이템 카드 (장보각·행낭·장비 창) */
+  .item-card-header .item-name { font-size: 16.5px; }
+  .item-category { font-size: 13px; }
+  .item-effect, .lib-item .lib-eff { font-size: 13px; }
+  .gear small { font-size: .85rem; }
+  .lib-grid.shop { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+
+  /* 강호행·견문록·도감 */
+  .exp-next b { font-size: 2.2rem; }
+  .beast-art.mini { width: 44px; height: 44px; }
+  .beasts .passive, .passive-sum { font-size: 13px; }
+
+  /* 전투 관찰 창 */
+  .combat-log-stream .log-line { font-size: 15px; line-height: 1.7; }
+  .combat-modal-container .plaque h3 { font-size: 1.05rem; }
+  .combat-modal-container .bar-text { font-size: 11.5px; }
+  .confirm-details { font-size: .95rem; }
+}
+
+/* ───────── 큰 모니터(1440px 이상): 한 번 더 ───────── */
+@media (min-width: 1440px) {
+  html { font-size: 18px; }
+  .app { max-width: 1480px; }
+  .skill-card-compact.mslot { width: 184px; }
+  .meditation-center-frame { width: 360px; height: 360px; }
+  .meditation-silhouette { width: 180px; height: 180px; }
+  .equip-slot-card { width: 168px; }
+  .character-center-frame { width: 250px; }
+  .character-center-frame .character-portrait-card { max-width: 250px; }
+  .gauge-bar-track { width: 210px; }
+}
+
+/* 한자 보조 표기: 작아도 읽히게 (최소 크기 보장 · 조금 밝게) */
+.hj { font-size: max(.62em, 9.5px); color: #7f8793; }
+@media (min-width: 1024px) { .hj { font-size: max(.64em, 11px); } }
+
+/* 강적 도감: 실루엣은 왼쪽에 세우고 이름·특성이 그 오른쪽에 흐른다 */
+.beasts li { align-items: center; }
+.beasts li .beast-art.mini { align-self: center; }
+.beasts li:has(.beast-art) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-auto-flow: row; column-gap: 8px; row-gap: 2px; align-items: center; justify-items: start; }
+.beasts li:has(.beast-art) > .beast-art { grid-row: span 2; }
+.beasts li:has(.beast-art) > .bx-head { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; min-width: 0; }   /* 이름 · 두목 · 오행 · 크기는 한 묶음, 좁으면 줄을 내림 */
+.beasts li:has(.beast-art) > small { grid-column: 3; grid-row: 1; justify-self: end; }
+.beasts li:has(.beast-art) > em.trait, .beasts li:has(.beast-art) > .passive { grid-column: 2 / -1; }
+
+/* ───────── 헤더: 위에 수묵 배너(제자 대 염화채주)와 붓글씨 제목, 아래에 활력·내력(위아래)과 수묵 아이콘 정보 칸 ───────── */
+.main-header { display: block; position: relative; padding: 0; min-height: 0; background: #0f0d0b; border-bottom: 1px solid #2d261e; }
+.header-hero { position: relative; height: clamp(64px, 8.5vw, 118px); overflow: hidden; background: #d9d6cf; }
+.header-hero .hero-art { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+/* 배너도 서울 시각의 빛깔을 함께 입는다 (값은 ui_live.js liveTodApply가 :root에 둔다) */
+.header-hero::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: multiply;
+  background: linear-gradient(180deg, var(--tt, transparent), var(--tm, transparent) 60%, var(--tb, transparent)); }
+.header-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, rgba(15, 13, 11, 0) 55%, rgba(15, 13, 11, .55) 82%, #0f0d0b 100%), linear-gradient(to right, rgba(15, 13, 11, .35), transparent 12%, transparent 88%, rgba(15, 13, 11, .35)); }
+.main-header .header-banner { position: absolute; left: 50%; top: calc(clamp(4px, 1.2vw, 16px) - 4px); transform: translateX(-50%); z-index: 1; flex-direction: column; gap: 2px; text-align: center; pointer-events: none; order: 0; flex-basis: auto; justify-content: center; }
+.main-header .header-banner .brand-symbol { position: absolute; right: -28px; top: 4px; width: 22px; height: 22px; font-size: 11px; font-weight: 900; color: #fff4ec; background: #b3261e; border: none; border-radius: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); transform: rotate(4deg); }
+.main-header .brand-title, .main-header .brand h1.brand-title { font-family: 'Gangho Brush', 'Nanum Brush Script', var(--serif), serif; font-weight: 400; font-size: clamp(40px, 4.77vw, 72px); line-height: .95; color: #15110d; letter-spacing: .08em; text-shadow: 0 0 18px rgba(245, 242, 235, .95), 0 0 6px rgba(245, 242, 235, .9); }
+.main-header .brand-sub, .main-header .brand small.brand-sub { font-size: clamp(9px, .8vw, 11px); color: #2b241c; letter-spacing: .18em; font-weight: 700; text-shadow: 0 0 8px rgba(245, 242, 235, 1); }
+.main-header .header-left { display: flex; flex-direction: column; gap: 10px; padding: 4px 24px 14px; margin-top: -6px; position: relative; z-index: 1; }
+
+/* 활력 위 · 내력 아래 */
+.vitals .gauge-group { display: flex; flex-direction: column; align-items: stretch; gap: 6px; flex: 0 1 440px; min-width: 0; }
+.vitals .stat-gauge { display: grid; grid-template-columns: 26px 42px minmax(0, 1fr); align-items: center; gap: 6px; }
+.vitals .gauge-bar-track { width: 100%; height: 20px; border-radius: 10px; }
+.vitals .gauge-badge { background: none; padding: 0; font-size: 13px; font-weight: 800; justify-content: flex-start; }
+.ui-ico { display: inline-block; flex: none; width: 26px; height: 26px; background: center / contain no-repeat; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .7)); vertical-align: middle; }
+
+/* 정보 칸: 아이콘 + (이름 · 값) */
+
+.vitals { display: block; padding: 12px 14px; margin-bottom: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }   /* 상태 탭 맨 위: 머리에서 옮겨 온 활력 · 내력 · 수련치 · 은자 · 공헌 */
+.cp-card .cp-main { position: relative; } .cp-card .cp-delta { position: static; margin-left: 8px; font-size: .8rem; }
+@media (max-width: 900px) {
+
+  .vitals .gauge-group { flex-basis: auto; }
+}
+@media (max-width: 640px) {
+  .main-header .header-left { padding: 2px 12px 12px; }
+  .main-header .header-banner .brand-symbol { right: -26px; top: 4px; width: 22px; height: 22px; font-size: 9px; }
+
+  .vitals .stat-gauge { grid-template-columns: 22px 36px minmax(0, 1fr); }
+  .vitals .stat-gauge .ui-ico { width: 22px; height: 22px; }
+}
+
+/* ───────── 견문록: 기록 앞 기호를 수묵 아이콘으로 ───────── */
+.chron-ico { display: inline-block; width: 22px; height: 22px; margin: -4px 5px 0 0; background: center / contain no-repeat; vertical-align: middle; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .7)); }
+.chron-row > .chron-body .chron-text > .chron-ico:first-child, .chron-text .npc-face:first-child { width: 28px; height: 28px; margin-top: -6px; }
+.npc-face { display: inline-block; width: 26px; height: 26px; margin: -5px 6px 0 0; border-radius: 50%; border: 1.5px solid rgba(212, 175, 55, .7); background: #1b1612 center 20% / cover no-repeat; vertical-align: middle; }
+.chron-text .item-ico.sm, .chron-detail .item-ico.sm { width: 20px; height: 20px; margin: -3px 2px 0 0; }
+.main-header .brand-title { white-space: nowrap; }
+@media (max-width: 640px) { .main-header .brand-title, .main-header .brand h1.brand-title { font-size: 35px; letter-spacing: .02em; } .main-header .header-banner { top: calc(clamp(4px, 1.2vw, 16px) + 12px); } .header-hero { height: 72px; } .main-header .brand-sub { display: none; } }
+
+/* 로그인 · 회원가입 */
+.auth-sheet { max-width: 420px; }
+.auth-tabs { margin: 6px 0 2px; }
+.auth-form { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.auth-form input { padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 4px; background: var(--sunk); color: inherit; font-size: 1rem; }
+.auth-form input:focus { outline: 2px solid rgba(212, 166, 76, .6); outline-offset: 1px; }
+.auth-form .btn { margin-top: 8px; }
+.auth-err { margin: 2px 0 0; color: #ff9a85; font-size: .9rem; }
+.auth-notice { margin: 4px 0; padding: 8px 10px; border-radius: 6px; background: rgba(212, 166, 76, .12); box-shadow: inset 3px 0 0 #d4a64c; font-size: .9rem; }
+.auth-note { font-size: .85rem; }
+.auth-busy { margin: 18px 0; }
+
+/* 메인 퀘스트 보상 · 토벌 임무 */
+.quest-reward { margin: 4px 0 0; font-size: .88rem; color: var(--silver); }
+.quest-reward b { color: #e2bb62; }
+.main-quest.ready { box-shadow: inset 3px 0 0 #e2bb62; }
+.missions li.ready { box-shadow: inset 3px 0 0 #6aa84f; }
+/* 받을 보상 알림 점 */
+.tab, .subtab { position: relative; }
+.alert-dot { display: inline-block; width: 6px; height: 6px; margin-left: 3px; border-radius: 50%; background: #e0412a; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .35), 0 0 4px rgba(224, 65, 42, .7); vertical-align: top; animation: alertPulse 1.6s ease-in-out infinite; }
+.talk-btn { position: relative; } .talk-btn > .alert-dot { position: absolute; top: -3px; right: -3px; margin: 0; }
+[data-stagebreak], [data-subq] { position: relative; } [data-stagebreak] > .alert-dot, [data-subq] > .alert-dot { position: absolute; top: -3px; right: -3px; margin: 0; }   /* 돌파 조건을 채우면 [돌파하기]에 빨간 점 */
+.tab .alert-dot, .subtab .alert-dot { position: absolute; top: 4px; right: 10%; margin: 0; }
+@keyframes alertPulse { 50% { transform: scale(1.25); } }
+/* 설정 탭 · 대량 구매 슬라이더 */
+.settings-panel .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid rgba(212, 175, 55, .15); }
+.set-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.set-range, .buy-qty { display: flex; align-items: center; gap: 10px; flex: 1 1 220px; }
+.buy-qty { margin-top: 12px; flex-wrap: wrap; }
+.set-range input, .buy-qty input { flex: 1; min-width: 140px; accent-color: #d4af37; height: 28px; }
+.set-val, .buy-qty span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* 기연 탭 */
+.enc-card { padding: 12px; margin: 10px 0; border-radius: 10px; background: rgba(255, 255, 255, .04); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, .3); }
+.enc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.enc-btns { display: flex; flex-direction: column; gap: 6px; }
+.enc-choice { text-align: left; justify-content: flex-start; white-space: normal; }
+.enc-log { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+
+/* 비급에 실린 과거 시 (ui_modals manualPoemHtml) */
+.manual-poem { margin: 8px 0 12px; padding: 8px 14px; border-left: 3px solid rgba(226, 181, 74, .55); background: rgba(226, 181, 74, .06); border-radius: 0 8px 8px 0;
+  font-family: var(--serif, serif); font-size: 14px; line-height: 1.75; color: inherit; display: grid; gap: 1px; }
+.manual-poem b { font-size: 13px; color: var(--gold, #c9a24a); letter-spacing: .06em; margin-bottom: 2px; }
+.ui-ico.vit-ico { display: inline-block; width: 18px; height: 18px; margin: -3px 4px 0 0; vertical-align: middle; background: center / contain no-repeat; }
+
+/* 비급 상세 [속성] · [부가 효과]: 이름 : 설명 줄 (유저 정리안) */
+.sheet .sec-h { margin: 14px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line, rgba(212, 175, 55, .25)); color: var(--gold, #d4af37); font-size: .92rem; letter-spacing: .04em; }
+.attr-rows { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 12px; margin: 0; font-size: .9rem; line-height: 1.5; }
+.attr-rows dt { font-weight: 700; color: var(--text, #efe6d2); white-space: nowrap; } .attr-rows dd { margin: 0; min-width: 0; }
+.attr-rows.fx dt { color: var(--dim, #9a8f7a); } .attr-rows.fx dt.on { color: var(--gold, #d4af37); }
+@media (max-width: 480px) { .attr-rows { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .attr-rows dd { margin-bottom: 6px; } }
+
+/* 비급 상세 머리: 《이름》 아래 등급(三流) · 경지(入門) */
+.sheet .mm-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 4px 0 0; }
+.sheet .moves li small { white-space: nowrap; }
+/* 한자 낙관(인장) 그림 (sealImg) — 세로 28×50 · 가로 높이 26 (10월 3일 유저 슬라이더 값) */
+.hj-seal { height: 26px; width: auto; vertical-align: middle; margin: 0 2px; }
+.hj-seal.tall { width: 28px; height: 50px; object-fit: fill; }
+.mrow-meta .hj-seal.tall, .mcard-row .hj-seal.tall { width: 22px; height: 39px; }
+.attr-rows dt { display: flex; align-items: center; gap: 6px; }
+/* 배열 (10월 3일 유저): 한글은 낱말 중간에서 끊지 않고 칸을 내린다 */
+body { word-break: keep-all; overflow-wrap: break-word; }
+.hj-seal { display: inline-block; }
+.beasts li small { white-space: nowrap; }   /* 만남 · 처치는 한 덩어리로 (좁으면 통째로 다음 줄) */
+/* 《이름》 옆에 등급 · 경지 낙관을 가로로 (10월 3일 유저) — 좁으면 낙관이 통째로 다음 줄 */
+.mm-title, .mrow-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; }   /* 이름 ↔ 낙관 0 (10월 3일 유저 슬라이더 값) */
+.sheet .mm-title .mm-tags { gap: 2px; } .mrow-top .mrow-meta { gap: 3px; }   /* 낙관 ↔ 낙관: 상세 2 · 칸 3 */
+.mm-title h2 { margin: 0; }
+.sheet .mm-title .mm-tags { margin: 0; }
+/* 모바일 배열 정리 (10월 3일 유저) */
+.sim-aff .nw { white-space: nowrap; }   /* 상성 한 마디(오행 … · 병기 …)는 통째로 줄을 내린다 */
+.sim-foe { align-items: center; }
+.mats .chips.forge-gear .fg-name { white-space: normal; overflow: visible; text-overflow: clip; }   /* 화로 강화 재료 이름을 '…'로 자르지 않고 줄을 내림 */
+.nw { white-space: nowrap; }
+.mm-title .hj-seal, .mrow-top .hj-seal { margin: 0; }   /* 간격은 위 gap 값만 (미리보기 슬라이더와 같게) */
+/* 모바일 크게 보기 (10월 3일 유저 건의 고름): 윗 탭 4칸 × 2줄 · 전경 이름표 · 강호행 무대 이름표 */
+@media (max-width: 600px) {
+  .tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 2px; }
+  .tab { font-size: .98rem; padding: 8px 2px 9px; }
+  .map-box > .ground-tag { width: 18%; }
+  .ground-tag > span { font-size: 3.81cqw; }
+  .live-scene { --hp-w: 48%; --hp-nm: 4.2cqi; --hp-nmmin: 11px; --hp-cp: 5.4cqi; --hp-cpmin: 9px; }
+}
+.item-ico.dlg-ico { display: inline-block; width: 30px; height: 30px; vertical-align: middle; margin-right: 4px; }   /* 구매 · 판매 창 이름 앞 아이템 그림 (이모지 대신) */
+.item-ico.dlg-ico img { width: 100%; height: 100%; object-fit: contain; }
+.bag-tile > .hj-seal { flex: none; margin-left: auto; }   /* 행낭 칸 오른쪽 끝: 장비 등급 낙관 */
+.hj-seal.sm { height: 20px; margin: 0 2px; vertical-align: -5px; }   /* 글줄 속 작은 낙관 (출정 준비 속성 줄) */
+.mrow-cover { position: relative; }   /* 습득 비급 표지 위 '더 좋은 비급' 표시 자리 */
+/* '더 좋은 것 있음' 화살표 (upMark): 무장 칸 · 행낭 칸 · 무공 칸 · 습득 비급 표지의 오른쪽 위 */
+.ink-box > img.up-mark, .bag-tile .ink-box > img.up-mark, .mrow-cover > img.up-mark, .slot-lite .mslot-box > img.up-mark { position: absolute; top: 1px; right: 1px; width: 22px; height: 22px; margin: 0; padding: 0; z-index: 3; pointer-events: none; filter: drop-shadow(0 0 3px rgba(0, 0, 0, .7)); }
+/* 피해 숫자 글자 그림: 자리 · 크기는 유저 슬라이더 값 (10월 3일, 중형 기준) — 보통 위아래 48% · 좌우 −0.5% · 높이 34px / 회심 39% · −12% · 50px.
+   요수 숫자는 요수 크기에 맞춰 ui_live_fight.js liveDmgPos가 --fdmg-*를 무대에 다시 정한다 (없으면 중형 값). 제자 쪽 숫자(.me)는 중형 값 그대로 */
+.live-num.dg { top: 48%; margin-left: -.5%; display: flex; align-items: flex-end; height: 34px; text-shadow: none; }
+.live-num.dg.crit { height: 50px; top: 39%; margin-left: -12%; }
+.live-num.dg:not(.me) { top: var(--fdmg-y, 48%); margin-left: var(--fdmg-x, -.5%); height: var(--fdmg-h, 34px); }
+.live-num.dg.crit:not(.me) { top: var(--fdmgc-y, 39%); margin-left: var(--fdmgc-x, -12%); height: var(--fdmgc-h, 50px); }
+.live-num.dg .dg-g { display: block; height: 100%; background-repeat: no-repeat; margin-right: -.08em; }   /* 글자 한 칸 (시트에서 잘라 보임) */
+/* 도감 › 비급: 이름 옆 등급 · 경지 낙관 (10월 3일 유저 — 병기 태그 · 초식 이름 줄은 지움) */
+.beasts .cx-seals { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; }
+.beasts .cx-seals .hj-seal.tall { width: 22px; height: 39px; }
+.beasts .cx-seals small { margin-left: 4px; }
+.beasts li > small.passive { flex-basis: 100%; margin-left: 0; white-space: normal; }   /* 각인 줄은 다음 줄에 통째로 (모바일 잘림 방지) */
+.aff-tag.fsz { color: var(--ink); white-space: nowrap; }   /* 요수 크기 (소형 · 중형 · 대형) */

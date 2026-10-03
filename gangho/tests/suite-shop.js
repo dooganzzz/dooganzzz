@@ -1,0 +1,71 @@
+/* 전방(廛房): 대사형 거래 분리, 청풍문 › 전방 상인, 구매/판매, 은자 부족 차단 */
+'use strict';
+const { ok, GAME_URL, watchErrors, VIEWPORTS, newPage, startEquipped } = require('./lib');
+
+module.exports = async (b) => {
+  for (const [w, h] of VIEWPORTS) {
+    console.log(`\n=== ${w}px ===`);
+    const p = await newPage(b, w, h);
+    const errs = watchErrors(p);
+    await p.goto(GAME_URL);
+    await startEquipped(p);
+
+    // 1. 대사형: 거래 없음, 안내 전담
+    await p.click('[data-tab="sect"]');
+    await p.evaluate(() => { goTab("sect", "hall"); render(); });
+    const hall = await p.evaluate(() => ({ store: document.querySelectorAll('[data-store], [data-buy], [data-sell], .store').length, guide: !!document.querySelector('[data-act="jounguide"]'), joun: [...document.querySelectorAll('.npc-head h3 .ko')].map(e => e.textContent).includes('조운') }));
+    ok('1 정청 대사형: 매매 버튼·창고 없음', hall.store === 0 && hall.joun, JSON.stringify(hall));
+    ok('1 시스템에 옛 창고 함수 없음', await p.evaluate(() => typeof buyStore === 'undefined' && typeof JOUN_SHOP === 'undefined'));
+    await p.evaluate(() => give('bk_sm2a', 1, true));
+    await p.click('[data-act="jounask"]');   // [문파 안내] 단추는 [문파 일 여쭙기]로 바뀜 — 안내 한 줄은 그 대화 끝에
+    ok('1 [문파 일 여쭙기] → 대화 창에 조운 대사 + 지금 할 일 안내 한 줄', await p.evaluate(() => ui.modal === 'npc' && /조운/.test(document.querySelector('.npc-sheet').textContent) && ui.npcTalk.lines.some(l => /\[ 익히기 \]/.test(l.text))));
+    await p.evaluate(() => take('bk_sm2a', 1));
+    await p.evaluate(() => { ui.modal = null; ui.npcTalk = null; render(); });
+    const g2 = await p.evaluate(() => { give('bk_sm2a', 1, true); jounGuide(); const t = S.log[S.log.length - 1].text; take('bk_sm2a', 1); return t; });
+    ok('1 안내는 상황에 맞게 (비급 있으면 익히기 안내)', /\[ 익히기 \]/.test(g2), g2);
+
+    // 2. 청풍문 › 전방
+    const subs = await p.evaluate(() => SECT_SUBS.map(s => s[0]).join(','));   // 갈래 띠는 없어지고 전경의 이름표로 들어간다
+    ok('2 갈래 순서: 전경 | 정청 | 화로 | 연무장 | 무신상 | 전방', subs === 'grounds,hall,forge,yeonmu,shrine,shop', subs);
+    await p.evaluate(() => { goTab("sect", "shop"); render(); });
+    const shop = await p.evaluate(() => ({ head: document.querySelector('.shop-panel .panel-head .ko').textContent, npc: document.querySelector('.shop-panel .npc-head h3').textContent, mode: document.querySelector('.shop-mode .subtab.on').dataset.shopmode, items: document.querySelectorAll('[data-buy]').length, gear: (() => { let n = 0; for (const t of Object.keys(SHOP_GEAR_TABS)) { ui.shopBuy = 'gear'; ui.shopGear = t; render(); n += document.querySelectorAll('[data-buygear]').length; } ui.shopBuy = 'items'; render(); return n; })(), purse: document.querySelector('.shop-panel .purse').textContent }));
+    ok('2 청풍전방 왕 가 인터페이스', shop.head === '청풍전방' && /왕 가/.test(shop.npc) && /청풍전방 주인/.test(shop.npc), JSON.stringify(shop));
+    ok('3 구매 탭: 소모품·재료 + 기본 장비 진열, 소지 은자 표시', shop.mode === 'buy' && shop.items >= 7 && shop.gear >= 8 && /은자/.test(shop.purse), JSON.stringify(shop));
+
+    // 3. 구매: 은자 차감 + 행낭 반영
+    const buy = await p.evaluate(() => { S.silver = 100; const n0 = count('saenghyeol'); document.querySelector('[data-buy="saenghyeol"]').click(); const asked = ui.modal === 'confirm'; document.querySelector('[data-act="confirmok"]').click(); return { asked, price: SHOP_STOCK.find(r => r[0] === 'saenghyeol')[1], silver: S.silver, got: count('saenghyeol') - n0, log: S.log[S.log.length - 1].text }; });
+    ok('3 구매: 은자 -정가, 생혈고 +1', buy.silver === 100 - buy.price && buy.got === 1 && /전방에서/.test(buy.log), JSON.stringify(buy));
+    const bg = await p.evaluate(() => { S.silver = 100; ui.shopBuy = 'gear'; ui.shopGear = 'weapon'; render(); const g0 = S.gear.length; document.querySelector('[data-buygear="g_straightSword:1"]').click(); document.querySelector('[data-act="confirmok"]').click(); const it = S.gear[S.gear.length - 1]; return { silver: S.silver, added: S.gear.length - g0, name: it.name, rarity: it.rarity, named: it.named }; });
+    ok('3 하급 장비 구매 → 행낭 보관 장비', bg.silver === 55 && bg.added === 1 && bg.name === '협봉검' && bg.rarity === 0 && bg.named === 'g_straightSword', JSON.stringify(bg));
+
+    // 은자 부족: 구매 차단 + 견문록 오류
+    const poor = await p.evaluate(() => { S.silver = 3; ui.shopBuy = 'items'; render(); const n0 = count('saenghyeol'), g0 = S.gear.length; document.querySelector('[data-buy="saenghyeol"]').click(); const l1 = S.log[S.log.length - 1]; ui.shopBuy = 'gear'; ui.shopGear = 'armor'; render(); document.querySelector('[data-buygear="g_hunterCoat:1"]').click(); const l2 = S.log[S.log.length - 1]; ui.shopBuy = 'items'; render();
+      return { silver: S.silver, got: count('saenghyeol') - n0, gear: S.gear.length - g0, l1: l1.text, c1: l1.cls, l2: l2.text, short: document.querySelector('[data-buy="saenghyeol"]').classList.contains('short') }; });
+    ok('3 은자 부족 → 구매 차단 (은자·행낭 그대로)', poor.silver === 3 && poor.got === 0 && poor.gear === 0, JSON.stringify(poor));
+    ok('3 은자 부족 → 견문록 오류 기록', /은자가 부족해 생혈고/.test(poor.l1) && poor.c1 === 'bad' && /사냥꾼 피의/.test(poor.l2), JSON.stringify(poor));
+    ok('3 모자란 품목은 흐리게 표시', poor.short);
+
+    // 행낭이 가득 차면 은자를 받지 않음
+    const full = await p.evaluate(() => { S.silver = 100; delete S.inv.salt; const g0 = S.gear.length; while (bagUsed() < bagCap()) S.gear.push({ uid: -1, slot: 'ring', name: 'x', rarity: 0, stats: {} }); const r = buyItem('salt'); const s = S.silver, bought = count('salt'); S.gear.length = g0; return { s, r, bought }; });
+    ok('3 행낭이 가득 차면 (새 칸 필요한 물건) 은자 차감 없음', full.s === 100 && full.bought === 0, JSON.stringify(full));
+
+    // 3. 판매
+    await p.click('[data-shopmode="sell"]');
+    const sell = await p.evaluate(() => {
+      Object.assign(S.inv, { crocHide: 3 }); render();
+      const rows = [...document.querySelectorAll('[data-sell]')].map(e => e.dataset.sell);
+      const s0 = S.silver; document.querySelector('[data-sell="crocHide"]').click(); const asked = ui.modal === 'confirm'; document.querySelector('[data-act="confirmok"]').click(); const one = S.silver - s0, left = count('crocHide');
+      const s1 = S.silver; document.querySelector('[data-sellall="crocHide"]').click(); document.querySelector('[data-act="confirmok"]').click(); const all = S.silver - s1;
+      return { rows, asked, one, left, all, gone: !S.inv.crocHide, noBook: !rows.some(id => ITEMS[id].kind === '비급' || ITEMS[id].kind === '증표'), unit: ITEMS.crocHide.price };
+    });
+    ok('3 판매 탭: 행낭 소지품 목록 (비급·증표 제외)', sell.rows.includes('crocHide') && sell.noBook, sell.rows.join(','));
+    ok('3 판매는 확인 창을 거친다', sell.asked);
+    ok('3 1개 팔기 → 은자 += 단가, 행낭 -1', sell.one === sell.unit && sell.left === 2, JSON.stringify(sell));
+    ok('3 전부 팔기 → 남은 수량 모두 환전, 행낭에서 사라짐', sell.all === sell.unit * 2 && sell.gone, JSON.stringify(sell));
+    const sg = await p.evaluate(() => { const it = makeGear('blade', 2, 3, false); it.enh = 2; S.gear.push(it); render(); const s0 = S.silver; document.querySelector(`[data-sellgear="${it.uid}"]`).click(); document.querySelector('[data-act="confirmok"]').click(); return { got: S.silver - s0, gone: !S.gear.includes(it), worn: !document.querySelector(`[data-sellgear="${S.equip.weapon.uid}"]`), badge: !S.gear.some(g => g.shop) || ![...document.querySelectorAll('[data-sellgear]')].some(b => S.gear.find(g => g.uid === +b.dataset.sellgear).shop) }; });
+    ok('3 보관 장비 판매: 티어·희귀도·강화 반영 (25×1.75×1.3=57)', sg.got === 57 && sg.gone && sg.worn && sg.badge, JSON.stringify(sg));
+
+    ok('오류/가로스크롤 없음', errs.length === 0 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), errs.join(' | '));
+    await p.close();
+  }
+};
