@@ -40,7 +40,6 @@ function portrait(who, seal, name) {
    무공 등급(삼류·이류)은 가까운 아이템 등급 색을 빌린다 */
 const GRADE_CLASS_MAP = { '하급': 'grade-low', '중급': 'grade-mid', '상급': 'grade-high', '진품': 'grade-rare', '명품': 'grade-epic', '극품': 'grade-legend', '삼류': 'grade-low', '이류': 'grade-mid', '일류': 'grade-high', '절정': 'grade-rare', '초절정': 'grade-epic' };
 const gradeClass = g => GRADE_CLASS_MAP[g] || 'grade-low';
-const gradeBadge = g => `<span class="item-grade-badge">${g}</span>`;
 /* 카드 머리: 그림과 이름 (등급은 이름 색으로만 — 하급·중급 같은 글자 뱃지는 두지 않는다) */
 const itemCardHead = (name, g, ico = '') => `<div class="item-card-header">${ico ? inkBox(ico) : ''}<b class="item-name">${name}</b></div>`;
 
@@ -92,7 +91,7 @@ function viewMartial() {
     return `<div class="mrow ${worn ? 'worn is-equipped' : ''}">
       <button class="mrow-cover" data-mart="${id}" aria-label="《${M.name}》 자세히">${manualIco(id)}</button>
       <div class="mrow-main"><b class="mrow-name" data-mart="${id}" role="button" tabindex="0">《${M.name}》</b>
-        <div class="mrow-meta">${gradeBadge(M.grade)}${realmTag(m.star)}${worn ? '<span class="card-status-tag active">장착 중</span>' : ''}</div>
+        <div class="mrow-meta">${gradeTag(M.grade)}${realmTag(m.star)}${worn ? '<span class="card-status-tag active">장착 중</span>' : ''}</div>
         ${pips(m.star)}<small class="mrow-eff">${bonusText(manualBonus(id, m.star)) || esc(M.desc || '')}</small></div>
       <div class="mrow-btns">${starBtn(id)}${worn ? `<button class="btn ghost sm btn-unequip" data-unequipm="${M.cat}">장착 해제</button>` : `<button class="btn sm" data-equipm="${id}">장착</button>`}</div>
     </div>`;
