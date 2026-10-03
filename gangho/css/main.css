@@ -880,6 +880,12 @@ html.calm .qi-ring, html.calm .qi-comet, html.calm .martial-arts-core-layout .sl
 @keyframes rankFlame { 0%, 100% { opacity: .85; transform: scale(1) rotate(0deg); filter: brightness(1); } 35% { opacity: 1; transform: scale(1.015) rotate(.4deg); filter: brightness(1.15); } 70% { opacity: .9; transform: scale(.995) rotate(-.3deg); } }
 html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .meditation-caption { text-align: center; }
+/* 좌선 아래 품계 · 주천 (유저 슬라이더 값: 크기 · 색 · 자리) — 아이템 글씨(명조 굵게) */
+.meditation-caption .rank-line { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: .35em; position: relative; left: var(--mc-x, 0px); top: var(--mc-y, 0px);
+  font: 700 var(--mc-size, 15px)/1.25 var(--serif), serif; letter-spacing: .06em; }
+.meditation-caption .rk-grade { color: var(--mc-grade, #c5a059); }
+.meditation-caption .zhou.so { color: var(--mc-so, #8fc6ff); }
+.meditation-caption .zhou.dae { color: var(--mc-dae, #ffd77a); text-shadow: 0 0 8px rgba(255, 200, 90, .7); font-size: 1.08em; }
 .meditation-caption .rank-name { display: block; font-size: 11px; letter-spacing: .2em; padding-left: .2em; text-align: center; color: #8fc6ff; opacity: .85; }   /* 글자 사이 띄움(.2em)이 끝에만 붙어 왼쪽으로 쏠리지 않게 앞에도 같은 만큼 */
 .meditation-caption .rank-pill { display: block; margin-top: 2px; font-size: 10px; color: #e9b36a; text-shadow: 0 0 4px #000; }
 .meditation-caption .rank-name.up { color: #bfe3ff; text-shadow: 0 0 8px rgba(90, 170, 255, .8); }

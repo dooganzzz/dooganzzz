@@ -26,7 +26,7 @@ function rankProgress() {
   return { per, sum, frac: sum / max, lit: Math.floor(sum / (max / WARRIOR_RANK.lamps)) };   // lit = 켜진 불 수 (24칸)
 }
 const warriorRank = () => WARRIOR_RANK.ranks[Math.min(S.rank || 0, WARRIOR_RANK.ranks.length - 1)];
-/* 돌파: 게이지가 다 차고 속기단이 있으면 삼켜 이류무사가 된다. loud면 모자랄 때 알린다 (성급을 올린 직후) */
+/* 돌파: 게이지가 다 차고 파관단이 있으면 삼켜 이류무사가 된다. loud면 모자랄 때 알린다 (성급을 올린 직후) */
 function checkRankUp(loud) {
   if ((S.rank || 0) >= 1 || rankProgress().frac < 1) return false;
   const P = WARRIOR_RANK.pill, have = count(P.id);
