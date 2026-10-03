@@ -83,6 +83,7 @@ function calcStats() {
   for (const k of ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'maxSta', 'bag']) s[k] = Math.round(s[k]);
   s.eva = Math.min(60, Math.round(s.eva * 10) / 10);
   s.crit = Math.min(75, Math.round(s.crit * 10) / 10);
+  s.combo = Math.round(Math.min(MOVE_MAX - MOVE_START, (s.combo || 0) * MOVE_COMBO_K) * 10) / 10;   // 출수: 계수 0.5 · 초식 발동 합 최대 25%
   s.counter = Math.min(10, Math.round(s.counter * 10) / 10);   // 반격: 기본 5% · 최대 10% (10월 3일 유저 — 연속 공격이 너무 잦아서)
   s.mpRegen = Math.round(s.mpRegen * 10) / 10;
   { const n = schoolCount(); for (const k of Object.keys(n)) { const f = SCHOOLS[k].step; s[f] = (s[f] || 0) + n[k] * SCHOOL_RULES.step[f]; } }   // 성향: 같은 파 한 칸마다 그 파 효과 한 단계
