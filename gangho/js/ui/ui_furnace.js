@@ -12,7 +12,7 @@ function furnaceTabs() {
    명경을 누르면 엮을 수 있는 조각 창이 뜬다 (같은 등급 조각 STUDY.need장이 다 모여야 엮임 · 등급끼리 섞이지 않음) */
 function viewStudy() {
   const pick = ui.yhPick, need = STUDY.need;
-  const chips = Object.entries(STUDY.scraps).map(([id, grade]) => `<button class="chip ${pick === id ? 'on' : ''}" data-yhpick="${id}" style="--gc:${STUDY.color[id]}" title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${count(id)}/${need}</b></button>`).join('');
+  const chips = Object.entries(STUDY.scraps).filter(([id]) => has(id)).map(([id, grade]) => `<button class="chip ${pick === id ? 'on' : ''}" data-yhpick="${id}" style="--gc:${STUDY.color[id]}" title="${esc(ITEMS[id].desc)}">${itemIco(id, 'sm')} ${ITEMS[id].name} <b>${count(id)}/${need}</b></button>`).join('');
   return `<section class="panel furnace study">
     ${head('화로', '火爐')}
     ${furnaceTabs()}
@@ -26,8 +26,7 @@ function viewStudy() {
       </div>
       <div class="mats">
         <h4>조각 재료</h4>
-        <div class="chips">${chips}</div>
-        <p class="muted furnace-desc">조각을 고르면 명경 둘레 팔괘 자리에 한 장씩 놓입니다. 여덟 자리가 다 차면(같은 등급 ${need}장) [연혼주입]을 누르십시오.</p>
+        ${chips ? `<div class="chips">${chips}</div>` : '<p class="muted">가진 조각이 없습니다.</p>'}
       </div>
     </div>
   </section>`;
