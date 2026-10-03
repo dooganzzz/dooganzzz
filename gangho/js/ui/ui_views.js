@@ -79,7 +79,6 @@ function viewMartial() {
   const rp = rankProgress(), R = warriorRank();   // 좌선 테두리: 삼류 무공 성급만큼 파랗게 타오르는 게이지
   const slots = `${orbit}${card('simbeop')}${card('mugong')}<div class="meditation-center-frame ${rp.frac >= 1 ? 'full' : ''}" style="--rk:${(rp.lit / WARRIOR_RANK.lamps * 100).toFixed(3)}%" data-lit="${rp.lit}" title="${R.name} — 삼류 무공 성급 ${rp.per.reduce((a, v) => a + v, 0)} / ${CAT_ORDER.length * MAX_STAR}${rp.frac < 1 ? ` (네 갈래 모두 대성하고 ${ITEMS[WARRIOR_RANK.pill.id].name} ${WARRIOR_RANK.pill.n}알이면 이류무사)` : ''}"><img class="rank-ring off" src="${ASSET.ui('rank_ring_off')}" alt="" aria-hidden="true"><img class="rank-ring on" src="${ASSET.ui('rank_ring_on')}" alt="" aria-hidden="true"><div class="meditation-aura-ring"></div><div class="meditation-silhouette">${meditationArt()}</div><div class="meditation-caption">운기조식 (運氣調息)<small class="rank-name ${rp.frac >= 1 && S.rank ? 'up' : ''}">${R.name}</small>${rp.frac >= 1 && !S.rank ? `<small class="rank-pill">${ITEMS[WARRIOR_RANK.pill.id].name} ${Math.min(count(WARRIOR_RANK.pill.id), WARRIOR_RANK.pill.n)} / ${WARRIOR_RANK.pill.n}알이면 돌파</small>` : ''}</div></div>${card('gigong')}${card('gyeonggong')}`;
   const learned = Object.keys(S.manuals).sort((a, b) => CAT_ORDER.indexOf(MANUALS[a].cat) - CAT_ORDER.indexOf(MANUALS[b].cat) || Object.keys(GRADES).indexOf(MANUALS[b].grade) - Object.keys(GRADES).indexOf(MANUALS[a].grade) || koCmp(MANUALS[a].name, MANUALS[b].name));
-  const books = itemSort(Object.keys(S.inv).filter(k => ITEMS[k].kind === '비급'));
   // 습득 비급: [무공] [심법] [경공] [기공] 탭으로 거른다 (카드를 누르면 상세·성급 창)
   const SKILL_TABS = [['attack', 'mugong', '무공'], ['heart', 'simbeop', '심법'], ['agility', 'gyeonggong', '경공'], ['aura', 'gigong', '기공']];
   const tab = SKILL_TABS.find(t => t[0] === ui.skillTab) || SKILL_TABS[0];
@@ -107,9 +106,8 @@ function viewMartial() {
       ${skillTabs}
     </div>
     <div class="martial-learned-scroll">
-    ${!learned.length ? `<p class="story">아직 익힌 비급이 없습니다. ${books.length ? `비급 ${books.length}권을 가지고 있습니다. 아래에서 [ 익히기 ] 하십시오.` : ''}</p>`
+    ${!learned.length ? '<p class="story">아직 익힌 비급이 없습니다.</p>'
       : shown.length ? `<div class="mrows acquired-cards-grid" id="acquired-cards-container">${cards}</div>` : '<div class="empty-notice">해당 계열에 익힌 비급이 없습니다.</div>'}
-    ${books.length ? `<div class="chips">${books.map(k => `<button class="chip" data-use="${k}">📘 ${ITEMS[k].name} 익히기</button>`).join('')}</div>` : ''}
     </div>
   </section>
   </div>`;

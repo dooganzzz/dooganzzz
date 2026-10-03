@@ -21,10 +21,10 @@ module.exports = async (b) => {
   await p.click('[data-tab="bag"]'); await p.click('[data-filter="etc"]');
   const btns = await p.$$eval('.items .item button[data-use^="bk_"]', e => e.map(x => x.textContent));
   ok('2 행낭 비급 [익히기] 버튼', btns.length === 4 && btns.every(t => t === '익히기'), btns.join(','));
-  await p.click('[data-use="bk_bd1a"]'); await p.click('[data-act="confirmok"]');
+  await p.evaluate(() => { learnManual('bk_bd1a'); render(); });
   const l1 = await p.evaluate(() => ({ learned: !!S.manuals.bd1a, left: count('bk_bd1a') }));
   ok('2 익히기: 소모 + 습득 목록 등록', l1.learned && l1.left === 0);
-  for (const k of ['bk_sm1a', 'bk_gy1a', 'bk_gi1a']) { await p.click(`[data-use="${k}"]`); await p.click('[data-act="confirmok"]'); }
+  for (const k of ['bk_sm1a', 'bk_gy1a', 'bk_gi1a']) { await p.evaluate(k => { learnManual(k); render(); }, k);   // 익히기 단추는 무공 탭에서 뺌 (행낭에서 익힘) }
   // 상태 › 무공
   await p.click('[data-tab="status"]'); await p.click('[data-sub="martial"]');
   const m1 = await p.evaluate(() => ({ slots: [...document.querySelectorAll('.mslot .mslot-cat .ko')].map(e => e.textContent).join(','), empty: document.querySelectorAll('.mslot.empty').length, cards: [...document.querySelectorAll('.mrow .mrow-name')].map(e => e.textContent).join(','), total: (document.querySelector('.total-count-badge') || {}).textContent }));
