@@ -93,27 +93,41 @@ function hitMark(pl, f) {
   av.appendChild(m); setTimeout(() => m.remove(), 700);
 }
 
-/* 타자기 연출: 인물의 첫 대사와 기연 문구를 한 글자씩. 누르면 곧바로 전부 보인다 */
+/* 타자기 연출: 인물의 대사(청풍문 인물 칸 · 대화 창)와 기연 문구를 한 글자씩, 두 글자마다 도트음. 누르면 곧바로 전부 보인다.
+   글 안의 꾸밈(<b> 등)은 그대로 두고 글자만 차례로 드러낸다. 같은 묶음(부모)의 여러 줄은 앞 줄이 끝나면 다음 줄이 이어 친다 (10월 3일 유저: 중간 빠르기) */
 const typedOnce = new Set(), typing = new Set();
+const TYPE_MS = 45;   // 한 글자 간격 (중간 빠르기)
 
 function typewriteAll() {
-  const reduce = reduceMotion();
+  const reduce = reduceMotion(), queueEnd = new Map();   // 부모별로 앞 줄이 끝나는 때 (ms 뒤)
   for (const el of document.querySelectorAll('[data-tw]')) {
-    const full = el.textContent, key = el.dataset.tw + '|' + full;
+    const full = el.innerHTML, key = el.dataset.tw + '|' + full;
     const live = [...typing].find(j => j.key === key);
-    if (live) { live.el = el; el.textContent = full.slice(0, live.i); el.classList.add('typing'); continue; }   // 다시 그려져도 이어 친다
+    if (live) { live.el = el; live.bind(); continue; }   // 다시 그려져도 이어 친다
     if (typedOnce.has(key)) continue;
     typedOnce.add(key);
-    if (reduce || el.children.length || !full.trim()) continue;
-    el.textContent = ''; el.classList.add('typing');
-    const job = { el, full, key, i: 0, t0: performance.now() };
-    job.done = () => { clearInterval(job.t); typing.delete(job); job.el.textContent = full; job.el.classList.remove('typing'); };
-    job.t = setInterval(() => {
-      if (!job.el.isConnected) { clearInterval(job.t); typing.delete(job); return; }
-      job.i += 1; job.el.textContent = full.slice(0, job.i);
-      if (job.i % 2 && full[job.i - 1].trim()) sfx('type');           // 대사 도트음 (두 글자마다)
-      if (job.i >= full.length) job.done();
-    }, 28);
+    if (reduce || !el.textContent.trim()) continue;
+    const job = { el, full, key, i: 0, t0: performance.now(), nodes: [], texts: [] };
+    job.bind = () => {   // 지금 el의 글자 마디들을 모아 job.i만큼만 보이게
+      const w = document.createTreeWalker(job.el, NodeFilter.SHOW_TEXT); job.nodes = []; job.texts = [];
+      if (job.el.innerHTML !== full) job.el.innerHTML = full;
+      for (let n; (n = w.nextNode());) { job.nodes.push(n); job.texts.push(n.data); }
+      job.show(); job.el.classList.add('typing');
+    };
+    job.total = () => job.texts.reduce((a, t) => a + t.length, 0);
+    job.show = () => { let left = job.i; job.nodes.forEach((n, k) => { const t = job.texts[k]; n.data = t.slice(0, Math.max(0, left)); left -= t.length; }); };
+    job.done = () => { clearTimeout(job.wait); clearInterval(job.t); typing.delete(job); job.el.innerHTML = full; job.el.classList.remove('typing'); };
+    job.bind();
+    const flat = job.texts.join(''), par = el.parentElement, delay = queueEnd.get(par) || 0;
+    queueEnd.set(par, delay + flat.length * TYPE_MS + 120);
+    job.wait = setTimeout(() => {
+      job.t = setInterval(() => {
+        if (!job.el.isConnected) { clearInterval(job.t); typing.delete(job); return; }
+        job.i += 1; job.show();
+        if (job.i % 2 && (flat[job.i - 1] || '').trim()) sfx('type');           // 대사 도트음 (두 글자마다)
+        if (job.i >= flat.length) job.done();
+      }, TYPE_MS);
+    }, delay);
     typing.add(job);
   }
 }

@@ -201,7 +201,7 @@ function renderModal() {
   }
   if (ui.modal === 'npc' && ui.npcTalk) {
     const W = { master: ['노벽송', '장문인', '松'], joun: ['조운', '대사형', '雲'], arin: ['아린', '사매', '璘'] }[ui.npcTalk.who] || ['', '', ''];
-    const line = l => { const said = l.text.startsWith(W[0] + ':'); return `<p class="npc-line ${said ? 'said' : 'narr'} ${l.cls || ''}">${chronDecor(said ? l.text.slice(W[0].length + 1).trim() : l.text)}</p>`; };
+    const line = l => { const said = l.text.startsWith(W[0] + ':'); return `<p class="npc-line ${said ? 'said' : 'narr'} ${l.cls || ''}" data-tw="talk">${chronDecor(said ? l.text.slice(W[0].length + 1).trim() : l.text)}</p>`; };
     setHTML(m, `<div class="sheet npc-sheet" role="dialog" aria-modal="true" aria-label="${W[0]}와의 대화">
       <div class="npc-sheet-head">${portrait(ui.npcTalk.who, W[2], W[0])}<div><p class="eyebrow">對話 · 대화</p><h2>${label(W[0], W[1])}${ui.npcTalk.tag ? ` <small class="npc-mood">${ui.npcTalk.tag}</small>` : ''}</h2></div></div>
       <div class="npc-lines">${ui.npcTalk.lines.map(line).join('')}</div>

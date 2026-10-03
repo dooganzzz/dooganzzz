@@ -65,12 +65,12 @@ function viewHall() {
         : `<small class="muted">사명(師命) · 장문인의 가르침 ${qi + 1}/${QUESTS.length}</small><b>${q.t}${tutorReady() ? ' <span class="good">— 이룸!</span>' : ''}</b><p class="story">${tutorReady() ? '장문인에게 [ 보상 받기 ]를 누르십시오.' : q.hint}</p>${q.reward ? `<p class="quest-reward">보상: <b>${questRewardText(q)}</b></p>` : ''}`}
       ${canHasan() ? '<div><button class="btn primary" data-act="hasan">하산 허가를 청한다</button></div>' : ''}
     </div>
-    <!--subq-->
     <div class="npc-head">${portrait('joun', '雲', '조운')}<div><h3>${label('조운', '대사형')}</h3><p class="story" data-tw="npc">장작을 패다 말고 이마의 땀을 훔칩니다. "왔냐. 모르는 게 있으면 물어라. 물건은 전방 왕 가한테 가고."</p></div>
       <div class="npc-acts"><button class="btn talk-btn ${subqReady() || (!subqCur() && subqLeft()) ? 'ready' : ''}" data-act="jounask" title="조운 대사형과 이야기하고 토벌 임무를 받거나 보고합니다">문파 일 여쭙기</button></div></div>
+    <!--subq-->
     <div class="npc-head">${portrait('arin', '璘', '아린')}<div><h3>${label('아린', '사매')}</h3><p class="story" data-tw="npc">붉은 댕기를 휘날리며 뛰어옵니다. "사형! 사형! 배고프죠? 죽 끓여 놨어요!"</p></div>
       <div class="npc-acts"><button class="btn talk-btn ${S.hp < calcStats().maxHp || S.mp < calcStats().maxMp ? 'ready' : ''}" data-act="talk" title="아린과 이야기하고 죽을 얻어먹을 수 있습니다 (활력·내력 모두 회복)">담소 나누기</button></div></div>`;
-  // 보조 퀘스트: 장문인에게 받은 토벌 임무 하나만
+  // 보조 퀘스트: 조운 대사형에게 받은 토벌 임무 하나만 (조운 칸 바로 아래, 10월 3일 유저)
   const cq = subqCur(), cR = cq && subqReward(cq.zid, cq.n), cp = cq ? cq.prog || 0 : 0, cok = subqReady();
   const missions = `
     <div class="subq-box"><p class="subq-title"><small class="muted">의뢰(依賴) · 반복</small> <b>토벌 임무</b> <small class="muted">조운 대사형에게 탐험지 · 단계를 골라 받습니다. 보상을 받으면 다시 받을 수 있고, 하루 ${SUBQ.daily}번까지 (오늘 ${subqLeft()}번 남음).</small></p>
