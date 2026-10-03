@@ -21,6 +21,7 @@ function bindInput() {
   document.addEventListener('mouseout', e => spotLit(e, false));
   document.addEventListener('input', e => {                          // 슬라이더: 대량 구매 개수 · 설정 값
     const t = e.target;
+    if (t.dataset.sellqty) { ui.sellQty = +t.value; const w = t.closest('.buy-qty'); w.querySelector('.qty-n').textContent = `${t.value}개`; w.querySelector('.qty-sum').textContent = fmt(t.value * t.dataset.sellqty); }
     if (t.dataset.buyqty) { ui.buyQty = +t.value; const w = t.closest('.buy-qty'); w.querySelector('.qty-n').textContent = `${t.value}개`; w.querySelector('.qty-sum').textContent = fmt(t.value * t.dataset.buyqty); }
     if (t.dataset.setting === 'bgmVol' || t.dataset.setting === 'sfxVol') { const v = +t.value; S.settings = { ...(S.settings || {}), [t.dataset.setting]: v }; t.parentElement.querySelector('.set-val').textContent = `크기 ${v}`; sndApply(); notify.save(); }
     if (t.dataset.setting === 'potionAt') { const v = +t.value; S.settings = { ...(S.settings || {}), potionAt: v / 100 }; t.parentElement.querySelector('.set-val').textContent = `활력 ${v}% 이하`; notify.save(); }
@@ -65,9 +66,10 @@ function onClick(e) {
   if (d.shopgear) { ui.shopGear = d.shopgear; return render(); }
   if (d.buy) return askBuy(d.buy);
   if (d.buygear) { const [base, t] = d.buygear.split(':'); return askBuyGear(base, +t); }
-  if (d.sell || d.sellall) {                                 // 판매는 재확인
-    const id = d.sell || d.sellall, n = d.sell ? 1 : count(id), I = ITEMS[id];
-    return showConfirmModal({ title: '판매 확인', message: `${I.icon} <b>${esc(I.name)}</b> ${n}개를 ${hlSilver(itemSellPrice(id) * n)}에 팔까요?`, confirmText: '판매', cancelText: '취소', onConfirm: () => sellItem(id, n) });
+  if (d.sell) return askSell(d.sell);                       // 판매: 개수 막대 (구매와 같은 방식)
+  if (d.sellall) {                                           // 모두 팔기는 재확인
+    const id = d.sellall, n = count(id), I = ITEMS[id];
+    return showConfirmModal({ title: '판매 확인', message: `${itemIco(id, 'dlg-ico')} <b>${esc(I.name)}</b> ${n}개를 ${hlSilver(itemSellPrice(id) * n)}에 팔까요?`, confirmText: '판매', cancelText: '취소', onConfirm: () => sellItem(id, n) });
   }
   if (d.sellgear) {
     const it = S.gear.find(g => g.uid === +d.sellgear); if (!it) return;
@@ -187,10 +189,18 @@ function askStarUp(id) {
 function askBuy(id) {
   const row = SHOP_STOCK.find(r => r[0] === id); if (!row || S.silver < row[1]) return buyItem(id);
   const max = clamp(Math.floor(S.silver / row[1]), 1, 50), q = clamp((ui.buyLast || {})[id] || 1, 1, max); ui.buyQty = q;   // 1~50개 (가진 은자만큼까지) · 지난번 고른 개수로 시작 (막대와 개수가 늘 같게)
-  requestActionConfirm({ title: '구매', description: `${ITEMS[id].icon} <b>${esc(ITEMS[id].name)}</b>을(를) 몇 개 살까요?
+  requestActionConfirm({ title: '구매', description: `${itemIco(id, 'dlg-ico')} <b>${esc(ITEMS[id].name)}</b>을(를) 몇 개 살까요?
     <label class="buy-qty"><input type="range" min="1" max="${max}" value="${q}" data-buyqty="${row[1]}" aria-label="살 개수"><span><b class="qty-n">${q}개</b> · 은자 <b class="qty-sum">${fmt(q * row[1])}</b>냥</span></label>`,
     details: [`가진 은자 ${fmt(S.silver)}냥 · 한 번에 최대 ${max}개`], confirmText: '구매', onConfirm: () => { (ui.buyLast = ui.buyLast || {})[id] = ui.buyQty || 1; buyItem(id, ui.buyQty || 1); } });
   const r = document.querySelector('[data-buyqty]'); if (r) r.value = q;   // 다시 그려도 막대가 옛 자리에 남지 않게
+}
+function askSell(id) {
+  const have = count(id), pr = itemSellPrice(id); if (have < 1) return;
+  const max = Math.min(have, 50), q = clamp((ui.sellLast || {})[id] || 1, 1, max); ui.sellQty = q;   // 1~50개 (가진 만큼까지) · 지난번 고른 개수로 시작
+  requestActionConfirm({ title: '판매', description: `${itemIco(id, 'dlg-ico')} <b>${esc(ITEMS[id].name)}</b>을(를) 몇 개 팔까요?
+    <label class="buy-qty"><input type="range" min="1" max="${max}" value="${q}" data-sellqty="${pr}" aria-label="팔 개수"><span><b class="qty-n">${q}개</b> · 은자 <b class="qty-sum">${fmt(q * pr)}</b>냥</span></label>`,
+    details: [`가진 개수 ${fmt(have)}개 · 한 번에 최대 ${max}개`], confirmText: '판매', onConfirm: () => { (ui.sellLast = ui.sellLast || {})[id] = ui.sellQty || 1; sellItem(id, ui.sellQty || 1); } });
+  const r = document.querySelector('[data-sellqty]'); if (r) r.value = q;
 }
 function askBuyGear(base, tier) {
   const row = SHOP_GEAR_STOCK.find(r => r[0] === base && r[1] === tier); if (!row || S.silver < row[2]) return buyGear(base, tier);
@@ -202,7 +212,7 @@ function askUse(id) {
   if (I.use.learn) { const M = MANUALS[I.use.learn];
     if (S.manuals[I.use.learn] || manualRankLocked(I.use.learn)) return useItem(id);   // 이미 익혔거나 이류무사 전이면 알림만
     return requestActionConfirm({ title: '비급 독파', description: `《${M.name}》 비급을 끝까지 읽어 익힙니다. 비급은 사라지고 무공이 몸에 남습니다.`, details: [`${I.name} -1`, `영구 각인: ${bonusText(M.passiveBonus)}`], confirmText: '독파', onConfirm: () => useItem(id) }); }
-  requestActionConfirm({ title: '단약 사용', description: `${I.icon} <b>${esc(I.name)}</b>을(를) 씁니다. ${esc(I.desc || '')}`, details: [`${I.name} -1`], confirmText: '사용', onConfirm: () => useItem(id) });
+  requestActionConfirm({ title: '단약 사용', description: `${itemIco(id, 'dlg-ico')} <b>${esc(I.name)}</b>을(를) 씁니다. ${esc(I.desc || '')}`, details: [`${I.name} -1`], confirmText: '사용', onConfirm: () => useItem(id) });
 }
 function askPray(times) {
   const n = Math.min(times, Math.floor(count('slag') / GACHA.cost)); if (n < 1) return pray(times);
