@@ -116,7 +116,7 @@ function cpDeltaHtml(cp) {
   const t = Date.now();
   if (cpMark.last !== null && cp !== cpMark.last) { cpMark.delta = cp - cpMark.last; cpMark.until = t + 2500; }
   cpMark.last = cp;
-  return t < cpMark.until && cpMark.delta ? `<em class="cp-delta ${cpMark.delta > 0 ? 'up' : 'down'}">${cpMark.delta > 0 ? '▲' : '▼'}${fmt(Math.abs(cpMark.delta))}</em>` : '';
+  return cpDeltaNow();
 }
 /* 머리: 이름 줄만. 활력 · 내력 · 수련치 · 은자 · 공헌 · 투력은 상태 › 관조 탭(#vitals · 투력 카드)에 (유저 요청). 매초 다시 그린다 */
 function renderHeader() {
@@ -137,7 +137,9 @@ function vitalsHtml(st = calcStats()) {
 /* 관조 › 호패 패널의 활력 · 내력 막대 (#obsGauge, 매초 갱신) — 투력 위, 자리 · 크기는 유저 슬라이더 값 */
 const gaugeHtml = (st = calcStats()) => `<div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>`;
 /* 관조 › 호패 옆 투력 카드 (#obsCp, 매초 갱신) — 자리는 유저가 슬라이더로 정한 값 */
-const cpCardHtml = () => `<div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수">${uiIco('h_cp', 'obs-ico')}<span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(combatPowerParts(S).total)}</b></div>`;
+const cpCardHtml = () => `<div class="cp-main" title="실제 전투 규칙으로 잰 종합 지수">${uiIco('h_cp', 'obs-ico')}<span class="cp-label">${label('투력', '鬪力')}</span><b class="cp-value">${fmt(combatPowerParts(S).total)}</b>${cpDeltaNow()}</div>`;
+/* 투력 변화량(▲/▼)이 떠 있는 동안에는 카드를 다시 그려도 함께 그린다 (화면을 다시 그리면 사라지던 문제) */
+const cpDeltaNow = () => Date.now() < cpMark.until && cpMark.delta ? `<em class="cp-delta ${cpMark.delta > 0 ? 'up' : 'down'}">${cpMark.delta > 0 ? '▲' : '▼'}${fmt(Math.abs(cpMark.delta))}</em>` : '';
 /* 수묵 아이콘 (ASSET.ui). 헤더는 매초 다시 그리므로 깜빡이지 않게 배경 그림으로 얹는다 (파일이 없으면 빈칸) */
 const uiIco = (id, cls = '') => `<i class="ui-ico ${cls}" style="background-image:url('${ASSET.ui(id)}')" aria-hidden="true"></i>`;
 /* 헤더 게이지: [아이콘·활력] 뱃지 + 막대(수치는 막대 안). 활력 위 · 내력 아래로 쌓는다 */
