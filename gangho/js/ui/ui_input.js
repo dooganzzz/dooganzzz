@@ -223,7 +223,7 @@ function askCraft() {
 }
 function askContrib(name, cost, fn, note = '') {
   if (S.contrib < cost) return fn();
-  requestActionConfirm({ title: '장경각 교환', description: `<b>${esc(name)}</b>을(를) 문파 공헌도로 교환합니다.${note ? ` ${note}` : ''}`, details: [`공헌도 -${fmt(cost)} (남는 공헌 ${fmt(S.contrib - cost)})`], confirmText: '교환', onConfirm: fn });
+  requestActionConfirm({ title: '장보각 교환', description: `<b>${esc(name)}</b>을(를) 문파 공헌도로 교환합니다.${note ? ` ${note}` : ''}`, details: [`공헌도 -${fmt(cost)} (남는 공헌 ${fmt(S.contrib - cost)})`], confirmText: '교환', onConfirm: fn });
 }
 
 function onChange(e) {

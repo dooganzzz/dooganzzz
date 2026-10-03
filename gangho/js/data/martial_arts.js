@@ -9,7 +9,7 @@ const GRADES = {
   '절정': { mult: 3.4, cls: 'g0' },
   '초절정': { mult: 4.6, cls: 'gs' },
 };
-/* 1장: 이류까지만 공개. 일류 · 절정 · 초절정 비급은 봉인 (얻을 수도 익힐 수도 없고, 장경각에도 나오지 않는다) */
+/* 1장: 이류까지만 공개. 일류 · 절정 · 초절정 비급은 봉인 (얻을 수도 익힐 수도 없고, 장보각에도 나오지 않는다) */
 const OPEN_GRADES = ['삼류', '이류'];
 
 const CATS = {
@@ -114,7 +114,7 @@ const WEAPON_ADV = {
    terrainMatch / terrainMiss: 지형 일치·불일치 기력 소모 배율 */
 const AFFINITY = { elem: 0.25, weapAtk: 0.15, weapHit: 10, weapDown: 0.15, terrainMatch: 0.8, terrainMiss: 1.2 };
 /* 전투 보정: minDmg 적 공격의 최소 피해(공격력 대비, 방어로도 못 막는 몫) · elemPenalty 오행 역상성일 때 받는 피해 추가
-   powerBase 초식 피해 배율의 기준(장경각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
+   powerBase 초식 피해 배율의 기준(장보각 무공의 power가 이 값보다 크면 그만큼 초식이 세다) · weakenMax 기세 깎기 상한 */
 /* 초식 피해 배율 (제1초식 · 제2초식 · 오의) · 공격마다 MOVE_START%(+ 연환 combo)로 초식이 발동하고, 발동하면 MOVE_PICK 비율로 셋 중 하나를 펼친다
    (아직 안 열린 초식은 빼고 남은 비율로 나눔: 1~5성은 제1초식만, 6~11성은 제1 · 제2초식 6:3) */
 const MOVE_MULT = [1.4, 2.4, 3.6];

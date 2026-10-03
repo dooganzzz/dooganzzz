@@ -5,7 +5,7 @@
    실행: node gangho/tools/overlap-check.js  (찾은 것이 있으면 종료 코드 1) */
 'use strict';
 const { playwright, GAME_URL, testHelpers } = require('../tests/lib.js');
-const VIEWS = [['sect', 'hall'], ['sect', 'forge'], ['sect', 'yeonmu'], ['sect', 'shrine'], ['sect', 'shop'], ['status', 'gear'], ['status', 'martial'], ['bag'], ['field'], ['chronicle'], ['encounter'], ['codex'], ['settings']];
+const VIEWS = [['sect', 'grounds'], ['sect', 'hall'], ['sect', 'forge'], ['sect', 'yeonmu'], ['sect', 'shrine'], ['sect', 'shop'], ['status', 'observe'], ['status', 'martial'], ['bag'], ['field'], ['chronicle'], ['encounter'], ['codex'], ['settings']];
 // 일부러 겹친 짝 (선택자 둘 중 하나라도 맞으면 넘어감): [아래 그림, 위 그림, 이유]
 const ALLOW = [
   ['.live-scene', '*', '강호행 무대: 산길 배경 위에 제자 · 요수 · 소품 · 날씨가 올라감'],
@@ -13,6 +13,7 @@ const ALLOW = [
   ['.main-header', '*', '머리 배너 그림 위에 제목 글자'],
   ['.meditation-center-frame', '*', '무공 탭 좌선 그림 뒤에 무사 품계 불꽃 고리(같은 고리 그림의 불 꺼진 판 · 켜진 판)'],
   ['.map-box', '*', '강호 지도 화면: 지도 그림 위에 붓글씨 지역 이름 · 황금 기둥'],
+  ['.ink-frame', '*', '네모칸: 수묵 칸 테두리(slot_frame) 안에 아이템 · 비급 그림이 들어감 (10월 확정 네모칸)'],
   ['.qi-orbit', '*', '무공 탭: 네 무공 칸을 잇는 큰 기운 고리(선만, 가운데는 비어 있음)가 카드 · 가부좌 그림 뒤에 깔림'],
 ];
 const allowed = (a, b) => ALLOW.some(([x]) => a.closest && (a.closest(x) || b.closest(x)));

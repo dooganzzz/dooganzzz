@@ -103,7 +103,7 @@ small { font-size: .82rem; }
   .statsheet { font-size: .92rem; }
   .kv { font-size: .95rem; }
 
-  /* 아이템 카드 (장경각·행낭·장비 창) */
+  /* 아이템 카드 (장보각·행낭·장비 창) */
   .item-card-header .item-name { font-size: 16.5px; }
   .item-grade-badge { height: 22px; font-size: 12px; padding: 0 8px; }
   .item-category { font-size: 13px; }

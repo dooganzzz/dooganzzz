@@ -304,7 +304,7 @@ function playerAttack(b) {
   if (moves && (gm != null || Math.random() * 100 < MOVE_START + st.combo)) {
     const g = GRADES[M.grade].mult;
     const realmMult = m.star >= 6 ? 1.25 : 1;                 // 소성 이후 초식 위력 상향
-    const power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase;   // 장경각 무공 고유 피해 배율
+    const power = (M.power || COMBAT_RULES.powerBase) / COMBAT_RULES.powerBase;   // 장보각 무공 고유 피해 배율
     const mults = MOVE_MULT.map(v => v * (1 + (g - 1) * 0.5) * realmMult * power);
     let r = Math.random() * MOVE_PICK.slice(0, moves).reduce((a, v) => a + v, 0), i = 0;   // 셋 중 하나 (안 열린 초식은 빼고)
     while (i < moves - 1 && r >= MOVE_PICK[i]) r -= MOVE_PICK[i++];

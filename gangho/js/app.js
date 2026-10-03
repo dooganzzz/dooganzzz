@@ -241,7 +241,7 @@ function migrate(st) {
   delete st.restCd;
   // 예전 문파 임무(토벌 · 배달 · 갱신비)는 없어졌다 — 장문인 토벌 임무(subq)로 바뀜
   delete st.missions; delete st.questRefreshCount; delete st.lastQuestResetDate;
-  // 장경각 장비 이름 정리 (단조 장비와 이름이 겹치지 않게)
+  // 장보각 장비 이름 정리 (단조 장비와 이름이 겹치지 않게)
   for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) if (it && it.shop && LIBRARY_GEAR[it.shop]) it.name = LIBRARY_GEAR[it.shop].name;
   // 장비 위계 재조정: 하급 장비 37종·단조 장비는 지금 데이터 수치로 맞춘다 (강화 단계는 유지)
   for (const it of [...Object.values(st.equip || {}), ...(st.gear || [])]) {
@@ -365,7 +365,7 @@ function startGame(st) {
   const verChanged = S.gameVer && S.gameVer !== GAME_VER && GAME_VER !== 'dev';
   if (verChanged && activeRun()) { endRun(activeRun(), now(), 'recall'); log('📜 새 버전이 배포되어 진행 중이던 강호행을 마쳤습니다. 얻은 것은 이미 받았습니다.', 'gold'); notify.toast('📜 새 버전 배포로 강호행을 마쳤습니다'); }
   else if (r) notify.toast(r.live ? `⛰️ 자리를 비운 동안 견문 ${r.steps.length - n0}걸음 — 강호행은 계속됩니다` : `💀 자리를 비운 동안 강호행이 끝났습니다 — 「강호행」에서 견문과 보상을 확인하십시오`);
-  if (verChanged) { ui.tab = 'sect'; ui.sectSub = 'hall'; ui.modal = null; ui.fieldMap = false; window.scrollTo(0, 0); }   // 새 버전: 모두 처음 자리(청풍문 › 정청, 맨 위)에서 다시 시작 (유저 확정)
+  if (verChanged) { ui.tab = 'sect'; ui.sectSub = 'grounds'; ui.modal = null; ui.fieldMap = false; window.scrollTo(0, 0); }   // 새 버전: 모두 처음 자리(청풍문 › 전경, 맨 위)에서 다시 시작 (유저 확정)
   S.gameVer = GAME_VER;
   authFooter();
   notify.refresh(); save();

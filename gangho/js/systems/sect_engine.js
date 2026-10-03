@@ -1,4 +1,4 @@
-/* [시스템] 청풍문: 문파 임무·인물(조운·아린·장문인)·장경각·창고·하산 (DOM 조작 금지) */
+/* [시스템] 청풍문: 문파 임무·인물(조운·아린·장문인)·장보각·창고·하산 (DOM 조작 금지) */
 
 /* ───────── 보조 퀘스트: 토벌 임무 (반복) ─────────
    장문인에게 탐험지 · 단계를 골라 하나씩 받는다 (S.subqCur = { zid, n, prog }). 그 단계에서 SUBQ.kills번 이기면 보상을 받고,
@@ -146,7 +146,7 @@ function buyManual(id) {
   if (!LIBRARY_BOOKS.includes(id) || S.manuals[id] || has('bk_' + id) || !M.cost || S.contrib < M.cost) return;
   if (!give('bk_' + id, 1, true)) return;
   S.contrib -= M.cost;
-  log(`장경각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 「관조 › 무공」에서 [ 익히기 ] 하십시오.`, 'gold');
+  log(`장보각에서 ${hlItem(`《${M.name}》 비급`)}을 받았습니다. 「관조 › 무공」에서 [ 익히기 ] 하십시오.`, 'gold');
   notify.refresh();
 }
 
@@ -161,24 +161,24 @@ function buyBadge(id) {
   notify.refresh();
 }
 
-/* 장경각 영단 교환: 돌파단 (공헌도, 개수 제한 없음) */
+/* 장보각 영단 교환: 돌파단 (공헌도, 개수 제한 없음) */
 function buyLibraryPill(id) {
   const cost = LIBRARY_PILLS[id];
   if (!cost || S.contrib < cost) return false;
   if (!give(id, 1, true)) return false;
   S.contrib -= cost;
-  log(`장경각에서 ${hlItem(ITEMS[id].name)}${jo(ITEMS[id].name, '을를')} 받았습니다. (공헌도 -${cost})`, 'gold');
+  log(`장보각에서 ${hlItem(ITEMS[id].name)}${jo(ITEMS[id].name, '을를')} 받았습니다. (공헌도 -${cost})`, 'gold');
   notify.refresh();
   return true;
 }
 
-/* 장경각 이류 장비 교환 (공헌도) */
+/* 장보각 이류 장비 교환 (공헌도) */
 function buyLibraryGear(id) {
   const G = LIBRARY_GEAR[id];
   if (!G || S.contrib < G.cost || ownsShop(id)) return;
   if (!giveGear(libraryGear(id), true)) return;
   S.contrib -= G.cost;
-  log(`장경각에서 이류 장비 ${hlItem(G.name)}${jo(G.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
+  log(`장보각에서 이류 장비 ${hlItem(G.name)}${jo(G.name, '을를')} 받았습니다. 무장에서 착용하십시오.`, 'good');
   notify.refresh();
 }
 

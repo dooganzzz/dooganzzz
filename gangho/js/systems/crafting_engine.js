@@ -51,7 +51,7 @@ function doCraft(craft, pot) {
     }
     log(`${C.name} 성공: ${hlItem(result.text)}${first ? ` — 도감 › ${C.name} 비법에 새로 기록!` : ''}`, 'good');
   } else {
-    const fail = C.fail, nFail = craft === 'forge' ? (talentOf().slag || 1) : 1;   // 기예 단조: 찌꺼기 2배
+    const fail = C.fail, nFail = craft === 'forge' ? (talentOf().slag || 1) : 1;   // 기예 단조: 부산물 2배
     S.inv[fail] = (S.inv[fail] || 0) + nFail;
     result = { ok: false, text: `${ITEMS[fail].icon} ${ITEMS[fail].name}${nFail > 1 ? ` ×${nFail}` : ''}`, sub: recipe ? '불길이 한순간 크게 일렁였습니다. 조합은 맞았던 것 같습니다…' : '재료들이 서로 어울리지 못하고 엉겨 붙었습니다.' };
     log(`${C.name} 실패… ${ITEMS[fail].name}${jo(ITEMS[fail].name, '이가')} 남았습니다.`, 'bad');

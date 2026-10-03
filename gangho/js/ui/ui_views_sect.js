@@ -76,7 +76,7 @@ function viewHall() {
     <div class="subq-box"><p class="subq-title"><small class="muted">의뢰(依賴) · 반복</small> <b>토벌 임무</b> <small class="muted">조운 대사형에게 탐험지 · 단계를 골라 받습니다. 보상을 받으면 다시 받을 수 있고, 하루 ${SUBQ.daily}번까지 (오늘 ${subqLeft()}번 남음).</small></p>
     <ul class="missions">${cq ? `<li class="${cok ? 'ready' : ''}"><div><b>토벌</b> ${stageName(cq.zid, cq.n)} <small class="muted">${cq.n >= STAGE.count ? '두목' : `${cq.n}단계`}</small></div><div class="mprog"><span style="width:${cp / SUBQ.kills * 100}%"></span></div><span class="num">${cp}/${SUBQ.kills}</span><span class="reward">공헌 ${cR.contrib} · 은자 ${cR.silver} · 수련치 ${cR.exp} · 생혈고 ${cR.pot}</span><button class="btn sm ${cok ? 'primary' : ''}" data-subq="1" ${cok ? '' : 'disabled'}>${cp >= SUBQ.kills && !subqLeft() ? '내일' : '보상'}</button></li>`
       : `<li class="muted">${subqLeft() ? '맡은 토벌이 없습니다. 조운 대사형에게 [문파 일 여쭙기].' : `오늘 토벌은 ${SUBQ.daily}번 다 했습니다. 내일 다시 받으십시오.`}</li>`}</ul></div>`;
-  // 장경각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
+  // 장보각: [장비] [무공] [제자패] 세 칸. 모두 이류(二流) 급, 문파 공헌도로 교환
   const LT = [['equipment', '장비', '裝備'], ['skills', '무공', '武功'], ['tokens', '제자패', '弟子牌'], ['pills', '영단', '靈丹']];
   const lt = LT.some(([k]) => k === ui.libTab) ? ui.libTab : 'equipment';
   const libCard = (name, grade, part, eff, cost, own, attr, ico = '', card = '') => `<div class="item-card shop-item lib-item ${gradeClass(grade)}" ${card}>${itemCardHead(name, grade, ico)}
@@ -87,10 +87,10 @@ function viewHall() {
     : lt === 'pills' ? Object.entries(LIBRARY_PILLS).map(([id, cost]) => libCard(ITEMS[id].name, '영단', `보유 ${count(id)}개`, esc(ITEMS[id].desc), cost, false, `data-buypill="${id}"`, itemIco(id, 'card')))
     : badges.map(g => libCard(g.name, RARITY[g.rarity].name, '신분패', `정진 +${g.stats.train}%`, g.cost, ownsShop(g.id), `data-buybadge="${g.id}"`, gearIco(g, 'card')));
   const library = `
-    <div class="subtabs lib-tabs" role="tablist" aria-label="장경각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
+    <div class="subtabs lib-tabs" role="tablist" aria-label="장보각" style="--n:${LT.length}">${LT.map(([k, ko, hj]) => `<button class="subtab ${lt === k ? 'on' : ''}" role="tab" aria-selected="${lt === k}" data-libtab="${k}">${label(ko, hj)}</button>`).join('')}</div>
     <div class="shop lib-grid">${libItems.join('')}</div>`;
   return `<section class="panel npc fold">${foldHead('hq', '정청 본부', '正廳', tutorReady() || subqReadyCount() ? `<span class="num gold">${[tutorReady() ? '가르침 보상' : '', subqReadyCount() ? `토벌 보상 ${subqReadyCount()}건` : ''].filter(Boolean).join(' · ')} ${alertDot(true)}</span>` : '')}${foldBody('hq', hq.replace('<!--subq-->', missions))}</section>
-  <section class="panel fold">${foldHead('library', '장경각', '藏經閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
+  <section class="panel fold">${foldHead('library', '장보각', '藏寶閣', `<span class="num gold">공헌도 ${fmt(S.contrib)}</span>`)}${foldBody('library', library)}</section>`;
 }
 
 /* 청풍문 › 전방(廛房): 왕 가의 구매 / 판매 */

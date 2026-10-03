@@ -73,7 +73,7 @@
 1. `node gangho/tools/stamp.js` (?v= 버전 · version.json 갱신)
 2. `python3 gangho/tools/bundle.py <scratchpad>` → `node gangho/tools/bundle-check.js <scratchpad>` → `node gangho/tests/check-layers.js`
 3. 커밋 → `git push -u origin <작업 브랜치>` → 아티팩트 갱신(gangho.html + files에 admin.html) → PR 설명 갱신
-4. **배포할 때마다 전체 유저 로그아웃** (유저 확정): `node gangho/tools/logout-all.js` (서버의 모든 접속 토큰 무효화, 운영자 암호는 환경변수 GANGHO_GM_PASS로만). 게임 쪽은 새 버전이 뜨면 세션의 버전이 달라 이미 로그아웃되고, 다시 들어오면 **처음 자리**(진행 중이던 강호행은 귀환 · 화면은 청풍문 › 정청 맨 위)에서 시작한다(app.js `verChanged`).
+4. **배포할 때마다 전체 유저 로그아웃** (유저 확정): `node gangho/tools/logout-all.js` (서버의 모든 접속 토큰 무효화, 운영자 암호는 환경변수 GANGHO_GM_PASS로만). 게임 쪽은 새 버전이 뜨면 세션의 버전이 달라 이미 로그아웃되고, 다시 들어오면 **처음 자리**(진행 중이던 강호행은 귀환 · 화면은 청풍문 › 전경 맨 위)에서 시작한다(app.js `verChanged`).
 
 ## 인계 · 시문
 - 지금 상태 · 링크 · 유저가 아직 고르지 않은 건의는 `gangho/docs/인계.md`. 큰 작업을 마치면 여기도 고친다.

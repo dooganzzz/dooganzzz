@@ -375,9 +375,9 @@ const CRAFTS = {
 
 /* 단조 전용 중급 장비 9종 (이류급 · 등급 중급 고정). 비밀 조합식은 recipes.js
    bleed: 적중 시 출혈 확률(%) · pierce: 관통력(적 파갑) · acc: 명중 보정(%p) */
-/* 장경각 이류(二流) 장비: 문파 공헌도로 교환. 이름은 '청풍문 ~'(문파 하사품)으로 단조 장비와 구분한다. 중급(녹색)·2티어. str/con/agi/int는 4대 스탯에 더해진다
+/* 장보각 이류(二流) 장비: 문파 공헌도로 교환. 이름은 '청풍문 ~'(문파 하사품)으로 단조 장비와 구분한다. 중급(녹색)·2티어. str/con/agi/int는 4대 스탯에 더해진다
    shock 충격(적이 한 합 움직이지 못함) · first 선공 보정 · bleed 적에게 출혈 · staSave 강호행 기력 절약 */
-/* 장경각 영단: 돌파단을 문파 공헌도로 (개수 제한 없음, 유저 확정 10월 2일) */
+/* 장보각 영단: 돌파단을 문파 공헌도로 (개수 제한 없음, 유저 확정 10월 2일) */
 const LIBRARY_PILLS = { pillLow: 500, pillHigh: 1500 };
 const LIBRARY_GEAR = {
   lg_fist:   { slot: 'weapon', wtype: 'fist',   name: '청풍문 호수', hanja: '淸風門護手',   stats: { atk: 18, def: 6, shock: 5 },       cost: 280, desc: '바람결처럼 가벼운 권갑. 제대로 박히면 적의 몸이 굳는다 (충격).' },
@@ -424,7 +424,7 @@ const CRAFT_GEAR = {
    slag: 단조가 빗나갔을 때 찌꺼기 개수 · pill: 단약 섭취 효과 배율 보너스.
    품계는 없앰 (10월 3일 유저) — S.crafts[기예].n = 해 본 횟수 */
 const TALENTS = {
-  forge:   { name: '단조', hanja: '鍛造', sub: '검게 탄 찌꺼기 2배', desc: '단조가 빗나가면 검게 탄 찌꺼기를 두 배로 얻는다', craft: 'forge', slag: 2 },
+  forge:   { name: '단조', hanja: '鍛造', sub: '부산물 2배', desc: '단조에서 얻는 부산물(검게 탄 찌꺼기)을 두 배로 얻는다', craft: 'forge', slag: 2 },
   alchemy: { name: '연단', hanja: '煉丹', sub: '단약 효과 +15%', desc: '단약 · 생혈고 · 소환단의 효과가 15% 더 크다', craft: 'alchemy', pill: 0.15 },
 };
 

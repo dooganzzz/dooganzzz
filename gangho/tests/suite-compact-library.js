@@ -1,4 +1,4 @@
-/* 원스크린 컴팩트 · 비급 각인 · 관찰 창 확대 · 토벌 임무 · 장경각 3탭 · 무신상 각성 · 요수 4단계 · 행동 확인 창 */
+/* 원스크린 컴팩트 · 비급 각인 · 관찰 창 확대 · 토벌 임무 · 장보각 3탭 · 무신상 각성 · 요수 4단계 · 행동 확인 창 */
 'use strict';
 const { ok, GAME_URL, watchErrors, startEquipped, VIEWPORTS, newPage } = require('./lib');
 
@@ -36,12 +36,12 @@ module.exports = async (b) => {
     ok('2 토벌 임무: 장문인에게 받아 다 채우면 보상 · 공헌도 오름', ms.noQuest && ms.ready && ms.got, JSON.stringify(ms));
     ok('2 토벌 임무는 하루 정해진 횟수까지 (다 하면 더 못 받음)', ms.n === ms.daily && ms.left === 0 && ms.blocked, JSON.stringify(ms));
 
-    // 3. 장경각 3탭 · 이류 장비 (4대 스탯 보정 포함) · 공헌도
+    // 3. 장보각 3탭 · 이류 장비 (4대 스탯 보정 포함) · 공헌도
     await p.evaluate(() => { S.contrib = 1000; goTab('sect', 'hall'); ui.fold.library = false; render(); });
     const lt = {};
     for (const t of ['equipment', 'skills', 'tokens']) { await p.click(`[data-libtab="${t}"]`); lt[t] = await p.evaluate(() => [...document.querySelectorAll('.lib-grid .lib-item b')].map(e => e.textContent).join(',')); }
     const ir = await p.evaluate(() => LIBRARY_BOOKS.map(id => MANUALS[id]).filter(M => M.grade === '이류').map(M => M.name));   // 이류 비급, 분류마다 하나씩
-    ok('3 장경각 [장비] 7 · [무공] 이류 분류마다 하나(8) · [제자패] 2', lt.equipment.split(',').length === 7 && ir.length === 8 && lt.skills.split(',').length === ir.length && ir.every(n => lt.skills.includes(n)) && lt.tokens.split(',').length === 2, JSON.stringify(lt));
+    ok('3 장보각 [장비] 7 · [무공] 이류 분류마다 하나(8) · [제자패] 2', lt.equipment.split(',').length === 7 && ir.length === 8 && lt.skills.split(',').length === ir.length && ir.every(n => lt.skills.includes(n)) && lt.tokens.split(',').length === 2, JSON.stringify(lt));
     ok('3 제자패 공헌도 120 · 350', await p.evaluate(() => SHOP_GEAR.find(g => g.id === 'badge2').cost === 120 && SHOP_GEAR.find(g => g.id === 'badge3').cost === 350));
     await p.click('[data-libtab="equipment"]');
     await p.click('[data-buylib="lg_sword"]');

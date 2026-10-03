@@ -618,7 +618,7 @@ body {
 .passive-sum { font-size: 12px; color: var(--silver); padding: 6px 10px; border-left: 3px solid var(--jade); background: rgba(95, 176, 155, .06); border-radius: 3px; }
 .passive-sum b { color: #8ee0c8; font-weight: 700; }
 
-/* 장경각: 세 칸 탭 · 이류 품목 카드 */
+/* 장보각: 세 칸 탭 · 이류 품목 카드 */
 .lib-tabs { margin-bottom: 4px; }
 .lib-item { gap: 3px; }
 .lib-item .lib-eff { color: var(--silver); font-size: 11px; line-height: 1.45; }
@@ -986,7 +986,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .armory .equip-slot-card.r5 .slot-item-name { color: var(--g5); }
 .armory .equip-slot-card .slot-item-name { text-shadow: 0 1px 3px #000; }
 
-/* 장경각 무공 카드: 누르면 그 비급 상세 (10월 3일) */
+/* 장보각 무공 카드: 누르면 그 비급 상세 (10월 3일) */
 .lib-item[data-mart] { cursor: pointer; }
 .lib-item[data-mart]:hover { box-shadow: 0 0 0 1px rgba(212, 175, 55, .45); }
 

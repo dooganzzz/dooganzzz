@@ -1,7 +1,7 @@
 /* [시스템] AI 자동 플레이 (운영자 시험용, DOM 조작 금지)
    지금 캐릭터로 N일을 미리 살아 본다. 게임 시계(CLOCK.shift)를 N일 전으로 돌려 놓고 한 시간씩 감으며 강호행을 이어 가고,
    접속해 있는 시각에는 잘 아는 유저가 할 법한 일을 한다: 가르침 · 토벌 임무를 모두 받고, 화로 조합식(위키를 아는 유저처럼)으로
-   돌파단 · 생혈고 · 장비를 빚고, 전방에서 물약과 더 나은 장비를 사고, 공헌도로 장경각의 가장 좋은 장비 · 비급 · 신분패를 바꾸고,
+   돌파단 · 생혈고 · 장비를 빚고, 전방에서 물약과 더 나은 장비를 사고, 공헌도로 장보각의 가장 좋은 장비 · 비급 · 신분패를 바꾸고,
    지금 힘으로 수련치 · 은자를 가장 많이 버는 탐험지 · 단계에서 사냥한다. 밸런스 기준(표준 유저)으로 쓴다.
    자리를 비운 시각에는 아무것도 하지 않고, 돌아오면 쌓인 탐험을 한꺼번에 결산한다 (최대 8번 규칙 그대로).
    끝나면 시계는 지금으로 돌아오고, 날마다의 기록(보고서)을 돌려준다. 되돌리기(백업)는 화면 계층이 맡는다. */
@@ -33,7 +33,7 @@ function aiAct(note) {
   for (const id of Object.keys(S.inv)) if (id.startsWith('bk_') && ITEMS[id].use && ITEMS[id].use.learn && !S.manuals[ITEMS[id].use.learn]) { const mid = ITEMS[id].use.learn; learnManual(id); note(`비급 습득: ${MANUALS[mid].name}`); }
   aiPickManuals(note);
   // 4. 장비: 투력이 오르면 갈아 끼우고, 행낭이 차면 못 쓰는 장비를 판다
-  aiContrib(note);                                   // 공헌도: 장경각 장비 · 비급 · 신분패 중 가장 좋은 것
+  aiContrib(note);                                   // 공헌도: 장보각 장비 · 비급 · 신분패 중 가장 좋은 것
   aiCraftGear(note);                                 // 화로: 투력이 오르는 단조 장비
   aiShop(note);                                      // 전방: 투력이 오르는 하급 장비
   aiPickGear(note);
@@ -100,7 +100,7 @@ function aiPills(note) {
     const id = S.active[c]; if (!id) continue;
     const pill = GATES[S.manuals[id].star]; if (!pill || has(pill)) continue;
     const r = RECIPES.find(x => x.out === pill);   // 돌파단은 이제 조합으로 못 만든다 (가르침 · 첫 입장 · 금고)
-    if (!r) { if (S.contrib >= LIBRARY_PILLS[pill] && buyLibraryPill(pill)) { note(`장경각: ${ITEMS[pill].name} (공헌 ${LIBRARY_PILLS[pill]})`); continue; }
+    if (!r) { if (S.contrib >= LIBRARY_PILLS[pill] && buyLibraryPill(pill)) { note(`장보각: ${ITEMS[pill].name} (공헌 ${LIBRARY_PILLS[pill]})`); continue; }
       if (pill === 'pillLow' && aiPrayForPill(note)) continue; note(`${MANUALS[id].name} ${S.manuals[id].star}성: ${ITEMS[pill].name} 기다림`); continue; }
     aiBuyMats(r);
     let tries = 0;
@@ -158,7 +158,7 @@ function aiShop(note) {
   }
 }
 
-/* 공헌도: 익힐 수 있는 장경각 비급(지금 것보다 높은 등급)을 먼저, 그다음 투력이 가장 많이 오르는 장경각 장비 · 신분패 */
+/* 공헌도: 익힐 수 있는 장보각 비급(지금 것보다 높은 등급)을 먼저, 그다음 투력이 가장 많이 오르는 장보각 장비 · 신분패 */
 function aiContrib(note) {
   const w = weaponType();
   for (const id of LIBRARY_BOOKS) {
@@ -166,14 +166,14 @@ function aiContrib(note) {
     if (M.cat === 'mugong' && M.weapon && M.weapon !== w) continue;
     const cur = S.active[M.cat] && MANUALS[S.active[M.cat]];
     if (cur && GRADES[cur.grade].mult >= GRADES[M.grade].mult) continue;
-    buyManual(id); if (has('bk_' + id)) { learnManual('bk_' + id); note(`장경각 비급: ${M.name} (공헌 ${M.cost})`); }
+    buyManual(id); if (has('bk_' + id)) { learnManual('bk_' + id); note(`장보각 비급: ${M.name} (공헌 ${M.cost})`); }
   }
   for (let guard = 0; guard < 3; guard++) {
     let best = null;
     for (const [id, G] of Object.entries(LIBRARY_GEAR)) if (!ownsShop(id) && S.contrib >= G.cost) { const g = aiGearGain(libraryGear(id)); if (g > 0 && (!best || g / G.cost > best.v)) best = { id, v: g / G.cost, name: G.name, cost: G.cost, buy: buyLibraryGear }; }
     for (const G of SHOP_GEAR) if (G.cost && !ownsShop(G.id) && S.contrib >= G.cost) { const g = aiGearGain(shopGear(G.id)); if (g > 0 && (!best || g / G.cost > best.v)) best = { id: G.id, v: g / G.cost, name: G.name, cost: G.cost, buy: buyBadge }; }
     if (!best) return;
-    best.buy(best.id); note(`장경각: ${best.name} (공헌 ${best.cost})`); aiPickGear(note);
+    best.buy(best.id); note(`장보각: ${best.name} (공헌 ${best.cost})`); aiPickGear(note);
   }
 }
 

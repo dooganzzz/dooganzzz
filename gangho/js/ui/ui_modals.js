@@ -9,7 +9,7 @@ function manualModal(cat) {
   return martialModal(S.active[cat]);
 }
 
-/* 아직 익히지 않은 비급의 상세 (장경각 카드 등): 시문 · 초식 · 상성 · 성급별 장착 능력치 · 독파 각인 · 공헌 */
+/* 아직 익히지 않은 비급의 상세 (장보각 카드 등): 시문 · 초식 · 상성 · 성급별 장착 능력치 · 독파 각인 · 공헌 */
 function manualPreviewModal(id) {
   const M = MANUALS[id], cat = M.cat, lib = LIBRARY_BOOKS.includes(id) && M.cost, own = !!(S.manuals[id] || has('bk_' + id));
   const statTxt = st => Object.entries(manualBonus(id, st)).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
@@ -305,7 +305,7 @@ function showIntro() {
       const name = ($('#pname').value || '').trim() || '무명';
       m.onclick = null; delete m.dataset.intro; m.hidden = true;
       startNewGame(name, chosen, { attr: { ...attr }, apt: { ...apt }, talent });
-      goTab('sect', 'hall');
+      goTab('sect', 'grounds');
       render();
       if (!reduceMotion()) replay(document.querySelector('.app'), 'app-reveal');   // 메인 화면이 먹 번지듯 서서히
       return;

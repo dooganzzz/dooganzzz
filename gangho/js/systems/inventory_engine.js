@@ -58,7 +58,7 @@ function rollDropRarity(boss) {
   return r < 0.05 ? 2 : r < 0.3 ? 1 : 0;
 }
 
-/* 장경각 이류 장비: 2티어 중급, shop 표시로 한 점만 교환 */
+/* 장보각 이류 장비: 2티어 중급, shop 표시로 한 점만 교환 */
 function libraryGear(id, st = S) {
   const G = LIBRARY_GEAR[id];
   return { uid: st.uid++, shop: id, named: id, tier: 2, slot: G.slot, wtype: G.wtype || null, name: G.name, rarity: 1, stats: { ...G.stats }, unique: null, grade: '이류' };

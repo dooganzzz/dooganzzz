@@ -131,7 +131,7 @@ function renderHeader() {
   if (cm) { const old = cm.querySelector('.cp-delta'); if (old) old.remove(); if (dl) cm.insertAdjacentHTML('beforeend', dl); }
 }
 /* 상태 탭 맨 위: 활력 · 내력 막대와 수련치 · 은자 · 공헌 */
-/* 관조 › 메인 능력치 (#vitals, 매초 갱신): 투력 · 활력 · 내력 막대 · 4대 스탯(아이콘). 수련치는 무공 탭, 은자는 행낭, 공헌은 장경각에 */
+/* 관조 › 메인 능력치 (#vitals, 매초 갱신): 투력 · 활력 · 내력 막대 · 4대 스탯(아이콘). 수련치는 무공 탭, 은자는 행낭, 공헌은 장보각에 */
 function vitalsHtml(st = calcStats()) {
   return `<div class="obs-main">
       <div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>
