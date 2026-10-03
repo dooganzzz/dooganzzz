@@ -49,15 +49,16 @@ function liveShowPlan(sh, w) {
   // 초식 일격: 제자는 제자리에서 칼을 휘두르고 (연속 때리기 무공은 아래에서 달려가 붙음)(돌진하는 평타 동작 없이), 칼끝에서 나간 검기가 요수에 닿을 때 맞는다
   const skillAtk = (t0, ev, sk) => {
     q.push({ at: t0, k: 'kiai' });   // 기를 모아 들어가기 직전 기합 (10월 3일 유저)
-    const hitSnd = at => { const d = CO_HIT_SND[sk.n] || 0; if (d && ev.f.k !== 'miss') { ev.noSnd = true; q.push({ at: at + T(d), k: 'hs', crit: ev.f.k === 'crit' }); } };   // 타격음만 맞는 순간보다 당기거나 늦춘다 (유저 초식 타이밍)
+    const hitSnd = at => { const d = CO_HIT_SND[sk.n] || 0; if (d && ev.f.k !== 'miss') { ev.noSnd = true; q.push({ at: at + T(d), k: 'hs', crit: ev.f.k === 'crit' }); } };   // 타격음만 맞는 순간보다 당기거나 늦춘다 (유저 초식 타이밍)   // 타격음만 맞는 순간보다 당기거나 늦춘다 (유저 초식 타이밍)
     ev.art = !!(sk.mid && stanceFxSrc(sk.mid, sk.n || sk.tier));   // 초식 그림이 있으면 맞을 때 평타 타격 그림은 띄우지 않는다 (겹침 방지)
     if (!ranged && sk.mid && ASSET.hit(sk.mid) && stanceCutN(sk.n || sk.tier) === 1) {   // (제1초식만 — 제2초식은 손에서 뻗어 날아가는 기운)   // 연속 때리기(MANUAL_HIT): 달려가 붙어서 때리고, 맞는 자리에 초식 그림이 터진 뒤 돌아온다
       const N = ASSET.hitN(sk.mid);
       q.push({ at: t0, k: 'hx', x: Math.max(LIVE_POS.lunge, (sh.foeX || 0) - (N === 1 ? 22 : 13)) }); heroF(t0, 1); heroF(t0 + T(110), 2); heroF(t0 + T(220), 1);   // 주먹이 닿게 요수에 바짝 붙는다 (관수는 팔이 길어 그만큼 뒤에 선다)
       const s = t0 + T(330), hitAt = s + T(N > 1 ? 170 * (N - 1) + 40 : 150);
       if (N === 1) { heroF(s - T(90), 6); heroF(s, 11); }   // 한 번 깊게(철사장, 관수 11칸): 웅크렸다가 팔을 곧게 뻗어 찌른 채 멈춘다 (발차기 칸 없이)
-      else for (let i = 0; i < N; i++) { heroF(s + T(i * 170), 4); heroF(s + T(i * 170 + 85), 5); }   // 무공마다 횟수 (통비권 연타 세 번 · 철사장 한 번 깊게) — 초식 그림은 첫 손에 터져 끝까지 이어진다
-      q.push({ at: s + T(40), k: 'skill', sk }); hitSnd(hitAt); q.push({ ...ev, at: hitAt }); const e = hitAt + T(140); heroF(e, 6);
+      else { for (let i = 0; i < N; i++) { heroF(s + T(i * 170), 4); heroF(s + T(i * 170 + 85), 5); }   // 연타: 주먹이 뻗는 컷(5)마다 타격음 — 손발과 소리를 맞춘다 (유저)
+        if (ev.f.k !== 'miss') { ev.noSnd = true; for (let i = 0; i < N; i++) q.push({ at: s + T(i * 170 + 85 + CO_MULTI_SND), k: 'hs', crit: ev.f.k === 'crit' && i === N - 1 }); } }   // 무공마다 횟수 (통비권 연타 세 번 · 철사장 한 번 깊게) — 초식 그림은 첫 손에 터져 끝까지 이어진다
+      q.push({ at: s + T(40), k: 'skill', sk }); if (N === 1) hitSnd(hitAt); q.push({ ...ev, at: hitAt }); const e = hitAt + T(140); heroF(e, 6);
       q.push({ at: e + T(200), k: 'hx', x: LIVE_POS.hero }); heroF(e + T(240), 0);
       return e + T(380);
     }

@@ -223,7 +223,7 @@ function sfx(name, o = {}) {
 /* 맞힐 때: 병기마다 녹음한 타격음 (HIT_SFX) · 치명타는 조금 더 크게 */
 function sfxHit(w, crit) {
   const c = SND.ctx, b = SND.hit && SND.hit[w]; if (!SFX_ON.has('hit') || !b || !c || c.state !== 'running' || !sndVol('sfxVol')) return;
-  const n = performance.now(); if (n - (SND.last.hit || 0) < 60) return; SND.last.hit = n;
+  const n = performance.now(); if (n - (SND.last.hit || 0) < 40) return; SND.last.hit = n;
   playFile(b, c.currentTime + .005, crit ? 1 : .75, 1, mixNode(HIT_SFX[w], SND.hitBus));
 }
 /* 녹음 파일 한 번 내기 (둥글게 깎지 않는 줄로, 높이를 살짝 흔들어 덜 단조롭게) */
