@@ -83,7 +83,7 @@ function forgeGearInfo() {
   if (main) {
     const r = enhRule(main), max = (main.enh || 0) >= ENH_MAX, cost = enhCost(main), next = { ...main, enh: (main.enh || 0) + 1 }, mat = ui.potGear[1] != null && gearByUid(ui.potGear[1]);
     panel = `<div class="enh-panel">
-      <div class="enh-row"><span class="enh-lab">본템</span><b class="r${main.rarity}">${esc(gearName(main))}</b> <span class="pill">${RARITY[main.rarity].name}</span></div>
+      <div class="enh-row"><span class="enh-lab">본템</span><b class="r${main.rarity}">${esc(gearName(main))}</b> ${rarityTag(main.rarity)}</div>
       <div class="enh-row"><span class="enh-lab">재료</span>${mat ? `<b>${esc(mat.name)}</b> <small class="muted">(부서져 본템에 흡수됩니다)</small>` : '<span class="warn">같은 장비(강화 안 된 것)를 하나 더 올리십시오</span>'}</div>
       ${max ? '<p class="muted">+10 — 더 이상 벼릴 수 없습니다.</p>' : `
       <div class="enh-row"><span class="enh-lab">능력치</span><small>${statLine(main)}</small></div>

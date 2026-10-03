@@ -71,7 +71,7 @@ function onClick(e) {
   }
   if (d.sellgear) {
     const it = S.gear.find(g => g.uid === +d.sellgear); if (!it) return;
-    return showConfirmModal({ title: '판매 확인', message: `[${RARITY[it.rarity].name}] <b>${esc(gearName(it))}</b>을(를) ${hlSilver(gearSellPrice(it))}에 팔까요? 판 장비는 되찾을 수 없습니다.`, confirmText: '판매', cancelText: '취소', onConfirm: () => sellGear(it.uid) });
+    return showConfirmModal({ title: '판매 확인', message: `${rarityTag(it.rarity)} <b>${esc(gearName(it))}</b>을(를) ${hlSilver(gearSellPrice(it))}에 팔까요? 판 장비는 되찾을 수 없습니다.`, confirmText: '판매', cancelText: '취소', onConfirm: () => sellGear(it.uid) });
   }
   if (d.equipm) { equipManual(d.equipm); if (ui.modal && !ui.modal.startsWith('artslot:')) { ui.modal = 'mart:' + d.equipm; renderModal(); } return; }   // 무공 칸 창에서는 창을 그대로 둔다
   if (d.unequipm) { const id = S.active[d.unequipm]; unequipManual(d.unequipm); if (ui.modal && id && !ui.modal.startsWith('artslot:')) { ui.modal = 'mart:' + id; renderModal(); } return; }

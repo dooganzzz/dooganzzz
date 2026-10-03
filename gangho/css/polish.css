@@ -256,7 +256,12 @@ small { font-size: .82rem; }
 .sheet .mm-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 4px 0 0; }
 .sheet .moves li small { white-space: nowrap; }
 /* 한자 낙관(인장) 그림 (sealImg) — 세로 28×50 · 가로 높이 26 (10월 3일 유저 슬라이더 값) */
-.seal { height: 26px; width: auto; vertical-align: middle; margin: 0 2px; }
-.seal.tall { width: 28px; height: 50px; object-fit: fill; }
-.mrow-meta .seal.tall, .mcard-row .seal.tall { width: 22px; height: 39px; }
+.hj-seal { height: 26px; width: auto; vertical-align: middle; margin: 0 2px; }
+.hj-seal.tall { width: 28px; height: 50px; object-fit: fill; }
+.mrow-meta .hj-seal.tall, .mcard-row .hj-seal.tall { width: 22px; height: 39px; }
 .attr-rows dt { display: flex; align-items: center; gap: 6px; }
+.hj-seal.inline { height: 20px; margin: 0 1px; vertical-align: -5px; }
+/* 배열 (10월 3일 유저): 한글은 낱말 중간에서 끊지 않고 칸을 내린다 */
+body { word-break: keep-all; overflow-wrap: break-word; }
+.hj-seal { display: inline-block; }
+.beasts li small { white-space: nowrap; }   /* 만남 · 처치는 한 덩어리로 (좁으면 통째로 다음 줄) */

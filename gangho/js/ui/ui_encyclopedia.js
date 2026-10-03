@@ -29,7 +29,7 @@ function codexMonsters() {
   const Z = ZONES[z], met = [...Z.enemies, Z.boss].filter(e => bs[e]);
   const done = (S.codexRewards || {})[z], R = CODEX_REWARDS[z];
   const rows = met.map(e => { const E = ENEMIES[e];
-    return `<li>${beastArt(e, 'mini')}<b>${E.name}</b>${E.boss ? ' <span class="pill warn">두목</span>' : ''}${elemTag(E.elem)}${weaponTag(E.wtype)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small>${E.trait ? `<em class="trait">${E.trait}</em>` : ''}</li>`; }).join('');
+    return `<li>${beastArt(e, 'mini')}<b>${E.name}</b>${E.boss ? ' <span class="pill warn">두목</span>' : ''}${elemTag(E.elem)}<small class="muted">만남 ${bs[e].met} · 처치 ${bs[e].kills}</small>${E.trait ? `<em class="trait">${E.trait}</em>` : ''}</li>`; }).join('');
   return `${intro}${zbar}<div class="codex"><article class="codex-col">
     ${done ? `<p class="codex-bonus"><b class="cb-label">강적 영혼흡수 효과</b>${R.text}</p>` : ''}<p class="muted zone-terrain">지형 ${Z.terrain.map(terrainTag).join('')}</p><ul class="beasts">${rows}</ul></article></div>`;
 }
@@ -55,7 +55,7 @@ function codexRecipes(craft) {
   const rows = found.map(r => {
     const G = recipeGear(r), I = !G && ITEMS[r.out];
     const eff = G ? Object.entries(G.stats).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ') : I.desc;
-    const grade = G ? `[${G.rank || RARITY[G.rarity || 1].name}]` : I.grade ? `[${I.grade}]` : '';
+    const grade = G ? (G.rank ? `[${G.rank}]` : rarityTag(G.rarity || 1)) : I.grade ? `[${I.grade}]` : '';
     return `<li class="recipe-row"><button class="r-out linkish" data-recipe="${r.id}">${recipeIcon(r)} <b>${recipeName(r)}</b> <small class="muted">${grade}</small></button>
       <span class="r-in">${Object.entries(r.in).map(([id, n]) => `${itemIco(id, 'sm')} ${ITEMS[id].name} ×${n}`).join(' + ')}</span><small class="muted r-eff">${eff}</small></li>`;
   }).join('');
