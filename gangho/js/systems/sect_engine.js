@@ -52,7 +52,7 @@ function jounMood() {
   else if (S.arinFreeDay === d && J.teaseDay !== d) { m = 'tease'; J.teaseDay = d; }
   else if (J.moodDay === d && ['usual', 'annoyed', 'tired', 'awkward', 'lonely'].includes(J.mood)) m = J.mood;
   else { const pool = ['usual', 'usual', 'annoyed', 'tired', 'awkward', 'lonely']; m = pool[Math.floor(Math.random() * pool.length)]; }
-  J.mood = m; J.moodDay = d; S.flags.askedJoun = true;
+  J.mood = m; J.moodDay = d; S.flags.askedJoun = true; S.cnt = S.cnt || {}; S.cnt.askJoun = (S.cnt.askJoun || 0) + 1;
   return m;
 }
 function jounSupply(quiet) {   // quiet: 걱정 대사 뒤라 조운의 말은 빼고 꾸러미만
@@ -204,7 +204,12 @@ function questBook(R, w) {
   const p = R.book === 'weapon' ? CP_BOOK[w] : R.book, ids = ['a', 'b', 'c'].map(x => `${p}1${x}`).filter(id => MANUALS[id]);
   return ids.find(id => !S.manuals[id] && !has('bk_' + id)) || ids[0];
 }
-const st10 = (z, n) => () => stageCleared(z) >= n;
+/* 가르침은 모두 [사명을 받은] 뒤부터 센다 (10월 3일 유저: 받기 전에 이미 한 것으로 한꺼번에 이루어지던 버그). 받을 때 이 셈들을 적어 두고(S.mainQBase) 그 뒤에 늘어난 만큼만 친다.
+   성급 · 장착 · 품계처럼 '지금 상태'를 보는 가르침은 셀 수 없으니 그대로 본다 */
+const questCounters = () => ({ kills: S.kills || 0, codex: (S.codex || []).length, pulls: (S.shrine && S.shrine.pulls) || 0, joun: (S.cnt && S.cnt.askJoun) || 0,
+  ...Object.fromEntries(Object.entries(S.stageWins || {}).map(([k, v]) => ['sw:' + k, v])) });
+const qSince = k => (questCounters()[k] || 0) - ((S.mainQBase || {})[k] || 0);
+const st10 = (z, n) => () => { let c = 0; for (let i = n; i <= STAGE.count; i++) c += qSince(`sw:${z}:${i}`); return c >= 1; };   // 받은 뒤 그 단계(또는 더 위 단계)의 조건을 한 번 채우면
 const allStar = n => () => CAT_ORDER.every(c => S.active[c] && S.manuals[S.active[c]] && S.manuals[S.active[c]].star >= n);   // 네 갈래 장착 무공이 모두 n성
 const QUESTS = [
   { t: '비급 익히고 무공 장착하기', done: () => CAT_ORDER.every(c => S.active[c]), hint: '「행낭」에서 비급 네 권을 눌러 [ 익히기 ] 한 뒤, 「관조 › 무공」의 네 자리에 각각 장착하십시오.',
@@ -213,19 +218,19 @@ const QUESTS = [
     talk: '몸에 걸었으면 강호에 나가 부딪혀야지. 청풍산 초입부터 하나씩 꺾어 올라가거라. 생혈고를 넉넉히 챙기고.', reward: { gear: ['helmet', 1, 1] } },
   { t: '수련치로 무공 성급 올리기', done: () => Object.values(S.manuals).some(m => m.star >= 2), hint: '탐험에서 모은 수련치로 관조 › 무공에서 [ 성급 올리기 ]를 누르십시오.',
     talk: '싸우고 돌아오면 수련치가 쌓인다. 그걸로 관조 › 무공에서 성급을 올려라. 모아 두기만 하면 녹슨다.', reward: { silver: 50, items: { saenghyeol: 5 } } },
-  { t: '조운 대사형에게 문파 일 여쭙기', done: () => !!S.flags.askedJoun, hint: '정청의 조운에게 [문파 일 여쭙기]를 누르십시오. 토벌 임무도 조운이 맡깁니다.',
+  { t: '조운 대사형에게 문파 일 여쭙기', done: () => qSince('joun') >= 1, hint: '정청의 조운에게 [문파 일 여쭙기]를 누르십시오. 토벌 임무도 조운이 맡깁니다.',
     talk: '조운이 녀석한테 가서 문파 일을 여쭤라. 토벌 일거리는 그 녀석이 나눠 준다.', reward: { items: { saenghyeol: 3, potionMp: 2 } } },
   { t: '네 갈래 무공 모두 2성', done: allStar(2), hint: '장착한 무공 · 심법 · 경공 · 기공을 모두 2성 이상으로 올리십시오.',
     talk: '한 갈래만 키우면 절름발이다. 심법 · 경공 · 기공도 고루 2성까지 끌어올려라.', reward: { silver: 60, items: { potionMp: 3 } } },
   { t: '청풍산 산길 돌파 (2단계)', done: st10('cheongpung', 2), hint: '청풍산 2단계를 돌파하십시오.',
     talk: '초입은 맛보기였다. 한 단계 더 올라가 보거라. 이기면 이길수록 다음 걸음이 가볍다.', reward: { silver: 60, items: { saenghyeol: 5 } } },
-  { t: '요수 30마리 쓰러뜨리기', done: () => (S.kills || 0) >= 30, hint: '강호행에서 요수를 모두 30마리 쓰러뜨리십시오.',
+  { t: '요수 30마리 쓰러뜨리기', done: () => qSince('kills') >= 30, hint: '강호행에서 요수를 모두 30마리 쓰러뜨리십시오.',
     talk: '칼은 휘둘러 봐야 손에 붙는다. 요수 서른을 쓰러뜨리고 오너라.', reward: { silver: 80, items: { gigeokdan: 1 } } },
   { t: '청풍산 3단계 돌파', done: st10('cheongpung', 3), hint: '청풍산 3단계를 돌파하십시오.',
     talk: '숨이 차느냐? 기력이 다하면 걸음이 느려진다. 기력단을 아끼지 말고 3단계를 넘어라.', reward: { gear: ['ring', 1, 1] } },
   { t: '청풍산 약초 비탈 돌파 (4단계)', done: st10('cheongpung', 4), hint: '청풍산 4단계 「약초 비탈」을 돌파하십시오. 막히면 아래 단계에서 토벌 임무를 채우며 힘을 기르십시오.',
     talk: '약초 비탈 너머부터는 흑풍채 놈들이 어슬렁댄다. 발이 가벼워야 산다.', reward: { gear: ['boots', 1, 1] } },
-  { t: '화로에서 조합법 하나 알아내기', done: () => (S.codex || []).length >= 1, hint: '청풍문 › 화로에서 재료를 넣고 단조나 연단을 해 조합법을 알아내십시오.',
+  { t: '화로에서 조합법 하나 알아내기', done: () => qSince('codex') >= 1, hint: '청풍문 › 화로에서 재료를 넣고 단조나 연단을 해 조합법을 알아내십시오.',
     talk: '약초 비탈에서 캔 것들을 썩히지 마라. 화로에 넣고 이것저것 섞다 보면 쓸 만한 게 나온다.', reward: { silver: 80, items: { wildGinseng: 2, treeSap: 2 } } },
   { t: '청풍산 흑풍채 초소 돌파 (5단계)', done: st10('cheongpung', 5), hint: '청풍산 5단계 「흑풍채 초소」를 돌파하십시오.',
     talk: '흑풍채 초소를 깨면 청풍문의 진짜 무공을 내주마. 네 병기에 맞는 것으로.', reward: { book: 'weapon' } },
@@ -233,7 +238,7 @@ const QUESTS = [
     talk: '새 비급을 받았으면 손에 익혀야지. 공격 무공을 3성까지 올려라.', reward: { silver: 80, items: { saenghyeol: 5 } } },
   { t: '청풍산 6단계 돌파', done: st10('cheongpung', 6), hint: '청풍산 6단계를 돌파하십시오.',
     talk: '흑풍채 초소 너머는 놈들의 앞마당이다. 한 걸음씩 밀고 들어가라.', reward: { silver: 100, items: { saenghyeol: 5 } } },
-  { t: '무신상에 열 번 공양하기', done: () => (S.shrine && S.shrine.pulls || 0) >= 10, hint: '청풍문 › 무신상에서 공양을 열 번 올리십시오.',
+  { t: '무신상에 열 번 공양하기', done: () => qSince('pulls') >= 10, hint: '청풍문 › 무신상에서 공양을 열 번 올리십시오.',
     talk: '무신상께 공양을 올려 보거라. 정성이 쌓이면 뜻밖의 것을 내리신다.', reward: { silver: 100 } },
   { t: '무공 5성 — 소성(小成) 관문에 이르기', done: () => bestMugongStar() >= 5, hint: '수련치로 무공 하나를 5성까지 올리십시오.',
     talk: '5성에 이르면 벽에 막힌다. 소성 돌파단이 있어야 넘는다. 5성에 닿으면 하나 내주마.', reward: { items: { pillLow: 1 }, silver: 80 } },
@@ -305,7 +310,7 @@ function tutorReady() { const q = QUESTS[questIndex()]; return !!(q && q.reward 
 const questAccepted = () => S.mainQAcc === questIndex();
 function acceptQuest() {
   const qi = questIndex(), q = QUESTS[qi]; if (!q || questAccepted()) return false;
-  S.mainQAcc = qi;
+  S.mainQAcc = qi; S.mainQBase = questCounters();   // 받은 때의 셈 (이 뒤에 늘어난 만큼만 가르침에 친다)
   log(`노벽송: "그래, 해 보거라."`, 'npc');
   log(`[사명 수락 · 장문인의 가르침 ${qi + 1}/${QUESTS.length}] ${q.t}`, 'gold');
   const r = q.pill && RECIPES.find(x => x.out === q.pill); if (r && !S.codex.includes(r.id)) addHint(r);

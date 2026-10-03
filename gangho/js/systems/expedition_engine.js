@@ -241,7 +241,8 @@ function runStep(rec, t) {
     const ds = Math.round(S.silver - b.silver); if (ds < 0) s.ds = ds;   // 기연에서 쓴 은자
   }
   log(`${stepText(rec, s)}`, `exp-step ${s.b !== undefined ? '' : s.cls}`, t, { r: rec.id, s: si });
-  if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { subqAdd(zid, rec.stage); rec.kills++; if (rec.kills >= stageNeed(rec.stage)) { if (rec.stage >= STAGE.count || S.expedition.auto === true) stageClear(rec, t); else { rec.ready = true; stageFirst(rec, t); } } }   // (auto는 GM의 AI 자동 플레이만 켠다)   // 두목은 쓰러뜨리면 곧바로 평정, 그 밖의 단계는 조건을 채우면 [돌파하기]가 열린다   // 서브 퀘스트(단계 토벌) 진행
+  if (r.b !== undefined && rec.battles[r.b].win && (k === 'beast' || k === 'boss')) { subqAdd(zid, rec.stage); rec.kills++; if (rec.kills === stageNeed(rec.stage)) { S.stageWins = S.stageWins || {}; const k = zid + ':' + rec.stage; S.stageWins[k] = (S.stageWins[k] || 0) + 1; }   // 단계 조건을 채운 횟수 (가르침은 받은 뒤의 횟수로 센다)
+    if (rec.kills >= stageNeed(rec.stage)) { if (rec.stage >= STAGE.count || S.expedition.auto === true) stageClear(rec, t); else { rec.ready = true; stageFirst(rec, t); } } }   // (auto는 GM의 AI 자동 플레이만 켠다)   // 두목은 쓰러뜨리면 곧바로 평정, 그 밖의 단계는 조건을 채우면 [돌파하기]가 열린다   // 서브 퀘스트(단계 토벌) 진행
   if (r.lost) { rec.defeats = 1; s.d.push({ text: EXP_TEXT.defeat, cls: 'bad' }); endRun(rec, t, 'dead'); }
   return s;
 }
