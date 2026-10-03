@@ -1000,12 +1000,12 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .observe .obs-attr { gap: 6px; padding: 6px 8px; } .observe .obs-attr span { white-space: nowrap; }
 .observe .obs-h { margin: 14px 0 6px; font-size: .9rem; color: var(--gold, #d4af37); letter-spacing: .04em; }
 .observe .obs-toggle { display: flex; gap: 6px; align-items: center; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; font-weight: 700; text-align: left; }
-/* 호패 옆 투력 (유저 슬라이더 값, 호패 패널 안 %) */
+/* 호패 옆 투력 (유저 슬라이더 값, 호패 패널 안 % — 10월 3일 다시 맞춤: 막대 71.5 · 24 · 0.85배, 투력 72 · 37.5 · 0.92배, 채비 88.5 · 10) */
 .hopae-panel { position: relative; }
-.hopae-panel > .obs-cp { position: absolute; left: var(--cp-x, 70%); top: var(--cp-y, 40.5%); transform: translate(-50%, -50%) scale(var(--cp-s, .9)); width: max-content; margin: 0; z-index: 2; }
+.hopae-panel > .obs-cp { position: absolute; left: var(--cp-x, 72%); top: var(--cp-y, 37.5%); transform: translate(-50%, -50%) scale(var(--cp-s, .92)); width: max-content; margin: 0; z-index: 2; }
 /* 투력 위 활력 · 내력 막대 (유저 슬라이더 값: 자리 % · 크기 배 · 아이콘 · 글씨 · 간격 · 막대 길이/높이) */
 .hopae-panel > .obs-gauge { --gi: 27px; --gf: 14px; --gg: 2px; --gl: 156px; --gh: 20px;
-  position: absolute; left: var(--g-x, 70%); top: var(--g-y, 26.5%); transform: translate(-50%, -50%) scale(var(--g-s, .85)); width: max-content; margin: 0; padding: 0; background: none; border: 0; z-index: 2; }
+  position: absolute; left: var(--g-x, 71.5%); top: var(--g-y, 24%); transform: translate(-50%, -50%) scale(var(--g-s, .85)); width: max-content; margin: 0; padding: 0; background: none; border: 0; z-index: 2; }
 .hopae-panel > .obs-gauge .gauge-group { flex: none; }
 .hopae-panel > .obs-gauge .stat-gauge { grid-template-columns: var(--gi) auto var(--gl); column-gap: 4px; }
 .hopae-panel > .obs-gauge .ui-ico { width: var(--gi); height: var(--gi); }
@@ -1016,7 +1016,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 /* 폰도 PC와 같은 자리 · 크기 (10월 3일 유저) */
 /* 무장: 채비 자리는 유저가 슬라이더로 정한 값 (패널 안 %, 10월 3일) — 좁은 화면에서는 제자리(흐름)에 */
 .gear-panel { position: relative; }
-.gear-panel > .auto-equip { position: absolute; left: var(--chabi-x, 62.5%); top: var(--chabi-y, 8.5%); transform: translate(-50%, -50%); z-index: 2; }
+.gear-panel > .auto-equip { position: absolute; left: var(--chabi-x, 88.5%); top: var(--chabi-y, 10%); transform: translate(-50%, -50%); z-index: 2; }
 @media (max-width: 900px) { .gear-panel > .auto-equip { position: static; transform: none; width: auto; } .gear-panel > .auto-equip { justify-self: end; } }
 .observe .obs-h small { color: var(--dim); font-weight: 400; margin-left: 4px; }
 .observe .vitals { padding: 0; background: none; border: 0; }
