@@ -94,12 +94,14 @@ function viewMartial() {
     </div>`;
   }).join('');
   const skillTabs = `<div class="skill-category-tabs" role="tablist" aria-label="습득 비급 분류">${SKILL_TABS.map(([k, , n]) => `<button class="tab-btn ${tab[0] === k ? 'active' : ''}" role="tab" aria-selected="${tab[0] === k}" data-skilltab="${k}">${n} <small>${learned.filter(id => MANUALS[id].cat === SKILL_TABS.find(t => t[0] === k)[1]).length}</small></button>`).join('')}</div>`;
-  // 2단: 왼쪽 운기조식(80% 크기) · 오른쪽 습득 비급(운기조식 높이에 맞추고 안에서만 스크롤). 좁으면 아래로
+  // 2단: 왼쪽 운기조식(80% 크기) · 오른쪽 위 성향 · 그 아래 습득 비급(운기조식 높이에 맞추고 안에서만 스크롤). 좁으면 아래로 (10월 3일 유저: 성향을 무공 탭 오른쪽 위로)
   return `<div class="martial-duo">
   <section class="panel martial-slots">
     ${head('무공', '武功', `<span class="exp-purse" title="탐험에서 적을 쓰러뜨려 모은 수련치">수련치 <b>${fmt(S.exp)}</b></span>`)}
     <div class="mslots martial-arts-core-layout">${slots}</div>
   </section>
+  <div class="martial-right">
+  <section class="panel tend-panel">${head('성향', '性向')}${schoolTriangle()}</section>
   <section class="panel martial-learned acquired-skills-section">
     <div class="section-header-row">
       <div class="section-title-wrap"><h3 class="section-title">${label('습득 비급', '習得秘笈')}</h3><span class="total-count-badge" id="total-acquired-count">${learned.length}종</span></div>
@@ -110,6 +112,7 @@ function viewMartial() {
       : shown.length ? `<div class="mrows acquired-cards-grid" id="acquired-cards-container">${cards}</div>` : '<div class="empty-notice">해당 계열에 익힌 비급이 없습니다.</div>'}
     </div>
   </section>
+  </div>
   </div>`;
 }
 
@@ -124,15 +127,14 @@ function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${
 
 
 /* 상태 › 무장: 착용 장비 슬롯 · 선택 장비 강화 · 능력치 */
-/* 상태 › 관조: 왼쪽 호패(활력 · 내력 · 투력) · 성향 / 가운데 무장 / 오른쪽 능력치(#vitals 매초 갱신 · 세부) */
+/* 상태 › 관조: 왼쪽 호패(활력 · 내력 · 투력) / 가운데 무장 / 오른쪽 능력치(#vitals 매초 갱신 · 세부) */
 function viewObserve() {
   const st = calcStats();
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'train', 'craft', 'maxSta'].map(k => `<div><span>${STAT_NAMES[k]}</span><b>${st[k] ?? 0}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('')
     + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '');
-  // 왼쪽: 호패(활력 · 내력 · 투력) · 성향 / 가운데: 무장 / 오른쪽: 능력치 (10월 3일 유저)
+  // 왼쪽: 호패(활력 · 내력 · 투력) / 가운데: 무장 / 오른쪽: 능력치 (10월 3일 유저)
   return `<div class="observe-duo observe-trio"><div class="observe-left">
-  <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-act="hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="vitals obs-gauge" id="obsGauge">${gaugeHtml(st)}</div><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section>
-  <section class="panel tend-panel">${head('성향', '性向')}${schoolTriangle()}</section></div>
+  <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-act="hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="vitals obs-gauge" id="obsGauge">${gaugeHtml(st)}</div><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section></div>
   ${viewGear()}
   <section class="panel observe">${head('능력치', '能力')}
     <section class="vitals" id="vitals">${vitalsHtml(st)}</section>
