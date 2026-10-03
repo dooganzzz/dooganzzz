@@ -116,7 +116,7 @@ module.exports = async (b) => {
       // 기력 소모 감소 2%
       S.equip.ring = null; S.expedition.zone = 'cheongpung'; S.stamina = 100; const a = runExpedition(now());
       S.equip.ring = makeNamedGear('g_hornRing'); S.stamina = 100; const c = runExpedition(now());
-      const per = rec => rec.terrain.mult; r.sta = [per(a), per(c)];
+      const per = rec => rec.terrain.mult; r.sta = [per(a), per(c)]; r.tm = terrainMult('cheongpung');
       // 흑사 요대: 숨 고르기
       S.equip.belt = makeNamedGear('g_silkBelt'); r.breathe = calcStats().breathe;
       Object.assign(S.equip, keep); ui.modal = null;
@@ -124,7 +124,7 @@ module.exports = async (b) => {
     });
     ok('4 옥대 기공 위력 +3% → 기공 능력치에 곱해짐', fx.qi[0] > 0 && Math.abs(fx.qi[0] - fx.qi[1]) <= 1, JSON.stringify(fx));
     ok('4 운문 옥대: 극당할 때 받는 피해 감소', fx.res[0] === -1 && fx.res[2] < fx.res[1], JSON.stringify(fx.res));
-    ok('4 흑각 지환: 탐험 기력 소모 ×0.98 · 흑사 요대: 숨 고르기', Math.abs(fx.sta[1] / fx.sta[0] - 0.98) < 0.002 && fx.breathe === 2, JSON.stringify(fx));
+    ok('4 흑각 지환: 탐험 기력 소모 −2%p (기력 절약은 더해짐) · 흑사 요대: 숨 고르기', Math.abs(fx.sta[0] - fx.sta[1] - 0.02 * fx.tm) < 0.002 && fx.breathe === 2, JSON.stringify(fx));
     const drop = await p.evaluate(() => { const n = {}; for (let i = 0; i < 60; i++) { const it = dropGear(1, 0); n[it.named ? 'named' : 'base']= (n[it.named ? 'named' : 'base'] || 0) + 1; } const hi = dropGear(2, 1); return { n, hi: !hi.named && hi.tier === 2 }; });
     ok('4 청풍산(1티어) 하급 드랍·공양은 하급 장비 37종에서 · 그 밖은 기본형', drop.n.named === 60 && drop.hi, JSON.stringify(drop));
     await p.evaluate(() => { goTab('sect', 'shop'); render(); });
