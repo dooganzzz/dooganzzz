@@ -8,6 +8,13 @@ function viewSettings() {
       <div class="set-label"><b>생혈고를 바를 때</b><small class="muted">전투 중 활력이 이만큼 아래로 떨어지면 생혈고를 바릅니다 (한 전투에 ${EXPEDITION.potionPerFight}개까지)</small></div>
       <label class="set-range"><input type="range" min="10" max="90" step="5" value="${pa}" data-setting="potionAt" aria-label="생혈고를 바를 활력 비율"><b class="set-val">활력 ${pa}% 이하</b></label>
     </div>
+    ${!SOUND_ON ? '' : [['bgm', '배경음악', '장면마다 잔잔한 곡 (강호행 · 전투 곡은 준비되는 대로)'], ['sfx', '효과음', '누르기 · 대사 · 발소리 · 날씨 · 타격 · 단조 · 연단 · 장착 · 사고팔기']].map(([k, n, d]) => {
+      const st = S.settings || {}, off = !!st[k + 'Off'], v = st[k + 'Vol'] != null ? st[k + 'Vol'] : SND_DEF[k + 'Vol'];
+      return `<div class="set-row">
+      <div class="set-label"><b>${n}</b><small class="muted">${d}</small></div>
+      <label class="set-range"><input type="range" min="0" max="100" step="5" value="${v}" data-setting="${k}Vol" aria-label="${n} 크기" ${off ? 'disabled' : ''}><b class="set-val">${off ? '꺼짐' : `크기 ${v}`}</b></label>
+      <button class="chip ${off ? '' : 'on'}" data-act="${k}">${off ? '꺼짐' : '켜짐'}</button>
+    </div>`; }).join('')}
     <div class="set-row">
       <div class="set-label"><b>움직임 줄이기</b><small class="muted">화면의 움직임 · 흔들림 · 강호행 무대 연출을 멈춥니다</small></div>
       <button class="chip ${calmOn() ? 'on' : ''}" data-act="calm">${calmOn() ? '켜짐' : '꺼짐'}</button>

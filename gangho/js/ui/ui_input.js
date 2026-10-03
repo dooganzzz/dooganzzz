@@ -18,6 +18,7 @@ function bindInput() {
   document.addEventListener('input', e => {                          // 슬라이더: 대량 구매 개수 · 설정 값
     const t = e.target;
     if (t.dataset.buyqty) { ui.buyQty = +t.value; const w = t.closest('.buy-qty'); w.querySelector('.qty-n').textContent = `${t.value}개`; w.querySelector('.qty-sum').textContent = fmt(t.value * t.dataset.buyqty); }
+    if (t.dataset.setting === 'bgmVol' || t.dataset.setting === 'sfxVol') { const v = +t.value; S.settings = { ...(S.settings || {}), [t.dataset.setting]: v }; t.parentElement.querySelector('.set-val').textContent = `크기 ${v}`; sndApply(); notify.save(); }
     if (t.dataset.setting === 'potionAt') { const v = +t.value; S.settings = { ...(S.settings || {}), potionAt: v / 100 }; t.parentElement.querySelector('.set-val').textContent = `활력 ${v}% 이하`; notify.save(); }
   });
   document.addEventListener('keydown', e => { const c = e.target.closest && e.target.closest('[data-manual], [data-mart], [data-artslot], [data-fold]'); if (c && e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (c.dataset.fold) return toggleFold(c.dataset.fold); if (c.dataset.artslot) { ui.modal = 'artslot:' + c.dataset.artslot; return renderModal(); } ui.modal = c.dataset.mart ? 'mart:' + c.dataset.mart : 'manual:' + c.dataset.manual; renderModal(); } });
@@ -112,7 +113,7 @@ function onClick(e) {
   if (d.recipe) return openRecipe(d.recipe);
   const acts = {
     craft: () => ui.potGear.length ? acts.enhance() : askCraft(),
-    confirmok: confirmAccept, calm: toggleCalm, mirror: () => { ui.modal = 'mirror'; render(); }, callout: toggleCallout, talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
+    confirmok: confirmAccept, calm: toggleCalm, mirror: () => { ui.modal = 'mirror'; render(); }, callout: toggleCallout, bgm: () => sndToggle('bgm'), sfx: () => sndToggle('sfx'), talk: () => { ui.npcTalk = { who: 'arin', offer: true, lines: [{ text: `아린: "${pick(ARIN_TALK)}"` }, { text: '죽을 마시면 활력·내력이 모두 회복됩니다.', cls: 'offer' }] }; ui.modal = 'npc'; render(); },
     arineat: () => npcTalk('arin', arinCare), arinno: () => { ui.npcTalk = { who: 'arin', lines: [{ text: '아린: "힝… 그럼 다음에 꼭 드셔야 해요!"' }] }; render(); }, masterhint: () => npcTalk('master', masterTalk), subqask: () => { npcTalk('master', subqAsk); if (ui.npcTalk && subqLeft()) { ui.npcTalk.zones = true; render(); } }, jounguide: () => npcTalk('joun', jounGuide), supply: () => npcTalk('joun', jounSupply),
     hasan: () => requestActionConfirm({ title: '하산', description: '장문인께 하산을 청합니다. 제1장이 끝나며 되돌릴 수 없습니다.', details: ['낙양성 하산령 획득 · 제1장 완결'], confirmText: '하산을 청한다', onConfirm: doHasan }),
     runhome: () => { ui.modal = null; ui.fieldMap = true; goTab('field'); render(); },             // 끝난 강호행에서 귀환: 지도로 (다음 출발은 지도에서)
