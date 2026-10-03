@@ -98,7 +98,7 @@ function forgeGearInfo() {
       ${max ? '<p class="muted">+10 — 더 이상 벼릴 수 없습니다.</p>' : `
       <div class="enh-row"><span class="enh-lab">능력치</span><small>${statLine(main)}</small></div>
       <div class="enh-row"><span class="enh-lab">+${next.enh} 되면</span><small class="good">${statLine(next)}</small></div>
-      <div class="enh-row"><span class="enh-lab">확률</span><span>성공 <b class="good">${r.ok}%</b> · 그대로 <b>${100 - r.ok - r.boom}%</b>${r.boom ? ` · 파괴 <b class="warn">${r.boom}%</b>` : ''}</span></div>
+      <div class="enh-row"><span class="enh-lab">성패</span><span>성공 <b class="good">${r.ok}%</b> · 그대로 <b>${100 - r.ok - r.boom}%</b>${r.boom ? ` · 파괴 <b class="warn">${r.boom}%</b>` : ''}</span></div>
       <div class="enh-row"><span class="enh-lab">은자</span><span>${hlSilver(cost)}</span></div>`}
     </div>`;
   }

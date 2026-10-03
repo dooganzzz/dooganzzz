@@ -46,8 +46,8 @@ function save() {
 }
 
 /* ───────── 계정: 인터넷에 올린 게임은 아이디로 로그인하고, 캐릭터는 그 아이디의 서버 저장에 묶인다 ─────────
-   파일로 연 게임 · claude.ai 아티팩트 · localhost는 예전처럼 이 기기에만 저장한다 (로그인 없음).
-   세션(아이디 · 토큰 · 게임 버전)은 이 기기에 둔다. 새 버전이 배포되면 버전이 달라 모두 로그아웃되고, 다시 들어오면 진행 중이던 강호행은 끝난다 */
+   파일로 연 게임 · claude.ai 아티팩트 · localhost는 예전처럼 이 기기에만 저장한다 (입문 없음).
+   세션(명첩 · 토큰 · 게임 버전)은 이 기기에 둔다. 새 버전이 배포되면 버전이 달라 모두 하산되고, 다시 들어오면 진행 중이던 강호행은 끝난다 */
 const GAME_VER = (document.querySelector('meta[name="game-ver"]') || {}).content || 'dev';
 const SESSION_KEY = 'gangho_session', NOTICE_KEY = 'gangho_notice';
 const AUTH = { id: null, token: null };
@@ -67,7 +67,7 @@ async function cloudSaveNow() {
   if (!AUTH.id || !S || !cloudDirty || cloudBusy) return;
   cloudBusy = true; cloudDirty = false;
   try { await accountSave(AUTH.id, AUTH.token, { ...S, log: S.log.slice(-200) }); }
-  catch (e) { if (/logged out/.test(e.message)) forceLogout('다른 곳에서 로그인했거나, 운영자가 전체 로그아웃을 했습니다. 다시 로그인하십시오.'); else cloudDirty = true; }
+  catch (e) { if (/logged out/.test(e.message)) forceLogout('다른 곳에서 입문했거나, 운영자가 전체 하산을 했습니다. 다시 입문하십시오.'); else cloudDirty = true; }
   cloudBusy = false;
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && AUTH.id) { save(); cloudSaveNow(); } });
@@ -78,7 +78,7 @@ function forceLogout(msg) {
 }
 async function logout() {
   if (AUTH.id && S) { save(); cloudDirty = true; await cloudSaveNow(); }
-  forceLogout('로그아웃했습니다.');
+  forceLogout('하산했습니다.');
 }
 /* 로그인 · 회원가입이 끝나면 (화면 쪽에서 부른다) */
 function authSignedIn(res) {
@@ -290,7 +290,7 @@ function tick() {
 async function doReset() {
   S = null;
   window.removeEventListener('beforeunload', save);
-  if (AUTH.id) {                                         // 계정: 이 아이디의 저장만 지운다 (서버도)
+  if (AUTH.id) {                                         // 계정: 이 명첩의 저장만 지운다 (서버도)
     try { for (const k of Object.keys(localStorage)) if (k.startsWith(saveKey())) localStorage.removeItem(k); } catch (e) { /* 무시 */ }
     try { await accountSave(AUTH.id, AUTH.token, { reset: true }); } catch (e) { /* 무시 */ }
   } else { try { const ses = localStorage.getItem(SESSION_KEY); localStorage.clear(); if (ses) localStorage.setItem(SESSION_KEY, ses); } catch (e) { /* 저장소 접근 불가 */ } }
@@ -326,15 +326,15 @@ function boot() {
   window.addEventListener('beforeunload', save);
   if (!authMode()) return startGame(migrate(load()));
   const ses = sessionGet();
-  if (!ses || !ses.id || ses.ver !== GAME_VER) {         // 처음이거나, 새 버전이 배포되어 모두 로그아웃
-    const notice = popNotice() || (ses && ses.id ? '새 버전이 배포되어 다시 로그인해야 합니다. 진행 중이던 강호행은 마친 것으로 정리됩니다.' : '');
+  if (!ses || !ses.id || ses.ver !== GAME_VER) {         // 처음이거나, 새 버전이 배포되어 모두 하산
+    const notice = popNotice() || (ses && ses.id ? '새 버전이 배포되어 다시 입문해야 합니다. 진행 중이던 강호행은 마친 것으로 정리됩니다.' : '');
     sessionClear();
     return showAuth(notice, ses && ses.id);
   }
   AUTH.id = ses.id; AUTH.token = ses.token;
   showAuthBusy(`${ses.id} — 불러오는 중…`);
   accountLoad(ses.id, ses.token).then(sv => enterGame(sv), e => {
-    if (/logged out/.test(e.message)) { sessionClear(); AUTH.id = null; showAuth('다른 곳에서 로그인했거나, 운영자가 전체 로그아웃을 했습니다. 다시 로그인하십시오.', ses.id); }
+    if (/logged out/.test(e.message)) { sessionClear(); AUTH.id = null; showAuth('다른 곳에서 입문했거나, 운영자가 전체 하산을 했습니다. 다시 입문하십시오.', ses.id); }
     else enterGame(null);                                // 서버에 닿지 않으면 이 기기의 저장으로 (나중에 다시 올린다)
   });
 }

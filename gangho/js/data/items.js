@@ -35,10 +35,10 @@ const ITEMS = {
   scrap3: { name: '찢어진 일류 비급 조각', icon: '📜', kind: '조각', price: 0, desc: '무신이 하사한 일류 비급의 찢어진 한 장. 금박 테두리가 남아 있다. 8장을 모으면 화로 › 연혼에서 온전한 일류 비급으로 엮는다.' },
   kingTusk:     { name: '저왕의 엄니', icon: '🦷', kind: '증표', price: 0, desc: '옛 청풍산 두목 외눈 멧돼지왕의 거대한 송곳니. 지난 토벌의 증표.' },
   // 조합 실패물 (단조·연단 공통)
-  naedan1:      { name: '하품 내단', icon: '🔮', kind: '부산물', price: 1,  desc: '요수의 몸속에서 굳은 기운 덩어리. 탁하고 작다. 상점에 팔면 은자가 된다.' },
-  naedan2:      { name: '중품 내단', icon: '🔮', kind: '부산물', price: 3,  desc: '은은한 빛이 도는 내단. 상점에 팔면 은자가 된다.' },
-  naedan3:      { name: '상품 내단', icon: '🔮', kind: '부산물', price: 8,  desc: '맑게 빛나는 내단. 오래 묵은 요수에게서 나온다. 상점에 팔면 은자가 된다.' },
-  naedan4:      { name: '극품 내단', icon: '🔮', kind: '부산물', price: 25, desc: '손에 쥐면 기운이 맥동하는 귀한 내단. 상점에서 비싸게 쳐준다.' },
+  naedan1:      { name: '하품 내단', icon: '🔮', kind: '부산물', price: 1,  desc: '요수의 몸속에서 굳은 기운 덩어리. 탁하고 작다. 전방에 팔면 은자가 된다.' },
+  naedan2:      { name: '중품 내단', icon: '🔮', kind: '부산물', price: 3,  desc: '은은한 빛이 도는 내단. 전방에 팔면 은자가 된다.' },
+  naedan3:      { name: '상품 내단', icon: '🔮', kind: '부산물', price: 8,  desc: '맑게 빛나는 내단. 오래 묵은 요수에게서 나온다. 전방에 팔면 은자가 된다.' },
+  naedan4:      { name: '극품 내단', icon: '🔮', kind: '부산물', price: 25, desc: '손에 쥐면 기운이 맥동하는 귀한 내단. 전방에서 비싸게 쳐준다.' },
   slag:         { name: '검게 탄 찌꺼기', icon: '⚫', kind: '부산물', price: 0, desc: '화로 조합에 실패하면 남는 찌꺼기. 청풍문 › 무신상에 공양하면 무언가로 돌아온다.' },
   // 돌파단 (영단)
   pillLow:   { name: '소성 돌파단', icon: '🟢', kind: '영단', price: 40,  desc: '5성 비급을 6성 소성(小成)으로 올릴 때 수련치와 함께 복용한다. (상태 › 무공)' },
@@ -48,10 +48,10 @@ const ITEMS = {
   potionMp:   { name: '소환단', hanja: '小還丹', icon: '💧', kind: '단약', grade: '8품', price: 20, use: { mp: 0.4 }, desc: '급격히 손상된 내력을 즉시 40% 회복시키는 기본 영약.' },
   saenghyeol: { name: '생혈고', hanja: '生血膏', icon: '🩸', kind: '단약', grade: '8품', price: 5, use: { hp: 0.5 }, desc: '깊은 상처를 아물게 하여 활력을 즉시 50% 회복시키는 고약. 탐험 중 활력이 바닥나면 제자가 알아서 바른다.' },
   gigeokdan:  { name: '기력단', hanja: '氣力丹', icon: '💨', kind: '단약', grade: '8품', price: 50, use: { sta: 1 }, desc: '숨이 턱까지 찬 몸에 기운을 불어넣는 환약. 먹으면 기력이 가득 차고 곧바로 다시 달린다.' },
-  golgye:     { name: '철골단', hanja: '鐵骨丹', icon: '🦴', kind: '단약', grade: '8품', price: 40, use: { buff: { key: 'defFlat', val: 15, name: '철골단' } }, desc: '뼈와 근육을 강화하여 다음 원정 동안 방어력 +15.' },
-  tongmaek:   { name: '통맥환', hanja: '通脈丸', icon: '🔆', kind: '단약', grade: '8품', price: 50, use: { buff: { key: 'qiDmg', val: 0.15, name: '통맥환' } }, desc: '굳어진 경락을 뚫어 다음 원정 동안 초식(기공) 피해 +15%.' },
-  haedok:     { name: '해독산', hanja: '解毒散', icon: '🧪', kind: '단약', grade: '8품', price: 30, use: { buff: { key: 'antidote', val: 30, name: '해독산' } }, desc: '독충과 사파의 독기를 정화한다. 다음 원정에서 30합 동안 중독되지 않는다.' },
-  clearPill:  { name: '청심단', hanja: '淸心丹', icon: '🤍', kind: '단약', grade: '8품', price: 45, use: { buff: { key: 'critGuard', val: 10, name: '청심단' } }, desc: '심신을 가라앉혀 다음 원정 동안 회심를 맞을 확률 -10%.' },
+  golgye:     { name: '철골단', hanja: '鐵骨丹', icon: '🦴', kind: '단약', grade: '8품', price: 40, use: { buff: { key: 'defFlat', val: 15, name: '철골단' } }, desc: '뼈와 근육을 강화하여 다음 강호행 동안 방어력 +15.' },
+  tongmaek:   { name: '통맥환', hanja: '通脈丸', icon: '🔆', kind: '단약', grade: '8품', price: 50, use: { buff: { key: 'qiDmg', val: 0.15, name: '통맥환' } }, desc: '굳어진 경락을 뚫어 다음 강호행 동안 초식(기공) 피해 +15%.' },
+  haedok:     { name: '해독산', hanja: '解毒散', icon: '🧪', kind: '단약', grade: '8품', price: 30, use: { buff: { key: 'antidote', val: 30, name: '해독산' } }, desc: '독충과 사파의 독기를 정화한다. 다음 강호행에서 30합 동안 중독되지 않는다.' },
+  clearPill:  { name: '청심단', hanja: '淸心丹', icon: '🤍', kind: '단약', grade: '8품', price: 45, use: { buff: { key: 'critGuard', val: 10, name: '청심단' } }, desc: '심신을 가라앉혀 다음 강호행 동안 회심를 맞을 확률 -10%.' },
   // 증표
   hasanryeong: { name: '낙양성 하산령', icon: '📜', kind: '증표', price: 0, desc: '청풍문 장문인이 내린 하산 허가증. 제2장 낙양성으로 가는 길이 열린다.' },
   // 비급서: 모든 비급마다 '비급' 아이템이 있다. 행낭에서 [ 익히기 ]로 소모하면 습득한 무공 목록에 오른다.
@@ -375,7 +375,7 @@ const CRAFTS = {
 /* 단조 전용 중급 장비 9종 (이류급 · 등급 중급 고정). 비밀 조합식은 recipes.js
    bleed: 적중 시 출혈 확률(%) · pierce: 관통력(적 파갑) · acc: 명중 보정(%p) */
 /* 장경각 이류(二流) 장비: 문파 공헌도로 교환. 이름은 '청풍문 ~'(문파 하사품)으로 단조 장비와 구분한다. 중급(녹색)·2티어. str/con/agi/int는 4대 스탯에 더해진다
-   shock 충격(적이 한 합 움직이지 못함) · first 선공 보정 · bleed 적에게 출혈 · staSave 원정 기력 절약 */
+   shock 충격(적이 한 합 움직이지 못함) · first 선공 보정 · bleed 적에게 출혈 · staSave 강호행 기력 절약 */
 /* 장경각 영단: 돌파단을 문파 공헌도로 (개수 제한 없음, 유저 확정 10월 2일) */
 const LIBRARY_PILLS = { pillLow: 500, pillHigh: 1500 };
 const LIBRARY_GEAR = {
@@ -384,7 +384,7 @@ const LIBRARY_GEAR = {
   lg_blade:  { slot: 'weapon', wtype: 'blade',  name: '청풍문 환도', hanja: '淸風門環刀',   stats: { atk: 25, pierce: 4, str: 1 },      cost: 300, desc: '고리가 달린 묵직한 도. 갑옷 틈을 파고든다.' },
   lg_spear:  { slot: 'weapon', wtype: 'spear',  name: '청풍문 장창', hanja: '淸風門長槍',   stats: { atk: 26, counter: 4, con: 1 },     cost: 320, desc: '긴 자루로 거리를 지배하는 창. 되받아치기에 좋다.' },
   lg_hidden: { slot: 'weapon', wtype: 'hidden', name: '청풍문 비표', hanja: '淸風門飛鏢', stats: { atk: 20, first: 8, bleed: 6 },     cost: 280, desc: '버들잎 모양의 비표. 먼저 날아가 상처를 벌린다 (선공 · 출혈).' },
-  lg_armor:  { slot: 'armor',                   name: '청풍문 내문 도포', hanja: '淸風門內門道袍',   stats: { maxHp: 60, def: 12, staSave: 3 },  cost: 250, desc: '청풍문 내문 제자의 도포. 몸이 가벼워 원정 기력을 아낀다.' },
+  lg_armor:  { slot: 'armor',                   name: '청풍문 내문 도포', hanja: '淸風門內門道袍',   stats: { maxHp: 60, def: 12, staSave: 3 },  cost: 250, desc: '청풍문 내문 제자의 도포. 몸이 가벼워 강호행 기력을 아낀다.' },
   lg_jade:   { slot: 'jade',                    name: '청풍문 옥대', hanja: '淸風門玉帶', stats: { maxHp: 40, maxMp: 30, bag: 10 },   cost: 220, desc: '푸른 옥을 박은 허리 옥대. 단전이 넉넉해지고 짐도 더 진다.' },
 };
 

@@ -137,7 +137,7 @@ function prepPanel() {
         : `${elemTag(e)} <small>싸울 때의 기운. 요수의 오행과 맞물려 피해가 달라집니다.</small><br><small>${ELEMENTS[win].hanja} 속성 요수에게 <b class="good">주는 피해 +25% · 받는 피해 -25%</b><br><small>${ELEMENTS[lose].hanja} 속성 요수에게는 <span class="warn">주는 피해 -25% · 받는 피해 +40%</span></small>`;
       return row(!!t && m <= 1, '경공 · 지형', tv, go('status', 'martial', '무공')) + row(!!e, '기공 · 오행', ev, go('status', 'martial', '무공')); })()}
     ${(() => { const lr = liveRec(), c = lr && lootChips(lr.gain); return lr ? row(true, '전리품', c ? `<div class="loot-chips">${c}</div>` : '<span class="muted">아직 없음</span>') : ''; })()}
-    ${row(true, '준비한 단약', S.buffs.length ? S.buffs.map(b => b.name).join(', ') : '없음 (철골단·통맥환·해독산·청심단은 다음 원정 동안 효과)', go('bag', null, '행낭'))}
+    ${row(true, '준비한 단약', S.buffs.length ? S.buffs.map(b => b.name).join(', ') : '없음 (철골단·통맥환·해독산·청심단은 다음 강호행 동안 효과)', go('bag', null, '행낭'))}
   </ul>`;
 }
 

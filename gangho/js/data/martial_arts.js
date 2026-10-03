@@ -130,6 +130,7 @@ const SCHOOLS = {
 };
 const SCHOOL_RULES = { edge: 0.15, jeongReward: 0.1, maStance: 0.1, saHeal: 0.03 };
 const COMBAT_RULES = { minDmg: 0.2, elemPenalty: 0.15, powerBase: 1.5, weakenMax: 0.2,
+  finisherExp: 1.5,       // 초식(오의 포함)으로 요수를 마무리하면 수련치 ×1.5 (10월 3일 유저)
   critBase: 1.6,          // 제자 치명 배율 기본 (+ 회심 위력 %)
   blockCut: 0.4,          // 막기: 막으면 받는 피해 -40%
   realm: { step: 0.1, cap: 3 },   // 경지 압제: 제자 품계(삼류 0 · 이류 1) − 요수 경지(탐험지 단계 − 1)마다 주는 피해 +10% · 받는 피해 -10% (최대 3단계)

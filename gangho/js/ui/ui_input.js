@@ -127,7 +127,7 @@ function onClick(e) {
       if (warn.length) return requestActionConfirm({ title: '이대로 떠날까요?', description: '준비가 모자라면 금방 쓰러질 수 있습니다. 쓰러지면 강호행은 끝납니다.', details: warn, confirmText: '그래도 떠난다', onConfirm: go });
       go();
     },
-    logout: () => requestActionConfirm({ title: '로그아웃', description: '저장을 서버에 올리고 로그아웃합니다. 진행 중인 강호행은 다음에 로그인하면 이어집니다.', details: [], confirmText: '로그아웃', onConfirm: logout }),
+    logout: () => requestActionConfirm({ title: '하산', description: '저장을 서버에 올리고 하산합니다. 진행 중인 강호행은 다음에 입문하면 이어집니다.', details: [], confirmText: '하산', onConfirm: logout }),
     gigeok: () => { if (!has('gigeokdan')) { toast('기력단이 없습니다. 전방에서 50냥에 팝니다.'); return; } useItem('gigeokdan'); render(); },
     enhance: () => {                                          // 단조 › 장비: 솥 칸의 본템(첫째)에 재료(둘째)를 먹여 강화
       const it = gearByUid(ui.potGear[0]), mat = ui.potGear[1] != null && gearByUid(ui.potGear[1]), r = it && enhRule(it);

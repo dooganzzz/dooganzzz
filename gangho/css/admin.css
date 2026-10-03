@@ -86,3 +86,4 @@ body.gm-locked #gmToggle, body.gm-locked #gmPanel { display: none !important; }
 .gm-btn[disabled] { opacity: .45; cursor: default; }
 .gm-edit td, .gm-edit th { white-space: nowrap; }
 .gm-edit .gm-in { width: 54px; }
+.gm-toggle[hidden] { display: none; }   /* 일반 제자에게는 숨김 (#gm · Ctrl+Shift+G로 드러냄) */

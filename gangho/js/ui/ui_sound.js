@@ -23,7 +23,14 @@ function sndInit() {
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
   const c = SND.ctx = new AC();
   SND.bgmBus = c.createGain(); SND.sfxBus = c.createGain();
-  SND.bgmBus.connect(c.destination); SND.sfxBus.connect(c.destination);
+  SND.bgmBus.connect(c.destination);
+  // 효과음을 둥글게 (10월 3일 유저 '소리가 너무 튄다'): 높은 소리를 깎고(저역 통과) · 갑자기 큰 소리를 눌러 고르게(압축) · 방 울림을 살짝(잔향)
+  const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; lp.Q.value = .5;
+  const cmp = c.createDynamicsCompressor(); cmp.threshold.value = -26; cmp.knee.value = 12; cmp.ratio.value = 4; cmp.attack.value = .004; cmp.release.value = .18;
+  const rv = c.createConvolver(), rvG = c.createGain(), n = Math.floor(c.sampleRate * .9), ir = c.createBuffer(2, n, c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
+  rv.buffer = ir; rvG.gain.value = .14;
+  SND.sfxBus.connect(lp); lp.connect(cmp); cmp.connect(c.destination); cmp.connect(rv); rv.connect(rvG); rvG.connect(c.destination);
   const nb = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = nb.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   SND.noise = nb;
@@ -96,7 +103,7 @@ setInterval(sndTick, 1000);
 function sOsc(type, f0, f1, t0, dur, vol) {
   const c = SND.ctx, o = c.createOscillator(), g = c.createGain();
   o.type = type; o.frequency.setValueAtTime(f0, t0); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
-  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .005); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .015);   // 첫머리를 부드럽게 (딱 소리 없이) g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
   o.connect(g); g.connect(SND.sfxBus); o.start(t0); o.stop(t0 + dur + .02);
 }
 function sNoise(t0, dur, vol, type, f0, f1, q = 1, att = .004) {
@@ -156,7 +163,7 @@ function rec(name, t, vol = .7, o = {}) {
   let i = Math.floor(Math.random() * L.length); if (L.length > 1 && i === SND.last['#' + name]) i = (i + 1) % L.length; SND.last['#' + name] = i;
   const [at, len] = L[i], dur = Math.min(len, o.max || len), c = SND.ctx, s = c.createBufferSource(), g = c.createGain();
   s.buffer = SND.rec; s.playbackRate.value = (o.rate || 1) * (1 + (Math.random() - .5) * .06);
-  g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, t + Math.max(0, dur - .04)); g.gain.linearRampToValueAtTime(.0001, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + Math.min(.012, dur / 4)); g.gain.setValueAtTime(vol, t + Math.max(0, dur - .06)); g.gain.linearRampToValueAtTime(.0001, t + dur);   // 녹음도 첫머리 · 끝을 부드럽게
   s.connect(g); g.connect(SND.sfxBus); s.start(t, at, dur + .01);
   return true;
 }

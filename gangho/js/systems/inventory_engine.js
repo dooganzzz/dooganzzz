@@ -103,7 +103,7 @@ function autoEquipBest() {
     S.equip[best.slot] = best.it; names.push(best.it.name);
   }
   const to = calculateCombatPower(S);
-  if (names.length) { log(`자동 장착: ${names.join(' · ')} — 투력 ${fmt(from)} → ${fmt(to)}`); clampVitals(); notify.refresh(); }
+  if (names.length) { log(`채비: ${names.join(' · ')} — 투력 ${fmt(from)} → ${fmt(to)}`); clampVitals(); notify.refresh(); }
   return { from, to, names };
 }
 

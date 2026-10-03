@@ -189,8 +189,10 @@ function gmRemoteInit() {
 /* ───────── 입력 ───────── */
 function gmInit() {
   if (!GM_ENABLED || $('#gmPanel')) return;
-  document.body.insertAdjacentHTML('beforeend', `<button id="gmToggle" class="gm-toggle" aria-expanded="false" aria-controls="gmPanel" title="운영자 콘솔 (새 창)">GM</button><div id="gmPanel" class="gm-panel" hidden></div>`);
+  document.body.insertAdjacentHTML('beforeend', `<button id="gmToggle" class="gm-toggle" ${/gm/i.test(location.hash) ? '' : 'hidden'} aria-expanded="false" aria-controls="gmPanel" title="운영자 콘솔 (새 창)">GM</button><div id="gmPanel" class="gm-panel" hidden></div>`);
   $('#gmToggle').addEventListener('click', () => (GM.open ? gmToggle(false) : gmPopout()));   // 새 창으로 (막히면 게임 안에)
+  // GM 단추는 일반 제자에게 숨긴다 (10월 3일 유저): 주소 끝에 #gm을 붙이거나 Ctrl+Shift+G로 드러낸다 (admin.html을 바로 열어도 된다)
+  window.addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && (e.key === 'G' || e.key === 'g')) { const b = $('#gmToggle'); b.hidden = !b.hidden; } });
   gmBindPanel($('#gmPanel'));
   // 관리자 창(admin.html)과 연결: 인사가 오면 추적 기록을 넘기고, 명령이 오면 게임 쪽에서 실행한다
   gmOpenChannel(msg => {

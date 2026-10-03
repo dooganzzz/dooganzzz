@@ -275,6 +275,7 @@ function playerHit(b, mult, o) {
   dmg = Math.round(dmg * (1 + (b.realm || 0) * COMBAT_RULES.realm.step) * (1 + schoolEdge(mySchool(), e.school) * SCHOOL_RULES.edge)
     * (o.title && o.cls !== 'counter' && mySchool() === 'ma' ? 1 + SCHOOL_RULES.maStance : 1));   // 경지 압제 · 정마사 상성(요수는 없음) · 마: 초식 위력
   e.hpNow = Math.max(0, e.hpNow - dmg);
+  if (e.hpNow <= 0) b.finisher = !!(o.title && o.cls !== 'counter');   // 초식(오의 포함)으로 마무리했는가 — 수련치 보너스
   if (b.fx) b.fx.push({ side: 'foe', t: `-${fmt(dmg)}`, k: crit ? 'crit' : 'hit', big: crit || dmg >= e.hp * 0.2 });
   const [, txt, cls] = reaction(dmg, e.hp);
   bLine(`${crit ? '<b class="crit">회심의 일격!</b> 급소를 정확히 꿰뚫었다! ' : ''}${josa(e.name, '이가')} ${txt} <span class="dmg">(-${fmt(dmg)})</span>`, `log-stance-result ${cls}${crit ? ' crit' : ''}`);
@@ -375,7 +376,7 @@ function winBattle(b) {
   if (b.sim) return;                                        // 심상수련장: 보상 없음
   S.bestiary[b.eid].kills++;
   const R = EXPEDITION.rewardMult;                           // 원정 보상 배율 (1/10)
-  if (E.xp) { b.exp = Math.round(expGain(E.xp, b.st) * EXPEDITION.expMult); S.exp += b.exp; if (b.exp) bLine(`수련치 +${fmt(b.exp)}`, 'loot'); }
+  if (E.xp) { const fin = b.finisher ? COMBAT_RULES.finisherExp : 1; b.exp = Math.round(expGain(E.xp, b.st) * EXPEDITION.expMult * fin); S.exp += b.exp; if (b.exp) bLine(`수련치 +${fmt(b.exp)}${fin > 1 ? ` <small>(초식으로 마무리 +${Math.round((fin - 1) * 100)}%)</small>` : ''}`, 'loot'); }
   b.silver = Math.round(rint(...E.silver) * R); S.silver += b.silver;
   if (b.silver) bLine(`${hlSilver(b.silver)} 획득`, 'loot');
   // 이 적에게 귀속된 드랍 테이블만 순회한다

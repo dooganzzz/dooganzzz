@@ -20,12 +20,12 @@ function viewSettings() {
       <button class="chip ${calmOn() ? 'on' : ''}" data-act="calm">${calmOn() ? '켜짐' : '꺼짐'}</button>
     </div>
     <div class="set-row">
-      <div class="set-label"><b>초식 외침 두루마리</b><small class="muted">강호행 전투에서 초식을 펼칠 때마다 두루마리에 초식 이름과 시구를 띄웁니다 (그동안 전투가 잠깐 멈춤)</small></div>
+      <div class="set-label"><b>초식 외침 두루마리</b><small class="muted">강호행 전투에서 초식을 펼칠 때마다 두루마리에 초식 이름과 시구를 띄웁니다</small></div>
       <button class="chip ${calloutOn() ? 'on' : ''}" data-act="callout">${calloutOn() ? '켜짐' : '꺼짐'}</button>
     </div>
     ${typeof AUTH !== 'undefined' && AUTH.id ? `<div class="set-row">
-      <div class="set-label"><b>계정</b><small class="muted">${esc(AUTH.id)} 로그인 중</small></div>
-      <button class="btn ghost sm" data-act="logout">로그아웃</button>
+      <div class="set-label"><b>계정</b><small class="muted">${esc(AUTH.id)} 입문 중</small></div>
+      <button class="btn ghost sm" data-act="logout">하산</button>
     </div>` : ''}
     <div class="set-row">
       <div class="set-label"><b>처음부터 다시</b><small class="muted">모든 강호의 기록을 지우고 새로 시작합니다</small></div>
