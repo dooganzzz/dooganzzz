@@ -15,7 +15,7 @@ const TITLE_OPEN_TIER = 1;   // 1장: 최하(0) · 하(1)까지만 얻는다
 
 const TITLES = {
   // ── 최하 (最下) ──
-  chocheol:  { name: '강호초출', hanja: '江湖初出', tier: 0, cond: { k: 'start' }, text: '처음부터', wear: { maxHp: 10 }, gain: { train: 1 } },
+  chocheol:  { name: '강호초출', hanja: '江湖初出', tier: 0, cond: { k: 'start' }, text: '호패 제작', wear: { maxHp: 10 }, gain: { train: 1 } },
   chohaeng:  { name: '초행객', hanja: '初行客', tier: 0, cond: { k: 'runs', n: 1 }, text: '강호행을 한 번 마친다', wear: { staSave: 3 }, gain: { maxSta: 5 } },
   yeopsu:    { name: '엽수수', hanja: '獵獸手', tier: 0, cond: { k: 'kills', n: 100 }, text: '요수 100마리를 쓰러뜨린다', wear: { atk: 3 }, gain: { atk: 1 } },
   bunhyang:  { name: '분향객', hanja: '焚香客', tier: 0, cond: { k: 'shrine', n: 1 }, text: '무신상 탁기 정화 1회', wear: { luck: 2 }, gain: { maxMp: 5 } },

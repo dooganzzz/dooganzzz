@@ -127,11 +127,11 @@ function statLine(it) { return Object.entries(gearStats(it)).map(([k, v]) => `${
 
 /* 상태 › 무장: 착용 장비 슬롯 · 선택 장비 강화 · 능력치 */
 /* 상태 › 관조: 왼쪽 호패(활력 · 내력 · 투력) / 가운데 무장 / 오른쪽 능력치(#vitals 매초 갱신 · 세부) */
-const sectBonusText = Q => Object.entries(Q.bonus).map(([k, v]) => `${STAT_NAMES[k]} +${v}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
+const sectBonusText = Q => Object.entries(Q.bonus.attr).map(([k, v]) => `${ATTRS[k].name} +${v}`).join(' · ');
 function viewObserve() {
   const st = calcStats();
   const statList = ['atk', 'def', 'maxHp', 'maxMp', 'spd', 'eva', 'crit', 'critRes', 'counter', 'critDmg', 'block', 'shield', 'aura', 'luck', 'mpRegen', 'mpCost', 'qiDmg', 'healPct', 'train', 'craft', 'maxSta'].map(k => { const v = k === 'mpCost' ? (st.mpCost || 0) + (st.mpSave || 0) : k === 'qiDmg' ? Math.round((st.qiDmg || 0) * 1000) / 10 : st[k] ?? 0; return `<div><span>${STAT_NAMES[k]}</span><b>${Math.round(v * 10) / 10}${PCT_STATS.has(k) || k === 'qiDmg' ? '%' : ''}</b></div>`; }).join('')   // 내력 절약 = 장비(mpCost) + 오성 · 성향(mpSave)
-    + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '') + (Q => `<div title="${Q.desc}"><span>소속</span><b>${Q.name}</b></div><div class="sect-bonus"><small>${sectBonusText(Q)}</small></div>`)(SECTS[S.sect] || SECTS[SECT_DEFAULT]);
+    + (S.talent ? `<div><span>기예</span><b>${TALENTS[S.talent].name}</b></div>` : '') + (Q => `<div title="${Q.desc}"><span>소속</span><b>${Q.name}</b></div><div class="sect-bonus"><small>${sectBonusText(Q)}</small></div>`)(mySect());
   // 왼쪽: 호패(활력 · 내력 · 투력) / 가운데: 무장 / 오른쪽: 능력치 (10월 3일 유저)
   return `<div class="observe-duo observe-trio"><div class="observe-left">
   <section class="panel hopae-panel">${head('호패', '號牌')}<button class="hopae-btn" data-act="hopae" title="눌러서 별호 새기기">${hopaeCard()}</button><div class="vitals obs-gauge" id="obsGauge">${gaugeHtml(st)}</div><div class="cp-card obs-cp" id="obsCp">${cpCardHtml()}</div></section></div>

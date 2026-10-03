@@ -67,7 +67,6 @@ function calcStats() {
   }
   s.atk += S.shrine.atk; s.maxMp += S.shrine.mp; s.eva += S.shrine.eva; s.crit += Math.floor(S.shrine.total / 10) * 2;
   s.maxHp += S.perm.maxHp; s.maxMp += S.perm.maxMp;
-  { const B = (SECTS[S.sect] || SECTS[SECT_DEFAULT]).bonus; for (const k in B) s[k] = (s[k] || 0) + B[k]; }   // 소속 보너스
   s.eva += s.evaFlat;
   let atkB = s.atkPct / 100, defB = 0;
   s.trainBuff = 0;
@@ -135,9 +134,10 @@ function rollApt() {
   for (;;) { const r = ks.map(() => APT_MIN + Math.floor(Math.random() * n)); if (r.reduce((a, b) => a + b, 0) === APT_TOTAL) return Object.fromEntries(ks.map((k, i) => [k, r[i]])); }
 }
 const validApt = A => !!A && Object.keys(APTS).every(k => Number.isInteger(A[k]) && A[k] >= APT_MIN && A[k] <= APT_MAX) && Object.keys(APTS).reduce((a, k) => a + A[k], 0) === APT_TOTAL;
+const mySect = () => SECTS[S.sect] || SECTS[SECT_DEFAULT];   // 소속 (지금은 청풍문뿐)
 function attrOf(a) {
   const gear = SLOT_ORDER.reduce((n, slot) => n + ((S.equip[slot] && S.equip[slot].stats[a]) || 0), 0);
-  return ((S.attr && S.attr[a]) || ATTR_BASE) + (codexBonus().attr[a] || 0) + (manualPassive().attr[a] || 0) + gear + ((S.perm && S.perm.attr && S.perm.attr[a]) || 0);
+  return ((S.attr && S.attr[a]) || ATTR_BASE) + (codexBonus().attr[a] || 0) + (manualPassive().attr[a] || 0) + gear + ((S.perm && S.perm.attr && S.perm.attr[a]) || 0) + (mySect().bonus.attr[a] || 0);   // 소속 보너스
 }
 /* 비급 독파 영구 보너스: 익힌 비급마다 passiveBonus를 장착 여부와 무관하게 더한다 */
 function manualPassive() {

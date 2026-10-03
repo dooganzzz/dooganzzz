@@ -1037,6 +1037,7 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .hp-gauge .gauge-bar-fill { background: linear-gradient(90deg, #7f1d1d, #dc2626 70%, #f87171); }
 .mp-gauge .gauge-bar-fill { background: linear-gradient(90deg, #1e3a8a, #2563eb 70%, #60a5fa); }
 .gauge-bar-track .gauge-text { position: relative; z-index: 1; display: block; text-align: center; line-height: 18px; text-shadow: 0 1px 2px #000; }
+.obs-col { margin: 0; font-size: .82rem; color: var(--gold); letter-spacing: .06em; text-align: center; } .obs-col small { color: var(--dim); font-weight: 400; }
 .obs-attrs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .obs-attr { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: rgba(12, 11, 9, .45); }
 .obs-attr span { display: flex; flex-direction: column; line-height: 1.15; } .obs-attr small { color: var(--dim); font-size: .7rem; }

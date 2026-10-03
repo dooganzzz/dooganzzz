@@ -134,8 +134,8 @@ function renderHeader() {
 /* 상태 탭 맨 위: 활력 · 내력 막대와 수련치 · 은자 · 공헌 */
 /* 관조 › 메인 능력치 (#vitals, 매초 갱신): 투력 · 활력 · 내력 막대 · 4대 스탯(아이콘). 수련치는 무공 탭, 은자는 행낭, 공헌은 장보각에 */
 function vitalsHtml(st = calcStats()) {
-  return `<div class="obs-main"><div class="obs-attrs">${Object.entries(APTS).map(([q, P]) => { const A = ATTRS[P.pair], tile = (k, N, v, cls) => `<div class="obs-attr ${cls}" title="${N.desc}">${uiIco('st_' + k, 'obs-ico')}<span>${N.name}<small>${N.hanja}</small></span><b>${v}</b></div>`;
-      return tile(P.pair, A, attrOf(P.pair), 'drill') + tile(q, P, aptOf(q), 'apt'); }).join('')}</div></div>`;
+  return `<div class="obs-main"><div class="obs-attrs"><h5 class="obs-col">선천 <small>先天</small></h5><h5 class="obs-col">후천 <small>後天</small></h5>${Object.entries(APTS).map(([q, P]) => { const A = ATTRS[P.pair], tile = (k, N, v, cls) => `<div class="obs-attr ${cls}" title="${N.desc}">${uiIco('st_' + k, 'obs-ico')}<span>${N.name}<small>${N.hanja}</small></span><b>${v}</b></div>`;
+      return tile(q, P, aptOf(q), 'apt') + tile(P.pair, A, attrOf(P.pair), 'drill'); }).join('')}</div></div>`;   // 왼쪽 선천(자질) · 오른쪽 후천(단련) (10월 3일 유저)
 }
 /* 관조 › 호패 패널의 활력 · 내력 막대 (#obsGauge, 매초 갱신) — 투력 위, 자리 · 크기는 유저 슬라이더 값 */
 const gaugeHtml = (st = calcStats()) => `<div class="gauge-group">${gauge('hp', S.hp, st.maxHp, '활력')}${gauge('mp', S.mp, st.maxMp, '내력')}</div>`;
