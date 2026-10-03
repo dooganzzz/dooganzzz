@@ -275,3 +275,11 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .mats .chips.forge-gear .fg-name { white-space: normal; overflow: visible; text-overflow: clip; }   /* 화로 강화 재료 이름을 '…'로 자르지 않고 줄을 내림 */
 .nw { white-space: nowrap; }
 .mm-title .hj-seal, .mrow-top .hj-seal { margin: 0; }   /* 간격은 위 gap 값만 (미리보기 슬라이더와 같게) */
+/* 모바일 크게 보기 (10월 3일 유저 건의 고름): 윗 탭 4칸 × 2줄 · 전경 이름표 · 강호행 무대 이름표 */
+@media (max-width: 600px) {
+  .tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 2px; }
+  .tab { font-size: .98rem; padding: 8px 2px 9px; }
+  .map-box > .ground-tag { width: 18%; }
+  .ground-tag > span { font-size: 3.81cqw; }
+  .live-scene { --hp-w: 48%; --hp-nm: 4.2cqi; --hp-nmmin: 11px; --hp-cp: 5.4cqi; --hp-cpmin: 9px; }
+}
