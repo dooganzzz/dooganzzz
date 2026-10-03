@@ -32,7 +32,7 @@ module.exports = async (b) => {
   // 2 전투 승리 → 수련치 (적의 xp × 수련치 획득 보정)
   const xp = await p.evaluate(() => {
     const e0 = S.exp; S.hp = 99999; const b = fightSync('boar');
-    return { win: b.win, got: S.exp - e0, expect: Math.round(expGain(ENEMIES.boar.xp) * EXPEDITION.expMult), rec: b.exp };
+    return { win: b.win, got: S.exp - e0, expect: Math.round(expGain(ENEMIES.boar.xp) * EXPEDITION.expMult * (b.finisher ? COMBAT_RULES.finisherExp : 1)), rec: b.exp };
   });
   ok('2 승리 시 수련치 = 적 수련치 × 보정 × 강호행 수련치 배율', xp.win && xp.got === xp.expect && xp.rec === xp.expect && xp.expect > 0, JSON.stringify(xp));
   // 6 화로: [단조] | [연단] 두 탭, 탭마다 그 기예의 조합식에 쓰이는 재료만 보인다

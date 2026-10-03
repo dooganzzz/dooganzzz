@@ -185,7 +185,7 @@ function battleOpening(b, E) {
   const A = COMBAT_RULES.aura, me = myAura(b.st), foe = foeAura(b.eid), cut = Math.min(A.max, Math.abs(me - foe) * A.cut);
   if (cut >= 1) {
     if (me > foe) { b.e.atk *= 1 - cut / 100; bLine(`🔥 기세 싸움 — ${josa(E.name, '이가')} 제자의 기세에 눌려 움츠러듭니다. (상대 공격력 -${Math.round(cut)}%)`, 'aff-up'); }
-    else { b.st = { ...b.st, atk: b.st.atk * (1 - cut / 100) }; bLine(`🔥 기세 싸움 — ${E.name}의 위압에 손끝이 굳습니다. (공격력 -${Math.round(cut)}%)`, 'muted'); }
+    else { b.atkCut = cut / 100; b.st = { ...b.st, atk: b.st.atk * (1 - b.atkCut) }; bLine(`🔥 기세 싸움 — ${E.name}의 위압에 손끝이 굳습니다. (공격력 -${Math.round(cut)}%)`, 'muted'); }
   }
 }
 
@@ -196,6 +196,7 @@ function battleRound(b) {
   b.round++;
   b.lines = []; b.fx = [];
   b.st = calcStats();
+  if (b.atkCut) b.st.atk *= 1 - b.atkCut;   // 기세 싸움에서 눌린 몫은 판 내내 (합마다 능력치를 다시 읽어도 유지)
   tickDots(b); checkEnd(b);
   if (b.over) { b.rounds.push({ lines: b.lines, fx: b.fx, me: { hp: Math.round(S.hp), mp: Math.round(S.mp) }, foe: Math.round(b.e.hpNow) }); return; }
   autoPotion(b);
