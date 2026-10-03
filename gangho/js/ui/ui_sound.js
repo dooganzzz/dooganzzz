@@ -212,7 +212,7 @@ function mixNode(name, bus) {
 const SFX_ON = new Set(['type', 'click', 'step', 'hit', 'hurt', 'kiai', 'buy', 'sell', 'portal']);   // 발소리 · 타격음 · 요수가 칠 때 · 사고팔기 · 지도 위 마우스도 켬 (10월 3일 유저)
 function sfx(name, o = {}) {
   if (!SFX_ON.has(name)) return;
-  const c = SND.ctx; if (!c || c.state !== 'running' || !SFX[name] || !sndVol('sfxVol')) return;
+  const c = SND.ctx; if (!c || c.state !== 'running' || !(SFX[name] || (SND.file && SND.file[name])) || !sndVol('sfxVol')) return;
   const n = performance.now(); if (n - (SND.last[name] || 0) < (SFX_GAP[name] || 25)) return; SND.last[name] = n;
   const t = c.currentTime + .005;
   const f = SND.file && SND.file[name]; SND.out = mixNode(name, f ? SND.hitBus : SND.sfxBus);
