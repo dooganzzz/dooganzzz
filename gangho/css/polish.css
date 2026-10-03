@@ -260,7 +260,6 @@ small { font-size: .82rem; }
 .hj-seal.tall { width: 28px; height: 50px; object-fit: fill; }
 .mrow-meta .hj-seal.tall, .mcard-row .hj-seal.tall { width: 22px; height: 39px; }
 .attr-rows dt { display: flex; align-items: center; gap: 6px; }
-.hj-seal.inline { height: 20px; margin: 0 1px; vertical-align: -5px; }
 /* 배열 (10월 3일 유저): 한글은 낱말 중간에서 끊지 않고 칸을 내린다 */
 body { word-break: keep-all; overflow-wrap: break-word; }
 .hj-seal { display: inline-block; }
@@ -269,4 +268,3 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .mm-title, .mrow-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .mm-title h2 { margin: 0; }
 .sheet .mm-title .mm-tags { margin: 0; }
-.hj-seal.inline { filter: brightness(1.6) drop-shadow(0 0 3px rgba(255, 235, 200, .35)); }   /* 작은 魔 · 邪가 어두운 바탕에서 묻히지 않게 */
