@@ -23,7 +23,7 @@ const RECIPES = [
   { id: 'f_t3_sword',  craft: 'forge', in: { blackIngot: 3, blackwood: 3, treeSap: 2 },    out: 'gear:t3_sword' },
   { id: 'f_t3_blade',  craft: 'forge', in: { blackIngot: 4, boarMolar: 2, blackwood: 2 },  out: 'gear:t3_blade' },
   { id: 'f_t3_fist',   craft: 'forge', in: { wildcatHide: 4, blackIngot: 2, viperScale: 2 }, out: 'gear:t3_fist' },
-  { id: 'f_t3_spear',  craft: 'forge', in: { blackwood: 5, blackIngot: 3, boarMolar: 2 },  out: 'gear:t3_spear' },
+  { id: 'f_t3_spear',  craft: 'forge', in: { blackwood: 3, blackIngot: 3, boarMolar: 2 },  out: 'gear:t3_spear' },
   { id: 'f_t3_hidden', craft: 'forge', in: { blackIngot: 3, viperSac: 2, treeSap: 2 },     out: 'gear:t3_hidden' },
   { id: 'f_t3_jade',   craft: 'forge', in: { wildcatHide: 3, treeSap: 3, blackIngot: 1 },  out: 'gear:t3_jade' },
   { id: 'f_c_belt',   craft: 'forge', in: { wildcatHide: 3, wolfSinew: 2 },               out: 'gear:c_belt' },

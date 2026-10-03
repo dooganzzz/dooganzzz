@@ -108,6 +108,18 @@ function forgeGearInfo() {
     ${panel}
   </div>`;
 }
+/* 화로 칸: 행낭과 같은 수묵 네모칸 여덟 — 모루 · 단로 왼쪽 2×2, 오른쪽 2×2. 재료 한 개에 한 칸(누르면 뺌), 강화할 장비도 한 칸씩.
+   [두드리기] · [내력주입] 버튼 대신 모루 · 단로를 누른다 (마우스를 올리면 환해짐, 재료가 없으면 꺼져 있음) */
+function potCells(flat) {
+  const kinds = [...flat.map(id => ({ id })), ...ui.potGear.map(uid => ({ g: gearByUid(uid) })).filter(k => k.g)];   // 재료 한 개에 한 칸 (POT_MAX = 8)
+  const cell = i => { const k = kinds[i];
+    if (k && k.id) return `<button class="fslot full" data-rem="${k.id}" title="${ITEMS[k.id].name} 빼기">${inkFrame()}${itemIco(k.id)}</button>`;
+    if (k && k.g) return `<button class="fslot full gear r${k.g.rarity}" data-grem="${k.g.uid}" title="${esc(gearName(k.g))} 빼기">${inkFrame()}${gearIco(k.g, 'sm')}</button>`;
+    return `<div class="fslot">${inkFrame()}${i === 0 && !kinds.length ? '<small class="slot-hint">재료</small>' : ''}</div>`; };
+  const ready = flat.length || ui.potGear.length, forge = ui.craft === 'forge';
+  return `<div class="pot-side left">${[0, 1, 2, 3].map(cell).join('')}</div><div class="pot-side right">${[4, 5, 6, 7].map(cell).join('')}</div>
+          <button class="pot-hot ${ui.craft}" data-act="craft" ${ready ? '' : 'disabled'} aria-label="${forge ? '모루 — 두드려 벼리기' : '단로 — 내력 주입'}" title="${ready ? (forge ? '모루를 눌러 두드립니다' : '단로를 눌러 내력을 불어넣습니다') : '재료를 먼저 칸에 올리십시오'}"></button>`;
+}
 function viewFurnace() {
   if (ui.craft === 'study') return viewStudy();
   if (!CRAFTS[ui.craft]) ui.craft = 'forge';
@@ -127,11 +139,7 @@ function viewFurnace() {
           ? `<div class="stage-bg">${artPic(ART_SRC.forgeScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>`
           : `<div class="stage-bg">${artPic(ART_SRC.alchemyScene(), '<svg viewBox="0 0 16 9"></svg>', 'scene-art')}</div>`}
         <div class="stage-ui">
-          <div class="pot-slots">${Array.from({ length: POT_MAX }, (_, i) => { const g = ui.potGear[i - flat.length] != null && i >= flat.length ? gearByUid(ui.potGear[i - flat.length]) : null;
-            return flat[i] ? `<button class="slot full" data-rem="${flat[i]}" title="${ITEMS[flat[i]].name} 빼기">${itemIco(flat[i])}<small>${ITEMS[flat[i]].name}</small></button>`
-              : g ? `<button class="slot full gear r${g.rarity}" data-grem="${g.uid}" title="${esc(gearName(g))} 빼기">${gearIco(g, 'sm')}<small>${esc(gearName(g))}</small></button>`
-              : `<div class="slot">${i === 0 && !flat.length && !ui.potGear.length ? '<small class="slot-hint">재료</small>' : ''}</div>`; }).join('')}</div>
-          <div class="btns plaque-btns"><button class="btn plaque primary" data-act="craft" ${flat.length || ui.potGear.length ? '' : 'disabled'}>${ui.craft === 'forge' ? '두드리기' : '내력주입'}</button></div>
+          ${potCells(flat)}
         </div>
         ${(() => { const n = flat.length && craftNoteFor(ui.craft, ui.pot); return n ? `<p class="note-warn ${n.ok ? 'ok' : ''}">📓 연구 노트: 이미 해 본 조합입니다 — ${n.ok ? `성공 (${recipeName({ out: n.out })})` : n.near ? '실패했지만 불길이 크게 일렁였습니다' : '실패'}</p>` : ''; })()}
         ${res ? `<div class="result ${res.ok ? 'ok' : 'fail'}"><b class="${res.cls || ''}">${res.ok ? '성공' : '실패'} — ${chronDecor(res.text)}</b>${res.first ? '<span class="new">도감 등재</span>' : ''}<small>${esc(res.sub || '')}</small></div>` : ''}
