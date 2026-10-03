@@ -105,7 +105,7 @@ setInterval(sndTick, 1000);
 function sOsc(type, f0, f1, t0, dur, vol) {
   const c = SND.ctx, o = c.createOscillator(), g = c.createGain();
   o.type = type; o.frequency.setValueAtTime(f0, t0); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
-  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .015);   // 첫머리를 부드럽게 (딱 소리 없이) g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .015); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);   // 첫머리를 부드럽게 (딱 소리 없이) · 끝도 잦아들게
   o.connect(g); g.connect(SND.sfxBus); o.start(t0); o.stop(t0 + dur + .02);
 }
 function sNoise(t0, dur, vol, type, f0, f1, q = 1, att = .004) {
@@ -117,7 +117,7 @@ function sNoise(t0, dur, vol, type, f0, f1, q = 1, att = .004) {
 const coin = (t, f) => { sOsc('sine', f, f, t, .25, .07); sOsc('sine', f * 2.7, f * 2.7, t, .12, .03); };
 const bell = (t, f, v = .08, d = 1.4) => { [1, 2.76, 5.4].forEach((r, i) => sOsc('sine', f * r, f * r, t, d / (1 + i), v / (1 + i * 1.5))); };
 const SFX = {
-  type: t => { const f = 760 + Math.random() * 180; sOsc('square', f, f, t, .035, .025); },                                    // 대사 도트음
+  type: t => sOsc('sine', 420, 420, t, .05, .03),                                    // 대사 도트음: 높낮이 없이 낮고 둥근 '톡' (10월 3일 유저: 오래 들어도 거슬리지 않게)
   click: t => { sOsc('sine', 1400, 800, t, .05, .1); sNoise(t, .025, .04, 'bandpass', 3000, 3000, 2); },                    // 나무 딱
   portal: t => { [0, .06, .12].forEach((d, i) => sOsc('sine', 420 * (1 + i * .5), 900 * (1 + i * .5), t + d, .6, .035)); sNoise(t, .7, .03, 'bandpass', 900, 3800, 3, .25); },
   step: (t, o) => {                                                                                                         // 발소리: 흙 · 젖은 땅 · 눈

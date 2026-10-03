@@ -866,7 +866,10 @@ html.calm .qi-ring, html.calm .qi-comet, html.calm .martial-arts-core-layout .sl
   .qi-comet { display: none; } .martial-arts-core-layout .slot-pos .mslot-box { animation: none; }   /* 폰: 칸이 고리 위에 있지 않아 도는 빛 · 칸 빛남은 뺀다 */
   .slot-pos.pos-12 { grid-area: heart; } .slot-pos.pos-3 { grid-area: aura; } .slot-pos.pos-9 { grid-area: attack; } .slot-pos.pos-6 { grid-area: agility; }
   .mslots.martial-arts-core-layout > .meditation-center-frame { grid-area: core; position: relative; left: auto; top: auto; transform: none; justify-self: center; width: min(62vw, 240px); height: auto; aspect-ratio: 1; margin: 4px 0; }
-  .mslots.martial-arts-core-layout > .qi-orbit { grid-area: core; position: relative; inset: auto; width: min(80vw, 300px); height: auto; aspect-ratio: 1; justify-self: center; align-self: center; margin: -30px 0; }
+  .mslots.martial-arts-core-layout { position: relative; }
+  .mslots.martial-arts-core-layout > .qi-orbit { position: absolute; inset: auto; left: 50%; top: 50%; width: min(118%, 470px); height: auto; aspect-ratio: 1; transform: translate(-50%, -50%); margin: 0; }   /* 폰: 큰 기운 고리가 네 칸을 감싸게 (10월 3일 유저) */
+  .mslots.martial-arts-core-layout > .qi-ring { animation: none; }
+  .mslots.martial-arts-core-layout > .slot-pos, .mslots.martial-arts-core-layout > .meditation-center-frame { z-index: 2; }
   .skill-card-compact.mslot, .pos-12 .skill-card-compact.mslot, .pos-6 .skill-card-compact.mslot { width: 100%; max-width: none; }
   .mslot-head .mslot-cover { width: 26px; height: 34px; }
 }
