@@ -1048,12 +1048,14 @@ html.calm .meditation-center-frame .rank-ring.on { animation: none; }
 .hopae-wrap { display: flex; gap: 18px; align-items: center; }
 .hopae { position: relative; width: 150px; flex: none; }
 .hopae-board { display: block; width: 100%; height: auto; }
-.hopae-text { position: absolute; left: 8%; right: 36%; top: 22%; bottom: 28%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px;
-  writing-mode: vertical-rl; text-orientation: upright; font-family: 'Gangho Brush', var(--serif), serif; color: #2a1608; text-shadow: 0 0 2px rgba(255, 236, 200, .5); }
-.hopae-text .hp-name { font-size: 26px; font-weight: 400; letter-spacing: .05em; }
-.hopae-text .hp-alias { font-size: 14px; opacity: .85; }
-.hopae-text .hp-rank { font-size: 13px; opacity: .8; }
-.hopae-seal { position: absolute; left: 28%; bottom: 13%; width: 34px; transform: rotate(-5deg); opacity: .95; }
+/* 패의 빈 면(그림 가로 0~64% · 세로 30~72%) 한가운데에 성명을 크게 세로로, 오른쪽에 별호 · 왼쪽에 경지를 작게 (오른쪽부터 읽는다) */
+.hp-col { position: absolute; top: 31%; transform: translateX(-50%); writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; line-height: 1;
+  font-family: 'Gangho Brush', var(--serif), serif; font-weight: 400; color: #2a1608; text-shadow: 0 0 2px rgba(255, 236, 200, .45); }
+.hp-name { left: 32%; font-size: 26px; letter-spacing: .12em; }
+.hp-name.n4, .hp-name.n5 { font-size: 21px; letter-spacing: .1em; } .hp-name.n6, .hp-name.n7, .hp-name.n8 { font-size: 17px; letter-spacing: .08em; }
+.hp-alias { left: 50%; top: 34%; font-size: 13px; letter-spacing: .1em; opacity: .85; }
+.hp-rank { left: 14%; top: 34%; font-size: 13px; letter-spacing: .1em; opacity: .85; }
+.hopae-seal { position: absolute; left: 32%; top: 70%; width: 30px; transform: translate(-50%, -50%) rotate(-4deg); opacity: .95; }
 .hopae-info { flex: 1; min-width: 0; margin: 0; display: grid; gap: 8px; }
 .hopae-info > div { display: flex; gap: 10px; align-items: baseline; }
 .hopae-info dt { width: 76px; white-space: nowrap; color: var(--dim); font-size: .85rem; } .hopae-info dd { margin: 0; font-weight: 700; }
