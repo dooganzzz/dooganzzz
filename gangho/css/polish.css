@@ -251,3 +251,9 @@ small { font-size: .82rem; }
 .attr-rows dt { font-weight: 700; color: var(--text, #efe6d2); white-space: nowrap; } .attr-rows dd { margin: 0; min-width: 0; }
 .attr-rows.fx dt { color: var(--dim, #9a8f7a); } .attr-rows.fx dt.on { color: var(--gold, #d4af37); }
 @media (max-width: 480px) { .attr-rows { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .attr-rows dd { margin-bottom: 6px; } }
+
+/* 비급 상세 머리: 《이름》 아래 등급(三流) · 경지(入門) */
+.sheet .mm-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 4px 0 0; }
+.grade-hj { display: inline-flex; gap: 3px; align-items: baseline; padding: 2px 9px; border: 1px solid var(--line, rgba(212, 175, 55, .35)); border-radius: 999px; font-size: .78rem; font-weight: 700; color: var(--text, #efe6d2); }
+.grade-hj small { font-weight: 400; opacity: .8; }
+.sheet .moves li small { white-space: nowrap; }

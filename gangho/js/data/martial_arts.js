@@ -3,11 +3,11 @@
 /* 강호견문록 — 정적 데이터 (비급·아이템·레시피·구역·적) */
 'use strict';
 const GRADES = {
-  '삼류': { mult: 1.0, cls: 'g3' },
-  '이류': { mult: 1.6, cls: 'g2' },
-  '일류': { mult: 2.4, cls: 'g1' },
-  '절정': { mult: 3.4, cls: 'g0' },
-  '초절정': { mult: 4.6, cls: 'gs' },
+  '삼류': { mult: 1.0, cls: 'g3', hanja: '三流' },
+  '이류': { mult: 1.6, cls: 'g2', hanja: '二流' },
+  '일류': { mult: 2.4, cls: 'g1', hanja: '一流' },
+  '절정': { mult: 3.4, cls: 'g0', hanja: '絶頂' },
+  '초절정': { mult: 4.6, cls: 'gs', hanja: '超絶頂' },
 };
 /* 1장: 이류까지만 공개. 일류 · 절정 · 초절정 비급은 봉인 (얻을 수도 익힐 수도 없고, 장보각에도 나오지 않는다) */
 const OPEN_GRADES = ['삼류', '이류'];
@@ -38,7 +38,7 @@ const GATE_NAME = { 5: '소성 관문(小成)', 11: '대성 관문(大成)' };
 const REALMS = [
   { min: 1,  name: '입문', hanja: '入門', cls: 'realm-0' },
   { min: 6,  name: '소성', hanja: '小成', cls: 'realm-1' },
-  { min: 12, name: '대성', hanja: '大成 / 極意', cls: 'realm-2' },
+  { min: 12, name: '대성', hanja: '大成', cls: 'realm-2' },
 ];
 
 /* 대성 패시브: 12성에 이르면 분류별로 영구 고유 효과가 열린다 */
@@ -57,7 +57,7 @@ const MANUAL_POWER = { K: 1.8, star: 0.5, soseong: 1.08, grade: { '삼류': 1, '
 /* 무사 품계: 네 갈래(심법 · 무공 · 기공 · 경공) 삼류 비급을 모두 12성(대성)하고 파관단(破關丹)을 pill.n알 삼키면 이류무사로 돌파 — 공격 · 방어 · 활력 · 내력 · 속도 +20%
    (돌파는 삼류의 좁은 경맥으로 이류의 기를 돌리는 일이라 운공 내내 내력이 샌다. 파관단이 그 관문을 깨뜨린다) */
 const WARRIOR_RANK = { lamps: 24, pill: { id: 'sokgidan', n: 3 },   // 게이지 24칸: 성급 2마다 불 하나
-  ranks: [{ name: '삼류무사', hanja: '三流武士', mult: 1 }, { name: '이류무사', hanja: '二流武士', mult: 1.2 }] };
+  ranks: [{ name: '삼류무사', grade: '삼류', mult: 1 }, { name: '이류무사', grade: '이류', mult: 1.2 }] };
 
 
 const STARTERS = ['fs1a', 'sw1a', 'bd1a', 'sp1b', 'hd1a'];   // 병기별 첫 삼류 (입문) — 모두 정파 (표지 통일, 10월 3일 유저: 창법은 사파 삭풍창법 대신 철선창법)

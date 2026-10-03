@@ -56,7 +56,8 @@ const realmTag = star => { const r = realmOf(star); return `<span class="realm $
 /* 상태 탭 맨 위: 투력. 공세 · 수세 같은 내역은 보여 주지 않는다 (유저가 직접 찾아가도록) */
 /* 관조 › 무공 */
 /* 좌선 아래 글씨: 품계는 '삼류(三流)'만, 게이지가 절반이면 소주천 · 다 차면 대주천 (10월 3일 유저) */
-const rankGradeLabel = R => `<span class="rk-grade">${R.name.replace(/무사$/, '')}(${[...R.hanja].slice(0, 2).join('')})</span>`;
+const rankGradeLabel = R => `<span class="rk-grade">${R.grade}(${GRADES[R.grade].hanja})</span>`;
+const gradeTag = g => `<span class="grade-hj ${GRADES[g].cls}">${g}<small>${GRADES[g].hanja}</small></span>`;   // 비급 등급 (삼류 三流 …)
 function viewMartial() {
   // 기운이 도는 고리 위에 비스듬히: 11시 심법 → 2시 기공 → 5시 경공 → 8시 무공 (십자 대칭을 버리고 흐름대로, 각도는 CSS --a)
   const POS = { simbeop: 'pos-12 slot-heart', mugong: 'pos-9 slot-attack', gigong: 'pos-3 slot-aura', gyeonggong: 'pos-6 slot-agility' };

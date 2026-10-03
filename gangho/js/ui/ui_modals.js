@@ -13,32 +13,32 @@ function manualModal(cat) {
 const fmtBonus = b => Object.entries(b).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
 function manualAttrHtml(id) {
   const M = MANUALS[id], P = SCHOOLS[schoolOf(id)], rows = [];
-  if (P) rows.push([`${P.name}(${P.hanja})`, `${P.words}.${M.cat === 'mugong' ? ` ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음).` : ''}`]);
-  if (M.elem) rows.push([`오행 ${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})`, `${ELEMENTS[ELEM_BEATS[M.elem]].name}(${ELEMENTS[ELEM_BEATS[M.elem]].hanja}) 속성 적에게 피해 +25%, ${(e => `${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`)(Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem))} 속성 적에게는 -25%`]);
-  if (M.terrain) rows.push([`지형 ${TERRAINS[M.terrain].name}(${TERRAINS[M.terrain].hanja})`, `${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%`]);
-  return rows.length ? `<h4 class="sec-h">속성</h4><dl class="attr-rows">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` : '';
+  const sec = (h, R) => R.length ? `<h4 class="sec-h">${h}</h4><dl class="attr-rows">${R.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` : '';
+  const camp = P ? [[`${P.name}(${P.hanja})`, `${P.words}.${M.cat === 'mugong' ? ` ${P.hanja}는 ${SCHOOLS[P.beats].hanja}를 이기고 ${SCHOOLS[Object.keys(SCHOOLS).find(k => SCHOOLS[k].beats === schoolOf(id))].hanja}에게 진다 (요수에게는 상성 없음).` : ''}`]] : [];
+  if (M.elem) rows.push([`${ELEMENTS[M.elem].name}(${ELEMENTS[M.elem].hanja})`, `${ELEMENTS[ELEM_BEATS[M.elem]].name}(${ELEMENTS[ELEM_BEATS[M.elem]].hanja}) 속성 적에게 피해 +25%, ${(e => `${ELEMENTS[e].name}(${ELEMENTS[e].hanja})`)(Object.keys(ELEM_BEATS).find(k => ELEM_BEATS[k] === M.elem))} 속성 적에게는 -25%`]);
+  if (M.terrain) rows.push([`${TERRAINS[M.terrain].name}(${TERRAINS[M.terrain].hanja})`, `${TERRAINS[M.terrain].name} 지형에서 기력 소모 -20%, 다른 지형에서는 +20%`]);
+  return sec('진영', camp) + sec('속성', rows);
 }
 function manualFxHtml(id, star) {
   const M = MANUALS[id], cat = M.cat, rows = [], got = n => star != null && star >= n;
   rows.push(['습득 시', `${bonusText(M.passiveBonus) || '없음'}`, star != null]);
   rows.push(['장착 시', `${fmtBonus(manualBonus(id, star || 1))}`, star != null]);
-  rows.push(['소성(6성) 시', `장착 능력치 30% 상승${got(6) ? ' <small class="gold">(적용 중)</small>' : ` — ${fmtBonus(manualBonus(id, 6))}`}${M.weapon && M.stances ? ' · 제2초식 열림' : ''}`, got(6)]);
-  rows.push(['대성(12성) 시', `${DAESUNG_PASSIVE[cat].text}${M.weapon && M.stances ? ' · 오의 열림' : ''}${got(MAX_STAR) ? ' <small class="gold">(적용 중)</small>' : ''}`, got(MAX_STAR)]);
+  rows.push(['소성(小成)', `장착 능력치 30% 상승${got(6) ? ' <small class="gold">(적용 중)</small>' : ` — ${fmtBonus(manualBonus(id, 6))}`}${M.weapon && M.stances ? ' · 제2초식 열림' : ''}`, got(6)]);
+  rows.push(['대성(大成)', `${DAESUNG_PASSIVE[cat].text}${M.weapon && M.stances ? ' · 오의 열림' : ''}${got(MAX_STAR) ? ' <small class="gold">(적용 중)</small>' : ''}`, got(MAX_STAR)]);
   return `<h4 class="sec-h">부가 효과</h4><dl class="attr-rows fx">${rows.map(([k, v, on]) => `<dt class="${on ? 'on' : ''}">${k}</dt><dd class="${on ? '' : 'muted'}">${v}</dd>`).join('')}</dl>`;
 }
 /* 아직 익히지 않은 비급의 상세 (장보각 카드 등): 시문 · 초식 · 상성 · 성급별 장착 능력치 · 독파 각인 · 공헌 */
 function manualPreviewModal(id) {
   const M = MANUALS[id], cat = M.cat, lib = LIBRARY_BOOKS.includes(id) && M.cost, own = !!(S.manuals[id] || has('bk_' + id));
   const statTxt = st => Object.entries(manualBonus(id, st)).map(([k, v]) => `${STAT_NAMES[k]} +${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}`).join(' · ');
-  const moves = M.stances ? `<h4>${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name, desc }) => `<li><b>${name}</b> <small class="muted">${esc(desc || '')}</small></li>`).join('')}</ol>` : '';
+  const moves = M.stances ? `<h4 class="sec-h">${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name }, i) => `<li><b>${name}</b><small>${['제1초식 · 습득', '제2초식 · 소성', '오의 · 대성'][i]}</small></li>`).join('')}</ol>` : '';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2></div></div>
-    <p class="story">${M.desc}</p>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》</h2><p class="mm-tags">${gradeTag(M.grade)}</p></div></div>
     ${manualPoemHtml(id)}
     ${M.weapon ? `<p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : ''}
     ${manualAttrHtml(id)}
-    ${manualFxHtml(id, null)}
     ${moves}
+    ${manualFxHtml(id, null)}
     <div class="btns">${lib ? `<button class="btn primary" data-buymanual="${id}" ${own || S.contrib < M.cost ? 'disabled' : ''}>${own ? '보유' : `공헌 ${M.cost}로 바꾸기`}</button>` : ''}<button class="btn ghost" data-act="closemodal">닫기</button></div>
   </div>`;
 }
@@ -47,7 +47,7 @@ function martialModal(id) {
   const M = MANUALS[id], m = S.manuals[id], cat = M.cat;
   const worn = S.active[cat] === id;
   const bonus = Object.entries(manualBonus(id, m.star)).map(([k, v]) => `<div class="kv"><span>${STAT_NAMES[k]}</span><b>+${PCT_STATS.has(k) || k === 'mpRegen' ? Math.round(v * 10) / 10 : Math.round(v)}${PCT_STATS.has(k) ? '%' : ''}</b></div>`).join('');
-  const moves = M.stances ? `<h4>${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name: mv }, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 습득', '제2초식 · 소성', '오의 · 대성'][i]}${open ? '' : ` — ${i === 1 ? '6성 소성 돌파' : '12성 대성 달성'} 시 해금`}</small></li>`; }).join('')}</ol>
+  const moves = M.stances ? `<h4 class="sec-h">${M.weapon ? '초식' : '경지'}</h4><ol class="moves">${M.stances.map(({ name: mv }, i) => { const open = i < unlockedMoves(m.star); return `<li class="${open ? 'open' : 'lock'}"><b>${mv}</b><small>${['제1초식 · 습득', '제2초식 · 소성', '오의 · 대성'][i]}</small></li>`; }).join('')}</ol>
     ${M.weapon ? `<p class="${M.weapon === weaponType() ? 'muted' : 'warn'}">필요 병기: ${WEAPON_TYPES[M.weapon]}${M.weapon === weaponType() ? '' : ' (지금 병기로는 초식이 나가지 않습니다)'}</p>` : ''}` : '';
   const pill = GATES[m.star];
   let gateInfo;
@@ -59,13 +59,12 @@ function martialModal(id) {
       <div><button class="btn primary" data-starup="${id}" ${why ? 'disabled' : ''}>▲ 성급 올리기${why ? ` <small>(${why})</small>` : ` <small>수련치 ${fmt(cost)}${pill ? ` + ${ITEMS[pill].name}` : ''}</small>`}</button></div>`;
   } else gateInfo = '<p class="daesung">12성 대성(大成)</p>';
   return `<div class="sheet">
-    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》 <small class="grade-tag">[${M.grade} ${CATS[cat].name}]</small></h2>${realmTag(m.star)}</div><div class="art-star">${m.star}<small>/12성</small></div></div>
-    <p class="num muted">현재 ${m.star}성${m.star < MAX_STAR ? ` / 다음 성까지 수련치 ${fmt(starCost(id))} (보유 ${fmt(S.exp)})` : ' / 대성'}</p>
-    <p class="story">${M.desc}</p>
+    <div class="sheet-head"><div><small class="muted">${CATS[cat].name} ${CATS[cat].hanja}</small><h2>《${M.name}》</h2><p class="mm-tags">${gradeTag(M.grade)} ${realmTag(m.star)}</p></div><div class="art-star">${m.star}<small>/12성</small></div></div>
     ${manualPoemHtml(id)}
     ${manualAttrHtml(id)}
+    ${moves}
     ${manualFxHtml(id, m.star)}
-    ${moves}${gateInfo}
+    ${gateInfo}
     <div class="btns">${worn && Object.keys(S.manuals).some(k => k !== id && MANUALS[k].cat === cat) ? `<button class="btn ghost" data-artslot="${cat}">[ 다른 비급으로 바꾸기 ]</button>` : ''}${worn ? `<button class="btn danger" data-unequipm="${cat}">[ 장착 해제 ]</button>` : `<button class="btn primary" data-equipm="${id}">[ 장착하기 ]</button>`}<button class="btn ghost" data-act="closemodal">닫기</button></div>
   </div>`;
 }
@@ -229,7 +228,7 @@ function renderModal() {
         : '<button class="btn primary" data-act="closemodal">알겠습니다</button>'}</div></div>`);
   }
   if (ui.modal === 'rankup') { const R = warriorRank();   // 이류무사 승급: 24칸이 한 바퀴 켜지고 → 고리 폭발 → 번쩍 → 二流武士
-    setHTML(m, `<div class="sheet rankup-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武士 · 품계 승급</p><div class="rku-stage play"><img class="art" src="${ASSET.scene('rankup_2')}" alt=""><div class="rku"><img class="ring off" src="${ASSET.ui('rank_ring_off')}" alt=""><img class="ring on" src="${ASSET.ui('rank_ring_on')}" alt=""><i class="flash"></i><div class="title"><b>${R.hanja}</b><small>${R.name} · 전체 능력치 +${Math.round((R.mult - 1) * 100)}%</small></div></div></div>
+    setHTML(m, `<div class="sheet rankup-sheet" role="dialog" aria-modal="true"><p class="eyebrow">품계 승급</p><div class="rku-stage play"><img class="art" src="${ASSET.scene('rankup_2')}" alt=""><div class="rku"><img class="ring off" src="${ASSET.ui('rank_ring_off')}" alt=""><img class="ring on" src="${ASSET.ui('rank_ring_on')}" alt=""><i class="flash"></i><div class="title"><b>${R.name}</b><small>전체 능력치 +${Math.round((R.mult - 1) * 100)}%</small></div></div></div>
       <div class="btns"><button class="btn primary" data-act="closemodal">받든다</button></div></div>`); }
   if (ui.modal === 'awaken' && ui.awaken) { const a = ui.awaken;
     setHTML(m, `<div class="sheet awaken-sheet" role="dialog" aria-modal="true"><p class="eyebrow">武神 · 무신의 응답</p><h2>석상이 눈을 떴습니다</h2>

@@ -32,8 +32,8 @@ function checkRankUp(loud) {
   if (have < P.n) { if (loud) notify.toast(`장착한 네 무공을 모두 대성했습니다. 이류무사로 돌파하려면 ${ITEMS[P.id].name} ${P.n}알이 필요합니다 (가진 것 ${have}알).`); return false; }
   take(P.id, P.n);
   S.rank = 1; const R = warriorRank();
-  log(`🔷 ${ITEMS[P.id].name} ${P.n}알로 끊어지려는 기를 이어 가며 운공을 마쳤습니다 — 장착한 네 무공을 모두 대성하여 ${R.name}(${R.hanja})로 돌파했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
-  notify.banner(`${R.hanja} · ${R.name}`, `전체 능력치 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
+  log(`🔷 ${ITEMS[P.id].name} ${P.n}알로 끊어지려는 기를 이어 가며 운공을 마쳤습니다 — 장착한 네 무공을 모두 대성하여 ${R.name}로 돌파했습니다! 공격 · 방어 · 활력 · 내력 · 속도 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
+  notify.banner(R.name, `전체 능력치 +${Math.round((R.mult - 1) * 100)}%`, 'gold');
   notify.view({ modal: 'rankup' });   // 승급 연출 창
   return true;
 }
